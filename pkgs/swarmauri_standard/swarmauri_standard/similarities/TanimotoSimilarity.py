@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SimilarityBase, "TanimotoSimilarity")
 class TanimotoSimilarity(SimilarityBase):
     """
-    Tanimoto Similarity implementation, a generalization of Jaccard for real vectors.
+    Tanimoto Similarity implementation, a generalization of Jaccard for real
+    vectors.
 
     The Tanimoto coefficient is widely used in cheminformatics for measuring
-    the similarity between molecular fingerprints. It is defined as the ratio of
-    the intersection to the union when applied to binary vectors, and extends to
+    the similarity between molecular fingerprints. It is defined as the ratio
+    of
+    the intersection to the union when applied to binary vectors, and extends
+    to
     real-valued vectors.
 
     For real-valued vectors, the formula is:
@@ -64,7 +67,10 @@ class TanimotoSimilarity(SimilarityBase):
             # Check dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Input vectors must have the same dimensions: {x_array.shape} != {y_array.shape}"
+                    (
+                        f"Input vectors must have the same dimensions: "
+                        f"{x_array.shape} != {y_array.shape}"
+                    )
                 )
 
             # Check for zero vectors
@@ -104,7 +110,8 @@ class TanimotoSimilarity(SimilarityBase):
         try:
             x_array, y_array = self._validate_input(x, y)
 
-            # Check if vectors are proportional (one is a scalar multiple of the other)
+            # Check if vectors are proportional (one is a scalar multiple of
+            # the other)
             # Find ratio for first non-zero element pair
             ratio = None
             for i in range(len(x_array)):
@@ -113,7 +120,8 @@ class TanimotoSimilarity(SimilarityBase):
                     break
 
             if ratio is not None:
-                # Check if all elements maintain this ratio (allowing for floating point error)
+                # Check if all elements maintain this ratio (allowing for
+                # floating point error)
                 is_proportional = True
                 for i in range(len(x_array)):
                     if x_array[i] == 0 and y_array[i] == 0:
@@ -140,7 +148,8 @@ class TanimotoSimilarity(SimilarityBase):
             # Calculate Tanimoto coefficient
             denominator = sum_squares_x + sum_squares_y - dot_product
 
-            # Avoid division by zero (though we already checked for zero vectors)
+            # Avoid division by zero (though we already checked for zero
+            # vectors)
             if denominator == 0:
                 return 0.0
 
@@ -156,7 +165,8 @@ class TanimotoSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Tanimoto similarities between one vector and multiple other vectors.
+        Calculate Tanimoto similarities between one vector and multiple other
+        vectors.
 
         This implementation is optimized for multiple comparisons.
 
@@ -200,13 +210,17 @@ class TanimotoSimilarity(SimilarityBase):
                     # Check dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            f"Input vectors must have the same dimensions: {x_array.shape} != {y_array.shape}"
+                            (
+                                f"Input vectors must have the same dimensions: "  # noqa: E501
+                                f"{x_array.shape} != {y_array.shape}"
+                            )
                         )
 
                     # Check for zero vector
                     if np.all(y_array == 0):
                         raise ValueError(
-                            "Tanimoto similarity is not defined for zero vectors"
+                            "Tanimoto similarity is not defined for zero "
+                            "vectors"
                         )
 
                     # Calculate dot product
@@ -324,7 +338,8 @@ class TanimotoSimilarity(SimilarityBase):
 
             similarity_value = dot_product / denominator
 
-            # Use approximate equality to handle floating-point precision issues
+            # Use approximate equality to handle floating-point precision
+            # issues
             return abs(similarity_value - 1.0) < 1e-10
         except Exception as e:
             logger.error(f"Error checking reflexivity: {str(e)}")
@@ -355,13 +370,15 @@ class TanimotoSimilarity(SimilarityBase):
         """
         try:
             # Tanimoto similarity is symmetric by definition
-            # s(x,y) = (x·y) / (|x|^2 + |y|^2 - x·y) = (y·x) / (|y|^2 + |x|^2 - y·x) = s(y,x)
+            # s(x,y) = (x·y) / (|x|^2 + |y|^2 - x·y) = (y·x) / (|y|^2 + |x|^2 -
+            # y·x) = s(y,x)
 
             # Calculate explicitly to verify
             similarity_xy = self.similarity(x, y)
             similarity_yx = self.similarity(y, x)
 
-            # Use approximate equality to handle floating-point precision issues
+            # Use approximate equality to handle floating-point precision
+            # issues
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
             logger.error(f"Error checking symmetry: {str(e)}")
@@ -371,10 +388,12 @@ class TanimotoSimilarity(SimilarityBase):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the Tanimoto similarity measure satisfies the identity of discernibles:
+        Check if the Tanimoto similarity measure satisfies the identity of
+        discernibles:
         s(x,y) = 1 ⟺ x = y (proportional vectors).
 
-        For Tanimoto similarity, s(x,y) = 1 if and only if x and y are proportional vectors.
+        For Tanimoto similarity, s(x,y) = 1 if and only if x and y are
+        proportional vectors.
 
         Parameters
         ----------
@@ -386,7 +405,8 @@ class TanimotoSimilarity(SimilarityBase):
         Returns
         -------
         bool
-            True if the identity of discernibles property holds, False otherwise
+            True if the identity of discernibles property holds, False
+            otherwise
 
         Raises
         ------
@@ -401,7 +421,8 @@ class TanimotoSimilarity(SimilarityBase):
             # Calculate similarity
             similarity_value = self.similarity(x_array, y_array)
 
-            # For Tanimoto, s(x,y) = 1 if and only if x and y are proportional vectors
+            # For Tanimoto, s(x,y) = 1 if and only if x and y are proportional
+            # vectors
             # Check if vectors are proportional (x = c*y for some constant c)
             if abs(similarity_value - 1.0) < 1e-10:
                 # If similarity is 1, vectors should be proportional
@@ -416,7 +437,8 @@ class TanimotoSimilarity(SimilarityBase):
                     # This shouldn't happen since we checked for zero vectors
                     return False
 
-                # Check if all elements maintain this ratio (allowing for floating point error)
+                # Check if all elements maintain this ratio (allowing for
+                # floating point error)
                 for i in range(len(x_array)):
                     if x_array[i] == 0 and y_array[i] == 0:
                         continue  # Both elements are zero, ratio is preserved

@@ -14,7 +14,8 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
 
     This evaluator analyzes text to determine its readability according to the
     Flesch-Kincaid Grade Level formula, which estimates the U.S. grade level
-    required to understand the text. The formula considers average sentence length
+    required to understand the text. The formula considers average sentence
+    length
     and average syllables per word.
 
     Formula: FKGL = 0.39*(words/sentences) + 11.8*(syllables/words) - 15.59
@@ -31,7 +32,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
     # public API
     # ------------------------------------------------------------------
     def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
-        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        """
+        Return ``{"score": float, "metadata": dict}`` for the given program.
+        """
         score, meta = self._compute_score(program, **kwargs)
         return {"score": score, "metadata": meta}
 
@@ -39,9 +42,11 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Compute the Flesch-Kincaid Grade Level score for a program's text output.
+        Compute the Flesch-Kincaid Grade Level score for a program's text
+        output.
 
-        This method analyzes the text produced by a program, counting sentences,
+        This method analyzes the text produced by a program, counting
+        sentences,
         words, and syllables to calculate the FKGL score.
 
         Args:
@@ -51,11 +56,14 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         Returns:
             A tuple containing:
                 - float: The Flesch-Kincaid Grade Level score
-                - Dict[str, Any]: Metadata including sentence count, word count,
-                                 syllable count, and the breakdown of the calculation
+                - Dict[str, Any]: Metadata including sentence count, word
+                  count,
+                                 syllable count, and the breakdown of the
+                                 calculation
 
         Raises:
-            ValueError: If the program has no text output or if text analysis fails
+            ValueError: If the program has no text output or if text analysis
+            fails
         """
         # Get the text from the program's output
         text = self._get_program_text(program)
@@ -72,7 +80,10 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
 
         if self.logger:
             self.logger.debug(
-                f"Text analysis: {sentences} sentences, {words} words, {syllables} syllables"
+                (
+                    f"Text analysis: {sentences} sentences, {words} words, "
+                    f"{syllables} syllables"
+                )
             )
 
         # Calculate the Flesch-Kincaid Grade Level
@@ -92,12 +103,14 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         avg_sentence_length = words / sentences
         avg_syllables_per_word = syllables / words
 
-        # Apply the FKGL formula: 0.39*(words/sentences) + 11.8*(syllables/words) - 15.59
+        # Apply the FKGL formula: 0.39*(words/sentences) +
+        # 11.8*(syllables/words) - 15.59
         fkgl_score = (
             0.39 * avg_sentence_length + 11.8 * avg_syllables_per_word - 15.59
         )
 
-        # Ensure the score is not negative (which would be meaningless for grade levels)
+        # Ensure the score is not negative (which would be meaningless for
+        # grade levels)
         fkgl_score = float(max(0, fkgl_score))
 
         # Prepare detailed metadata
@@ -107,7 +120,9 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
             "syllables": syllables,
             "avg_sentence_length": avg_sentence_length,
             "avg_syllables_per_word": avg_syllables_per_word,
-            "formula": "0.39*(words/sentences) + 11.8*(syllables/words) - 15.59",
+            "formula": (
+                "0.39*(words/sentences) + 11.8*(syllables/words) - 15.59"
+            ),
             "formula_calculation": {
                 "term1": 0.39 * avg_sentence_length,
                 "term2": 11.8 * avg_syllables_per_word,
@@ -233,7 +248,8 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
 
         This uses a combination of rules to estimate syllable count:
         1. Count groups of vowels (a, e, i, o, u, y) as potential syllables
-        2. Apply adjustments for common patterns like silent 'e' at end of words
+        2. Apply adjustments for common patterns like silent 'e' at end of
+        words
         3. Ensure every word has at least one syllable
 
         Args:
@@ -262,7 +278,8 @@ class FleschKincaidGradeEvaluator(EvaluatorBase, ComponentBase):
         for i, char in enumerate(word):
             is_vowel = char in vowels
 
-            # Count syllable when we find a vowel that doesn't immediately follow another vowel
+            # Count syllable when we find a vowel that doesn't immediately
+            # follow another vowel
             if is_vowel and not prev_is_vowel:
                 count += 1
 

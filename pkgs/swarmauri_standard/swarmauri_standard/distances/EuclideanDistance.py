@@ -30,7 +30,8 @@ class EuclideanDistance(DistanceBase):
             vector_b (Vector): The second vector in the comparison.
 
         Returns:
-            float: The computed Euclidean distance between vector_a and vector_b.
+            float: The computed Euclidean distance between vector_a and
+            vector_b.
         """
         if len(vector_a.value) != len(vector_b.value):
             raise ValueError("Vectors do not have the same dimensionality.")
@@ -42,7 +43,8 @@ class EuclideanDistance(DistanceBase):
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Computes the similarity score as the inverse of the Euclidean distance between two vectors.
+        Computes the similarity score as the inverse of the Euclidean distance
+        between two vectors.
 
         Args:
             vector_a (Vector): The first vector in the comparison.

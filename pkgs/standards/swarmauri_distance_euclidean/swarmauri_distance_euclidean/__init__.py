@@ -4,7 +4,10 @@ import warnings
 from .EuclideanDistance import EuclideanDistance
 
 warnings.warn(
-    "swarmauri_distance_euclidean is deprecated and will be removed from the active workspace by v0.12.0.",
+    (
+        "swarmauri_distance_euclidean is deprecated and will be "
+        "removed from the active workspace by v0.12.0."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

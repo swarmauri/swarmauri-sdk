@@ -102,7 +102,9 @@ def _apply_extensions(
 
 @ComponentBase.register_type(CertServiceBase, "LocalCaCertService")
 class LocalCaCertService(CertServiceBase):
-    """Local CA that can create a CA cert, sign CSRs, and verify certificates."""
+    """
+    Local CA that can create a CA cert, sign CSRs, and verify certificates.
+    """
 
     def supports(self) -> Dict[str, Iterable[str]]:
         return {

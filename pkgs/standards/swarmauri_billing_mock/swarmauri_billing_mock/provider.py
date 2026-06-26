@@ -56,7 +56,8 @@ class MockBillingProvider(
             "payload": payload,
         }
 
-    # Implement methods similarly to Adyen but with mock names -----------------
+    # Implement methods similarly to Adyen but with mock names
+    # -----------------
     def _create_product(
         self, product_spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:

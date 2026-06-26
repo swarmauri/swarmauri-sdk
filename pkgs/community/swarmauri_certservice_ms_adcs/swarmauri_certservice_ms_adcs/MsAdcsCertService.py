@@ -122,12 +122,16 @@ class MsAdcsCertService(CertServiceBase):
         self._s = session or requests.Session()
         self._configure_auth()
 
-    # --------------------------------------------------------------------- Auth
+    # ---------------------------------------------------------------------
+    # Auth
     def _configure_auth(self) -> None:
         if self._auth_cfg.mode == "ntlm":
             if not _NTLM_OK:  # pragma: no cover - import guard
                 raise RuntimeError(
-                    "NTLM auth requested but 'requests-ntlm' not installed. pip install requests-ntlm"
+                    (
+                        "NTLM auth requested but 'requests-ntlm' not installed. pip "  # noqa: E501
+                        "install requests-ntlm"
+                    )
                 )
             user = self._auth_cfg.username or ""
             pw = self._auth_cfg.password or ""
@@ -135,7 +139,10 @@ class MsAdcsCertService(CertServiceBase):
         elif self._auth_cfg.mode == "kerberos":
             if not _KERB_OK:  # pragma: no cover - import guard
                 raise RuntimeError(
-                    "Kerberos auth requested but 'requests-kerberos' not installed. pip install requests-kerberos"
+                    (
+                        "Kerberos auth requested but 'requests-kerberos' not "
+                        "installed. pip install requests-kerberos"
+                    )
                 )
             self._s.auth = HTTPKerberosAuth(
                 mutual_authentication=DISABLED,
@@ -150,7 +157,8 @@ class MsAdcsCertService(CertServiceBase):
         self._s.verify = self._auth_cfg.verify_tls
         self._s.headers.update({"User-Agent": _DEF_USER_AGENT})
 
-    # -------------------------------------------------------------- Capabilities
+    # --------------------------------------------------------------
+    # Capabilities
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {
             "key_algs": (
@@ -171,7 +179,8 @@ class MsAdcsCertService(CertServiceBase):
             ),
         }
 
-    # ------------------------------------------------------------------- CSR API
+    # ------------------------------------------------------------------- CSR
+    # API
     async def create_csr(  # type: ignore[override]
         self,
         key: KeyRef,
@@ -184,7 +193,8 @@ class MsAdcsCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> bytes:
-        """Build a PKCS#10 CSR using the private key contained in KeyRef.material."""
+        """Build a PKCS#10 CSR using the private key contained in
+        KeyRef.material."""
         if not key.material:
             raise ValueError(
                 "create_csr: KeyRef.material must contain a PEM private key"
@@ -269,7 +279,8 @@ class MsAdcsCertService(CertServiceBase):
         )
         return data
 
-    # --------------------------------------------------------------- Self-signed
+    # ---------------------------------------------------------------
+    # Self-signed
     async def create_self_signed(  # type: ignore[override]
         self,
         key: KeyRef,
@@ -286,7 +297,10 @@ class MsAdcsCertService(CertServiceBase):
         """Emit a simple self-signed certificate with sane defaults."""
         if not key.material:
             raise ValueError(
-                "create_self_signed: KeyRef.material must contain a PEM private key"
+                (
+                    "create_self_signed: KeyRef.material must contain a PEM "
+                    "private key"
+                )
             )
 
         from datetime import datetime, timezone
@@ -326,7 +340,8 @@ class MsAdcsCertService(CertServiceBase):
         )
         return data
 
-    # ----------------------------------------------------------------- Sign via AD CS
+    # ----------------------------------------------------------------- Sign
+    # via AD CS
     async def sign_cert(  # type: ignore[override]
         self,
         csr: bytes,
@@ -342,10 +357,12 @@ class MsAdcsCertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> bytes:
-        """Submit CSR to AD CS Web Enrollment and return the issued certificate."""
+        """Submit CSR to AD CS Web Enrollment and return the issued
+        certificate."""
         raise NotImplementedError("AD CS interaction not implemented in tests")
 
-    # --------------------------------------------------------------- Verify / Parse
+    # --------------------------------------------------------------- Verify /
+    # Parse
     async def verify_cert(  # type: ignore[override]
         self,
         cert: bytes,

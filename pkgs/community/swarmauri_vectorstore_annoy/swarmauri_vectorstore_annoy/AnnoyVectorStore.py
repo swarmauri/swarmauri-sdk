@@ -49,7 +49,8 @@ class AnnoyVectorStore(
         self._embedder = Doc2VecEmbedding(vector_size=self.vector_size)
         self._comparator = CosineSimilarityComparator()
         self.client = None
-        self._documents = {}  # Store documents in memory since Annoy only stores vectors
+        # Store documents in memory since Annoy only stores vectors
+        self._documents = {}
         self._current_index = 0  # Track the next available index
         self._id_to_index = {}  # Map document IDs to Annoy indices
         self._index_to_id = {}  # Map Annoy indices to document IDs
@@ -76,8 +77,10 @@ class AnnoyVectorStore(
         Connect to the Annoy index, creating it if it doesn't exist.
 
         Args:
-            metric (Optional[str]): The distance metric to use. Defaults to "angular".
-            n_trees (int): Number of trees for the Annoy index. More trees = better accuracy but larger index.
+            metric (Optional[str]): The distance metric to use. Defaults to
+            "angular".
+            n_trees (int): Number of trees for the Annoy index. More trees =
+            better accuracy but larger index.
         """
         try:
             self.client = AnnoyIndex(self.vector_size, metric)
@@ -85,7 +88,10 @@ class AnnoyVectorStore(
                 self.client.load(f"{self.collection_name}.ann")
         except Exception as e:
             raise RuntimeError(
-                f"Failed to connect to Annoy index {self.collection_name}: {str(e)}"
+                (
+                    f"Failed to connect to Annoy index {self.collection_name}: "  # noqa: E501
+                    f"{str(e)}"
+                )
             )
 
     def disconnect(self):
@@ -125,7 +131,8 @@ class AnnoyVectorStore(
 
         Args:
             document (Document): The document to add.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
         """
         try:
             vector = self._prepare_vector(document)
@@ -152,7 +159,8 @@ class AnnoyVectorStore(
 
         Args:
             documents (List[Document]): The list of documents to add.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
             batch_size (int): Not used in Annoy but kept for compatibility.
         """
         try:
@@ -171,10 +179,12 @@ class AnnoyVectorStore(
 
         Args:
             id (str): The ID of the document to retrieve.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
 
         Returns:
-            Union[Document, None]: The retrieved document, or None if not found.
+            Union[Document, None]: The retrieved document, or None if not
+            found.
         """
         return self._documents.get(id)
 
@@ -185,7 +195,8 @@ class AnnoyVectorStore(
         Retrieve all documents.
 
         Args:
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
 
         Returns:
             List[Document]: A list of all documents.
@@ -199,7 +210,8 @@ class AnnoyVectorStore(
 
         Args:
             id (str): The ID of the document to delete.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
         """
         try:
             if id in self._documents:
@@ -222,7 +234,8 @@ class AnnoyVectorStore(
         Delete all documents.
 
         Args:
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
         """
         try:
             self.delete()
@@ -240,7 +253,8 @@ class AnnoyVectorStore(
         Args:
             id (str): The ID of the document to update.
             document (Document): The updated document.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
         """
         try:
             self.delete_document(id, namespace)
@@ -253,7 +267,8 @@ class AnnoyVectorStore(
         Get the number of documents in the index.
 
         Args:
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
 
         Returns:
             int: The number of documents in the index.
@@ -269,7 +284,8 @@ class AnnoyVectorStore(
         Args:
             query (str): The query string to search for.
             top_k (int): The number of results to return. Defaults to 5.
-            namespace (Optional[str]): Not used in Annoy but kept for compatibility.
+            namespace (Optional[str]): Not used in Annoy but kept for
+            compatibility.
 
         Returns:
             List[Document]: A list of retrieved documents.

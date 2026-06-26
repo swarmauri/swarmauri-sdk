@@ -100,7 +100,8 @@ def test_distance_with_lists(frobenius_metric):
 
 @pytest.mark.unit
 def test_distance_with_different_shapes(frobenius_metric):
-    """Test that distance calculation raises ValueError for matrices with different shapes."""
+    """Test that distance calculation raises ValueError for matrices with
+    different shapes."""
     matrix_a = np.array([[1.0, 0.0], [0.0, 1.0]])
     matrix_b = np.array([[1.0, 0.0, 2.0], [0.0, 1.0, 3.0]])
 
@@ -112,7 +113,8 @@ def test_distance_with_different_shapes(frobenius_metric):
 
 @pytest.mark.unit
 def test_distance_with_unsupported_type(frobenius_metric):
-    """Test that distance calculation raises TypeError for unsupported input types."""
+    """Test that distance calculation raises TypeError for unsupported input
+    types."""
     matrix_a = np.array([[1.0, 0.0], [0.0, 1.0]])
     invalid_input = "not a matrix"
 
@@ -184,7 +186,8 @@ def test_non_negativity(frobenius_metric, matrix_pair):
 
 @pytest.mark.unit
 def test_identity_of_indiscernibles(frobenius_metric, sample_matrices):
-    """Test that the Frobenius metric satisfies the identity of indiscernibles axiom."""
+    """Test that the Frobenius metric satisfies the identity of indiscernibles
+    axiom."""
     matrix_a, matrix_b, _, _ = sample_matrices
 
     # Same matrices should have zero distance
@@ -211,7 +214,9 @@ def test_symmetry(frobenius_metric, sample_matrices):
 
 @pytest.mark.unit
 def test_triangle_inequality(frobenius_metric, sample_matrices):
-    """Test that the Frobenius metric satisfies the triangle inequality axiom."""
+    """
+    Test that the Frobenius metric satisfies the triangle inequality axiom.
+    """
     matrix_a, matrix_b, matrix_c, _ = sample_matrices
 
     assert (

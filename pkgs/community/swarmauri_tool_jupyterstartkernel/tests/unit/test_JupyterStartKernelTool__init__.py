@@ -10,10 +10,12 @@ initialization logic is correct and the main components are properly exposed.
 
 def test_jupyter_start_kernel_tool_is_importable() -> None:
     """
-    Test that JupyterStartKernelTool is importable from the package's main module.
+    Test that JupyterStartKernelTool is importable from the package's main
+    module.
     This ensures that the __init__.py file properly exposes the class.
     """
-    # Import the class from the root of the package to confirm exposure in __init__.py
+    # Import the class from the root of the package to confirm exposure in
+    # __init__.py
     from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
 
     assert JupyterStartKernelTool is not None, (

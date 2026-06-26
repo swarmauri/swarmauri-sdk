@@ -34,7 +34,8 @@ Example capability map::
 
 Notes
 -----
-- AEAD nonces must obey each algorithm's requirements (e.g., 12 bytes for AES-GCM).
+- AEAD nonces must obey each algorithm's requirements (e.g., 12 bytes for
+  AES-GCM).
 - Providers MAY enforce ExportPolicy/KeyUse constraints carried in KeyRef.
 """
 
@@ -96,8 +97,10 @@ class ICrypto(ABC):
         Parameters:
           key   : KeyRef for a data-encryption key (DEK) usable with 'alg'.
           pt    : plaintext bytes.
-          alg   : AEAD algorithm identifier; if None, provider chooses a default.
-          aad   : optional additional authenticated data; not encrypted, but bound.
+          alg   : AEAD algorithm identifier; if None, provider chooses a
+          default.
+          aad   : optional additional authenticated data; not encrypted, but
+          bound.
           nonce : algorithm-specific nonce/IV; provider MAY generate if None.
 
         Returns:
@@ -138,8 +141,10 @@ class ICrypto(ABC):
 
         Parameters:
           kek      : KeyRef for the key-encryption key (KEK).
-          dek      : raw DEK bytes to wrap. If None, provider MAY generate a new DEK.
-          wrap_alg : wrapping algorithm identifier; provider MAY default if None.
+          dek      : raw DEK bytes to wrap. If None, provider MAY generate a
+          new DEK.
+          wrap_alg : wrapping algorithm identifier; provider MAY default if
+          None.
           nonce    : optional per-wrap nonce/IV (algorithm-specific).
           aad      : optional additional authenticated data bound to the wrap.
 
@@ -147,8 +152,10 @@ class ICrypto(ABC):
           WrappedKey: opaque blob + metadata to later recover the DEK.
 
         Notes:
-          - Providers SHOULD honor ExportPolicy/KeyUse from both KEK and DEK KeyRefs.
-          - Some HSM-backed providers may encode handles/labels rather than raw bytes.
+          - Providers SHOULD honor ExportPolicy/KeyUse from both KEK and DEK
+            KeyRefs.
+          - Some HSM-backed providers may encode handles/labels rather than raw
+            bytes.
         """
         ...
 
@@ -187,15 +194,18 @@ class ICrypto(ABC):
         alg: Optional[Alg] = None,
     ) -> bytes:
         """
-        Public-key 'sealed' encryption to 'recipient' without caller-managed DEKs.
-        Example algs: "OpenPGP-SEAL", "X25519-SEALEDBOX", "RSA-OAEP-SHA256-SEAL".
+        Public-key 'sealed' encryption to 'recipient' without caller-managed
+        DEKs.
+        Example algs: "OpenPGP-SEAL", "X25519-SEALEDBOX",
+        "RSA-OAEP-SHA256-SEAL".
 
         Returns:
           bytes: sealed ciphertext.
 
         Notes:
           - Sealed primitives typically do not bind external AAD. If you need
-            authenticated metadata, prefer AEAD or wrap a CEK with AEAD outside.
+            authenticated metadata, prefer AEAD or wrap a CEK with AEAD
+            outside.
         """
         ...
 
@@ -247,7 +257,8 @@ class ICrypto(ABC):
         alg: Optional[Alg] = None,
     ) -> bytes:
         """
-        Recover the shared secret from 'encapsulated_key' using 'recipient_priv'.
+        Recover the shared secret from 'encapsulated_key' using
+        'recipient_priv'.
 
         Returns:
           bytes: shared secret produced by the encapsulation mechanism.

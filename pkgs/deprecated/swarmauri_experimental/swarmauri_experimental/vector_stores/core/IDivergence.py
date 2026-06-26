@@ -15,8 +15,10 @@ class IDivergence(ABC):
         Calculate the divergence of a vector field at a specific point.
 
         Parameters:
-        - vector_field (List[List[float]]): A representation of the vector field as a list of vectors.
-        - point (List[float]): The point at which the divergence is to be calculated.
+        - vector_field (List[List[float]]): A representation of the vector
+          field as a list of vectors.
+        - point (List[float]): The point at which the divergence is to be
+          calculated.
 
         Returns:
         - float: The divergence value at the specified point.

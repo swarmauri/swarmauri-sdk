@@ -1,9 +1,13 @@
 """
-Unit tests for the swarmauri_tool_jupytervalidatenotebook package initialization.
+Unit tests for the swarmauri_tool_jupytervalidatenotebook package
+initialization.
 
-This module includes unittest-based test cases for verifying the initialization of
-the swarmauri_tool_jupytervalidatenotebook package. It ensures that the __init__.py
-file correctly exposes the JupyterValidateNotebookTool class and the __version__ attribute.
+This module includes unittest-based test cases for verifying the initialization
+of
+the swarmauri_tool_jupytervalidatenotebook package. It ensures that the
+__init__.py
+file correctly exposes the JupyterValidateNotebookTool class and the
+__version__ attribute.
 """
 
 import unittest
@@ -16,12 +20,14 @@ from swarmauri_tool_jupytervalidatenotebook import (
 class TestInit(unittest.TestCase):
     """
     Contains test cases for the package initialization.
-    Ensures the __init__.py file correctly exposes the JupyterValidateNotebookTool class.
+    Ensures the __init__.py file correctly exposes the
+    JupyterValidateNotebookTool class.
     """
 
     def test_import_tool(self) -> None:
         """
-        Test that the JupyterValidateNotebookTool is properly importable from the package.
+        Test that the JupyterValidateNotebookTool is properly importable from
+        the package.
         """
         # Check that the imported object is indeed a class.
         self.assertTrue(

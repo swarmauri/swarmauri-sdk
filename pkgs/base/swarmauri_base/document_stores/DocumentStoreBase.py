@@ -12,10 +12,13 @@ from swarmauri_core.documents.IDocument import IDocument
 @ComponentBase.register_model()
 class DocumentStoreBase(IDocumentStore, ComponentBase):
     """
-    Abstract base class for document stores, implementing the IDocumentStore interface.
+    Abstract base class for document stores, implementing the IDocumentStore
+    interface.
 
-    This class provides a standard API for adding, updating, getting, and deleting documents in a store.
-    The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
+    This class provides a standard API for adding, updating, getting, and
+    deleting documents in a store.
+    The specifics of storing (e.g., in a database, in-memory, or file system)
+    are to be implemented by concrete subclasses.
     """
 
     resource: ResourceTypes = Field(default=ResourceTypes.DOCUMENT_STORE.value)
@@ -38,7 +41,8 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         Add multiple documents to the document store in a batch operation.
 
         Parameters:
-        - documents (List[IDocument]): A list of documents to be added to the store.
+        - documents (List[IDocument]): A list of documents to be added to the
+          store.
         """
         pass
 
@@ -51,7 +55,8 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         - doc_id (str): The unique identifier of the document to retrieve.
 
         Returns:
-        - Optional[IDocument]: The requested document if found; otherwise, None.
+        - Optional[IDocument]: The requested document if found; otherwise,
+          None.
         """
         pass
 

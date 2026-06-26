@@ -6,8 +6,10 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "ZeroMeasurement")
 class ZeroMeasurement(MeasurementBase):
     """
-    A concrete implementation of MeasurementBase that statically represents the value 0.
-    This can be used as a placeholder or default measurement where dynamic calculation is not required.
+    A concrete implementation of MeasurementBase that statically represents the
+    value 0.
+    This can be used as a placeholder or default measurement where dynamic
+    calculation is not required.
     """
 
     unit: str = "unitless"

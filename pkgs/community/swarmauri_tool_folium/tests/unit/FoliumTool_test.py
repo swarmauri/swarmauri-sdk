@@ -73,7 +73,8 @@ def test_call(map_center, markers):
                 f"Expected keys {expected_keys}, but got {result.keys()}"
             )
 
-            # Verify that the value associated with 'image_b64' is a valid base64 string
+            # Verify that the value associated with 'image_b64' is a valid
+            # base64 string
             try:
                 base64.b64decode(result["image_b64"])
             except Exception:

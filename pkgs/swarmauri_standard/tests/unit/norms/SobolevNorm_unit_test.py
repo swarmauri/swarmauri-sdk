@@ -135,7 +135,8 @@ def test_compute_with_unsupported_type(sobolev_norm):
 def test_compute_for_callable(sobolev_norm, test_function):
     """Test _compute_for_callable method."""
     with patch.object(sobolev_norm, "_evaluate_function_norm") as mock_eval:
-        # Set up the mock to return different values for function and derivative
+        # Set up the mock to return different values for function and
+        # derivative
         mock_eval.side_effect = [2.0, 1.0]
 
         result = sobolev_norm._compute_for_callable(test_function)
@@ -151,19 +152,22 @@ def test_compute_for_callable_weighted(sobolev_norm_order2, test_function):
     with patch.object(
         sobolev_norm_order2, "_evaluate_function_norm"
     ) as mock_eval:
-        # Set up the mock to return different values for function and derivatives
+        # Set up the mock to return different values for function and
+        # derivatives
         mock_eval.side_effect = [2.0, 1.0, 0.5]
 
         result = sobolev_norm_order2._compute_for_callable(test_function)
 
-        # Should be sqrt(1.0*2.0^2 + 2.0*1.0^2 + 3.0*0.5^2) = sqrt(4 + 2 + 0.75) = sqrt(6.75)
+        # Should be sqrt(1.0*2.0^2 + 2.0*1.0^2 + 3.0*0.5^2) = sqrt(4 + 2 +
+        # 0.75) = sqrt(6.75)
         assert result == pytest.approx(np.sqrt(6.75))
         assert mock_eval.call_count == 3
 
 
 @pytest.mark.unit
 def test_compute_for_callable_no_derivative(sobolev_norm):
-    """Test _compute_for_callable method with function that has no derivative method."""
+    """Test _compute_for_callable method with function that has no derivative
+    method."""
 
     def f(x):
         return x**2

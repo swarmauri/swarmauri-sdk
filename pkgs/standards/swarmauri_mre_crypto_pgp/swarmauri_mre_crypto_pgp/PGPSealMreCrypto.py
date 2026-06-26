@@ -121,7 +121,10 @@ class PGPSealMreCrypto(MreCryptoBase):
         )
         if m != MreMode.SEALED_PER_RECIPIENT:
             raise ValueError(
-                f"PGPSealMreCrypto supports only mode={MreMode.SEALED_PER_RECIPIENT.value}."
+                (
+                    f"PGPSealMreCrypto supports only "
+                    f"mode={MreMode.SEALED_PER_RECIPIENT.value}."
+                )
             )
         if aad is not None:
             raise ValueError(
@@ -223,7 +226,10 @@ class PGPSealMreCrypto(MreCryptoBase):
             pt_bytes = (opts or {}).get("plaintext")
             if not isinstance(pt_bytes, (bytes, bytearray)):
                 raise RuntimeError(
-                    "Rewrap(add=...) in sealed_per_recipient mode requires opts['plaintext'] (bytes)."
+                    (
+                        "Rewrap(add=...) in sealed_per_recipient mode requires "  # noqa: E501
+                        "opts['plaintext'] (bytes)."
+                    )
                 )
             pubs = [_load_pubkey(r) for r in add]
             rids = [_fingerprint_pub(pk) for pk in pubs]

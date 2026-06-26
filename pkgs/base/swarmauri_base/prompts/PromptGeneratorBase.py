@@ -8,7 +8,8 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """
-    A class that generates prompts based on a template and a list of variable sets.
+    A class that generates prompts based on a template and a list of variable
+    sets.
     It implements the IPrompt and ITemplate interfaces.
     """
 
@@ -41,7 +42,8 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
 
     def __call__(self) -> Generator[str, None, None]:
         """
-        Returns a generator that yields prompts constructed from the template and
+        Returns a generator that yields prompts constructed from the template
+        and
         each set of variables in the variables list.
         """
         for variables_set in self.variables:

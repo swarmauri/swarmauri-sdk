@@ -30,7 +30,8 @@ def _now() -> float:
 @dataclass(frozen=True)
 class _RemoteKeyRef(KeyRef):
     """
-    Read-only KeyRef representing a remote (verification-only) public key discovered
+    Read-only KeyRef representing a remote (verification-only) public key
+    discovered
     via JWKS. Secrets are never present (material=None).
     """
 
@@ -44,10 +45,14 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     Features
     --------
     - Accepts either a direct JWKS URL or an OIDC issuer URL.
-    - Resolves OIDC discovery: <issuer>/.well-known/openid-configuration → jwks_uri.
-    - Caches the JWKS in-memory with TTL; thread-safe refresh with ETag/If-Modified-Since.
-    - Exposes get_public_jwk() and jwks() to verifiers (e.g., JWTTokenService.verify()).
-    - Supports local key creation/rotation/import/destroy via an in-memory provider.
+    - Resolves OIDC discovery: <issuer>/.well-known/openid-configuration →
+      jwks_uri.
+    - Caches the JWKS in-memory with TTL; thread-safe refresh with
+      ETag/If-Modified-Since.
+    - Exposes get_public_jwk() and jwks() to verifiers (e.g.,
+      JWTTokenService.verify()).
+    - Supports local key creation/rotation/import/destroy via an in-memory
+      provider.
     - Provides random_bytes() and hkdf() for convenience (local ops).
 
     Constructor
@@ -64,8 +69,10 @@ class RemoteJwksKeyProvider(KeyProviderBase):
     Notes
     -----
     - If both `issuer` and `jwks_url` are provided, `jwks_url` wins.
-    - KIDs may include version suffixes like "kid.version" to match your codebase.
-    - Remote keys remain verification-only; locally created keys are stored in-memory.
+    - KIDs may include version suffixes like "kid.version" to match your
+      codebase.
+    - Remote keys remain verification-only; locally created keys are stored
+      in-memory.
     """
 
     type: Literal["RemoteJwksKeyProvider"] = "RemoteJwksKeyProvider"
@@ -100,12 +107,14 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         self._request_timeout_s = int(request_timeout_s)
         self._ua = user_agent
 
-        # Resolve issuer → jwks_uri on init if needed (lazy fallback on first use if fails)
+        # Resolve issuer → jwks_uri on init if needed (lazy fallback on first
+        # use if fails)
         if self._jwks_url is None and self._issuer:
             try:
                 self._jwks_url = self._resolve_jwks_uri(self._issuer)
             except Exception:
-                # Defer to first use; do not fail constructor for transient network issues
+                # Defer to first use; do not fail constructor for transient
+                # network issues
                 pass
 
     # ───────────────────────── capabilities ─────────────────────────
@@ -172,8 +181,10 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         if jwk is None:
             raise KeyError(f"Unknown key id: {kid!r} (version={version!r})")
 
-        # For compatibility with your KeyRef, we put the public JWK bytes into 'public'
-        # (wire consumers typically use jwks() directly; this is mainly for parity).
+        # For compatibility with your KeyRef, we put the public JWK bytes into
+        # 'public'
+        # (wire consumers typically use jwks() directly; this is mainly for
+        # parity).
         public_bytes = json.dumps(
             jwk, separators=(",", ":"), sort_keys=True
         ).encode("utf-8")
@@ -195,8 +206,10 @@ class RemoteJwksKeyProvider(KeyProviderBase):
 
     async def list_versions(self, kid: str) -> Tuple[int, ...]:
         """
-        Returns any discovered versions for the kid when keys are of the form 'kid.version'.
-        If no version suffixes are found, returns (1,) when the base kid exists, else ().
+        Returns any discovered versions for the kid when keys are of the form
+        'kid.version'.
+        If no version suffixes are found, returns (1,) when the base kid
+        exists, else ().
         """
         try:
             return await self._local.list_versions(kid)
@@ -265,7 +278,8 @@ class RemoteJwksKeyProvider(KeyProviderBase):
 
     def refresh(self, *, force: bool = False) -> None:
         """
-        Synchronous refresh of JWKS cache. Safe to call before latency-sensitive paths.
+        Synchronous refresh of JWKS cache. Safe to call before
+        latency-sensitive paths.
         """
         with self._lock:
             self._ensure_jwks_locked(force=force)
@@ -284,7 +298,8 @@ class RemoteJwksKeyProvider(KeyProviderBase):
         for jwk in keys:
             if jwk.get("kid") == kid:
                 return jwk
-        # 3) If version is None, try "kid.<any>" but prefer the highest numeric version
+        # 3) If version is None, try "kid.<any>" but prefer the highest numeric
+        # version
         if version is None:
             best = None
             best_ver = -1
@@ -312,7 +327,11 @@ class RemoteJwksKeyProvider(KeyProviderBase):
                 if self._jwks_obj is None:
                     # First time and still nothing: bubble up
                     raise RuntimeError(
-                        f"Unable to resolve jwks_uri from issuer {self._issuer!r}: {e}"
+                        (
+                            f"Unable to resolve jwks_uri from issuer "
+                            f"{self._issuer!r}: "
+                            f"{e}"
+                        )
                     ) from e
                 # Otherwise, keep old cache until TTL
         # Check TTL
@@ -335,7 +354,7 @@ class RemoteJwksKeyProvider(KeyProviderBase):
             return
         if not isinstance(jwks, dict) or "keys" not in jwks:
             raise RuntimeError(
-                f"JWKS fetch did not return an object with 'keys': {self._jwks_url}"
+                f"JWKS fetch did not return an object with 'keys': {self._jwks_url}"  # noqa: E501
             )
         # Update cache
         self._jwks_obj = jwks

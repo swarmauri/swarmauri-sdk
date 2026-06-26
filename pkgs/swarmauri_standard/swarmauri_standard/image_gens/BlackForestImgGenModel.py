@@ -14,7 +14,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ImageGenBase, "BlackForestImgGenModel")
 class BlackForestImgGenModel(ImageGenBase):
     """
-    A model for generating images using FluxPro's image generation models through the Black Forest API.
+    A model for generating images using FluxPro's image generation models
+    through the Black Forest API.
     Link to API key: https://api.bfl.ml/auth/profile
     """
 
@@ -34,7 +35,8 @@ class BlackForestImgGenModel(ImageGenBase):
         """
         Initializes the BlackForestImgGenModel instance with HTTP clients.
         Args:
-            **kwarg (Dict[str, Any]): Additional arguments including api_key and allowed_models.
+            **kwarg (Dict[str, Any]): Additional arguments including api_key
+            and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
@@ -69,7 +71,9 @@ class BlackForestImgGenModel(ImageGenBase):
 
     @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, endpoint: str, data: dict) -> dict:
-        """Send an asynchronous request to FluxPro's API for image generation."""
+        """
+        Send an asynchronous request to FluxPro's API for image generation.
+        """
         client = await self._get_async_client()
         url = f"{self._BASE_URL}/{endpoint}"
         response = await client.post(url, json=data)
@@ -110,7 +114,8 @@ class BlackForestImgGenModel(ImageGenBase):
         check_interval: int = 10,
     ) -> Dict:
         """
-        Generates an image based on the prompt and waits for the result synchronously.
+        Generates an image based on the prompt and waits for the result
+        synchronously.
 
         Args:
             prompt (str): The text prompt for image generation
@@ -126,7 +131,8 @@ class BlackForestImgGenModel(ImageGenBase):
             check_interval (int): Time between status checks in seconds
 
         Returns:
-            Dict: Dictionary containing the image URL and other result information
+            Dict: Dictionary containing the image URL and other result
+            information
         """
         endpoint = f"v1/{self.name}"
         data = {
@@ -171,14 +177,16 @@ class BlackForestImgGenModel(ImageGenBase):
         self, prompt: str, **kwargs: Dict[str, Any]
     ) -> Dict:
         """
-        Asynchronously generates an image based on the prompt and waits for the result.
+        Asynchronously generates an image based on the prompt and waits for the
+        result.
 
         Args:
             prompt (str): The text prompt for image generation
             **kwargs: Additional arguments passed to generate_image
 
         Returns:
-            Dict: Dictionary containing the image URL and other result information
+            Dict: Dictionary containing the image URL and other result
+            information
         """
         try:
             endpoint = f"v1/{self.name}"
@@ -237,7 +245,8 @@ class BlackForestImgGenModel(ImageGenBase):
 
         Args:
             prompts (List[str]): List of text prompts
-            **kwargs (Dict[str, Any]): Additional arguments passed to generate_image
+            **kwargs (Dict[str, Any]): Additional arguments passed to
+            generate_image
 
         Returns:
             List[Dict]: List of result dictionaries
@@ -258,7 +267,8 @@ class BlackForestImgGenModel(ImageGenBase):
         Args:
             prompts (List[str]): List of text prompts
             max_concurrent (int): Maximum number of concurrent tasks
-            **kwargs (Dict[str, Any]): Additional arguments passed to agenerate_image
+            **kwargs (Dict[str, Any]): Additional arguments passed to
+            agenerate_image
 
         Returns:
             List[Dict]: List of result dictionaries

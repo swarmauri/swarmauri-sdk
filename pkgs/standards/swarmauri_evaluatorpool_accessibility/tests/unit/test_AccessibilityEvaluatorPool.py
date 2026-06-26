@@ -146,7 +146,9 @@ def test_evaluate_file(evaluator_pool, mock_evaluator):
 
 @pytest.mark.unit
 def test_evaluate_file_skipped(evaluator_pool, mock_evaluator):
-    """Test the _evaluate_file method skips files that shouldn't be evaluated."""
+    """
+    Test the _evaluate_file method skips files that shouldn't be evaluated.
+    """
     file_path = "test_file.py"
     file_content = "def test_function():\n    pass"
 
@@ -280,7 +282,9 @@ def test_reset(evaluator_pool, mock_evaluator):
 
 @pytest.mark.unit
 def test_auto_register_evaluators(monkeypatch):
-    """AccessibilityEvaluatorPool auto-registers evaluators from the package."""
+    """
+    AccessibilityEvaluatorPool auto-registers evaluators from the package.
+    """
     import swarmauri_evaluatorpool_accessibility as pkg
 
     class DummyEvaluator(EvaluatorBase):

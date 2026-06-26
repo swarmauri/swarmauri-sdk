@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of parsers names (file names without the ".py" extension) and corresponding class names
+# # List of parsers names (file names without the ".py" extension) and
+# corresponding class names
 # parsers_files = [
 #     (
 #         "swarmauri_standard.parsers.BeautifulSoupElementParser",
@@ -8,7 +9,8 @@
 #     ),
 #     ("swarmauri_standard.parsers.CSVParser", "CSVParser"),
 #     ("swarmauri_standard.parsers.HTMLTagStripParser", "HTMLTagStripParser"),
-#     ("swarmauri_standard.parsers.KeywordExtractorParser", "KeywordExtractorParser"),
+# ("swarmauri_standard.parsers.KeywordExtractorParser",
+# "KeywordExtractorParser"),
 #     ("swarmauri_standard.parsers.Md2HtmlParser", "Md2HtmlParser"),
 #     ("swarmauri_standard.parsers.OpenAPISpecParser", "OpenAPISpecParser"),
 #     (

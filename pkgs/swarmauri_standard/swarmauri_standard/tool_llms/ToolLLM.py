@@ -69,17 +69,24 @@ class ToolLLM(ToolLLMBase):
         messages: List[Type[MessageBase]],
     ) -> List[Type[MessageBase]]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
-                               a "function" key with a nested dictionary that includes the "name" and "arguments"
-                               of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (Toolkit): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+            tool_calls (list): A list of dictionaries representing tool calls.
+            Each dictionary should contain
+                               a "function" key with a nested dictionary that
+                               includes the "name" and "arguments"
+                               of the function to be called, and an "id" key
+                               for the tool call identifier.
+            toolkit (Toolkit): An object that provides access to tools via the
+            `get_tool_by_name` method.
+            messages (list): A list of message dictionaries to which the
+            results of the tool calls will be appended.
 
         Returns:
-            List[MessageBase]: The updated list of messages with the results of the tool calls appended.
+            List[MessageBase]: The updated list of messages with the results of
+            the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -112,14 +119,16 @@ class ToolLLM(ToolLLMBase):
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Tookit): Optional toolkit for tool conversion.
             tool_choice (dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -194,14 +203,16 @@ class ToolLLM(ToolLLMBase):
         Makes an asynchronous prediction using the OpenAI model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Tookit): Optional toolkit for tool conversion.
             tool_choice (dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            Conversation: Updated conversation with agent responses and tool calls.
+            Conversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -275,7 +286,8 @@ class ToolLLM(ToolLLMBase):
         Streams response from OpenAI model in real-time.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Tookit): Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -355,7 +367,8 @@ class ToolLLM(ToolLLMBase):
         Asynchronously streams response from Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Tookit): Optional toolkit for tool conversion.
             tool_choice (dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -429,17 +442,20 @@ class ToolLLM(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations and generates responses for each
+        sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             tool_choice dict[str, Any]): Tool selection strategy.
             toolkit (Tookit): Optional toolkit for tool conversion.
             max_tokens (int): Maximum tokens for each response.
 
         Returns:
-            List[IConversation]: List of updated conversations with model responses.
+            List[IConversation]: List of updated conversations with model
+            responses.
         """
         return [
             self.predict(
@@ -465,7 +481,8 @@ class ToolLLM(ToolLLMBase):
         Async method for processing a batch of conversations concurrently.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             tool_choice (dict[str, Any]): Tool selection strategy.
             toolkit (Tookit): Optional toolkit for tool conversion.s
@@ -473,7 +490,8 @@ class ToolLLM(ToolLLMBase):
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

@@ -14,10 +14,13 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SimilarityBase, "TriangleCosineSimilarity")
 class TriangleCosineSimilarity(SimilarityBase):
     """
-    Triangle Cosine Similarity implementation that compares direction between vectors.
+    Triangle Cosine Similarity implementation that compares direction between
+    vectors.
 
-    This similarity measure uses a tighter bound derived from the spherical law of cosines,
-    providing a more accurate measure of directional similarity between non-zero vectors.
+    This similarity measure uses a tighter bound derived from the spherical law
+    of cosines,
+    providing a more accurate measure of directional similarity between
+    non-zero vectors.
 
     Attributes
     ----------
@@ -98,7 +101,10 @@ class TriangleCosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}"
+                    (
+                        f"Incompatible dimensions: {x_array.shape} vs "
+                        f"{y_array.shape}"
+                    )
                 )
 
             # Calculate norms
@@ -115,7 +121,8 @@ class TriangleCosineSimilarity(SimilarityBase):
             cosine = max(min(cosine, 1.0), -1.0)
 
             # Apply triangle-based transformation for tighter bounds
-            # This transforms the range [-1, 1] to [0, 1] with a non-linear mapping
+            # This transforms the range [-1, 1] to [0, 1] with a non-linear
+            # mapping
             # derived from the spherical law of cosines
             angle = math.acos(cosine)
             similarity = 1.0 - (angle / math.pi)
@@ -132,7 +139,8 @@ class TriangleCosineSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate triangle cosine similarities between one vector and multiple others.
+        Calculate triangle cosine similarities between one vector and multiple
+        others.
 
         Parameters
         ----------
@@ -166,7 +174,10 @@ class TriangleCosineSimilarity(SimilarityBase):
                     # Check for compatible dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}"
+                            (
+                                f"Incompatible dimensions: {x_array.shape} vs "
+                                f"{y_array.shape}"
+                            )
                         )
 
                     y_norm = np.linalg.norm(y_array)
@@ -185,16 +196,21 @@ class TriangleCosineSimilarity(SimilarityBase):
                     results.append(similarity)
                 except Exception as e:
                     logger.warning(
-                        f"Error calculating similarity for one vector: {str(e)}"
+                        f"Error calculating similarity for one vector: "
+                        f"{str(e)}"
                     )
-                    # Append None or a default value, or re-raise based on requirements
+                    # Append None or a default value, or re-raise based on
+                    # requirements
                     results.append(float("nan"))
 
             return results
 
         except Exception as e:
             logger.error(
-                f"Error calculating multiple triangle cosine similarities: {str(e)}"
+                (
+                    f"Error calculating multiple triangle cosine similarities: "  # noqa: E501
+                    f"{str(e)}"
+                )
             )
             raise
 

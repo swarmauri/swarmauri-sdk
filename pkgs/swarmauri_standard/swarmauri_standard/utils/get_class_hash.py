@@ -6,8 +6,10 @@ def get_class_hash(cls):
     """
     Generates a unique hash value for a given class.
 
-    This function uses the built-in `hashlib` and `inspect` modules to create a hash value based on the class' methods
-    and properties. The members of the class are first sorted to ensure a consistent order, and then the hash object is
+    This function uses the built-in `hashlib` and `inspect` modules to create a
+    hash value based on the class' methods
+    and properties. The members of the class are first sorted to ensure a
+    consistent order, and then the hash object is
     updated with each member's name and signature.
 
     Parameters:

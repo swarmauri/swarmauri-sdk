@@ -39,7 +39,8 @@ def test_ubc_resource(vector_store):
 @pytest.mark.unit
 def test_serialization(vector_store):
     """
-    Test to verify serialization and deserialization of CloudWeaviateVectorStore.
+    Test to verify serialization and deserialization of
+    CloudWeaviateVectorStore.
     """
     assert (
         vector_store.id

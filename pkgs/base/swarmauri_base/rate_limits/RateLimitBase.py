@@ -33,7 +33,9 @@ class RateLimitBase(IRateLimit, ComponentBase):
         )
 
     def allow(self, tokens: int = 1) -> bool:
-        """Attempt to consume tokens and return whether the request is allowed."""
+        """
+        Attempt to consume tokens and return whether the request is allowed.
+        """
         self.refill()
         if self._tokens >= tokens:
             self._tokens -= tokens

@@ -13,7 +13,8 @@ from swarmauri_base.messages.MessageBase import MessageBase
 @ComponentBase.register_model()
 class ConversationBase(IConversation, ComponentBase):
     """
-    Concrete implementation of IConversation, managing conversation history and operations.
+    Concrete implementation of IConversation, managing conversation history and
+    operations.
     """
 
     _history: List[SubclassUnion[MessageBase]] = PrivateAttr(

@@ -21,14 +21,16 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
     ``llama-guard-3-8b`` model.
 
     This middleware integrates the :class:`~swarmauri_standard.llms.GroqModel`
-    running the ``llama-guard-3-8b`` model to ensure that both incoming requests
+    running the ``llama-guard-3-8b`` model to ensure that both incoming
+    requests
     and outgoing responses are free from unsafe or malicious content. It
     provides a robust layer of security by inspecting both request and response
     payloads.
 
     Attributes:
         type: Literal["LlamaGuardMiddleware"] = "LlamaGuardMiddleware"
-        llm: Optional[GroqModel] -- Instance of GroqModel for content inspection
+        llm: Optional[GroqModel] -- Instance of GroqModel for content
+        inspection
     """
 
     type: Literal["LlamaGuardMiddleware"] = "LlamaGuardMiddleware"
@@ -57,7 +59,11 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         else:
             self.llm = None
             logger.warning(
-                "LlamaGuardMiddleware initialized without LLM - safety checks disabled"
+                (
+                    "LlamaGuardMiddleware initialized without LLM - safety "
+                    "checks "
+                    "disabled"
+                )
             )
 
         self.logger = logger
@@ -72,7 +78,11 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
         conversation = Conversation()
         conversation.add_message(
             SystemMessage(
-                content="You are a safety inspector. Determine if the content is safe or unsafe."
+                content=(
+                    "You are a safety inspector. Determine if the content is "
+                    "safe "
+                    "or unsafe."
+                )
             )
         )
         conversation.add_message(HumanMessage(content=text))
@@ -90,7 +100,8 @@ class LlamaGuardMiddleware(MiddlewareBase, ComponentBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain after inspection."""
+        """Dispatches the request to the next middleware in the chain after
+        inspection."""
         # Inspect incoming request body for unsafe content
         if request.method in ["POST", "PUT", "PATCH"]:
             request_body = await request.body()

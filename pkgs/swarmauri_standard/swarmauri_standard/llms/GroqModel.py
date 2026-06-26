@@ -25,13 +25,16 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "GroqModel")
 class GroqModel(LLMBase):
     """
-    GroqModel class for interacting with the Groq language models API. This class
-    provides synchronous and asynchronous methods to send conversation data to the
+    GroqModel class for interacting with the Groq language models API. This
+    class
+    provides synchronous and asynchronous methods to send conversation data to
+    the
     model, receive predictions, and stream responses.
 
     Attributes:
         api_key (str): API key for authenticating requests to the Groq API.
-        allowed_models (List[str]): List of allowed model names that can be used.
+        allowed_models (List[str]): List of allowed model names that can be
+        used.
         name (str): The default model name to use for predictions.
         type (Literal["GroqModel"]): The type identifier for this class.
 
@@ -67,7 +70,8 @@ class GroqModel(LLMBase):
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -93,7 +97,8 @@ class GroqModel(LLMBase):
         Formats conversation messages into the structure expected by the API.
 
         Args:
-            messages (List[MessageBase]): List of message objects from the conversation history.
+            messages (List[MessageBase]): List of message objects from the
+            conversation history.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -140,12 +145,14 @@ class GroqModel(LLMBase):
         Generates a response from the model based on the given conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -191,15 +198,18 @@ class GroqModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
-        Async method to generate a response from the model based on the given conversation.
+        Async method to generate a response from the model based on the given
+        conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -247,12 +257,14 @@ class GroqModel(LLMBase):
         Streams response text from the model in real-time.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Yields:
             str: Partial response content from the model.
@@ -304,12 +316,14 @@ class GroqModel(LLMBase):
         Async generator that streams response text from the model in real-time.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Yields:
             str: Partial response content from the model.
@@ -357,18 +371,22 @@ class GroqModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations and generates responses for each
+        sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         results = []
         for conversation in conversations:
@@ -397,16 +415,19 @@ class GroqModel(LLMBase):
         Async method for processing a batch of conversations concurrently.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

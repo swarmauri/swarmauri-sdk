@@ -106,7 +106,8 @@ def test_json_log_formatter_without_timestamp():
 
 @pytest.mark.unit
 def test_json_log_formatter_with_exception():
-    """Test that _JSONLogFormatter includes exception information if present and configured."""
+    """Test that _JSONLogFormatter includes exception information if present
+    and configured."""
     config = JSONFormatter(include_exception=True)
     formatter = _JSONLogFormatter(config)
 
@@ -138,7 +139,8 @@ def test_json_log_formatter_with_exception():
 
 @pytest.mark.unit
 def test_json_log_formatter_without_exception():
-    """Test that _JSONLogFormatter can exclude exception information if configured."""
+    """Test that _JSONLogFormatter can exclude exception information if
+    configured."""
     config = JSONFormatter(include_exception=False)
     formatter = _JSONLogFormatter(config)
 
@@ -199,7 +201,8 @@ def test_json_log_formatter_with_custom_fields():
 
 @pytest.mark.unit
 def test_json_log_formatter_with_non_serializable_fields():
-    """Test that _JSONLogFormatter handles non-JSON-serializable fields correctly."""
+    """Test that _JSONLogFormatter handles non-JSON-serializable fields
+    correctly."""
     config = JSONFormatter()
     formatter = _JSONLogFormatter(config)
 
@@ -236,7 +239,9 @@ def test_json_log_formatter_with_non_serializable_fields():
 
 @pytest.mark.unit
 def test_json_log_formatter_serialization_failure():
-    """Test that _JSONLogFormatter handles serialization failures gracefully."""
+    """
+    Test that _JSONLogFormatter handles serialization failures gracefully.
+    """
     config = JSONFormatter()
     formatter = _JSONLogFormatter(config)
 
@@ -257,8 +262,10 @@ def test_json_log_formatter_serialization_failure():
     ):
         result = formatter.format(record)
 
-    # Since we mocked json.dumps to raise an exception and then return a fallback message,
-    # we can't parse the result as JSON. Instead, check that it contains the fallback message.
+    # Since we mocked json.dumps to raise an exception and then return a
+    # fallback message,
+    # we can't parse the result as JSON. Instead, check that it contains the
+    # fallback message.
     assert "fallback" in result
 
 

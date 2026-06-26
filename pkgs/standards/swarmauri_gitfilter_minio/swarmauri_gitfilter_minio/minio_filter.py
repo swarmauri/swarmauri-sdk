@@ -1,4 +1,6 @@
-"""Storage adapter and Git filter backed by a MinIO or S3-compatible service."""
+"""
+Storage adapter and Git filter backed by a MinIO or S3-compatible service.
+"""
 
 from __future__ import annotations
 

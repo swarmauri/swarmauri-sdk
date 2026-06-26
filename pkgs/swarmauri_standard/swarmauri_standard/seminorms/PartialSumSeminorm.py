@@ -114,14 +114,19 @@ class PartialSumSeminorm(SeminormBase):
                 # Check if any indices are out of bounds
                 if max(self.indices) >= len(data) or min(self.indices) < 0:
                     raise ValueError(
-                        f"Indices {self.indices} out of bounds for input of length {len(data)}"
+                        (
+                            f"Indices {self.indices} out of bounds for input "
+                            f"of length "
+                            f"{len(data)}"
+                        )
                     )
                 return data[list(self.indices)]
             elif self.start_idx is not None and self.end_idx is not None:
                 # Check if range is valid
                 if self.start_idx < 0 or self.end_idx > len(data):
                     raise ValueError(
-                        f"Range [{self.start_idx}:{self.end_idx}] out of bounds "
+                        f"Range [{self.start_idx}:{self.end_idx}] out of "
+                        f"bounds "
                         f"for input of length {len(data)}"
                     )
                 return data[self.start_idx : self.end_idx]
@@ -134,7 +139,8 @@ class PartialSumSeminorm(SeminormBase):
 
     def compute(self, x: InputType) -> float:
         """
-        Compute the seminorm by summing the absolute values of the partial vector elements.
+        Compute the seminorm by summing the absolute values of the partial
+        vector elements.
 
         Parameters
         ----------
@@ -218,14 +224,20 @@ class PartialSumSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
 
         try:
             # Ensure inputs are of the same type
             if type(x) is not type(y):
                 raise TypeError(
-                    f"Inputs must be of the same type, got {type(x)} and {type(y)}"
+                    (
+                        f"Inputs must be of the same type, got {type(x)} and "
+                        f"{type(y)}"
+                    )
                 )
 
             # Handle different input types
@@ -233,7 +245,11 @@ class PartialSumSeminorm(SeminormBase):
                 # Ensure inputs have the same length
                 if len(x) != len(y):
                     raise ValueError(
-                        f"Inputs must have the same length, got {len(x)} and {len(y)}"
+                        (
+                            f"Inputs must have the same length, got {len(x)} "
+                            f"and "
+                            f"{len(y)}"
+                        )
                     )
 
                 # Compute the sum of x and y
@@ -245,7 +261,11 @@ class PartialSumSeminorm(SeminormBase):
                 y_array = np.asarray(y)
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        f"Matrices must have the same shape, got {x_array.shape} and {y_array.shape}"
+                        (
+                            f"Matrices must have the same shape, got "
+                            f"{x_array.shape} and "
+                            f"{y_array.shape}"
+                        )
                     )
 
                 # Compute the sum of x and y
@@ -257,13 +277,18 @@ class PartialSumSeminorm(SeminormBase):
                 y_ascii = [ord(char) for char in y]
                 if len(x_ascii) != len(y_ascii):
                     raise ValueError(
-                        f"Strings must have the same length, got {len(x)} and {len(y)}"
+                        (
+                            f"Strings must have the same length, got {len(x)} "
+                            f"and "
+                            f"{len(y)}"
+                        )
                     )
 
                 z = [x_ascii[i] + y_ascii[i] for i in range(len(x_ascii))]
 
             elif callable(x):
-                # For callable objects, create a new callable that returns the sum
+                # For callable objects, create a new callable that returns the
+                # sum
                 def z(t):
                     return x(t) + y(t)
 
@@ -285,7 +310,8 @@ class PartialSumSeminorm(SeminormBase):
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||
@@ -310,7 +336,10 @@ class PartialSumSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
 
         try:
@@ -330,7 +359,8 @@ class PartialSumSeminorm(SeminormBase):
                 scaled_x = [alpha * val for val in x_ascii]
 
             elif callable(x):
-                # For callable objects, create a new callable that returns the scaled value
+                # For callable objects, create a new callable that returns the
+                # scaled value
                 def scaled_x(t):
                     return alpha * x(t)
 

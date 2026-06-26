@@ -248,7 +248,8 @@ class RedisVectorStore(
         for doc in all_documents:
             if doc.embedding is not None:
                 doc_vector = doc.embedding
-                # print("DOC VECTOR ::::::::::::::::::::", doc_vector.value[:10])
+                # print("DOC VECTOR ::::::::::::::::::::",
+                # doc_vector.value[:10])
                 similarity = self.cosine_similarity(
                     query_vector.value, doc_vector.value
                 )

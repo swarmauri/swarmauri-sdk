@@ -23,9 +23,9 @@ class TestJupyterShutdownKernelTool:
     def test_initial_attributes(self) -> None:
         tool = JupyterShutdownKernelTool()
         assert tool.name == "JupyterShutdownKernelTool"
-        assert (
-            tool.description
-            == "Shuts down a running Jupyter kernel and releases associated resources."
+        assert tool.description == (
+            "Shuts down a running Jupyter kernel and releases associated "
+            "resources."
         )
         assert tool.type == "JupyterShutdownKernelTool"
         assert isinstance(tool.parameters, list), (
@@ -51,7 +51,8 @@ class TestJupyterShutdownKernelTool:
         )
 
         # Instead of checking the Parameter instance for a default value,
-        # inspect the __call__ method signature to confirm the default value is 5.
+        # inspect the __call__ method signature to confirm the default value is
+        # 5.
         sig = inspect.signature(tool.__call__)
         assert sig.parameters["shutdown_timeout"].default == 5, (
             "Default shutdown timeout should be 5."

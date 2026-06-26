@@ -19,14 +19,17 @@ class MetricBase(IMetric, ComponentBase):
     """
     Base class for implementing metric spaces.
 
-    This class provides the foundation for implementing metric spaces that comply
+    This class provides the foundation for implementing metric spaces that
+    comply
     with the metric axioms:
     - Non-negativity: d(x,y) ≥ 0
-    - Identity of indiscernibles (point separation): d(x,y) = 0 if and only if x = y
+    - Identity of indiscernibles (point separation): d(x,y) = 0 if and only if
+      x = y
     - Symmetry: d(x,y) = d(y,x)
     - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
 
-    Child classes must implement the abstract methods to define specific distance calculations.
+    Child classes must implement the abstract methods to define specific
+    distance calculations.
     """
 
     resource: Optional[str] = ResourceTypes.METRIC.value
@@ -119,7 +122,10 @@ class MetricBase(IMetric, ComponentBase):
         """
         logger.debug(f"Checking non-negativity axiom for {x} and {y}")
         raise NotImplementedError(
-            "The check_non_negativity method must be implemented by child classes"
+            (
+                "The check_non_negativity method must be implemented by child "
+                "classes"
+            )
         )
 
     def check_identity_of_indiscernibles(
@@ -150,7 +156,10 @@ class MetricBase(IMetric, ComponentBase):
             f"Checking identity of indiscernibles axiom for {x} and {y}"
         )
         raise NotImplementedError(
-            "The check_identity_of_indiscernibles method must be implemented by child classes"
+            (
+                "The check_identity_of_indiscernibles method must be "
+                "implemented by child classes"
+            )
         )
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -209,5 +218,8 @@ class MetricBase(IMetric, ComponentBase):
             f"Checking triangle inequality axiom for {x}, {y}, and {z}"
         )
         raise NotImplementedError(
-            "The check_triangle_inequality method must be implemented by child classes"
+            (
+                "The check_triangle_inequality method must be implemented by "
+                "child classes"
+            )
         )

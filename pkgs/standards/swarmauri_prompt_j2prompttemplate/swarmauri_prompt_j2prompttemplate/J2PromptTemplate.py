@@ -14,8 +14,10 @@ class J2PromptTemplate(PromptTemplateBase):
     """
     A subclass of PromptTemplateBase that uses Jinja2 for template rendering.
 
-    The `template` attribute supports either a literal string representing the template content
-    or a Pydantic FilePath. When a FilePath is provided, the template is loaded using
+    The `template` attribute supports either a literal string representing the
+    template content
+    or a Pydantic FilePath. When a FilePath is provided, the template is loaded
+    using
     `env.get_template()` and stored in `template`.
 
     Features:
@@ -25,12 +27,15 @@ class J2PromptTemplate(PromptTemplateBase):
     """
 
     # The template attribute may be a literal string (template content),
-    # a FilePath (when provided as input), or a compiled Jinja2 Template (when loaded from file).
+    # a FilePath (when provided as input), or a compiled Jinja2 Template (when
+    # loaded from file).
     template: Union[str, FilePath, Template] = ""
     variables: Dict[str, Union[str, int, float, Any]] = {}
-    # Optional templates_dir attribute (can be a single path or a list of paths)
+    # Optional templates_dir attribute (can be a single path or a list of
+    # paths)
     templates_dir: Optional[Union[str, List[str]]] = None
-    # Whether to enable code generation specific features like linguistic filters
+    # Whether to enable code generation specific features like linguistic
+    # filters
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
@@ -39,7 +44,8 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         Constructs and returns a Jinja2 Environment.
 
-        If `templates_dir` is provided, a FileSystemLoader is created with that directory (or directories).
+        If `templates_dir` is provided, a FileSystemLoader is created with that
+        directory (or directories).
         Otherwise, no loader is set.
 
         The custom filters are added before returning the environment.
@@ -65,7 +71,8 @@ class J2PromptTemplate(PromptTemplateBase):
         Sets or updates the template.
 
         - If the provided `template` is a literal string, it is stored as-is.
-        - If it is a FilePath, the template is loaded via an environment using `get_template()`.
+        - If it is a FilePath, the template is loaded via an environment using
+          `get_template()`.
         """
         if type(template) is str:
             self.template = template
@@ -76,16 +83,20 @@ class J2PromptTemplate(PromptTemplateBase):
         """
         Loads the template from a file specified by a FilePath.
 
-        If `templates_dir` is provided and the template file is located in one of the directories,
-        the relative path is computed so that subdirectories (e.g. 'test2') are preserved.
-        If the direct lookup fails, a recursive search is performed over all provided directories.
+        If `templates_dir` is provided and the template file is located in one
+        of the directories,
+        the relative path is computed so that subdirectories (e.g. 'test2') are
+        preserved.
+        If the direct lookup fails, a recursive search is performed over all
+        provided directories.
         Otherwise, it falls back to using the file's own directory.
         """
         env = self.get_env()
         template_path_str = str(template_path)
         abs_template = os.path.abspath(template_path_str)
 
-        # If templates_dir is provided, try to compute a relative path from each candidate directory.
+        # If templates_dir is provided, try to compute a relative path from
+        # each candidate directory.
         if self.templates_dir:
             dirs = (
                 [self.templates_dir]
@@ -95,7 +106,8 @@ class J2PromptTemplate(PromptTemplateBase):
             for d in dirs:
                 abs_dir = os.path.abspath(d)
                 if abs_template.startswith(abs_dir):
-                    # Compute the relative path and normalize to forward slashes.
+                    # Compute the relative path and normalize to forward
+                    # slashes.
                     rel_template = os.path.relpath(
                         abs_template, abs_dir
                     ).replace(os.sep, "/")
@@ -103,10 +115,12 @@ class J2PromptTemplate(PromptTemplateBase):
                         self.template = env.get_template(rel_template)
                         return
                     except Exception:
-                        # If direct lookup fails for this directory, try the next one.
+                        # If direct lookup fails for this directory, try the
+                        # next one.
                         continue
 
-            # If direct lookup did not succeed, perform a recursive search in all candidate directories.
+            # If direct lookup did not succeed, perform a recursive search in
+            # all candidate directories.
             for d in dirs:
                 abs_dir = os.path.abspath(d)
                 for root, _, files in os.walk(abs_dir):
@@ -126,7 +140,8 @@ class J2PromptTemplate(PromptTemplateBase):
         # Fallback: use the file's own directory.
         directory = os.path.dirname(template_path_str)
         if not directory:
-            # If no directory component is provided, use the first entry of templates_dir (if available) or CWD.
+            # If no directory component is provided, use the first entry of
+            # templates_dir (if available) or CWD.
             if self.templates_dir:
                 directory = os.path.abspath(
                     self.templates_dir[0]
@@ -147,10 +162,12 @@ class J2PromptTemplate(PromptTemplateBase):
 
     def generate_prompt(self, variables: Dict[str, Any] = None) -> str:
         """
-        Generates a prompt by rendering the current template with the provided variables.
+        Generates a prompt by rendering the current template with the provided
+        variables.
 
         - If `template` is a literal string, it is compiled on the fly.
-        - If it is already a compiled Template (loaded via FilePath), it is rendered directly.
+        - If it is already a compiled Template (loaded via FilePath), it is
+          rendered directly.
         """
         variables = variables if variables else self.variables
         return self.fill(variables)

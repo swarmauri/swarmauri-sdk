@@ -16,7 +16,8 @@ class RedisDocumentStore(DocumentStoreBase):
 
     @property
     def redis_client(self):
-        """Lazily initialize and return the Redis client using a factory method."""
+        """Lazily initialize and return the Redis client using a factory
+        method."""
         if self._redis_client is None:
             print("here")
             self._redis_client = redis.Redis(
@@ -62,7 +63,8 @@ class RedisDocumentStore(DocumentStoreBase):
         self.redis_client.delete(doc_id)
 
     def __getstate__(self):
-        """Return the object state for serialization, excluding the Redis client."""
+        """Return the object state for serialization, excluding the Redis
+        client."""
         state = self.__dict__.copy()
         state["_redis_client"] = (
             None  # Exclude Redis client from serialization
@@ -70,5 +72,6 @@ class RedisDocumentStore(DocumentStoreBase):
         return state
 
     def __setstate__(self, state):
-        """Restore the object state after serialization, reinitializing the Redis client."""
+        """Restore the object state after serialization, reinitializing the
+        Redis client."""
         self.__dict__.update(state)

@@ -34,14 +34,18 @@ class ToolkitBase(IToolkit, ComponentBase):
         exclude_none: bool = False,
     ) -> Dict[str, SubclassUnion[ToolBase]]:
         """
-        List all tools in the toolkit with options to include or exclude specific fields.
+        List all tools in the toolkit with options to include or exclude
+        specific fields.
 
         Parameters:
-            include (List[str], optional): Fields to include in the returned dictionary.
-            exclude (List[str], optional): Fields to exclude from the returned dictionary.
+            include (List[str], optional): Fields to include in the returned
+            dictionary.
+            exclude (List[str], optional): Fields to exclude from the returned
+            dictionary.
 
         Returns:
-            Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with specified fields included or excluded.
+            Dict[str, SubclassUnion[ToolBase]]: A dictionary of tools with
+            specified fields included or excluded.
         """
         return [
             tool.model_dump(
@@ -60,7 +64,8 @@ class ToolkitBase(IToolkit, ComponentBase):
         Add multiple tools to the toolkit.
 
         Parameters:
-            tools (Dict[str, Tool]): A dictionary of tool objects keyed by their names.
+            tools (Dict[str, Tool]): A dictionary of tool objects keyed by
+            their names.
         """
         self.tools.update(tools)
 
@@ -78,7 +83,8 @@ class ToolkitBase(IToolkit, ComponentBase):
         Remove a tool from the toolkit by name.
 
         Parameters:
-            tool_name (str): The name of the tool to be removed from the toolkit.
+            tool_name (str): The name of the tool to be removed from the
+            toolkit.
         """
         if tool_name in self.tools:
             del self.tools[tool_name]

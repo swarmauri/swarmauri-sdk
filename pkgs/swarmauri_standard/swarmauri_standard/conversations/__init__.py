@@ -1,13 +1,15 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of conversations names (file names without the ".py" extension) and corresponding class names
+# # List of conversations names (file names without the ".py" extension) and
+# corresponding class names
 # conversations_files = [
 #     ("swarmauri_standard.conversations.Conversation", "Conversation"),
 #     (
 #         "swarmauri_standard.conversations.MaxSystemContextConversation",
 #         "MaxSystemContextConversation",
 #     ),
-#     ("swarmauri_standard.conversations.MaxSizeConversation", "MaxSizeConversation"),
+# ("swarmauri_standard.conversations.MaxSizeConversation",
+# "MaxSizeConversation"),
 #     (
 #         "swarmauri_standard.conversations.SessionCacheConversation",
 #         "SessionCacheConversation",

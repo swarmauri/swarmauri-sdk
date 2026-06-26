@@ -4,7 +4,8 @@ from typing import Any, AsyncIterator, Iterator
 
 class IPredict(ABC):
     """
-    Interface focusing on the basic properties and settings essential for defining models.
+    Interface focusing on the basic properties and settings essential for
+    defining models.
     """
 
     @abstractmethod

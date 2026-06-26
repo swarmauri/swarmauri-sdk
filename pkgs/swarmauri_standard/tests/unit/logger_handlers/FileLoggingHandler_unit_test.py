@@ -33,7 +33,9 @@ def temp_log_file():
 
 @pytest.mark.unit
 def test_file_logging_handler_default_values():
-    """Tests that FileLoggingHandler initializes with correct default values."""
+    """
+    Tests that FileLoggingHandler initializes with correct default values.
+    """
     handler = FileLoggingHandler()
 
     assert handler.type == "FileLoggingHandler"
@@ -48,7 +50,8 @@ def test_file_logging_handler_default_values():
 
 @pytest.mark.unit
 def test_compile_handler_creates_directory(temp_log_file):
-    """Tests that compile_handler creates the log directory if it doesn't exist."""
+    """Tests that compile_handler creates the log directory if it doesn't
+    exist."""
     # Create a path in a non-existent directory
     log_dir = os.path.join(os.path.dirname(temp_log_file), "test_logs")
     log_path = os.path.join(log_dir, "test.log")
@@ -70,7 +73,8 @@ def test_compile_handler_creates_directory(temp_log_file):
 
     # Clean up
     compiled_handler.close()
-    # And use rmtree again for cleanup to handle any files created by the handler
+    # And use rmtree again for cleanup to handle any files created by the
+    # handler
     shutil.rmtree(log_dir)
 
 
@@ -94,10 +98,12 @@ def test_compile_handler_creates_file_handler():
 
 @pytest.mark.unit
 def test_compile_handler_creates_rotating_file_handler():
-    """Tests that compile_handler creates a RotatingFileHandler when max_bytes > 0."""
+    """Tests that compile_handler creates a RotatingFileHandler when max_bytes
+    > 0."""
     handler = FileLoggingHandler(max_bytes=1024, backup_count=3)
 
-    # Fix the patch to match how RotatingFileHandler is imported in the implementation
+    # Fix the patch to match how RotatingFileHandler is imported in the
+    # implementation
     with patch(
         "swarmauri_standard.logger_handlers.FileLoggingHandler.RotatingFileHandler"
     ) as mock_rotating_handler:
@@ -176,7 +182,8 @@ def test_handler_with_formatter_object():
 
 @pytest.mark.unit
 def test_handler_with_default_formatter():
-    """Tests that the handler applies a default formatter when none is specified."""
+    """Tests that the handler applies a default formatter when none is
+    specified."""
     handler = FileLoggingHandler(formatter=None)
 
     with patch("logging.FileHandler") as mock_file_handler:

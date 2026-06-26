@@ -25,7 +25,8 @@ class TestInit:
     def test_all_reference(self):
         """Test that LoggingMiddleware is in __all__."""
         init_module = import_module("swarmauri_middleware_logging")
-        # Fix: Check for string "LoggingMiddleware" in __all__, not the class itself
+        # Fix: Check for string "LoggingMiddleware" in __all__, not the class
+        # itself
         assert "LoggingMiddleware" in init_module.__all__
         logging.info("__all__ contents: %s", init_module.__all__)
 

@@ -4,7 +4,10 @@ import warnings
 from .ChebyshevDistance import ChebyshevDistance
 
 warnings.warn(
-    "swarmauri_distance_chebyshev is deprecated and will be removed from the active workspace by v0.12.0.",
+    (
+        "swarmauri_distance_chebyshev is deprecated and will be "
+        "removed from the active workspace by v0.12.0."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

@@ -284,7 +284,8 @@ class LeptonAIModel(LLMBase):
         top_p: Optional[float] = 0.8,
         max_concurrent: int = 5,
     ) -> List:
-        """Process multiple conversations in parallel with controlled concurrency"""
+        """Process multiple conversations in parallel with controlled
+        concurrency"""
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def process_conversation(conv):

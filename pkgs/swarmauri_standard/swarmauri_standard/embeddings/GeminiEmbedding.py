@@ -11,23 +11,35 @@ from swarmauri_standard.vectors.Vector import Vector
 @ComponentBase.register_type(EmbeddingBase, "GeminiEmbedding")
 class GeminiEmbedding(EmbeddingBase):
     """
-    A class for generating embeddings using the Google Gemini API via REST endpoints.
+    A class for generating embeddings using the Google Gemini API via REST
+    endpoints.
 
-    This class allows users to obtain embeddings for text data using specified models
+    This class allows users to obtain embeddings for text data using specified
+    models
     from the Gemini API through direct HTTP requests.
 
     Attributes:
-        model (str): The model to use for generating embeddings. Defaults to 'text-embedding-004'.
+        model (str): The model to use for generating embeddings. Defaults to
+        'text-embedding-004'.
         allowed_models (List[str]): List of supported Gemini embedding models.
-        allowed_task_types (List[str]): List of supported task types for embeddings.
-        api_key (str): API key for authentication. Can be None for serialization.
+        allowed_task_types (List[str]): List of supported task types for
+        embeddings.
+        api_key (str): API key for authentication. Can be None for
+        serialization.
 
     Raises:
-        ValueError: If an invalid model or task type is provided during initialization.
+        ValueError: If an invalid model or task type is provided during
+        initialization.
 
     Example:
-        >>> gemini_embedding = GeminiEmbedding(api_key='your_api_key', model='text-embedding-004')
-        >>> embeddings = gemini_embedding.infer_vector(["Hello, world!", "Data science is awesome."])
+        >>> gemini_embedding = GeminiEmbedding(
+        ...     api_key='your_api_key',
+        ...     model='text-embedding-004',
+        ... )
+        >>> embeddings = gemini_embedding.infer_vector([
+        ...     "Hello, world!",
+        ...     "Data science is awesome.",
+        ... ])
     """
 
     type: Literal["GeminiEmbedding"] = "GeminiEmbedding"
@@ -62,12 +74,12 @@ class GeminiEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
+                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"  # noqa: E501
             )
 
         if self.api_key.get_secret_value():
@@ -84,10 +96,12 @@ class GeminiEmbedding(EmbeddingBase):
             data (List[str]): A list of strings to generate embeddings for.
 
         Returns:
-            List[Vector]: A list of Vector objects containing the generated embeddings.
+            List[Vector]: A list of Vector objects containing the generated
+            embeddings.
 
         Raises:
-            ValueError: If an error occurs during the API request or response processing.
+            ValueError: If an error occurs during the API request or response
+            processing.
         """
         if not self.api_key.get_secret_value():
             raise ValueError("API key must be provided for inference")
@@ -108,7 +122,7 @@ class GeminiEmbedding(EmbeddingBase):
                 payload["outputDimensionality"] = self.output_dimensionality
 
             try:
-                url = f"{self._BASE_URL}/models/{self.model}:embedContent?key={self.api_key.get_secret_value()}"
+                url = f"{self._BASE_URL}/models/{self.model}:embedContent?key={self.api_key.get_secret_value()}"  # noqa: E501
                 response = self._client.post(
                     url, headers=self._headers, json=payload, timeout=30
                 )

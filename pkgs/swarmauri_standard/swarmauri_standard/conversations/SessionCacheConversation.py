@@ -29,13 +29,18 @@ class SessionCacheConversation(
 
     def add_message(self, message: IMessage):
         """
-        Adds a message to the conversation history and ensures history does not exceed the max size.
-        This only allows system context to be set through the system context method.
+        Adds a message to the conversation history and ensures history does not
+        exceed the max size.
+        This only allows system context to be set through the system context
+        method.
         We are forcing the SystemContext to be a preamble only.
         """
         if isinstance(message, SystemMessage):
             raise ValueError(
-                f"System context cannot be set through this method on {self.__class_name__}."
+                (
+                    f"System context cannot be set through this method on "
+                    f"{self.__class_name__}."
+                )
             )
         if not self._history and not isinstance(message, HumanMessage):
             raise ValueError(
@@ -72,7 +77,8 @@ class SessionCacheConversation(
             else:
                 return []
 
-        # Initialize alternating with the expectation to start with HumanMessage
+        # Initialize alternating with the expectation to start with
+        # HumanMessage
         alternating = True
         count = 0
 

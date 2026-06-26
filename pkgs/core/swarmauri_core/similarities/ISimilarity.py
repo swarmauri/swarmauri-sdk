@@ -25,7 +25,8 @@ class ISimilarity(ABC):
     callable objects. It supports both direction-based and bounded comparisons.
 
     Similarity measures quantify how alike two objects are, with higher values
-    indicating greater similarity. Dissimilarity measures represent the opposite.
+    indicating greater similarity. Dissimilarity measures represent the
+    opposite.
     """
 
     @abstractmethod
@@ -113,7 +114,8 @@ class ISimilarity(ABC):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate dissimilarities between one object and multiple other objects.
+        Calculate dissimilarities between one object and multiple other
+        objects.
 
         Parameters
         ----------
@@ -204,7 +206,8 @@ class ISimilarity(ABC):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the similarity measure satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        Check if the similarity measure satisfies the identity of discernibles:
+        s(x,y) = 1 ⟺ x = y.
 
         Parameters
         ----------
@@ -216,7 +219,8 @@ class ISimilarity(ABC):
         Returns
         -------
         bool
-            True if the identity of discernibles property holds, False otherwise
+            True if the identity of discernibles property holds, False
+            otherwise
 
         Raises
         ------

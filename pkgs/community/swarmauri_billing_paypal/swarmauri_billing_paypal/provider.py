@@ -131,7 +131,8 @@ class PayPalBillingProvider(
             )
         return response.json() if response.content else {}
 
-    # --------------------------------------------------------------------- utils
+    # ---------------------------------------------------------------------
+    # utils
     @staticmethod
     def _dump(obj: Any) -> Mapping[str, Any]:
         if hasattr(obj, "model_dump"):
@@ -149,7 +150,8 @@ class PayPalBillingProvider(
             "payload": payload,
         }
 
-    # ------------------------------------------------------------ products/prices
+    # ------------------------------------------------------------
+    # products/prices
     def _create_product(
         self, product_spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -222,7 +224,8 @@ class PayPalBillingProvider(
             "raw": raw,
         }
 
-    # --------------------------------------------------------------- hosted flow
+    # --------------------------------------------------------------- hosted
+    # flow
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
         success_url = request.resolve(
             "success_url", "https://example.com/return"
@@ -273,7 +276,8 @@ class PayPalBillingProvider(
             "raw": raw,
         }
 
-    # ----------------------------------------------------------- online payments
+    # ----------------------------------------------------------- online
+    # payments
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
         amount = int(req.resolve("amount_minor") or 0)
         currency = (req.resolve("currency") or "USD").upper()
@@ -337,7 +341,8 @@ class PayPalBillingProvider(
             "raw": raw,
         }
 
-    # --------------------------------------------------------------- subscription
+    # ---------------------------------------------------------------
+    # subscription
     def _create_subscription(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -377,7 +382,8 @@ class PayPalBillingProvider(
             "raw": raw,
         }
 
-    # ------------------------------------------------------------------ invoicing
+    # ------------------------------------------------------------------
+    # invoicing
     def _create_invoice(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -452,7 +458,8 @@ class PayPalBillingProvider(
             "raw": self._stub("mark_uncollectible", invoice_id=invoice_id),
         }
 
-    # --------------------------------------------------------------------- refund
+    # ---------------------------------------------------------------------
+    # refund
     def _create_refund(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -492,7 +499,8 @@ class PayPalBillingProvider(
             "raw": raw,
         }
 
-    # ------------------------------------------------------------------- customer
+    # -------------------------------------------------------------------
+    # customer
     def _create_customer(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -522,7 +530,8 @@ class PayPalBillingProvider(
             payment_method_id=getattr(pm, "id", ""),
         )
 
-    # --------------------------------------------------------------- payment info
+    # --------------------------------------------------------------- payment
+    # info
     def _create_payment_method(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -567,7 +576,8 @@ class PayPalBillingProvider(
             )
         return items
 
-    # --------------------------------------------------------------------- payouts
+    # ---------------------------------------------------------------------
+    # payouts
     def _create_payout(
         self, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -600,7 +610,8 @@ class PayPalBillingProvider(
             "raw": self._stub("get_balance"),
         }
 
-    # --------------------------------------------------------------------- reports
+    # ---------------------------------------------------------------------
+    # reports
     def _create_report(
         self, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -615,7 +626,8 @@ class PayPalBillingProvider(
             ),
         }
 
-    # ------------------------------------------------------------------------ risk
+    # ------------------------------------------------------------------------
+    # risk
     @staticmethod
     def _header(headers: Mapping[str, str], name: str) -> str | None:
         lower_name = name.lower()
@@ -630,7 +642,10 @@ class PayPalBillingProvider(
         webhook_id = self.webhook_id or secret
         if not webhook_id:
             raise ValueError(
-                "webhook_id or secret is required for PayPal webhook verification"
+                (
+                    "webhook_id or secret is required for PayPal webhook "
+                    "verification"
+                )
             )
         event = json.loads(raw_body.decode("utf-8"))
         raw = self._request(
@@ -663,7 +678,8 @@ class PayPalBillingProvider(
         )
         return cast(Sequence[Mapping[str, Any]], raw.get("items", ()))
 
-    # --------------------------------------------------------------------- webhooks
+    # ---------------------------------------------------------------------
+    # webhooks
     def _parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> Mapping[str, Any]:

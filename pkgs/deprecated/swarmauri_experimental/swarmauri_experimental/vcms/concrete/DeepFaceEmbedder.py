@@ -17,11 +17,14 @@ class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
         Generates embeddings for faces in the given image.
 
         Args:
-            img_path (Union[str, np.ndarray]): Path to the image or image data as a NumPy array.
-            max_faces (Optional[int]): Maximum number of faces to process. Defaults to None.
+            img_path (Union[str, np.ndarray]): Path to the image or image data
+            as a NumPy array.
+            max_faces (Optional[int]): Maximum number of faces to process.
+            Defaults to None.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries containing face embeddings and related information.
+            List[Dict[str, Any]]: A list of dictionaries containing face
+            embeddings and related information.
         """
         try:
             result = DeepFace.represent(

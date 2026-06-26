@@ -50,7 +50,11 @@ class Fips203CipherSuite(CipherSuiteBase):
             "constraints": {"nistSecurityLevels": _ML_KEM_LEVEL},
             "compliance": {"fips203": True, "pqc": True},
             "notes": [
-                "Implements the CRYSTALS-Kyber based ML-KEM selections from FIPS 203.",
+                (
+                    "Implements the CRYSTALS-Kyber based ML-KEM selections "
+                    "from "
+                    "FIPS 203."
+                ),
             ],
         }
 

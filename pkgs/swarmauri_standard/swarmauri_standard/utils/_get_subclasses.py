@@ -3,7 +3,8 @@ import importlib
 
 def get_classes_from_module(module_name: str):
     """
-    Dynamically imports a module and retrieves a dictionary of class names and their corresponding class objects.
+    Dynamically imports a module and retrieves a dictionary of class names and
+    their corresponding class objects.
 
     :param module_name: The name of the module (e.g., "parsers", "agent").
     :return: A dictionary with class names as keys and class objects as values.
@@ -21,7 +22,8 @@ def get_classes_from_module(module_name: str):
         # Get the list of class names from __all__
         class_names = getattr(module, "__all__", [])
 
-        # Create a dictionary with class names and their corresponding class objects
+        # Create a dictionary with class names and their corresponding class
+        # objects
         classes_dict = {
             class_name: getattr(module, class_name)
             for class_name in class_names

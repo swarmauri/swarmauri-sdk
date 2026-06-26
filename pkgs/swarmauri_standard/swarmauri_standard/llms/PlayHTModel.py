@@ -13,7 +13,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing PlayHTModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "removed in a future version. Please use 'from swarmauri_standard.tts import "  # noqa: E501
     "PlayhtTTS' or 'from swarmauri.tts import PlayhtTTS' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -23,18 +23,23 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "PlayHTModel")
 class PlayHTModel(LLMBase):
     """
-    A class for Play.ht text-to-speech (TTS) synthesis using various voice models.
+    A class for Play.ht text-to-speech (TTS) synthesis using various voice
+    models.
 
     This class interacts with the Play.ht API to synthesize text to speech,
-    clone voices, and manage voice operations (like getting, cloning, and deleting).
+    clone voices, and manage voice operations (like getting, cloning, and
+    deleting).
     Attributes:
-        allowed_models (List[str]): List of TTS models supported by Play.ht, such as "Play3.0-mini" and "PlayHT2.0".
-        allowed_voices (List[str]): List of voice names available for the selected model.
+        allowed_models (List[str]): List of TTS models supported by Play.ht,
+        such as "Play3.0-mini" and "PlayHT2.0".
+        allowed_voices (List[str]): List of voice names available for the
+        selected model.
         voice (str): The selected voice name for synthesis (default: "Adolfo").
         api_key (str): API key for authenticating with Play.ht's API.
         user_id (str): User ID for authenticating with Play.ht's API.
         name (str): Name of the TTS model to use (default: "Play3.0-mini").
-        type (Literal["PlayHTModel"]): Fixed type attribute to indicate this is a "PlayHTModel".
+        type (Literal["PlayHTModel"]): Fixed type attribute to indicate this is
+        a "PlayHTModel".
         output_format (str): Format of the output audio file, e.g., "mp3".
 
     Provider resourses: https://docs.play.ht/reference/api-getting-started
@@ -86,11 +91,17 @@ class PlayHTModel(LLMBase):
 
         if model not in self.allowed_models:
             raise ValueError(
-                f"{model} voice engine not allowed. Choose from {self.allowed_models}"
+                (
+                    f"{model} voice engine not allowed. Choose from "
+                    f"{self.allowed_models}"
+                )
             )
         if voice and voice not in self.allowed_voices:
             raise ValueError(
-                f"Voice name {voice} is not allowed for this {model} voice engine. Choose from {self.allowed_voices}"
+                (
+                    f"Voice name {voice} is not allowed for this {model} voice "  # noqa: E501
+                    f"engine. Choose from {self.allowed_voices}"
+                )
             )
 
     @retry_on_status_codes((429, 529), max_retries=1)
@@ -241,7 +252,8 @@ class PlayHTModel(LLMBase):
         Process multiple text-to-speech conversions synchronously.
 
         Parameters:
-            text_path_dict (Dict[str, str]): Dictionary of text and corresponding audio paths.
+            text_path_dict (Dict[str, str]): Dictionary of text and
+            corresponding audio paths.
         Returns:
             List: List of audio file paths.
         """
@@ -253,10 +265,12 @@ class PlayHTModel(LLMBase):
         self, text_path_dict: Dict[str, str], max_concurrent: int = 5
     ) -> List["str"]:
         """
-        Process multiple text-to-speech conversions asynchronously with controlled concurrency.
+        Process multiple text-to-speech conversions asynchronously with
+        controlled concurrency.
 
         Parameters:
-            text_path_dict (Dict[str, str]): Dictionary of text and corresponding audio paths.
+            text_path_dict (Dict[str, str]): Dictionary of text and
+            corresponding audio paths.
             max_concurrent (int): Maximum number of concurrent tasks.
         Returns:
             List: List of audio file paths.
@@ -317,14 +331,19 @@ class PlayHTModel(LLMBase):
         Clone a voice by sending a URL to an audio file to Play.ht API.
 
         :param voice_name: The name for the cloned voice.
-        :param sample_file_url: The URL to the audio file to be used for cloning the voice.
+        :param sample_file_url: The URL to the audio file to be used for
+            cloning the voice.
         :return: A dictionary containing the response from the Play.ht API.
         """
         # Constructing the payload with the sample file URL
+        boundary = "-----011000010111000001101001"
         payload = (
-            f'-----011000010111000001101001\r\nContent-Disposition: form-data; name="sample_file_url"\r\n\r\n\
-            {sample_file_url}\r\n-----011000010111000001101001--; name="voice_name"\r\n\r\n\
-            {voice_name}\r\n-----011000010111000001101001--'
+            f"{boundary}\r\n"
+            'Content-Disposition: form-data; name="sample_file_url"\r\n\r\n'
+            f"{sample_file_url}\r\n"
+            f'{boundary}--; name="voice_name"\r\n\r\n'
+            f"{voice_name}\r\n"
+            f"{boundary}--"
         )
 
         self._headers["content-type"] = (
@@ -398,7 +417,8 @@ class PlayHTModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

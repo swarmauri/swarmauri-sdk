@@ -16,7 +16,8 @@ def test_readme_example_executes(monkeypatch: pytest.MonkeyPatch) -> None:
     package_dir = tests_dir.parent
     repo_root = package_dir.parent.parent.parent
 
-    # Ensure local workspace packages are importable when running inside the mono-repo.
+    # Ensure local workspace packages are importable when running inside the
+    # mono-repo.
     for candidate in (
         package_dir,
         repo_root / "pkgs" / "core",

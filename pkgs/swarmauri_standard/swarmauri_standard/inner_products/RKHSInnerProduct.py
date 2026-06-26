@@ -59,7 +59,8 @@ class RKHSInnerProduct(InnerProductBase):
         b: Union[Vector, Matrix, Callable],
     ) -> float:
         """
-        Compute the inner product between two objects using the kernel function.
+        Compute the inner product between two objects using the kernel
+        function.
 
         Parameters
         ----------
@@ -97,7 +98,8 @@ class RKHSInnerProduct(InnerProductBase):
         b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
-        Check if the kernel-induced inner product satisfies the conjugate symmetry property.
+        Check if the kernel-induced inner product satisfies the conjugate
+        symmetry property.
 
         For real-valued kernels, this checks if K(a,b) = K(b,a).
         For complex-valued kernels, this checks if K(a,b) = K(b,a)*.
@@ -140,10 +142,13 @@ class RKHSInnerProduct(InnerProductBase):
         beta: float,
     ) -> bool:
         """
-        Check if the kernel-induced inner product satisfies linearity in the first argument.
+        Check if the kernel-induced inner product satisfies linearity in the
+        first argument.
 
-        This verifies if K(alpha*a1 + beta*a2, b) = alpha*K(a1, b) + beta*K(a2, b).
-        Note: This check may not be applicable for all kernel functions, especially
+        This verifies if K(alpha*a1 + beta*a2, b) = alpha*K(a1, b) + beta*K(a2,
+        b).
+        Note: This check may not be applicable for all kernel functions,
+        especially
         if they don't support linear combinations of inputs directly.
 
         Parameters
@@ -170,7 +175,10 @@ class RKHSInnerProduct(InnerProductBase):
             If the inputs don't support linear combinations
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         # Check if inputs support linear combinations
@@ -198,7 +206,8 @@ class RKHSInnerProduct(InnerProductBase):
 
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
         """
-        Check if the kernel-induced inner product satisfies the positivity property.
+        Check if the kernel-induced inner product satisfies the positivity
+        property.
 
         This verifies if K(a, a) >= 0 for all a.
         For a valid positive-definite kernel, this property should always hold.
@@ -245,7 +254,10 @@ class RKHSInnerProduct(InnerProductBase):
             True if the kernel is positive definite, False otherwise
         """
         logger.debug(
-            f"Checking if kernel is positive definite using {len(vectors)} vectors"
+            (
+                f"Checking if kernel is positive definite using "
+                f"{len(vectors)} vectors"
+            )
         )
 
         n = len(vectors)

@@ -17,7 +17,8 @@ class IAgentRouterCRUD(ABC):
         Parameters:
         - path (str): The URL path for the route.
         - method (str): The HTTP method (e.g., 'GET', 'POST').
-        - handler (Callable[[Any], Any]): The function that handles requests to this route.
+        - handler (Callable[[Any], Any]): The function that handles requests to
+          this route.
         """
         pass
 
@@ -31,7 +32,8 @@ class IAgentRouterCRUD(ABC):
         - method (str): The HTTP method.
 
         Returns:
-        - Dict: Information about the route, including path, method, and handler.
+        - Dict: Information about the route, including path, method, and
+          handler.
         """
         pass
 
@@ -45,7 +47,8 @@ class IAgentRouterCRUD(ABC):
         Parameters:
         - path (str): The URL path for the route.
         - method (str): The HTTP method.
-        - new_handler (Callable[[Any], Any]): The new function that handles requests to this route.
+        - new_handler (Callable[[Any], Any]): The new function that handles
+          requests to this route.
         """
         pass
 

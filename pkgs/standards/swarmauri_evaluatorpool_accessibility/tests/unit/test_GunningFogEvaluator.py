@@ -49,7 +49,10 @@ def test_serialization(evaluator):
 @pytest.mark.unit
 def test_count_sentences(evaluator):
     """Test the sentence counting functionality."""
-    text = "This is a sentence. This is another one! Is this a question? Yes, it is."
+    text = (
+        "This is a sentence. This is another one! Is this a question? "
+        "Yes, it is."
+    )
     assert evaluator._count_sentences(text) == 4
 
     # Test with empty text
@@ -94,8 +97,12 @@ def test_count_syllables(evaluator, word, expected_syllables):
 @pytest.mark.unit
 def test_count_complex_words(evaluator):
     """Test the complex word counting functionality."""
-    text = "The university professor discussed accessibility and utilization of beautiful resources."
-    # Complex words: university, professor, accessibility, utilization, beautiful
+    text = (
+        "The university professor discussed accessibility and "
+        "utilization of beautiful resources."
+    )
+    # Complex words: university, professor, accessibility, utilization,
+    # beautiful
     assert evaluator._count_complex_words(text) == 5
 
     # Test with no complex words
@@ -174,7 +181,10 @@ def test_compute_score_complex_text(evaluator, mock_program):
     """Test compute_score with more complex text."""
     # More complex text with known characteristics
     mock_program.get_source_files.return_value = {
-        "main.txt": "The university professor discussed the utilization of computational resources."
+        "main.txt": (
+            "The university professor discussed the utilization of "
+            "computational resources."
+        )
     }
 
     # Mock the counting methods to return controlled values
@@ -185,7 +195,8 @@ def test_compute_score_complex_text(evaluator, mock_program):
     ):
         score, metadata = evaluator._compute_score(mock_program)
 
-        # Calculate expected GFI: 0.4 * ((10/1) + 100 * (3/10)) = 0.4 * (10 + 30) = 16
+        # Calculate expected GFI: 0.4 * ((10/1) + 100 * (3/10)) = 0.4 * (10 +
+        # 30) = 16
         # Normalized score: 1.0 - (16/20.0) = 0.2
         expected_score = 1.0 - (16 / 20.0)
 
@@ -202,7 +213,10 @@ def test_compute_score_very_complex_text(evaluator, mock_program):
     """Test compute_score with text that exceeds the cap."""
     # Very complex text with characteristics that would exceed the cap
     mock_program.get_source_files.return_value = {
-        "main.txt": "Antidisestablishmentarianism. Pneumonoultramicroscopicsilicovolcanoconiosis."
+        "main.txt": (
+            "Antidisestablishmentarianism. "
+            "Pneumonoultramicroscopicsilicovolcanoconiosis."
+        )
     }
 
     # Mock the counting methods to return values that would exceed the cap
@@ -213,7 +227,8 @@ def test_compute_score_very_complex_text(evaluator, mock_program):
     ):
         score, metadata = evaluator._compute_score(mock_program)
 
-        # Calculate expected GFI: 0.4 * ((2/2) + 100 * (2/2)) = 0.4 * (1 + 100) = 40.4
+        # Calculate expected GFI: 0.4 * ((2/2) + 100 * (2/2)) = 0.4 * (1 + 100)
+        # = 40.4
         # This exceeds our cap of 20, so score should be capped
         # Normalized score: 1.0 - (20/20.0) = 0.0
         expected_score = 0.0

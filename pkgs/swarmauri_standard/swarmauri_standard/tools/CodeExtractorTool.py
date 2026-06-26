@@ -14,20 +14,28 @@ class CodeExtractorTool(ToolBase):
             Parameter(
                 name="file_name",
                 input_type="string",
-                description="The name of the Python file to extract code from.",
+                description=(
+                    "The name of the Python file to extract code from."
+                ),
                 required=True,
             ),
             Parameter(
                 name="extract_documentation",
                 input_type="bool",
-                description="Whether to start extracting code from the documentation string.",
+                description=(
+                    "Whether to start extracting code from the documentation "
+                    "string."
+                ),
                 required=False,
                 default=True,
             ),
             Parameter(
                 name="to_be_ignored",
                 input_type="list",
-                description="A list of function or variable names to be ignored during code extraction.",
+                description=(
+                    "A list of function or variable names to be ignored during "  # noqa: E501
+                    "code extraction."
+                ),
                 required=False,
                 default=[],
             ),
@@ -48,8 +56,10 @@ class CodeExtractorTool(ToolBase):
 
         Parameters:
             file_name (str): The name of the Python file to extract code from.
-            extract_documentation (bool): Whether to start extracting code from the documentation string.
-            to_be_ignored (List[str]): A list of function or variable names to be ignored during code extraction.
+            extract_documentation (bool): Whether to start extracting code from
+            the documentation string.
+            to_be_ignored (List[str]): A list of function or variable names to
+            be ignored during code extraction.
 
         Returns:
             str: Extracted code.
@@ -71,8 +81,10 @@ class CodeExtractorTool(ToolBase):
 
         Args:
             file_name (str): The name of the Python file to extract code from.
-            extract_documentation (bool): Whether to start extracting code from the documentation string.
-            to_be_ignored (List[str]): A list of function or variable names to be ignored during code extraction.
+            extract_documentation (bool): Whether to start extracting code from
+            the documentation string.
+            to_be_ignored (List[str]): A list of function or variable names to
+            be ignored during code extraction.
 
         Returns:
             str: Extracted code.

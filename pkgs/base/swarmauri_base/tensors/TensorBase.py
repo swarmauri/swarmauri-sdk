@@ -16,7 +16,8 @@ class TensorBase(ITensor, ComponentBase):
     Base implementation of the ITensor interface.
 
     This class provides a foundation for tensor operations including reshaping,
-    contraction, and broadcasting. It implements the abstract methods defined in
+    contraction, and broadcasting. It implements the abstract methods defined
+    in
     ITensor but raises NotImplementedError, serving as a template for concrete
     tensor implementations.
 

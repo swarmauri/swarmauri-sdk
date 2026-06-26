@@ -45,5 +45,5 @@ def test_call():
     )
 
     assert result.get("entities") == json.dumps(expected_result), (
-        f"Expected Entities result {json.dumps(expected_result)}, but got {result.get('entities')}"
+        f"Expected Entities result {json.dumps(expected_result)}, but got {result.get('entities')}"  # noqa: E501
     )

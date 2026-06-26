@@ -247,16 +247,23 @@ def test_compile_handler_general_exception():
     [
         (
             ("localhost", 514),
-            "SysLogLoggingHandler(address=localhost:514, facility=1, level=INFO)",  # Change NOTSET to INFO
+            # Change NOTSET to INFO
+            (
+                "SysLogLoggingHandler(address=localhost:514, facility=1, "
+                "level=INFO)"
+            ),
         ),
         (
             ("/dev/log",),
-            "SysLogLoggingHandler(address=/dev/log, facility=1, level=INFO)",  # Change NOTSET to INFO
+            # Change NOTSET to INFO
+            "SysLogLoggingHandler(address=/dev/log, facility=1, level=INFO)",
         ),
     ],
 )
 def test_str_representation(address, expected):
-    """Tests string representation of the handler with different address types."""
+    """
+    Tests string representation of the handler with different address types.
+    """
     if len(address) == 1:
         handler = SysLogLoggingHandler(address=address[0])
     else:

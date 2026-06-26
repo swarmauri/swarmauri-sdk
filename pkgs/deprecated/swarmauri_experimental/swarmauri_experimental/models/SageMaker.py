@@ -12,7 +12,8 @@ class AWSSageMakerModel(IModel):
         model_name: str,
     ):
         """
-        Initialize the AWS SageMaker model with AWS credentials, region, and the model name.
+        Initialize the AWS SageMaker model with AWS credentials, region, and
+        the model name.
 
         Parameters:
         - access_key (str): AWS access key ID.
@@ -39,7 +40,8 @@ class AWSSageMakerModel(IModel):
 
         Parameters:
         - payload (str): Input data in JSON format.
-        - content_type (str): The MIME type of the input data (default: 'application/json').
+        - content_type (str): The MIME type of the input data (default:
+          'application/json').
 
         Returns:
         - dict: The predictions returned by the model.

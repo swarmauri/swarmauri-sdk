@@ -5,7 +5,8 @@ from typing import Any
 class ITraceContext(ABC):
     """
     Interface for a trace context, representing a single trace instance.
-    This context carries the state and metadata of the trace across different system components.
+    This context carries the state and metadata of the trace across different
+    system components.
     """
 
     @abstractmethod

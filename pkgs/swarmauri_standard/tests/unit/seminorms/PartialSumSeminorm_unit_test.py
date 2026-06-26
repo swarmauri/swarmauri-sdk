@@ -51,7 +51,9 @@ def indices_seminorm():
 
 @pytest.mark.unit
 def test_initialization():
-    """Test the initialization of PartialSumSeminorm with various parameters."""
+    """
+    Test the initialization of PartialSumSeminorm with various parameters.
+    """
     # Test default initialization
     seminorm1 = PartialSumSeminorm()
     assert seminorm1.start_idx is None
@@ -70,7 +72,8 @@ def test_initialization():
     assert seminorm3.end_idx is None
     assert seminorm3.indices == [0, 2, 4]
 
-    # Test initialization with both range and indices (indices should take precedence)
+    # Test initialization with both range and indices (indices should take
+    # precedence)
     seminorm4 = PartialSumSeminorm(start_idx=1, end_idx=5, indices=[0, 2, 4])
     assert seminorm4.start_idx == 1
     assert seminorm4.end_idx == 5
@@ -94,7 +97,9 @@ def test_type_attribute():
     ],
 )
 def test_compute_default(default_seminorm, input_vector, expected_output):
-    """Test computation with default seminorm (no range or indices specified)."""
+    """
+    Test computation with default seminorm (no range or indices specified).
+    """
     result = default_seminorm.compute(input_vector)
     assert result == expected_output
 
@@ -197,7 +202,8 @@ def test_compute_with_callable():
     # Test with default seminorm
     default_seminorm = PartialSumSeminorm()
     result = default_seminorm.compute(test_function)
-    # This should evaluate the function at 100 points and sum the absolute values
+    # This should evaluate the function at 100 points and sum the absolute
+    # values
     assert result > 0  # The exact value depends on the implementation details
 
     # Test with range seminorm
@@ -234,7 +240,8 @@ def test_extract_partial_data():
 
 @pytest.mark.unit
 def test_extract_partial_data_out_of_bounds():
-    """Test that _extract_partial_data raises ValueError for out-of-bounds indices."""
+    """Test that _extract_partial_data raises ValueError for out-of-bounds
+    indices."""
     data = [1, 2, 3, 4, 5]
 
     # Test with out-of-bounds range
@@ -286,7 +293,8 @@ def test_scalar_homogeneity():
 
 @pytest.mark.unit
 def test_incompatible_inputs_triangle_inequality():
-    """Test that check_triangle_inequality raises TypeError for incompatible inputs."""
+    """Test that check_triangle_inequality raises TypeError for incompatible
+    inputs."""
     seminorm = PartialSumSeminorm()
 
     # Different types

@@ -5,7 +5,8 @@ from swarmauri_core.agents.IAgent import IAgent
 
 class IAgentRegistrationAPI(ABC):
     """
-    Interface for registering agents with the swarm, designed to support CRUD operations on IAgent instances.
+    Interface for registering agents with the swarm, designed to support CRUD
+    operations on IAgent instances.
     """
 
     @abstractmethod
@@ -14,7 +15,8 @@ class IAgentRegistrationAPI(ABC):
         Register a new agent with the swarm.
 
         Parameters:
-            agent (IAgent): An instance of IAgent representing the agent to register.
+            agent (IAgent): An instance of IAgent representing the agent to
+            register.
 
         Returns:
             bool: True if the registration succeeded; False otherwise.
@@ -24,12 +26,14 @@ class IAgentRegistrationAPI(ABC):
     @abstractmethod
     def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
         """
-        Update the details of an existing agent. This could include changing the agent's configuration,
+        Update the details of an existing agent. This could include changing
+        the agent's configuration,
         task assignment, or any other mutable attribute.
 
         Parameters:
             agent_id (str): The unique identifier for the agent.
-            updated_agent (IAgent): An updated IAgent instance to replace the existing one.
+            updated_agent (IAgent): An updated IAgent instance to replace the
+            existing one.
 
         Returns:
             bool: True if the update was successful; False otherwise.
@@ -68,6 +72,7 @@ class IAgentRegistrationAPI(ABC):
         List all registered agents.
 
         Returns:
-            List[IAgent]: A list containing instances of all registered IAgents.
+            List[IAgent]: A list containing instances of all registered
+            IAgents.
         """
         pass

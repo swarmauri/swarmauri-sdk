@@ -2,14 +2,16 @@
 
 # from typing import TYPE_CHECKING
 
-# from swarmauri_standard.utils.LazyLoader import LazyLoader  # Ensure correct import path
+# from swarmauri_standard.utils.LazyLoader import LazyLoader  # Ensure correct
+# import path
 
-# # List of LLMs (Large Language Models) names (module paths) and corresponding class names
+# # List of LLMs (Large Language Models) names (module paths) and corresponding
+# class names
 # llms_files = [
 #     ("swarmauri_standard.llms.AI21StudioModel", "AI21StudioModel"),
 #     ("swarmauri_standard.llms.AnthropicModel", "AnthropicModel"),
 #     ("swarmauri_standard.llms.AnthropicToolModel", "AnthropicToolModel"),
-#     ("swarmauri_standard.llms.BlackForestImgGenModel", "BlackForestImgGenModel"),
+#     ("swarmauri_standard.llms.BlackForestImgGenModel", "BlackForestImgGenModel"),  # noqa: E501
 #     ("swarmauri_standard.llms.CohereModel", "CohereModel"),
 #     ("swarmauri_standard.llms.CohereToolModel", "CohereToolModel"),
 #     ("swarmauri_standard.llms.DeepInfraImgGenModel", "DeepInfraImgGenModel"),
@@ -24,9 +26,9 @@
 #     ("swarmauri_standard.llms.GroqToolModel", "GroqToolModel"),
 #     ("swarmauri_standard.llms.GroqVisionModel", "GroqVisionModel"),
 #     ("swarmauri_standard.llms.HyperbolicAudioTTS", "HyperbolicAudioTTS"),
-#     ("swarmauri_standard.llms.HyperbolicImgGenModel", "HyperbolicImgGenModel"),
+#     ("swarmauri_standard.llms.HyperbolicImgGenModel", "HyperbolicImgGenModel"),  # noqa: E501
 #     ("swarmauri_standard.llms.HyperbolicModel", "HyperbolicModel"),
-#     ("swarmauri_standard.llms.HyperbolicVisionModel", "HyperbolicVisionModel"),
+#     ("swarmauri_standard.llms.HyperbolicVisionModel", "HyperbolicVisionModel"),  # noqa: E501
 #     ("swarmauri_standard.llms.MistralModel", "MistralModel"),
 #     ("swarmauri_standard.llms.MistralToolModel", "MistralToolModel"),
 #     ("swarmauri_standard.llms.OpenAIAudio", "OpenAIAudio"),
@@ -51,10 +53,11 @@
 #     from swarmauri_standard.llms.AI21StudioModel import AI21StudioModel
 #     from swarmauri_standard.llms.AnthropicModel import AnthropicModel
 #     from swarmauri_standard.llms.AnthropicToolModel import AnthropicToolModel
-#     from swarmauri_standard.llms.BlackForestImgGenModel import BlackForestImgGenModel
+# from swarmauri_standard.llms.BlackForestImgGenModel import
+# BlackForestImgGenModel
 #     from swarmauri_standard.llms.CohereModel import CohereModel
 #     from swarmauri_standard.llms.CohereToolModel import CohereToolModel
-#     from swarmauri_standard.llms.DeepInfraImgGenModel import DeepInfraImgGenModel
+#     from swarmauri_standard.llms.DeepInfraImgGenModel import DeepInfraImgGenModel  # noqa: E501
 #     from swarmauri_standard.llms.DeepInfraModel import DeepInfraModel
 #     from swarmauri_standard.llms.DeepSeekModel import DeepSeekModel
 #     from swarmauri_standard.llms.FalAIImgGenModel import FalaiImgGenModel
@@ -66,9 +69,11 @@
 #     from swarmauri_standard.llms.GroqToolModel import GroqToolModel
 #     from swarmauri_standard.llms.GroqVisionModel import GroqVisionModel
 #     from swarmauri_standard.llms.HyperbolicAudioTTS import HyperbolicAudioTTS
-#     from swarmauri_standard.llms.HyperbolicImgGenModel import HyperbolicImgGenModel
+# from swarmauri_standard.llms.HyperbolicImgGenModel import
+# HyperbolicImgGenModel
 #     from swarmauri_standard.llms.HyperbolicModel import HyperbolicModel
-#     from swarmauri_standard.llms.HyperbolicVisionModel import HyperbolicVisionModel
+# from swarmauri_standard.llms.HyperbolicVisionModel import
+# HyperbolicVisionModel
 #     from swarmauri_standard.llms.MistralModel import MistralModel
 #     from swarmauri_standard.llms.MistralToolModel import MistralToolModel
 #     from swarmauri_standard.llms.OpenAIAudio import OpenAIAudio

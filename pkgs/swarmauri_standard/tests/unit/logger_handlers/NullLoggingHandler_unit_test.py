@@ -79,7 +79,8 @@ def test_null_handler_discards_messages():
 @pytest.mark.unit
 def test_serialization_deserialization():
     """
-    Test that the NullLoggingHandler can be serialized and deserialized correctly.
+    Test that the NullLoggingHandler can be serialized and deserialized
+    correctly.
     """
     original_handler = NullLoggingHandler(level=logging.INFO)
 

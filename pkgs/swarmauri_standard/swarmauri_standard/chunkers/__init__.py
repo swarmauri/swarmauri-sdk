@@ -1,12 +1,14 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of chunker names (file names without the ".py" extension) and corresponding class names
+# # List of chunker names (file names without the ".py" extension) and
+# corresponding class names
 # chunkers_files = [
-#     ("swarmauri_standard.chunkers.DelimiterBasedChunker", "DelimiterBasedChunker"),
+# ("swarmauri_standard.chunkers.DelimiterBasedChunker",
+# "DelimiterBasedChunker"),
 #     ("swarmauri_standard.chunkers.FixedLengthChunker", "FixedLengthChunker"),
 #     ("swarmauri_standard.chunkers.MdSnippetChunker", "MdSnippetChunker"),
 #     ("swarmauri_standard.chunkers.SentenceChunker", "SentenceChunker"),
-#     ("swarmauri_standard.chunkers.SlidingWindowChunker", "SlidingWindowChunker"),
+#     ("swarmauri_standard.chunkers.SlidingWindowChunker", "SlidingWindowChunker"),  # noqa: E501
 # ]
 
 # # Lazy loading of chunker classes, storing them in variables

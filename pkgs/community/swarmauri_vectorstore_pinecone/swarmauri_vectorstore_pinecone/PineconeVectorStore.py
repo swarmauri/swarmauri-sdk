@@ -74,8 +74,10 @@ class PineconeVectorStore(
         Connect to the Pinecone index, creating it if it doesn't exist.
 
         Args:
-            metric (Optional[str]): The distance metric to use. Defaults to "cosine".
-            cloud (Optional[str]): The cloud provider to use. Defaults to "aws".
+            metric (Optional[str]): The distance metric to use. Defaults to
+            "cosine".
+            cloud (Optional[str]): The cloud provider to use. Defaults to
+            "aws".
             region (Optional[str]): The region to use. Defaults to "us-east-1".
 
         """
@@ -94,7 +96,10 @@ class PineconeVectorStore(
             self.client = pc.Index(self.collection_name)
         except Exception as e:
             raise RuntimeError(
-                f"Failed to connect to Pinecone index {self.collection_name}: {str(e)}"
+                (
+                    f"Failed to connect to Pinecone index "
+                    f"{self.collection_name}: {str(e)}"
+                )
             )
 
     def disconnect(self):
@@ -143,7 +148,8 @@ class PineconeVectorStore(
 
         Args:
             document (Document): The document to add.
-            namespace (Optional[str]): The namespace to add the document to. Defaults to "".
+            namespace (Optional[str]): The namespace to add the document to.
+            Defaults to "".
         """
         try:
             vector = self._prepare_vector(document)
@@ -164,8 +170,10 @@ class PineconeVectorStore(
 
         Args:
             documents (List[Document]): The list of documents to add.
-            namespace (Optional[str]): The namespace to add the documents to. Defaults to "".
-            batch_size (int): The number of documents to add in each batch. Defaults to 200.
+            namespace (Optional[str]): The namespace to add the documents to.
+            Defaults to "".
+            batch_size (int): The number of documents to add in each batch.
+            Defaults to 200.
 
         """
         if batch_size <= 0 or batch_size > 1000:
@@ -178,7 +186,11 @@ class PineconeVectorStore(
                 self.client.upsert(vectors=batch_vectors, namespace=namespace)
             except Exception as e:
                 raise RuntimeError(
-                    f"Error during batch upsert. Consider lowering batch size: {str(e)}"
+                    (
+                        f"Error during batch upsert. Consider lowering batch "
+                        f"size: "
+                        f"{str(e)}"
+                    )
                 )
 
     def get_document(
@@ -189,10 +201,12 @@ class PineconeVectorStore(
 
         Args:
             id (str): The ID of the document to retrieve.
-            namespace (Optional[str]): The namespace to search in. Defaults to "".
+            namespace (Optional[str]): The namespace to search in. Defaults to
+            "".
 
         Returns:
-            Union[Document, None]: The retrieved document, or None if not found.
+            Union[Document, None]: The retrieved document, or None if not
+            found.
 
         """
         try:
@@ -226,7 +240,8 @@ class PineconeVectorStore(
         Get all document IDs from the Pinecone index.
 
         Args:
-            namespace (Optional[str]): The namespace to search in. Defaults to "".
+            namespace (Optional[str]): The namespace to search in. Defaults to
+            "".
 
         Returns:
             set: A set of all document IDs in the index.
@@ -248,7 +263,8 @@ class PineconeVectorStore(
         Retrieve all documents from the Pinecone index.
 
         Args:
-            namespace (Optional[str]): The namespace to search in. Defaults to "".
+            namespace (Optional[str]): The namespace to search in. Defaults to
+            "".
 
         Returns:
             List[Document]: A list of all documents in the index.
@@ -279,7 +295,8 @@ class PineconeVectorStore(
 
         Args:
             id (str): The ID of the document to delete.
-            namespace (Optional[str]): The namespace to delete from. Defaults to "".
+            namespace (Optional[str]): The namespace to delete from. Defaults
+            to "".
 
         """
         try:
@@ -311,7 +328,8 @@ class PineconeVectorStore(
         Args:
             id (str): The ID of the document to update.
             document (Document): The updated document.
-            namespace (Optional[str]): The namespace of the document. Defaults to "".
+            namespace (Optional[str]): The namespace of the document. Defaults
+            to "".
 
         """
         try:
@@ -335,7 +353,8 @@ class PineconeVectorStore(
         Get the number of documents in the Pinecone index.
 
         Args:
-            namespace (Optional[str]): The namespace to count documents in. Defaults to "".
+            namespace (Optional[str]): The namespace to count documents in.
+            Defaults to "".
 
         Returns:
             int: The number of documents in the index.
@@ -347,7 +366,10 @@ class PineconeVectorStore(
             ]
         except Exception as e:
             raise RuntimeError(
-                f"Failed to get document count for namespace {namespace}: {str(e)}"
+                (
+                    f"Failed to get document count for namespace {namespace}: "
+                    f"{str(e)}"
+                )
             )
 
     def retrieve(
@@ -359,7 +381,8 @@ class PineconeVectorStore(
         Args:
             query (str): The query string to search for.
             top_k (int): The number of results to return. Defaults to 5.
-            namespace (Optional[str]): The namespace to search in. Defaults to "".
+            namespace (Optional[str]): The namespace to search in. Defaults to
+            "".
 
         Returns:
             List[Document]: A list of retrieved documents.

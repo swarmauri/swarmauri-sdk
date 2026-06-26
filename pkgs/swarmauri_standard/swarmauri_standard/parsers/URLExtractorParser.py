@@ -19,13 +19,15 @@ class URLExtractorParser(ParserBase):
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
-        Parse input data (string) and extract URLs, each URL is then represented as a document.
+        Parse input data (string) and extract URLs, each URL is then
+        represented as a document.
 
         Parameters:
         - data (Union[str, Any]): The input data to be parsed for URLs.
 
         Returns:
-        - List[IDocument]: A list of documents, each representing an extracted URL.
+        - List[IDocument]: A list of documents, each representing an extracted
+          URL.
         """
         if not isinstance(data, str):
             raise ValueError(

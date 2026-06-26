@@ -7,7 +7,8 @@ from swarmauri_core.schema_converters.ISchemaConvert import ISchemaConvert
 
 class IToolPredict(ABC):
     """
-    Interface focusing on the basic properties and settings essential for defining models.
+    Interface focusing on the basic properties and settings essential for
+    defining models.
     """
 
     @abstractmethod

@@ -68,7 +68,8 @@ def sql_log_decorator(func):
         end_datetime = datetime.now()
 
         # SQL logging
-        # Unpacking the history and other required parameters from kwargs if they were used
+        # Unpacking the history and other required parameters from kwargs if
+        # they were used
         kwargs.get("history", [])
         message = kwargs.get("message", "")
         response = result[

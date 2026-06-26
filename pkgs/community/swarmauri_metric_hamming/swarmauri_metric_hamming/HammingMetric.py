@@ -136,7 +136,9 @@ class HammingMetric(MetricBase):
         return [self._normalise_single(cast(MetricInput, values))]
 
     def normalise(self, value: MetricInput) -> List[object]:
-        """Expose the internal normalisation logic for downstream components."""
+        """
+        Expose the internal normalisation logic for downstream components.
+        """
 
         return self._normalise_single(value)
 

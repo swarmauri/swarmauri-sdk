@@ -88,7 +88,10 @@ class PaymentRef(PaymentRefProto, BillingRef):
     )
     amount_minor: Optional[int] = Field(
         default=None,
-        description="Amount associated with the payment in the smallest currency denomination",
+        description=(
+            "Amount associated with the payment in the smallest currency "
+            "denomination"
+        ),
     )
     currency: Optional[str] = Field(
         default=None, description="Currency code for the payment"

@@ -10,7 +10,8 @@ from swarmauri_core.messages.IMessage import IMessage
 
 class SharedConversation(ConversationBase):
     """
-    A thread-safe conversation class that supports individual system contexts for each SwarmAgent.
+    A thread-safe conversation class that supports individual system contexts
+    for each SwarmAgent.
     """
 
     def __init__(self):
@@ -39,11 +40,13 @@ class SharedConversation(ConversationBase):
 
     def _get_caller_name(self) -> Optional[str]:
         for frame_info in inspect.stack():
-            # Check each frame for an instance with a 'name' attribute in its local variables
+            # Check each frame for an instance with a 'name' attribute in its
+            # local variables
             local_variables = frame_info.frame.f_locals
             for var_name, var_value in local_variables.items():
                 if hasattr(var_value, "name"):
-                    # Found an instance with a 'name' attribute. Return its value.
+                    # Found an instance with a 'name' attribute. Return its
+                    # value.
                     return getattr(var_value, "name")
         # No suitable caller found
         return None
@@ -81,7 +84,8 @@ class SharedConversation(ConversationBase):
                             # print('\n\t\t\t=>', message, message.content)
                     else:
                         if message.content:
-                            # The caller is not the sender; treat as HumanMessage
+                            # The caller is not the sender; treat as
+                            # HumanMessage
                             history.append(
                                 HumanMessage(message.content).as_dict()
                             )
@@ -101,7 +105,8 @@ class SharedConversation(ConversationBase):
 
         Args:
             agent_id (str): Unique identifier for the agent.
-            context (SystemMessage): The context message to be set for the agent.
+            context (SystemMessage): The context message to be set for the
+            agent.
         """
         with self._lock:
             self._agent_system_contexts[agent_id] = context
@@ -114,6 +119,7 @@ class SharedConversation(ConversationBase):
             agent_id (str): Unique identifier for the agent.
 
         Returns:
-            Optional[SystemMessage]: The context message of the agent, or None if not found.
+            Optional[SystemMessage]: The context message of the agent, or None
+            if not found.
         """
         return self._agent_system_contexts.get(agent_id, None)

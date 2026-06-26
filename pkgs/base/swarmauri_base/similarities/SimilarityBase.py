@@ -14,7 +14,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
     Base class for directional or feature-based similarity measures.
 
     This abstract base class implements the foundation for similarity measures,
-    providing common functionality for bounds, reflexivity, and optional symmetry.
+    providing common functionality for bounds, reflexivity, and optional
+    symmetry.
     It serves as a starting point for implementing concrete similarity metrics.
 
     Attributes
@@ -123,14 +124,18 @@ class SimilarityBase(ISimilarity, ComponentBase):
                 raise
         else:
             raise NotImplementedError(
-                "Dissimilarity for unbounded similarity measures must be implemented by subclasses"
+                (
+                    "Dissimilarity for unbounded similarity measures must be "
+                    "implemented by subclasses"
+                )
             )
 
     def dissimilarities(
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate dissimilarities between one object and multiple other objects.
+        Calculate dissimilarities between one object and multiple other
+        objects.
 
         Parameters
         ----------
@@ -198,7 +203,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
         try:
             # A similarity measure is reflexive if s(x,x) = 1
             similarity_value = self.similarity(x, x)
-            # Use approximate equality to handle floating-point precision issues
+            # Use approximate equality to handle floating-point precision
+            # issues
             return abs(similarity_value - 1.0) < 1e-10
         except Exception as e:
             logger.error(f"Error checking reflexivity: {str(e)}")
@@ -231,7 +237,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
             # A similarity measure is symmetric if s(x,y) = s(y,x)
             similarity_xy = self.similarity(x, y)
             similarity_yx = self.similarity(y, x)
-            # Use approximate equality to handle floating-point precision issues
+            # Use approximate equality to handle floating-point precision
+            # issues
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
             logger.error(f"Error checking symmetry: {str(e)}")
@@ -241,7 +248,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the similarity measure satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        Check if the similarity measure satisfies the identity of discernibles:
+        s(x,y) = 1 ⟺ x = y.
 
         Parameters
         ----------
@@ -253,7 +261,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
         Returns
         -------
         bool
-            True if the identity of discernibles property holds, False otherwise
+            True if the identity of discernibles property holds, False
+            otherwise
 
         Raises
         ------
@@ -271,7 +280,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
                 # Then the similarity should be 1
                 return abs(similarity_value - 1.0) < 1e-10
             else:
-                # If x and y are different, the similarity should be less than 1
+                # If x and y are different, the similarity should be less than
+                # 1
                 return similarity_value < 1.0 - 1e-10
         except Exception as e:
             logger.error(f"Error checking identity of discernibles: {str(e)}")

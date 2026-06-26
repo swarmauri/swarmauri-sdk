@@ -34,7 +34,8 @@ class SpatialDocVectorStore(
 
     def add_documents(self, documents: List[Document]) -> None:
         chunks = [doc.content for doc in documents]
-        # Prepare a list of metadata dictionaries for each document based on the required special tokens
+        # Prepare a list of metadata dictionaries for each document based on
+        # the required special tokens
         metadata_list = [
             {
                 "dir": doc.metadata.get("dir", ""),
@@ -50,12 +51,14 @@ class SpatialDocVectorStore(
             for doc in documents
         ]
 
-        # Use vectorize_document to process all documents with their corresponding metadata
+        # Use vectorize_document to process all documents with their
+        # corresponding metadata
         embeddings = self._embedder.vectorize_document(
             chunks, metadata_list=metadata_list
         )
 
-        # Create Document instances for each document with the generated embeddings
+        # Create Document instances for each document with the generated
+        # embeddings
         for doc, embedding in zip(documents, embeddings):
             embedded_doc = Document(
                 id=doc.id,

@@ -31,7 +31,10 @@ class FoliumTool(ToolBase):
             Parameter(
                 name="markers",
                 input_type="list",
-                description="A list of (latitude, longitude, popup) tuples for markers.",
+                description=(
+                    "A list of (latitude, longitude, popup) tuples for "
+                    "markers."
+                ),
                 required=False,
                 default=[],
             ),
@@ -44,22 +47,29 @@ class FoliumTool(ToolBase):
         markers: List[Tuple[float, float, str]],
     ) -> Dict[str, str]:
         """
-        Generate a folium map with markers and return the map as a base64-encoded image.
+        Generate a folium map with markers and return the map as a
+        base64-encoded image.
 
         Parameters:
-        map_center (Tuple[float, float]): Latitude and longitude for the map's center.
-        markers (List[Tuple[float, float, str]]): A list of markers, where each marker is a tuple containing latitude,
+        map_center (Tuple[float, float]): Latitude and longitude for the map's
+        center.
+        markers (List[Tuple[float, float, str]]): A list of markers, where each
+        marker is a tuple containing latitude,
                                               longitude, and popup text.
 
         Returns:
-        Dict[str, str]: A dictionary containing the base64-encoded image of the generated map, with the key 'image_b64'.
+        Dict[str, str]: A dictionary containing the base64-encoded image of the
+        generated map, with the key 'image_b64'.
 
         Example:
         >>> tool = FoliumTool()
         >>> map_center = (40.7128, -74.0060)
-        >>> markers = [(40.7128, -74.0060, "Marker 1"), (40.7328, -74.0010, "Marker 2")]
+        >>> markers = [
+        ...     (40.7128, -74.0060, "Marker 1"),
+        ...     (40.7328, -74.0010, "Marker 2"),
+        ... ]
         >>> result = tool(map_center, markers)
-        >>> print(result['image_b64'])  # Prints the base64 string of the map image
+        >>> print(result['image_b64'])  # Prints the map image payload
         """
         # Generate the folium map
         map_ = folium.Map(location=map_center, zoom_start=13)

@@ -12,7 +12,8 @@ hf_logging.set_verbosity_error()
 @ComponentBase.register_type(ToolBase, "EntityRecognitionTool")
 class EntityRecognitionTool(ToolBase):
     """
-    A tool that extracts named entities from text using a pre-trained NLP model.
+    A tool that extracts named entities from text using a pre-trained NLP
+    model.
     """
 
     name: str = "EntityRecognitionTool"

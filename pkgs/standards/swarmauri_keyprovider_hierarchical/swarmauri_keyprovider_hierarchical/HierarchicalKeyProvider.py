@@ -67,15 +67,19 @@ class HierarchicalKeyProvider(KeyProviderBase):
     Responsibilities
     ----------------
     - Route create/import to child providers according to CreateRule policy.
-    - Maintain a kid → provider-name index (in-memory; optional JSON persistence).
-    - Forward rotate/destroy/get/list/jwks/hkdf/random to the owning (or designated) provider.
+    - Maintain a kid → provider-name index (in-memory; optional JSON
+      persistence).
+    - Forward rotate/destroy/get/list/jwks/hkdf/random to the owning (or
+      designated) provider.
     - Merge JWKS from all children.
 
     Notes
     -----
-    - On get_key(kid, ...) for an unknown kid, this class will probe children (in order)
+    - On get_key(kid, ...) for an unknown kid, this class will probe children
+      (in order)
       until it finds it, then caches kid→provider in the index.
-    - For random_bytes/hkdf, you can specify a designated provider; defaults to the first.
+    - For random_bytes/hkdf, you can specify a designated provider; defaults to
+      the first.
     """
 
     type: Literal["HierarchicalKeyProvider"] = "HierarchicalKeyProvider"
@@ -182,7 +186,8 @@ class HierarchicalKeyProvider(KeyProviderBase):
         names = tuple(self._children.keys())
 
         # heuristic buckets
-        # Look for a child with "kms" or "pkcs11" in its name for asymmetric/private ops
+        # Look for a child with "kms" or "pkcs11" in its name for
+        # asymmetric/private ops
         if spec.klass == KeyClass.asymmetric:
             preferred = next(
                 (
@@ -244,7 +249,8 @@ class HierarchicalKeyProvider(KeyProviderBase):
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
         with self._mutex:
-            # choose provider using import policy if provided; else reuse create policy
+            # choose provider using import policy if provided; else reuse
+            # create policy
             rules = (
                 self._import_rules
                 if self._import_rules

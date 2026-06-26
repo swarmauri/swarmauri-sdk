@@ -77,12 +77,15 @@ class LInfNorm(NormBase):
         """
         Compute the L-infinity norm of the input.
 
-        For vectors, matrices, and sequences, this is the maximum absolute value.
-        For callable functions, this is the maximum absolute value over the domain.
+        For vectors, matrices, and sequences, this is the maximum absolute
+        value.
+        For callable functions, this is the maximum absolute value over the
+        domain.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input for which to compute the norm.
 
         Returns
@@ -136,7 +139,8 @@ class LInfNorm(NormBase):
         ValueError
             If the sequence is empty.
         """
-        # Fix: Check for empty sequence using len() which works for both lists and NumPy arrays
+        # Fix: Check for empty sequence using len() which works for both lists
+        # and NumPy arrays
         if len(seq) == 0:
             raise ValueError(
                 "Cannot compute L-infinity norm of an empty sequence"
@@ -195,7 +199,8 @@ class LInfNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -220,17 +225,20 @@ class LInfNorm(NormBase):
         """
         Check if the L-infinity norm satisfies the definiteness property.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        The definiteness property states that the norm of x is 0 if and only if
+        x is 0.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
         -------
         bool
-            True if the norm satisfies the definiteness property, False otherwise.
+            True if the norm satisfies the definiteness property, False
+            otherwise.
         """
         try:
             norm_value = self.compute(x)
@@ -280,15 +288,18 @@ class LInfNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The first input.
-        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        y : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The second input.
 
         Returns
         -------
         bool
-            True if the norm satisfies the triangle inequality, False otherwise.
+            True if the norm satisfies the triangle inequality, False
+            otherwise.
 
         Raises
         ------
@@ -366,13 +377,16 @@ class LInfNorm(NormBase):
         scalar: float,
     ) -> bool:
         """
-        Check if the L-infinity norm satisfies the absolute homogeneity property.
+        Check if the L-infinity norm satisfies the absolute homogeneity
+        property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input.
         scalar : float
             The scalar value.
@@ -380,7 +394,8 @@ class LInfNorm(NormBase):
         Returns
         -------
         bool
-            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            True if the norm satisfies the absolute homogeneity property, False
+            otherwise.
 
         Raises
         ------

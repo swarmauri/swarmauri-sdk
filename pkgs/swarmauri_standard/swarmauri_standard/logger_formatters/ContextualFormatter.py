@@ -54,7 +54,8 @@ class ContextualFormatter(FormatterBase):
         Create and return a logging.Formatter with context handling.
 
         Returns:
-            logging.Formatter: A formatter that will include context information.
+            logging.Formatter: A formatter that will include context
+            information.
         """
         # Create a custom formatter that processes context
         return ContextualFormatterImpl(
@@ -115,8 +116,10 @@ class ContextualFormatterImpl(logging.Formatter):
             context_separator: Separator between context items
             context_prefix: Prefix for the entire context section
             context_suffix: Suffix for the entire context section
-            context_item_format: Format for each context item (when not prefix mode)
-            include_empty_context: Whether to include context section when all values are missing
+            context_item_format: Format for each context item (when not prefix
+            mode)
+            include_empty_context: Whether to include context section when all
+            values are missing
             **kwargs: Additional arguments passed to logging.Formatter
         """
         super().__init__(fmt=fmt, datefmt=datefmt, **kwargs)
@@ -150,7 +153,8 @@ class ContextualFormatterImpl(logging.Formatter):
                 if value is not None:
                     context_values[key] = value
 
-        # If no context values found and we don't include empty context, return the original message
+        # If no context values found and we don't include empty context, return
+        # the original message
         if not context_values and not self.include_empty_context:
             return formatted_message
 

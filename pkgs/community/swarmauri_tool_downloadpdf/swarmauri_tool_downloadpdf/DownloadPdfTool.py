@@ -10,11 +10,15 @@ from swarmauri_standard.tools.Parameter import Parameter
 @ComponentBase.register_type(ToolBase, "DownloadPDFTool")
 class DownloadPDFTool(ToolBase):
     """
-    A tool to download a PDF from a specified URL and save it to a specified path.
+    A tool to download a PDF from a specified URL and save it to a specified
+    path.
     """
 
     name: str = "DownloadPDFTool"
-    description: str = "Downloads a PDF from a specified URL and saves it to a specified path."
+    description: str = (
+        "Downloads a PDF from a specified URL and saves it to a "
+        "specified path."
+    )
     parameters: List[Parameter] = [
         Parameter(
             name="url",
@@ -39,7 +43,8 @@ class DownloadPDFTool(ToolBase):
         - url (str): The URL from where to download the PDF.
 
         Returns:
-        - Dict[str, str]: A dictionary containing the result message and the base64 encoded content.
+        - Dict[str, str]: A dictionary containing the result message and the
+          base64 encoded content.
         """
         try:
             # Send a GET request to the specified URL

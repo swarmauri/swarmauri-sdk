@@ -12,7 +12,8 @@ class PythonParser(ParserBase):
     A parser that processes Python source code to extract structural elements
     such as functions, classes, and their docstrings.
 
-    This parser utilizes the `ast` module to parse the Python code into an abstract syntax tree (AST)
+    This parser utilizes the `ast` module to parse the Python code into an
+    abstract syntax tree (AST)
     and then walks the tree to extract relevant information.
     """
 
@@ -26,7 +27,8 @@ class PythonParser(ParserBase):
             data (Union[str, Any]): The input Python source code as a string.
 
         Returns:
-            List[IDocument]: A list of IDocument objects, each representing a structural element
+            List[IDocument]: A list of IDocument objects, each representing a
+            structural element
                              extracted from the code along with its metadata.
         """
         if not isinstance(data, str):

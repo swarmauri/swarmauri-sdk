@@ -12,7 +12,8 @@ class IAngleBetweenVectors(ABC):
         self, vector_a: List[float], vector_b: List[float]
     ) -> float:
         """
-        Method to calculate and return the angle in radians between two vectors.
+        Method to calculate and return the angle in radians between two
+        vectors.
 
         Parameters:
         - vector_a (List[float]): The first vector as a list of floats.
@@ -21,6 +22,7 @@ class IAngleBetweenVectors(ABC):
         Returns:
         - float: The angle between vector_a and vector_b in radians.
 
-        Note: Implementations should handle the vectors' dimensionality and throw appropriate exceptions for incompatible vectors.
+        Note: Implementations should handle the vectors' dimensionality and
+        throw appropriate exceptions for incompatible vectors.
         """
         pass

@@ -188,21 +188,24 @@ def test_compute_string(linf_norm):
 def test_compute_function(linf_norm, test_function):
     """Test computing L-infinity norm for a function."""
     # Function x^2 - 2x + 3 on domain [-1, 1]
-    # Maximum absolute value should be at x = -1: (-1)^2 - 2*(-1) + 3 = 1 + 2 + 3 = 6
+    # Maximum absolute value should be at x = -1: (-1)^2 - 2*(-1) + 3 = 1 + 2 +
+    # 3 = 6
     result = linf_norm.compute(test_function)
     assert abs(result - 6.0) < 0.1  # Allow for numerical approximation
 
 
 @pytest.mark.unit
 def test_compute_empty_sequence(linf_norm):
-    """Test that computing L-infinity norm for an empty sequence raises an error."""
+    """Test that computing L-infinity norm for an empty sequence raises an
+    error."""
     with pytest.raises(ValueError):
         linf_norm.compute([])
 
 
 @pytest.mark.unit
 def test_compute_unsupported_type(linf_norm):
-    """Test that computing L-infinity norm for an unsupported type raises an error."""
+    """Test that computing L-infinity norm for an unsupported type raises an
+    error."""
     with pytest.raises(TypeError):
         linf_norm.compute(42)  # Single integer is not supported
 

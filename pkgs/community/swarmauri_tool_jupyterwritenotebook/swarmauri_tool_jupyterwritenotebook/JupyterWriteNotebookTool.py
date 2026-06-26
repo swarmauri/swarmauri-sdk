@@ -1,12 +1,16 @@
 """
 JupyterWriteNotebookTool.py
 
-This module defines the JupyterWriteNotebookTool, a component that converts a Jupyter notebook
-structure (NotebookNode) to JSON format and writes the data to a specified file. It inherits
-from the ToolBase class of the swarmauri framework, providing a fully-featured implementation
+This module defines the JupyterWriteNotebookTool, a component that converts a
+Jupyter notebook
+structure (NotebookNode) to JSON format and writes the data to a specified
+file. It inherits
+from the ToolBase class of the swarmauri framework, providing a fully-featured
+implementation
 for writing notebook content to disk.
 
-The tool validates notebook data, handles potential I/O operations, logs its actions, and
+The tool validates notebook data, handles potential I/O operations, logs its
+actions, and
 confirms the success of write operations to ensure notebook integrity.
 """
 
@@ -24,17 +28,21 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterWriteNotebookTool")
 class JupyterWriteNotebookTool(ToolBase):
     """
-    JupyterWriteNotebookTool is responsible for converting a Jupyter NotebookNode
+    JupyterWriteNotebookTool is responsible for converting a Jupyter
+    NotebookNode
     structure into JSON and writing it to disk. It ensures the notebook format
-    remains valid, including optional read-back verification to confirm the file's
+    remains valid, including optional read-back verification to confirm the
+    file's
     integrity.
 
     Attributes:
         version (str): The version of the JupyterWriteNotebookTool.
-        parameters (List[Parameter]): A list of parameters required to perform the write operation.
+        parameters (List[Parameter]): A list of parameters required to perform
+        the write operation.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterWriteNotebookTool"]): The type identifier for the tool.
+        type (Literal["JupyterWriteNotebookTool"]): The type identifier for the
+        tool.
     """
 
     version: str = "1.0.0"
@@ -43,19 +51,27 @@ class JupyterWriteNotebookTool(ToolBase):
             Parameter(
                 name="notebook_data",
                 input_type="object",
-                description="The notebook content as a dictionary/NotebookNode structure.",
+                description=(
+                    "The notebook content as a dictionary/NotebookNode "
+                    "structure."
+                ),
                 required=True,
             ),
             Parameter(
                 name="output_file",
                 input_type="string",
-                description="Path to the output file where the notebook JSON will be written.",
+                description=(
+                    "Path to the output file where the notebook JSON will be "
+                    "written."
+                ),
                 required=True,
             ),
             Parameter(
                 name="encoding",
                 input_type="string",
-                description="File encoding to use when writing the notebook JSON.",
+                description=(
+                    "File encoding to use when writing the notebook JSON."
+                ),
                 required=False,
                 default="utf-8",
             ),
@@ -71,17 +87,22 @@ class JupyterWriteNotebookTool(ToolBase):
         self, notebook_data: dict, output_file: str, encoding: str = "utf-8"
     ) -> Dict[str, str]:
         """
-        Writes the provided Jupyter notebook data (NotebookNode) to the specified
+        Writes the provided Jupyter notebook data (NotebookNode) to the
+        specified
         output file in JSON format. The method uses the selected encoding and
         handles potential I/O exceptions.
 
         Args:
-            notebook_data (dict): The Jupyter NotebookNode structure represented as a dictionary.
-            output_file (str): The path to the file where the notebook JSON will be written.
-            encoding (str, optional): The file encoding to use. Defaults to "utf-8".
+            notebook_data (dict): The Jupyter NotebookNode structure
+            represented as a dictionary.
+            output_file (str): The path to the file where the notebook JSON
+            will be written.
+            encoding (str, optional): The file encoding to use. Defaults to
+            "utf-8".
 
         Returns:
-            Dict[str, str]: A dictionary indicating the success of the operation or an error message.
+            Dict[str, str]: A dictionary indicating the success of the
+            operation or an error message.
                             For example:
                             {
                                 "message": "Notebook written successfully",
@@ -116,7 +137,7 @@ class JupyterWriteNotebookTool(ToolBase):
                     "Notebook data verification failed: File is empty."
                 )
                 return {
-                    "error": f"Notebook data verification failed: File '{output_file}' is empty."
+                    "error": f"Notebook data verification failed: File '{output_file}' is empty."  # noqa: E501
                 }
 
             logger.info(

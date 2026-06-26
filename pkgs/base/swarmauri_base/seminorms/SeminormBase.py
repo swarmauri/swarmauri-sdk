@@ -12,14 +12,17 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_model()
 class SeminormBase(ISeminorm, ComponentBase):
     """
-    Base class providing tools for evaluating seminorms in partial vector spaces.
+    Base class providing tools for evaluating seminorms in partial vector
+    spaces.
 
     This class provides reusable logic for defining seminorms and implements
     the ISeminorm interface. Concrete implementations should override the
     abstract methods to provide specific seminorm behavior.
 
-    A seminorm is a function that assigns a non-negative length or size to vectors
-    in a vector space, satisfying the properties of non-negativity, triangle inequality,
+    A seminorm is a function that assigns a non-negative length or size to
+    vectors
+    in a vector space, satisfying the properties of non-negativity, triangle
+    inequality,
     and scalar homogeneity.
     """
 
@@ -83,15 +86,22 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
         raise NotImplementedError(
-            "check_triangle_inequality method must be implemented by subclasses"
+            (
+                "check_triangle_inequality method must be implemented by "
+                "subclasses"
+            )
         )
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||
@@ -118,7 +128,10 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
         raise NotImplementedError(
             "check_scalar_homogeneity method must be implemented by subclasses"

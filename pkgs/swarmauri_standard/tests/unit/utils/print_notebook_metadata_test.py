@@ -117,7 +117,8 @@ def mock_environment():
 
 
 def test_print_notebook_metadata(mock_environment, capsys):
-    """Test printing notebook metadata when version information cannot be retrieved from metadata (fallback)."""
+    """Test printing notebook metadata when version information cannot be
+    retrieved from metadata (fallback)."""
     # Patch get_version_from_pyproject to simulate a fallback value.
     with patch(
         "swarmauri_standard.utils.print_notebook_metadata.get_version_from_pyproject",

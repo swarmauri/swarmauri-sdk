@@ -8,7 +8,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "MiscMeasurement")
 class MiscMeasurement(MeasurementBase):
     """
-    A measurement class that provides various basic metrics including sum, minimum,
+    A measurement class that provides various basic metrics including sum,
+    minimum,
     maximum, and string length calculations.
     """
 
@@ -162,14 +163,17 @@ class MiscMeasurement(MeasurementBase):
 
     def __call__(self, data: Any, **kwargs) -> Dict[str, Union[float, int]]:
         """
-        Main entry point for calculating measurements. Determines the type of data
+        Main entry point for calculating measurements. Determines the type of
+        data
         and calculates appropriate metrics.
 
         Args:
             data: Input data (numerical or string)
-            kwargs: Additional parameters including 'metric_type' ('numeric' or 'string')
+            kwargs: Additional parameters including 'metric_type' ('numeric' or
+            'string')
         Returns:
-            Dict[str, Union[float, int]]: Dictionary containing calculated metrics
+            Dict[str, Union[float, int]]: Dictionary containing calculated
+            metrics
         """
         metric_type = kwargs.get("metric_type", "numeric")
 

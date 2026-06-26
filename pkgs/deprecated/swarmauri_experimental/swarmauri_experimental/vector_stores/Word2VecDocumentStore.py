@@ -14,9 +14,12 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         Initializes the Word2VecDocumentStore.
 
         Parameters:
-        - word2vec_model_path (Optional[str]): File path to a pre-trained Word2Vec model.
-                                               Leave None to use Gensim's pre-trained model.
-        - pre_trained (bool): If True, loads a pre-trained Word2Vec model. If False, an uninitialized model is used that requires further training.
+        - word2vec_model_path (Optional[str]): File path to a pre-trained
+          Word2Vec model.
+                                               Leave None to use Gensim's
+                                               pre-trained model.
+        - pre_trained (bool): If True, loads a pre-trained Word2Vec model. If
+          False, an uninitialized model is used that requires further training.
         """
         self.model = Word2Vec(
             vector_size=100, window=5, min_count=1, workers=4
@@ -25,7 +28,8 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
         self.similarity = CosineSimilarity()
 
     def add_document(self, document: Document) -> None:
-        # Check if the document already has an embedding, if not generate one using _average_word_vectors
+        # Check if the document already has an embedding, if not generate one
+        # using _average_word_vectors
         if not hasattr(document, "embedding") or document.embedding is None:
             words = (
                 document.content.split()
@@ -71,11 +75,13 @@ class Word2VecDocumentStore(IDocumentStore, IRetriever):
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
         """
-        Retrieve documents similar to the query string based on Word2Vec embeddings.
+        Retrieve documents similar to the query string based on Word2Vec
+        embeddings.
         """
         query_vector = self._average_word_vectors(query.split())
         print("query_vector", query_vector)
-        # Compute similarity scores between the query and each document's stored embedding
+        # Compute similarity scores between the query and each document's
+        # stored embedding
         similarities = self.similarity.similarities(
             SimpleVector(query_vector),
             [

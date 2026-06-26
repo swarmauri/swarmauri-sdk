@@ -10,16 +10,19 @@ from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
 
 class GoogleDriveDataConnector(DataConnectorBase):
     """
-    Data connector for interacting with Google Drive files and converting them to Swarmauri documents.
+    Data connector for interacting with Google Drive files and converting them
+    to Swarmauri documents.
 
-    Supports authentication, data fetching, and basic CRUD operations for Google Drive resources.
+    Supports authentication, data fetching, and basic CRUD operations for
+    Google Drive resources.
     """
 
     def __init__(self, credentials_path: str = None):
         """
         Initialize the Google Drive Data Connector.
 
-        :param credentials_path: Path to the Google OAuth2 credentials JSON file
+        :param credentials_path: Path to the Google OAuth2 credentials JSON
+            file
         """
         with open(credentials_path, "r") as cred_file:
             credentials = json.load(cred_file)
@@ -93,8 +96,10 @@ class GoogleDriveDataConnector(DataConnectorBase):
         """
         Authenticate with Google Drive using OAuth2.
 
-        This method generates an authorization URL, prompts the user to visit the URL
-        and enter the authorization code, and then exchanges the code for tokens.
+        This method generates an authorization URL, prompts the user to visit
+        the URL
+        and enter the authorization code, and then exchanges the code for
+        tokens.
         """
         try:
             # Generate authorization URL

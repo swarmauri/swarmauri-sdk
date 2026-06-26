@@ -39,7 +39,10 @@ except Exception:  # pragma: no cover - runtime check
 def _require_crypto() -> None:
     if not _CRYPTO_OK:
         raise RuntimeError(
-            "EcdsaEnvelopeSigner requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "EcdsaEnvelopeSigner requires 'cryptography'. Install with: "
+                "pip install cryptography"
+            )
         )
 
 
@@ -123,7 +126,10 @@ def _gather_ec_pubkeys(
         if isinstance(item, ec.EllipticCurvePublicKey):
             if item.curve.name != expected_curve.name:
                 raise ValueError(
-                    f"Curve mismatch: want {expected_curve.name}, got {item.curve.name}"
+                    (
+                        f"Curve mismatch: want {expected_curve.name}, got "
+                        f"{item.curve.name}"
+                    )
                 )
             pubs.append(item)
         elif isinstance(item, (bytes, bytearray)):
@@ -132,7 +138,10 @@ def _gather_ec_pubkeys(
                 raise TypeError("PEM is not an EC public key.")
             if pk.curve.name != expected_curve.name:
                 raise ValueError(
-                    f"Curve mismatch: want {expected_curve.name}, got {pk.curve.name}"
+                    (
+                        f"Curve mismatch: want {expected_curve.name}, got "
+                        f"{pk.curve.name}"
+                    )
                 )
             pubs.append(pk)
         elif isinstance(item, str):
@@ -141,7 +150,10 @@ def _gather_ec_pubkeys(
                 raise TypeError("PEM is not an EC public key.")
             if pk.curve.name != expected_curve.name:
                 raise ValueError(
-                    f"Curve mismatch: want {expected_curve.name}, got {pk.curve.name}"
+                    (
+                        f"Curve mismatch: want {expected_curve.name}, got "
+                        f"{pk.curve.name}"
+                    )
                 )
             pubs.append(pk)
         elif isinstance(item, dict) and item.get("kty") == "EC":

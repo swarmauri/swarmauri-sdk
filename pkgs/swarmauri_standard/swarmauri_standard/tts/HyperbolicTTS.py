@@ -11,7 +11,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(TTSBase, "HyperbolicTTS")
 class HyperbolicTTS(TTSBase):
     """
-    A class to interact with Hyperbolic's Text-to-Speech API, allowing for synchronous
+    A class to interact with Hyperbolic's Text-to-Speech API, allowing for
+    synchronous
     and asynchronous text-to-speech synthesis.
 
     Attributes:

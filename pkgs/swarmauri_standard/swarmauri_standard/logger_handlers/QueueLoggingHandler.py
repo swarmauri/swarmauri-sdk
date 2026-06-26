@@ -13,17 +13,21 @@ from swarmauri_base.ObserveBase import ObserveBase
 @ObserveBase.register_model()
 class QueueLoggingHandler(HandlerBase):
     """
-    A logging handler that puts log records onto a queue for asynchronous processing.
+    A logging handler that puts log records onto a queue for asynchronous
+    processing.
 
-    This handler uses Python's QueueHandler to enqueue log records for processing by a
-    separate listener thread, allowing the logging operation to be non-blocking.
+    This handler uses Python's QueueHandler to enqueue log records for
+    processing by a
+    separate listener thread, allowing the logging operation to be
+    non-blocking.
 
     Attributes:
         type: The type identifier for this handler.
         queue: The queue instance where log records will be placed.
         level: The logging level for this handler.
         formatter: Optional formatter for formatting log records.
-        respect_handler_level: Whether to respect the handler's level when enqueuing records.
+        respect_handler_level: Whether to respect the handler's level when
+        enqueuing records.
     """
 
     type: Literal["QueueLoggingHandler"] = "QueueLoggingHandler"
@@ -34,7 +38,8 @@ class QueueLoggingHandler(HandlerBase):
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a QueueHandler using the specified queue, level, and formatter.
+        Compiles a QueueHandler using the specified queue, level, and
+        formatter.
 
         Returns:
             logging.Handler: A configured QueueHandler instance.
@@ -65,7 +70,8 @@ class QueueLoggingHandler(HandlerBase):
         """
         Get the queue used by this handler.
 
-        This is useful when setting up a QueueListener to process the log records.
+        This is useful when setting up a QueueListener to process the log
+        records.
 
         Returns:
             Any: The queue instance used by this handler.

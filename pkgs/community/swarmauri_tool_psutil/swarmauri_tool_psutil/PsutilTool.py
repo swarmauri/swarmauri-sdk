@@ -17,7 +17,10 @@ class PsutilTool(ToolBase):
         description="Tool to gather system information using psutil.",
     )
     description: str = Field(
-        "This tool gathers system information like CPU, memory, disk, network, and sensors using the psutil library.",
+        (
+            "This tool gathers system information like CPU, memory, disk, "
+            "network, and sensors using the psutil library."
+        ),
         description="Description of the PsutilTool",
     )
 
@@ -26,7 +29,11 @@ class PsutilTool(ToolBase):
             Parameter(
                 name="info_type",
                 input_type="string",
-                description="Type of system information to retrieve (cpu, memory, disk, network, sensors).",
+                description=(
+                    "Type of system information to retrieve (cpu, memory, "
+                    "disk, "
+                    "network, sensors)."
+                ),
                 required=True,
             )
         ]
@@ -123,14 +130,17 @@ class PsutilTool(ToolBase):
 
     def __call__(self, info_type: str) -> Dict[str, Any]:
         """
-        Call the appropriate method based on the provided info_type and return the corresponding system information.
+        Call the appropriate method based on the provided info_type and return
+        the corresponding system information.
 
         Parameters:
-        info_type (str): The type of system information requested. Valid options are 'cpu', 'memory', 'disk',
+        info_type (str): The type of system information requested. Valid
+        options are 'cpu', 'memory', 'disk',
                          'network', or 'sensors'.
 
         Returns:
-        Dict[str, Any]: A dictionary where the key is the `info_type` and the value is the result of the corresponding
+        Dict[str, Any]: A dictionary where the key is the `info_type` and the
+        value is the result of the corresponding
                         system information retrieval method.
 
         Raises:
@@ -152,10 +162,11 @@ class PsutilTool(ToolBase):
             "sensors": self.get_all_sensors_values,
         }
 
-        # Retrieve the appropriate method or raise an error if invalid info_type is provided
+        # Retrieve the appropriate method or raise an error if invalid
+        # info_type is provided
         if info_type not in info_methods:
             raise ValueError(
-                f"Invalid info_type '{info_type}' specified. Valid options are: {list(info_methods.keys())}."
+                f"Invalid info_type '{info_type}' specified. Valid options are: {list(info_methods.keys())}."  # noqa: E501
             )
 
         # Execute the corresponding method and return the result

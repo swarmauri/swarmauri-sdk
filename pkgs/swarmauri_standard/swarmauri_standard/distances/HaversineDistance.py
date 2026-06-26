@@ -15,10 +15,13 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "HaversineDistance")
 class HaversineDistance(DistanceBase):
     """
-    Concrete implementation of IDistanceSimiliarity interface using the Haversine formula.
+    Concrete implementation of IDistanceSimiliarity interface using the
+    Haversine formula.
 
-    Haversine formula determines the great-circle distance between two points on a sphere given their
-    longitudes and latitudes. This implementation is particularly useful for geo-spatial data.
+    Haversine formula determines the great-circle distance between two points
+    on a sphere given their
+    longitudes and latitudes. This implementation is particularly useful for
+    geo-spatial data.
     """
 
     type: Literal["HaversineDistance"] = "HaversineDistance"
@@ -28,11 +31,14 @@ class HaversineDistance(DistanceBase):
         Computes the Haversine distance between two geo-spatial points.
 
         Args:
-            vector_a (Vector): The first point in the format [latitude, longitude].
-            vector_b (Vector): The second point in the same format [latitude, longitude].
+            vector_a (Vector): The first point in the format [latitude,
+            longitude].
+            vector_b (Vector): The second point in the same format [latitude,
+            longitude].
 
         Returns:
-            float: The Haversine distance between vector_a and vector_b in kilometers.
+            float: The Haversine distance between vector_a and vector_b in
+            kilometers.
         """
         # Earth radius in kilometers
         R = 6371.0

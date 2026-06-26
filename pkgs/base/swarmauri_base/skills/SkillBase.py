@@ -40,7 +40,11 @@ class SkillBase(ISkill, ComponentBase):
                 suffix = self._suffix(value)
                 if suffix and suffix not in self._SUPPORTED_EXTENSIONS:
                     raise ValueError(
-                        f"Unsupported skill resource extension for {field_name}: {value}"
+                        (
+                            f"Unsupported skill resource extension for "
+                            f"{field_name}: "
+                            f"{value}"
+                        )
                     )
         return self
 

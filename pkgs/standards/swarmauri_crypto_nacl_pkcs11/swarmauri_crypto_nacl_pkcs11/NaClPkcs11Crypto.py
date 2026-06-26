@@ -89,7 +89,8 @@ _WRAP_ALG = "AES-KW"
 
 @ComponentBase.register_type(CryptoBase, "NaClPkcs11Crypto")
 class NaClPkcs11Crypto(CryptoBase):
-    """Concrete implementation of the ICrypto contract using PyNaCl and PKCS#11."""
+    """Concrete implementation of the ICrypto contract using PyNaCl and
+    PKCS#11."""
 
     type: Literal["NaClPkcs11Crypto"] = "NaClPkcs11Crypto"
 
@@ -231,7 +232,8 @@ class NaClPkcs11Crypto(CryptoBase):
             ).encode("utf-8")
             ct_with_tag = aead.encrypt(n, packed, aad)
             ct, tag = ct_with_tag[:-16], ct_with_tag[-16:]
-            # The DEK is not returned; caller should wrap it separately if needed.
+            # The DEK is not returned; caller should wrap it separately if
+            # needed.
             return MultiRecipientEnvelope(
                 enc_alg=_AEAD_ALG,
                 nonce=n,

@@ -128,11 +128,17 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
     ) -> None:
         if policy.require_bind and cnf.bind_type is not policy.require_bind:
             raise PoPBindingError(
-                f"Access token requires {policy.require_bind.value} but received {cnf.bind_type.value} proof"
+                (
+                    f"Access token requires {policy.require_bind.value} but "
+                    f"received {cnf.bind_type.value} proof"
+                )
             )
         if expected and cnf.bind_type is not expected:
             raise PoPBindingError(
-                f"Expected {expected.value} binding but received {cnf.bind_type.value}"
+                (
+                    f"Expected {expected.value} binding but received "
+                    f"{cnf.bind_type.value}"
+                )
             )
 
     def _check_replay(

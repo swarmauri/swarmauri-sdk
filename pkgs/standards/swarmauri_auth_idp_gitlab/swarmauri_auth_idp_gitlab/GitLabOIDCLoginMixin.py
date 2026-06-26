@@ -16,7 +16,9 @@ from swarmauri_base.auth_idp import (
 
 
 class GitLabOIDCLoginMixin:
-    """Reusable discovery, PKCE, and ID token helpers for GitLab OIDC logins."""
+    """
+    Reusable discovery, PKCE, and ID token helpers for GitLab OIDC logins.
+    """
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
@@ -98,7 +100,7 @@ class GitLabOIDCLoginMixin:
                     userinfo_response = await client.get_retry(
                         metadata["userinfo_endpoint"],
                         headers={
-                            "Authorization": f"Bearer {tokens['access_token']}",
+                            "Authorization": f"Bearer {tokens['access_token']}",  # noqa: E501
                             "Accept": "application/json",
                         },
                     )

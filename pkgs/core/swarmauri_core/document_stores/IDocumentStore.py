@@ -5,7 +5,8 @@ from swarmauri_core.documents.IDocument import IDocument
 
 class IDocumentStore(ABC):
     """
-    Interface for a Document Store responsible for storing, indexing, and retrieving documents.
+    Interface for a Document Store responsible for storing, indexing, and
+    retrieving documents.
     """
 
     @abstractmethod
@@ -72,7 +73,8 @@ class IDocumentStore(ABC):
         - doc_id (str): The unique identifier for the document to update.
         - updated_document (IDocument): The updated document object.
 
-        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        Note: It's assumed that the updated_document will retain the same
+        doc_id but may have different content or metadata.
         """
         pass
 

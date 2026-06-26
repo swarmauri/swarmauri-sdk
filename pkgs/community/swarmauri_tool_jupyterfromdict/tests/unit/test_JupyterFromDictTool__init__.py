@@ -16,7 +16,8 @@ from swarmauri_tool_jupyterfromdict import __all__
 
 
 class TestInit:
-    """Test cases for the swarmauri_tool_jupyterfromdict package initialization."""
+    """Test cases for the swarmauri_tool_jupyterfromdict package
+    initialization."""
 
     def test_jupyter_from_dict_tool_in_all(self) -> None:
         """
@@ -43,7 +44,8 @@ class TestInit:
         """
         tool_instance = JupyterFromDictTool()
         assert tool_instance is not None, (
-            "An instance of JupyterFromDictTool should be successfully created."
+            "An instance of JupyterFromDictTool should be successfully "
+            "created."
         )
 
     def test_package_version_is_string(self) -> None:

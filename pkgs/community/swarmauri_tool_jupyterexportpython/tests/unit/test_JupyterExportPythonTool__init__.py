@@ -1,7 +1,10 @@
 """
-This file contains pytest-based unit tests for verifying the package initialization of
-swarmauri_tool_jupyterexportpython. It checks that the JupyterExportPythonTool class
-is correctly exposed by the package's __init__.py file and that the version attribute
+This file contains pytest-based unit tests for verifying the package
+initialization of
+swarmauri_tool_jupyterexportpython. It checks that the JupyterExportPythonTool
+class
+is correctly exposed by the package's __init__.py file and that the version
+attribute
 is properly set.
 """
 
@@ -22,7 +25,8 @@ class TestInit:
         Test whether JupyterExportPythonTool can be imported from the package.
         """
         assert JupyterExportPythonTool is not None, (
-            "JupyterExportPythonTool should be exposed by the package's __init__.py"
+            "JupyterExportPythonTool should be exposed by the package's "
+            "__init__.py"
         )
 
     def test_jupyter_export_python_tool_is_class(self) -> None:
@@ -44,7 +48,8 @@ class TestInit:
 
     def test_all_contains_tool(self) -> None:
         """
-        Ensure that JupyterExportPythonTool is listed in the __all__ attribute of the package.
+        Ensure that JupyterExportPythonTool is listed in the __all__ attribute
+        of the package.
         """
         import swarmauri_tool_jupyterexportpython
 

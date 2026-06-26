@@ -43,7 +43,8 @@ class INorm(ABC):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input for which to compute the norm.
 
         Returns
@@ -72,7 +73,8 @@ class INorm(ABC):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -92,17 +94,20 @@ class INorm(ABC):
         """
         Check if the norm satisfies the definiteness property.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        The definiteness property states that the norm of x is 0 if and only if
+        x is 0.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
         -------
         bool
-            True if the norm satisfies the definiteness property, False otherwise.
+            True if the norm satisfies the definiteness property, False
+            otherwise.
         """
         pass
 
@@ -123,15 +128,18 @@ class INorm(ABC):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The first input.
-        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        y : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The second input.
 
         Returns
         -------
         bool
-            True if the norm satisfies the triangle inequality, False otherwise.
+            True if the norm satisfies the triangle inequality, False
+            otherwise.
 
         Raises
         ------
@@ -151,11 +159,13 @@ class INorm(ABC):
         """
         Check if the norm satisfies the absolute homogeneity property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input.
         scalar : float
             The scalar value.
@@ -163,7 +173,8 @@ class INorm(ABC):
         Returns
         -------
         bool
-            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            True if the norm satisfies the absolute homogeneity property, False
+            otherwise.
 
         Raises
         ------

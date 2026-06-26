@@ -5,7 +5,8 @@ from swarmauri_core.documents.IDocument import IDocument
 
 class IVectorStore(ABC):
     """
-    Interface for a vector store responsible for storing, indexing, and retrieving documents.
+    Interface for a vector store responsible for storing, indexing, and
+    retrieving documents.
     """
 
     @abstractmethod
@@ -80,7 +81,8 @@ class IVectorStore(ABC):
         - doc_id (str): The unique identifier for the document to update.
         - updated_document (IDocument): The updated document object.
 
-        Note: It's assumed that the updated_document will retain the same doc_id but may have different content or metadata.
+        Note: It's assumed that the updated_document will retain the same
+        doc_id but may have different content or metadata.
         """
         pass
 

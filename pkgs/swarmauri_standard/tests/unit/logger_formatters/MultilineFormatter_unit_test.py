@@ -201,7 +201,9 @@ def test_multiline_formatter_impl_with_indentation():
 
 @pytest.mark.unit
 def test_multiline_formatter_impl_without_prefixing():
-    """Test formatting multi-line message without prefixing subsequent lines."""
+    """
+    Test formatting multi-line message without prefixing subsequent lines.
+    """
     formatter = _MultilineFormatterImpl(
         fmt="[%(levelname)s] %(message)s", prefix_subsequent_lines=False
     )

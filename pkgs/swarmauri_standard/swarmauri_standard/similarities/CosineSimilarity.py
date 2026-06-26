@@ -13,11 +13,15 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(SimilarityBase, "CosineSimilarity")
 class CosineSimilarity(SimilarityBase):
     """
-    Cosine similarity implementation that measures the cosine of the angle between two vectors.
+    Cosine similarity implementation that measures the cosine of the angle
+    between two vectors.
 
-    Cosine similarity is a measure of similarity between two non-zero vectors defined by the cosine of
-    the angle between them. It is calculated as the dot product of the vectors divided by the product
-    of their magnitudes. The result ranges from -1 to 1, where 1 means the vectors are identical in
+    Cosine similarity is a measure of similarity between two non-zero vectors
+    defined by the cosine of
+    the angle between them. It is calculated as the dot product of the vectors
+    divided by the product
+    of their magnitudes. The result ranges from -1 to 1, where 1 means the
+    vectors are identical in
     direction, 0 means they are orthogonal, and -1 means they are opposite.
 
     Attributes
@@ -59,7 +63,10 @@ class CosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}"
+                    (
+                        f"Incompatible dimensions: {x_array.shape} vs "
+                        f"{y_array.shape}"
+                    )
                 )
 
             # Calculate vector norms
@@ -78,7 +85,8 @@ class CosineSimilarity(SimilarityBase):
             # Calculate cosine similarity
             cosine_sim = dot_product / (x_norm * y_norm)
 
-            # Handle potential numerical errors that might push the value outside [-1, 1]
+            # Handle potential numerical errors that might push the value
+            # outside [-1, 1]
             if cosine_sim > 1.0:
                 cosine_sim = 1.0
             elif cosine_sim < -1.0:
@@ -94,7 +102,8 @@ class CosineSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate cosine similarities between one vector and multiple other vectors.
+        Calculate cosine similarities between one vector and multiple other
+        vectors.
 
         Parameters
         ----------
@@ -132,7 +141,10 @@ class CosineSimilarity(SimilarityBase):
                 # Check for compatible dimensions
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        f"Incompatible dimensions: {x_array.shape} vs {y_array.shape}"
+                        (
+                            f"Incompatible dimensions: {x_array.shape} vs "
+                            f"{y_array.shape}"
+                        )
                     )
 
                 y_norm = np.linalg.norm(y_array)
@@ -166,7 +178,8 @@ class CosineSimilarity(SimilarityBase):
         Calculate the cosine dissimilarity between two vectors.
 
         For cosine similarity, dissimilarity is defined as 1 - similarity for
-        the normalized range [0, 1], which corresponds to the angle-based distance.
+        the normalized range [0, 1], which corresponds to the angle-based
+        distance.
 
         Parameters
         ----------
@@ -188,7 +201,8 @@ class CosineSimilarity(SimilarityBase):
             If the input types are not numeric arrays or lists
         """
         try:
-            # Cosine dissimilarity is 1 - cosine similarity for normalized values
+            # Cosine dissimilarity is 1 - cosine similarity for normalized
+            # values
             # This maps the range [-1, 1] to [0, 2]
             similarity_value = self.similarity(x, y)
             return 1.0 - similarity_value
@@ -214,7 +228,8 @@ class CosineSimilarity(SimilarityBase):
         """
         Check if the cosine similarity measure is symmetric: s(x,y) = s(y,x).
 
-        Cosine similarity is inherently symmetric due to the commutative property
+        Cosine similarity is inherently symmetric due to the commutative
+        property
         of the dot product.
 
         Parameters
@@ -251,10 +266,13 @@ class CosineSimilarity(SimilarityBase):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the cosine similarity measure satisfies the identity of discernibles.
+        Check if the cosine similarity measure satisfies the identity of
+        discernibles.
 
-        For cosine similarity, this property is partially satisfied: parallel vectors
-        with the same direction (even with different magnitudes) will have a similarity of 1.
+        For cosine similarity, this property is partially satisfied: parallel
+        vectors
+        with the same direction (even with different magnitudes) will have a
+        similarity of 1.
 
         Parameters
         ----------
@@ -266,7 +284,8 @@ class CosineSimilarity(SimilarityBase):
         Returns
         -------
         bool
-            True if the identity of discernibles property holds, False otherwise
+            True if the identity of discernibles property holds, False
+            otherwise
 
         Raises
         ------
@@ -289,7 +308,8 @@ class CosineSimilarity(SimilarityBase):
                     "Cosine similarity is undefined for zero vectors"
                 )
 
-            # For cosine similarity, vectors are "identical" (sim=1) if they point in the same direction
+            # For cosine similarity, vectors are "identical" (sim=1) if they
+            # point in the same direction
             # This means they are scalar multiples of each other
             similarity_value = self.similarity(x, y)
 
@@ -297,27 +317,35 @@ class CosineSimilarity(SimilarityBase):
             are_parallel = abs(similarity_value - 1.0) < 1e-10
 
             # For the identity of discernibles, we need to check if:
-            # 1. If vectors are identical (same direction and magnitude), similarity should be 1
+            # 1. If vectors are identical (same direction and magnitude),
+            # similarity should be 1
             # 2. If vectors are different in any way, similarity should be < 1
 
             # Check if vectors are identical (same values)
             are_identical = np.array_equal(x_array, y_array)
 
-            # For cosine similarity, the identity of discernibles is satisfied if:
-            # - Identical vectors have similarity 1 (always true for non-zero vectors)
+            # For cosine similarity, the identity of discernibles is satisfied
+            # if:
+            # - Identical vectors have similarity 1 (always true for non-zero
+            # vectors)
             # - Different vectors that are not parallel have similarity < 1
 
             if are_identical:
-                return are_parallel  # Should be True for identical non-zero vectors
+                # Should be True for identical non-zero vectors
+                return are_parallel
             else:
-                # For different vectors, we only care if the similarity correctly reflects
+                # For different vectors, we only care if the similarity
+                # correctly reflects
                 # whether they're parallel or not
                 if are_parallel:
-                    # If vectors differ but are parallel, they're scalar multiples
-                    # For cosine similarity, this is still considered "identical" in direction
+                    # If vectors differ but are parallel, they're scalar
+                    # multiples
+                    # For cosine similarity, this is still considered
+                    # "identical" in direction
                     return True
                 else:
-                    # If vectors are different and not parallel, similarity should be < 1
+                    # If vectors are different and not parallel, similarity
+                    # should be < 1
                     return similarity_value < 1.0 - 1e-10
 
         except Exception as e:

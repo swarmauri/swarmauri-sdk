@@ -148,7 +148,8 @@ class DiceSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Dice similarity coefficients between one object and multiple other objects.
+        Calculate Dice similarity coefficients between one object and multiple
+        other objects.
 
         Parameters
         ----------
@@ -160,7 +161,8 @@ class DiceSimilarity(SimilarityBase):
         Returns
         -------
         List[float]
-            List of Dice similarity coefficients between x and each element in ys
+            List of Dice similarity coefficients between x and each element in
+            ys
 
         Raises
         ------
@@ -170,7 +172,8 @@ class DiceSimilarity(SimilarityBase):
             If any input types are not supported
         """
         try:
-            # Simply use the similarity method for each comparison to ensure consistency
+            # Simply use the similarity method for each comparison to ensure
+            # consistency
             results = []
             for y in ys:
                 similarity_value = self.similarity(x, y)

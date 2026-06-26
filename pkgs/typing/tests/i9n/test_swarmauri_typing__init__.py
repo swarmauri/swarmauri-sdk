@@ -21,7 +21,8 @@ def test_imports():
         IntersectionMetadata,
     )
 
-    # Basic checks to ensure they are imported (more detailed tests should be written for their functionality)
+    # Basic checks to ensure they are imported (more detailed tests should be
+    # written for their functionality)
     assert UnionFactory is not None
     assert UnionFactoryMetadata is not None
     assert Intersection is not None

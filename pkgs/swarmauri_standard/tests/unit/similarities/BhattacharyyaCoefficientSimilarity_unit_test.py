@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pytest
 
-from swarmauri_standard.similarities.BhattacharyyaCoefficientSimilarity import (
+from swarmauri_standard.similarities.BhattacharyyaCoefficientSimilarity import (  # noqa: E501
     BhattacharyyaCoefficientSimilarity,
 )
 
@@ -125,7 +125,8 @@ def test_similarity_with_dictionaries(
 @pytest.mark.unit
 def test_similarity_error_different_dimensions(similarity_instance):
     """
-    Test that similarity method raises ValueError for distributions with different dimensions.
+    Test that similarity method raises ValueError for distributions with
+    different dimensions.
 
     Parameters
     ----------
@@ -144,7 +145,8 @@ def test_similarity_error_different_dimensions(similarity_instance):
 @pytest.mark.unit
 def test_similarity_error_not_normalized(similarity_instance):
     """
-    Test that similarity method raises ValueError for non-normalized distributions.
+    Test that similarity method raises ValueError for non-normalized
+    distributions.
 
     Parameters
     ----------
@@ -250,7 +252,8 @@ def test_dissimilarity(similarity_instance, p, q, expected):
 @pytest.mark.unit
 def test_serialization():
     """
-    Test the serialization and deserialization of the BhattacharyyaCoefficientSimilarity class.
+    Test the serialization and deserialization of the
+    BhattacharyyaCoefficientSimilarity class.
     """
     # Create an instance
     similarity = BhattacharyyaCoefficientSimilarity()

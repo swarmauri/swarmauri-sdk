@@ -1,6 +1,8 @@
 """
-This module provides a ClipboardState class that implements a system clipboard-based approach
-to storing and retrieving state data. It uses only built-in Python modules and platform-specific
+This module provides a ClipboardState class that implements a system
+clipboard-based approach
+to storing and retrieving state data. It uses only built-in Python modules and
+platform-specific
 commands (clip on Windows, pbcopy/pbpaste on macOS, xclip on Linux).
 """
 
@@ -26,7 +28,9 @@ class ClipboardState(StateBase):
 
     @classmethod
     def clipboard_paste(cls, text: str) -> None:
-        """Copy the given text to the system clipboard using standard library calls.
+        """
+        Copy the given text to the system clipboard using standard library
+        calls.
 
         text (str): The text to copy to the clipboard.
         RETURNS (None): This method does not return anything.
@@ -57,7 +61,8 @@ class ClipboardState(StateBase):
 
     @classmethod
     def clipboard_copy(cls) -> str:
-        """Retrieve text from the system clipboard using standard library calls.
+        """
+        Retrieve text from the system clipboard using standard library calls.
 
         RETURNS (str): The text contents of the system clipboard.
         RAISES (FileNotFoundError, subprocess.CalledProcessError):
@@ -110,7 +115,9 @@ class ClipboardState(StateBase):
             raise ValueError(f"Failed to read state from clipboard: {e}")
 
     def write(self, data: Dict[str, str]) -> None:
-        """Replace the current state with the given data by copying it to the clipboard.
+        """
+        Replace the current state with the given data by copying it to the
+        clipboard.
 
         data (Dict[str, str]): The state data to write.
         RETURNS (None): This method does not return anything.
@@ -124,9 +131,12 @@ class ClipboardState(StateBase):
             raise ValueError(f"Failed to write state to clipboard: {e}")
 
     def update(self, data: Dict[str, str]) -> None:
-        """Update the current clipboard state by merging existing state with new data.
+        """
+        Update the current clipboard state by merging existing state with new
+        data.
 
-        data (Dict[str, str]): The new state data to merge into the existing clipboard state.
+        data (Dict[str, str]): The new state data to merge into the existing
+        clipboard state.
         RETURNS (None): This method does not return anything.
         RAISES (ValueError): If there is an error updating the clipboard state.
         """
@@ -141,7 +151,8 @@ class ClipboardState(StateBase):
         """Reset the clipboard state to an empty dictionary.
 
         RETURNS (None): This method does not return anything.
-        RAISES (ValueError): If there is an error resetting the clipboard state.
+        RAISES (ValueError): If there is an error resetting the clipboard
+        state.
         """
         try:
             self.write({})
@@ -149,10 +160,14 @@ class ClipboardState(StateBase):
             raise ValueError(f"Failed to reset clipboard state: {e}")
 
     def deep_copy(self) -> "ClipboardState":
-        """Create a deep copy of the current state as a new ClipboardState instance.
+        """
+        Create a deep copy of the current state as a new ClipboardState
+        instance.
 
-        RETURNS (ClipboardState): A new ClipboardState instance with the same clipboard data.
-        RAISES (ValueError): If there is an error creating the deep copy of the state.
+        RETURNS (ClipboardState): A new ClipboardState instance with the same
+        clipboard data.
+        RAISES (ValueError): If there is an error creating the deep copy of the
+        state.
         """
         try:
             current_state = self.read()

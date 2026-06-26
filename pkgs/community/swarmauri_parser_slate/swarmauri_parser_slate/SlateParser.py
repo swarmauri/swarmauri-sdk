@@ -22,7 +22,8 @@ class SlateParser(ParserBase):
         - source (str): The path to the PDF file.
 
         Returns:
-        - List[IDocument]: A list containing a single Document instance with the extracted data fields.
+        - List[IDocument]: A list containing a single Document instance with
+          the extracted data fields.
         """
 
         documents = []

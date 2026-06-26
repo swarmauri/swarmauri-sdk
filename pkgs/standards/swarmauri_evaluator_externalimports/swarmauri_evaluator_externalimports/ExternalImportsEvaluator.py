@@ -15,14 +15,18 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_model()
 class ExternalImportsEvaluator(EvaluatorBase):
     """
-    Evaluator that detects and penalizes non-built-in Python imports in source files.
+    Evaluator that detects and penalizes non-built-in Python imports in source
+    files.
 
-    This evaluator analyzes import statements to identify modules that are not part of
-    the Python standard library. It helps to assess the external dependencies of a program.
+    This evaluator analyzes import statements to identify modules that are not
+    part of
+    the Python standard library. It helps to assess the external dependencies
+    of a program.
 
     Attributes:
         type: The literal type identifier for this evaluator.
-        standard_modules: A set of module names that are part of the Python standard library.
+        standard_modules: A set of module names that are part of the Python
+        standard library.
     """
 
     type: Literal["ExternalImportsEvaluator"] = "ExternalImportsEvaluator"
@@ -43,7 +47,8 @@ class ExternalImportsEvaluator(EvaluatorBase):
         """
         Initialize the set of standard library modules.
 
-        This method populates the standard_modules set with names of all modules
+        This method populates the standard_modules set with names of all
+        modules
         from the Python standard library.
         """
         # Get all standard library modules
@@ -109,7 +114,10 @@ class ExternalImportsEvaluator(EvaluatorBase):
         self.standard_modules.update(additional_std_libs)
 
         logger.debug(
-            f"Initialized with {len(self.standard_modules)} standard library modules"
+            (
+                f"Initialized with {len(self.standard_modules)} standard "
+                f"library modules"
+            )
         )
 
     def _is_standard_module(self, module_name: str) -> bool:
@@ -120,7 +128,8 @@ class ExternalImportsEvaluator(EvaluatorBase):
             module_name: The name of the module to check.
 
         Returns:
-            True if the module is part of the standard library, False otherwise.
+            True if the module is part of the standard library, False
+            otherwise.
         """
         # Check if the base module name is in standard modules
         base_module = module_name.split(".")[0]
@@ -195,10 +204,13 @@ class ExternalImportsEvaluator(EvaluatorBase):
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Analyze a program's source files for external imports and compute a score.
+        Analyze a program's source files for external imports and compute a
+        score.
 
-        The score is inversely proportional to the number of external dependencies.
-        A program with no external dependencies receives a perfect score of 1.0.
+        The score is inversely proportional to the number of external
+        dependencies.
+        A program with no external dependencies receives a perfect score of
+        1.0.
 
         Args:
             program: The program to evaluate.
@@ -206,8 +218,10 @@ class ExternalImportsEvaluator(EvaluatorBase):
 
         Returns:
             A tuple containing:
-                - float: A scalar fitness score (1.0 is best, lower for more external imports)
-                - Dict[str, Any]: Metadata about the evaluation, including detected imports
+                - float: A scalar fitness score (1.0 is best, lower for more
+                  external imports)
+                - Dict[str, Any]: Metadata about the evaluation, including
+                  detected imports
         """
         # Get all Python files in the program
         python_files = []
@@ -278,7 +292,10 @@ class ExternalImportsEvaluator(EvaluatorBase):
         }
 
         logger.info(
-            f"Found {len(external_imports)} external imports from {len(unique_external_modules)} unique modules"
+            (
+                f"Found {len(external_imports)} external imports from "
+                f"{len(unique_external_modules)} unique modules"
+            )
         )
 
         return score, metadata

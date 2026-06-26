@@ -1,6 +1,9 @@
-"""Unit tests for the package initialization of swarmauri_tool_jupytergetiopubmessage.
+"""
+Unit tests for the package initialization of
+swarmauri_tool_jupytergetiopubmessage.
 
-This module ensures that __init__.py exposes the JupyterGetIOPubMessageTool class and
+This module ensures that __init__.py exposes the JupyterGetIOPubMessageTool
+class and
 that the package version is defined as expected.
 """
 
@@ -28,18 +31,21 @@ class BaseTest:
         """
         Perform teardown after each test method.
 
-        :param method: The test method for which the teardown is being performed.
+        :param method: The test method for which the teardown is being
+            performed.
         """
         # Teardown logic (if needed) goes here
         pass
 
 
 class TestInit(BaseTest):
-    """Test suite for verifying the swarmauri_tool_jupytergetiopubmessage package initialization."""
+    """Test suite for verifying the swarmauri_tool_jupytergetiopubmessage
+    package initialization."""
 
     def test_jupyter_get_iopub_message_tool_existence(self) -> None:
         """
-        Test that the JupyterGetIOPubMessageTool class is correctly imported from __init__.py.
+        Test that the JupyterGetIOPubMessageTool class is correctly imported
+        from __init__.py.
         """
         tool_instance = JupyterGetIOPubMessageTool()
         assert tool_instance is not None, (

@@ -57,7 +57,8 @@ def test_ubc_type(clipboard_state):
 
     clipboard_state (ClipboardState): The ClipboardState fixture instance.
 
-    RETURNS (None): Raises an assertion if the type does not match "ClipboardState".
+    RETURNS (None): Raises an assertion if the type does not match
+    "ClipboardState".
     """
     assert clipboard_state.type == "ClipboardState"
 
@@ -67,7 +68,8 @@ def test_serialization(clipboard_state):
     """
     Test that a ClipboardState can be serialized and deserialized properly.
 
-    Verifies that a state instance, when serialized to JSON and then deserialized,
+    Verifies that a state instance, when serialized to JSON and then
+    deserialized,
     retains the same identifier.
 
     clipboard_state (ClipboardState): The ClipboardState fixture instance.
@@ -110,7 +112,8 @@ def test_update(clipboard_state):
 
     clipboard_state (ClipboardState): The ClipboardState fixture instance.
 
-    RETURNS (None): Raises an assertion if the merged data does not match expectations.
+    RETURNS (None): Raises an assertion if the merged data does not match
+    expectations.
     """
     initial_data = {"existing_key": "existing_value"}
     clipboard_state.write(initial_data)
@@ -130,7 +133,8 @@ def test_reset(clipboard_state):
 
     clipboard_state (ClipboardState): The ClipboardState fixture instance.
 
-    RETURNS (None): Raises an assertion if the read data after reset is not empty.
+    RETURNS (None): Raises an assertion if the read data after reset is not
+    empty.
     """
     clipboard_state.write({"some_key": "some_value"})
     clipboard_state.reset()
@@ -165,7 +169,8 @@ def test_classmethod_copy_and_paste():
     Test the ClipboardState class methods clipboard_copy and clipboard_paste
     under mocked conditions.
 
-    1. Patch the class methods to store clipboard data in an in-memory variable.
+    1. Patch the class methods to store clipboard data in an in-memory
+    variable.
     2. Verify that copying a string sets the in-memory content.
     3. Verify that pasting returns the same string.
 

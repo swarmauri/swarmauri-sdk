@@ -141,28 +141,28 @@ variable1 = 10"""
     "file_content, extract_documentation, to_be_ignored, expected_code",
     [
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
             True,
             ["function1", "variable1"],
-            '''""" module documentation string\n """\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nprint('Hello, World!')''',  # noqa: E501
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
             True,
             [],
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
             False,
             [],
-            """function1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')""",
+            """function1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')""",  # noqa: E501
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\n# non-essentials\nif "#" in stripped_line and "non-essentials" in stripped_line:\n    break\nprint('Hello, World!')''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\n# non-essentials\nif "#" in stripped_line and "non-essentials" in stripped_line:\n    break\nprint('Hello, World!')''',  # noqa: E501
             True,
             [],
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10''',
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10''',  # noqa: E501
         ),
     ],
 )
@@ -189,5 +189,5 @@ def test_call(
         f"Expected str, but got {type(result.get('code')).__name__}"
     )
     assert result.get("code") == expected_code, (
-        f"Expected Extracted Code {expected_code}, but got {result.get('code')}"
+        f"Expected Extracted Code {expected_code}, but got {result.get('code')}"  # noqa: E501
     )

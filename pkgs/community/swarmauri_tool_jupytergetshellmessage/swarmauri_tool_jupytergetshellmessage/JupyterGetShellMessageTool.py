@@ -1,10 +1,15 @@
 """
 JupyterGetShellMessageTool.py
-This module defines the JupyterGetShellMessageTool, a component that retrieves messages
-from the Jupyter kernel's shell channel. It leverages the ToolBase and ComponentBase
-classes from the swarmauri framework to integrate with the system's tool architecture.
-The JupyterGetShellMessageTool supports retrieving and parsing messages for diagnostic
-purposes. It includes timeout-based handling to avoid hanging during message retrieval.
+This module defines the JupyterGetShellMessageTool, a component that retrieves
+messages
+from the Jupyter kernel's shell channel. It leverages the ToolBase and
+ComponentBase
+classes from the swarmauri framework to integrate with the system's tool
+architecture.
+The JupyterGetShellMessageTool supports retrieving and parsing messages for
+diagnostic
+purposes. It includes timeout-based handling to avoid hanging during message
+retrieval.
 """
 
 from typing import ClassVar, Callable, Any, Dict, List, Literal
@@ -24,16 +29,20 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterGetShellMessageTool")
 class JupyterGetShellMessageTool(ToolBase):
     """
-    JupyterGetShellMessageTool is a tool designed to retrieve messages from the kernel's shell channel.
-    It listens for shell messages within a specified timeout, logs them for diagnostics, and returns
+    JupyterGetShellMessageTool is a tool designed to retrieve messages from the
+    kernel's shell channel.
+    It listens for shell messages within a specified timeout, logs them for
+    diagnostics, and returns
     the structured messages.
 
     Attributes:
         version (str): The version of the JupyterGetShellMessageTool.
-        parameters (List[Parameter]): A list of parameters that configure message retrieval.
+        parameters (List[Parameter]): A list of parameters that configure
+        message retrieval.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterGetShellMessageTool"]): The type identifier for the tool.
+        type (Literal["JupyterGetShellMessageTool"]): The type identifier for
+        the tool.
     """
 
     version: str = "1.0.0"
@@ -42,7 +51,11 @@ class JupyterGetShellMessageTool(ToolBase):
             Parameter(
                 name="timeout",
                 input_type="number",
-                description="The time in seconds to wait for shell messages before giving up.",
+                description=(
+                    "The time in seconds to wait for shell messages before "
+                    "giving "
+                    "up."
+                ),
                 required=False,
             ),
         ]
@@ -69,13 +82,16 @@ class JupyterGetShellMessageTool(ToolBase):
 
     def __call__(self, timeout: float = 5.0) -> Dict[str, Any]:
         """
-        Retrieves messages from the Jupyter kernel's shell channel within the specified timeout.
+        Retrieves messages from the Jupyter kernel's shell channel within the
+        specified timeout.
         Args:
-            timeout (float, optional): The number of seconds to wait for shell messages
+            timeout (float, optional): The number of seconds to wait for shell
+            messages
                                     before timing out. Defaults to 5.0.
 
         Returns:
-            Dict[str, Any]: A dictionary containing all retrieved shell messages or an error message.
+            Dict[str, Any]: A dictionary containing all retrieved shell
+            messages or an error message.
 
         Example:
             >>> tool = JupyterGetShellMessageTool()
@@ -83,14 +99,16 @@ class JupyterGetShellMessageTool(ToolBase):
             >>> print(result)
             {
                 'messages': [
-                    {'header': {...}, 'parent_header': {...}, 'metadata': {...}, 'content': {...}, 'buffers': [...]},
+                    {'header': {...}, 'parent_header': {...}, 'metadata':
+                    {...}, 'content': {...}, 'buffers': [...]},
                     ...
                 ]
             }
         """
         messages = []
         try:
-            # Use the private attribute that now holds the patched find_connection_file.
+            # Use the private attribute that now holds the patched
+            # find_connection_file.
             connection_file = find_connection_file()
             client = BlockingKernelClient(connection_file=connection_file)
             client.load_connection_file()
@@ -112,7 +130,9 @@ class JupyterGetShellMessageTool(ToolBase):
 
             if not retrieved_any_message:
                 return {
-                    "error": f"No shell messages received within {timeout} seconds."
+                    "error": (
+                        f"No shell messages received within {timeout} seconds."
+                    )
                 }
 
             return {"messages": messages}

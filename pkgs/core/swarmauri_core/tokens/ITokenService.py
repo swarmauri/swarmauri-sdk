@@ -7,8 +7,10 @@ from typing import Any, Dict, Iterable, Mapping, Optional
 class ITokenService(ABC):
     """Stable interface to mint and verify tokens.
 
-    Supports operations such as JSON Web Tokens (JWT) and JSON Web Signatures (JWS).
-    The interface keeps crypto-agnostic policy fields explicit (``iss``, ``aud``,
+    Supports operations such as JSON Web Tokens (JWT) and JSON Web Signatures
+    (JWS).
+    The interface keeps crypto-agnostic policy fields explicit (``iss``,
+    ``aud``,
     ``exp``, ``scope``).
     """
 
@@ -46,4 +48,5 @@ class ITokenService(ABC):
 
     @abstractmethod
     async def jwks(self) -> dict:
-        """Return a JWKS mapping (``{"keys": [...]}``) for signing key discovery."""
+        """Return a JWKS mapping (``{"keys": [...]}``) for signing key
+        discovery."""

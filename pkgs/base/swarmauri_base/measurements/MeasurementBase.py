@@ -7,7 +7,8 @@ from swarmauri_core.measurements.IMeasurement import IMeasurement
 @ComponentBase.register_model()
 class MeasurementBase(IMeasurement, ComponentBase):
     """
-    A base implementation of the IMeasurement interface that provides the foundation
+    A base implementation of the IMeasurement interface that provides the
+    foundation
     for specific measurement implementations.
     """
 

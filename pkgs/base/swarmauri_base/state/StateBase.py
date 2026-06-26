@@ -8,7 +8,8 @@ from swarmauri_core.state.IState import IState
 @ComponentBase.register_model()
 class StateBase(IState, ComponentBase):
     """
-    Abstract base class for state management, extending IState and ComponentBase.
+    Abstract base class for state management, extending IState and
+    ComponentBase.
     """
 
     state_data: Dict[str, Any] = Field(

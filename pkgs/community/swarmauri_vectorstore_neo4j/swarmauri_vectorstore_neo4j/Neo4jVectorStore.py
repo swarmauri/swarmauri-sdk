@@ -37,11 +37,13 @@ class Neo4jVectorStore(
 
     def _initialize_schema(self):
         """
-        Initialize the Neo4j schema, creating necessary indexes and constraints.
+        Initialize the Neo4j schema, creating necessary indexes and
+        constraints.
         """
 
         with self._driver.session() as session:
-            # Create a unique constraint on Document ID with a specific constraint name
+            # Create a unique constraint on Document ID with a specific
+            # constraint name
 
             session.run(
                 """
@@ -181,11 +183,13 @@ class Neo4jVectorStore(
         self, query: str, top_k: int = 5, string_field: str = "content"
     ) -> List[Document]:
         """
-        Retrieve the top_k most similar documents to the query based on Levenshtein distance using APOC's apoc.text.distance.
+        Retrieve the top_k most similar documents to the query based on
+        Levenshtein distance using APOC's apoc.text.distance.
 
         :param query: Query string
         :param top_k: Number of top similar documents to retrieve
-        :param string_field: Specific field to apply Levenshtein distance (default: 'content')
+        :param string_field: Specific field to apply Levenshtein distance
+            (default: 'content')
         :return: List of Document objects
         """
 
@@ -194,8 +198,12 @@ class Neo4jVectorStore(
         with self._driver.session() as session:
             cypher_query = f"""
                 MATCH (d:Document)
-                RETURN d.id AS id, d.content AS content, d.metadata AS metadata,
-                        apoc.text.distance(d.{string_field}, $input_text) AS distance
+                RETURN d.id AS id,
+                       d.content AS content,
+                       d.metadata AS metadata,
+                       apoc.text.distance(
+                           d.{string_field}, $input_text
+                       ) AS distance
                 ORDER BY distance ASC
                 LIMIT $top_k
             """

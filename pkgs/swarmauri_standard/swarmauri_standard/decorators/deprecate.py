@@ -12,11 +12,13 @@ def _construct_deprecation_message(
     """
     Helper function to construct a deprecation message.
 
-    :param item_type: A string indicating what is being deprecated (e.g. "class", "method", "import path").
+    :param item_type: A string indicating what is being deprecated (e.g.
+        "class", "method", "import path").
     :param item_name: The name of the item (e.g. "OldClass", "my_old_module").
     :param since: Version when deprecation started.
     :param removed_in: Version when the deprecated item will be removed.
-    :param alternative: Suggested replacement, or None if no replacement exists.
+    :param alternative: Suggested replacement, or None if no replacement
+        exists.
     :return: A formatted warning message.
     """
     base_msg = (
@@ -34,13 +36,16 @@ def deprecated_import_path(
     item_name: str, since: str, removed_in: str, alternative: str = None
 ):
     """
-    A decorator to trigger a DeprecationWarning at import time for a deprecated import path.
+    A decorator to trigger a DeprecationWarning at import time for a deprecated
+    import path.
 
     How It Works:
     -------------
-    1. You apply this decorator to a dummy class (or function) at the top-level of the
+    1. You apply this decorator to a dummy class (or function) at the top-level
+    of the
        deprecated module.
-    2. When the module is imported, Python reads the decorated class, triggering
+    2. When the module is imported, Python reads the decorated class,
+    triggering
        this decorator's code immediately, thus issuing the warning.
 
     Example Usage in old_module.py:
@@ -54,7 +59,8 @@ def deprecated_import_path(
             alternative='new_module'
         )
         class _ImportDeprecationTrigger:
-            # This class is never actually used; it just triggers the warning at import time.
+            # This class is never actually used; it just triggers the warning
+            # at import time.
             pass
 
         def some_old_function():
@@ -73,11 +79,13 @@ def deprecated_import_path(
     )
 
     def decorator(obj):
-        # Trigger the warning at import time (when Python first sees the decorated object).
+        # Trigger the warning at import time (when Python first sees the
+        # decorated object).
         warnings.warn(
             warning_msg,
             category=DeprecationWarning,
-            stacklevel=2,  # Ensures warning points to the user's import line (or near it).
+            # Ensures warning points to the user's import line (or near it).
+            stacklevel=2,
         )
         return obj  # Return the object unmodified (usually a dummy class).
 

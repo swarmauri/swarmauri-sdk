@@ -16,9 +16,12 @@ class EvaluatorBase(IEvaluate, ComponentBase):
     """
     Abstract base class implementing reusable logic for evaluation functions.
 
-    This class provides template methods, logging, and a partial evaluation workflow
-    that can be extended by concrete evaluator implementations. It handles common
-    concerns like execution time tracking, exception handling, and score aggregation.
+    This class provides template methods, logging, and a partial evaluation
+    workflow
+    that can be extended by concrete evaluator implementations. It handles
+    common
+    concerns like execution time tracking, exception handling, and score
+    aggregation.
     """
 
     resource: Optional[str] = Field(default=ResourceTypes.EVALUATOR.value)
@@ -40,7 +43,8 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         Returns:
             A tuple containing:
                 - float: A scalar fitness score (higher is better)
-                - Dict[str, Any]: Metadata about the evaluation, including feature dimensions
+                - Dict[str, Any]: Metadata about the evaluation, including
+                  feature dimensions
 
         Raises:
             EvaluationError: If the evaluation process fails
@@ -60,7 +64,10 @@ class EvaluatorBase(IEvaluate, ComponentBase):
             metadata["execution_time"] = execution_time
 
             logger.debug(
-                f"Evaluation completed in {execution_time:.4f}s with score {score:.4f}"
+                (
+                    f"Evaluation completed in {execution_time:.4f}s with score "  # noqa: E501
+                    f"{score:.4f}"
+                )
             )
             return score, metadata
 
@@ -77,7 +84,8 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         """
         Compute the evaluation score for a program.
 
-        This is the main method to be implemented by concrete evaluator classes.
+        This is the main method to be implemented by concrete evaluator
+        classes.
 
         Args:
             program: The program to evaluate
@@ -101,12 +109,14 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         """
         Aggregate multiple evaluation scores and their metadata.
 
-        This method provides a default implementation for aggregating scores from
+        This method provides a default implementation for aggregating scores
+        from
         multiple evaluations, typically by averaging them.
 
         Args:
             scores: List of individual scores to aggregate
-            metadata_list: List of metadata dictionaries corresponding to each score
+            metadata_list: List of metadata dictionaries corresponding to each
+            score
 
         Returns:
             A tuple containing:
@@ -126,7 +136,8 @@ class EvaluatorBase(IEvaluate, ComponentBase):
             "score_count": len(scores),
         }
 
-        # If all metadata dictionaries have the same keys, aggregate those values too
+        # If all metadata dictionaries have the same keys, aggregate those
+        # values too
         if metadata_list:
             common_keys = set.intersection(
                 *[set(meta.keys()) for meta in metadata_list]

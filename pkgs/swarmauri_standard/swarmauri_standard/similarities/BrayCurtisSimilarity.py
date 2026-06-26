@@ -15,11 +15,14 @@ class BrayCurtisSimilarity(SimilarityBase):
     """
     Bray-Curtis similarity measure.
 
-    This similarity measure is commonly used in ecology to quantify the compositional
-    dissimilarity between two samples. It is based on the ratio of the sum of the absolute
+    This similarity measure is commonly used in ecology to quantify the
+    compositional
+    dissimilarity between two samples. It is based on the ratio of the sum of
+    the absolute
     differences to the sum of the abundances.
 
-    The Bray-Curtis similarity is calculated as 1 - (sum of absolute differences / sum of all values).
+    The Bray-Curtis similarity is calculated as 1 - (sum of absolute
+    differences / sum of all values).
 
     Attributes
     ----------
@@ -31,7 +34,8 @@ class BrayCurtisSimilarity(SimilarityBase):
 
     def _validate_input(self, x: ComparableType, y: ComparableType) -> tuple:
         """
-        Validate that inputs are non-negative arrays or lists of the same length.
+        Validate that inputs are non-negative arrays or lists of the same
+        length.
 
         Parameters
         ----------
@@ -60,7 +64,11 @@ class BrayCurtisSimilarity(SimilarityBase):
             # Check if arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Input vectors must have the same shape: {x_array.shape} != {y_array.shape}"
+                    (
+                        f"Input vectors must have the same shape: "
+                        f"{x_array.shape} != "
+                        f"{y_array.shape}"
+                    )
                 )
 
             # Check for negative values
@@ -111,7 +119,8 @@ class BrayCurtisSimilarity(SimilarityBase):
             if sum_all == 0:
                 return 1.0
 
-            # Calculate Bray-Curtis similarity: 1 - (sum of abs differences / sum of all values)
+            # Calculate Bray-Curtis similarity: 1 - (sum of abs differences /
+            # sum of all values)
             similarity_value = 1.0 - (sum_abs_diff / sum_all)
 
             return float(similarity_value)
@@ -124,7 +133,8 @@ class BrayCurtisSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Bray-Curtis similarities between one vector and multiple other vectors.
+        Calculate Bray-Curtis similarities between one vector and multiple
+        other vectors.
 
         Parameters
         ----------
@@ -136,7 +146,8 @@ class BrayCurtisSimilarity(SimilarityBase):
         Returns
         -------
         List[float]
-            List of Bray-Curtis similarity scores between x and each element in ys
+            List of Bray-Curtis similarity scores between x and each element in
+            ys
 
         Raises
         ------
@@ -165,13 +176,18 @@ class BrayCurtisSimilarity(SimilarityBase):
                 # Check if arrays have the same shape
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        f"Input vectors must have the same shape: {x_array.shape} != {y_array.shape}"
+                        (
+                            f"Input vectors must have the same shape: "
+                            f"{x_array.shape} != "
+                            f"{y_array.shape}"
+                        )
                     )
 
                 # Check for negative values in y
                 if np.any(y_array < 0):
                     raise ValueError(
-                        "Bray-Curtis similarity requires non-negative input values"
+                        "Bray-Curtis similarity requires non-negative input "
+                        "values"
                     )
 
                 sum_y = np.sum(y_array)
@@ -189,7 +205,10 @@ class BrayCurtisSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Bray-Curtis similarities: {str(e)}"
+                (
+                    f"Error calculating multiple Bray-Curtis similarities: "
+                    f"{str(e)}"
+                )
             )
             raise
 
@@ -229,7 +248,8 @@ class BrayCurtisSimilarity(SimilarityBase):
             if sum_all == 0:
                 return 0.0
 
-            # Calculate Bray-Curtis dissimilarity directly: sum of abs differences / sum of all values
+            # Calculate Bray-Curtis dissimilarity directly: sum of abs
+            # differences / sum of all values
             dissimilarity_value = sum_abs_diff / sum_all
 
             return float(dissimilarity_value)
@@ -284,7 +304,8 @@ class BrayCurtisSimilarity(SimilarityBase):
             similarity_xy = self.similarity(x, y)
             similarity_yx = self.similarity(y, x)
 
-            # Use approximate equality to handle floating-point precision issues
+            # Use approximate equality to handle floating-point precision
+            # issues
             return abs(similarity_xy - similarity_yx) < 1e-10
 
         except Exception as e:

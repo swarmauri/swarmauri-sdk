@@ -16,13 +16,15 @@ class TestPackageInitialization:
 
     def test_jupyter_read_notebook_tool_import(self) -> None:
         """
-        Test that JupyterReadNotebookTool is successfully imported from the package's __init__.
+        Test that JupyterReadNotebookTool is successfully imported from the
+        package's __init__.
         """
         from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
 
         # Verify we can access the class
         assert JupyterReadNotebookTool is not None, (
-            "JupyterReadNotebookTool should be imported from the package init file."
+            "JupyterReadNotebookTool should be imported from the package "
+            "init file."
         )
 
     def test_package_version(self) -> None:
@@ -39,12 +41,16 @@ class TestPackageInitialization:
 
     def test_jupyter_read_notebook_tool_inherits_correctly(self) -> None:
         """
-        Test that JupyterReadNotebookTool inherits from the expected base class.
-        This test is provided as an example if there is a known base class to check against.
+        Test that JupyterReadNotebookTool inherits from the expected base
+        class.
+        This test is provided as an example if there is a known base class to
+        check against.
         """
         from swarmauri_tool_jupyterreadnotebook import JupyterReadNotebookTool
 
-        # Here we check only as an example scenario; adjust accordingly for real use.
+        # Here we check only as an example scenario; adjust accordingly for
+        # real use.
         assert issubclass(JupyterReadNotebookTool, ToolBase) is True, (
-            "Inherit from ToolBase if JupyterReadNotebookTool must extend a known base class."
+            "Inherit from ToolBase if JupyterReadNotebookTool must extend "
+            "a known base class."
         )

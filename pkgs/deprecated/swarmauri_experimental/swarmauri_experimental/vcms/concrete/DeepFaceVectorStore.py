@@ -38,11 +38,15 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
         Finds matching faces in the database for the given image.
 
         Args:
-            img_path (Union[str, np.ndarray]): Path to the input image or NumPy array.
+            img_path (Union[str, np.ndarray]): Path to the input image or NumPy
+            array.
             db_path (str): Path to the database of images.
-            threshold (float, optional): Similarity threshold. Defaults to None.
-            silent (bool, optional): If True, suppresses output. Defaults to False.
-            refresh_database (bool, optional): If True, refreshes the database. Defaults to True.
+            threshold (float, optional): Similarity threshold. Defaults to
+            None.
+            silent (bool, optional): If True, suppresses output. Defaults to
+            False.
+            refresh_database (bool, optional): If True, refreshes the database.
+            Defaults to True.
 
         Returns:
             List[pd.DataFrame]: List of DataFrames containing results.

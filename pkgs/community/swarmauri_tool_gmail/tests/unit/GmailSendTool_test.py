@@ -85,7 +85,8 @@ def test_send_email_success(
         "success": "Email sent successfully to recipient@example.com"
     }
 
-    # Check that authenticate and create_message were called with correct arguments
+    # Check that authenticate and create_message were called with correct
+    # arguments
     mock_authenticate.assert_called_once()
     mock_create_message.assert_called_once_with(
         "recipient@example.com", "Test Subject", "<p>This is a test email.</p>"

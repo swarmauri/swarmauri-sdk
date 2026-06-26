@@ -13,7 +13,8 @@ class TestCircuitBreakerMiddleware:
 
     @pytest.fixture
     def middleware(self):
-        """Fixture to create a CircuitBreakerMiddleware instance with default parameters."""
+        """Fixture to create a CircuitBreakerMiddleware instance with default
+        parameters."""
         return CircuitBreakerMiddleware()
 
     @pytest.fixture

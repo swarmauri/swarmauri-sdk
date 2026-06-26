@@ -58,7 +58,7 @@ def main():
 
     if not is_kernel_available(required_kernel):
         raise RuntimeError(
-            f"Kernel '{required_kernel}' is not available. Please install it with 'python -m ipykernel install --user --name {required_kernel}'"
+            f"Kernel '{required_kernel}' is not available. Please install it with 'python -m ipykernel install --user --name {required_kernel}'"  # noqa: E501
         )
 
     km = KernelManager(kernel_name=required_kernel)

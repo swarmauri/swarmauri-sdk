@@ -159,7 +159,7 @@ def _load_ecdh_recipient_public(jwk_or_pem: Any) -> Tuple[str, Any]:
             x = _b64u_dec(jwk_or_pem["x"])
             return "X25519", x25519.X25519PublicKey.from_public_bytes(x)
         raise ValueError(
-            f"Unsupported JWK kty/crv for ECDH-ES: {kty}/{jwk_or_pem.get('crv')}"
+            f"Unsupported JWK kty/crv for ECDH-ES: {kty}/{jwk_or_pem.get('crv')}"  # noqa: E501
         )
     if isinstance(jwk_or_pem, (bytes, bytearray, str)):
         data = (
@@ -238,7 +238,8 @@ class JweCrypto:
     ) -> JWECompact:
         """Encrypt a payload into a compact JWE string.
 
-        payload (Union[bytes, str, Mapping[str, Any]]): Data to encrypt. Strings and
+        payload (Union[bytes, str, Mapping[str, Any]]): Data to encrypt.
+        Strings and
             mappings are encoded as UTF-8 JSON.
         alg (JWAAlg): Key management algorithm.
         enc (JWAAlg): Content encryption algorithm.
@@ -278,7 +279,7 @@ class JweCrypto:
             )
             if len(secret_b) != _cek_len_for_enc(enc):
                 raise ValueError(
-                    f"'dir' key size must equal enc key size ({_cek_len_for_enc(enc)} bytes)"
+                    f"'dir' key size must equal enc key size ({_cek_len_for_enc(enc)} bytes)"  # noqa: E501
                 )
             cek = secret_b
         elif alg in (JWAAlg.RSA_OAEP, JWAAlg.RSA_OAEP_256):
@@ -366,14 +367,16 @@ class JweCrypto:
 
         jwe (JWECompact): Serialized JWE to decode.
         dir_key (Union[bytes, str]): Symmetric key when ``alg='dir'`` is used.
-        rsa_private_pem (Union[str, bytes]): RSA private key in PEM encoding for
+        rsa_private_pem (Union[str, bytes]): RSA private key in PEM encoding
+        for
             RSA-OAEP algorithms.
         rsa_private_password (Union[str, bytes]): Password for the RSA key.
         ecdh_private_key (Any): Private key for ECDH-ES.
         expected_algs (Iterable[JWAAlg]): Allowed algorithm values.
         expected_encs (Iterable[JWAAlg]): Allowed encryption values.
         aad (Union[bytes, str]): Additional authenticated data.
-        RETURNS (JweDecryptResult): Header and plaintext of the decrypted token.
+        RETURNS (JweDecryptResult): Header and plaintext of the decrypted
+        token.
         """
 
         parts = jwe.split(".")

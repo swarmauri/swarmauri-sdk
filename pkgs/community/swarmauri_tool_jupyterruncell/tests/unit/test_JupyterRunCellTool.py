@@ -1,8 +1,10 @@
 """
 test_JupyterRunCellTool.py
 
-This module contains pytest-based unit tests for the JupyterRunCellTool class. It verifies
-the tool's functionality under various scenarios, including normal execution, error
+This module contains pytest-based unit tests for the JupyterRunCellTool class.
+It verifies
+the tool's functionality under various scenarios, including normal execution,
+error
 handling, and timeout handling.
 """
 
@@ -13,12 +15,14 @@ from swarmauri_tool_jupyterruncell.JupyterRunCellTool import JupyterRunCellTool
 # Define a dummy IPython shell that mimics a real shell's run_cell behavior.
 class DummyIPythonShell:
     def run_cell(self, code):
-        # Execute the code. Exceptions (including SyntaxError and custom exceptions)
+        # Execute the code. Exceptions (including SyntaxError and custom
+        # exceptions)
         # will propagate, allowing the tool to capture them.
         exec(code, {})
 
 
-# Automatically patch IPython.get_ipython so that it returns our dummy shell instance.
+# Automatically patch IPython.get_ipython so that it returns our dummy shell
+# instance.
 @pytest.fixture(autouse=True)
 def patch_get_ipython(monkeypatch):
     monkeypatch.setattr("IPython.get_ipython", lambda: DummyIPythonShell())
@@ -26,7 +30,8 @@ def patch_get_ipython(monkeypatch):
 
 def test_jupyter_run_cell_tool_basic() -> None:
     """
-    Test that JupyterRunCellTool successfully executes a simple Python code snippet
+    Test that JupyterRunCellTool successfully executes a simple Python code
+    snippet
     and captures the expected stdout output without errors.
     """
     tool = JupyterRunCellTool()
@@ -42,7 +47,8 @@ def test_jupyter_run_cell_tool_basic() -> None:
 
 def test_jupyter_run_cell_tool_error_handling() -> None:
     """
-    Test that JupyterRunCellTool captures exceptions and returns them correctly in the
+    Test that JupyterRunCellTool captures exceptions and returns them correctly
+    in the
     error output, setting the success flag to False.
     """
     tool = JupyterRunCellTool()
@@ -62,7 +68,8 @@ def test_jupyter_run_cell_tool_error_handling() -> None:
 
 def test_jupyter_run_cell_tool_syntax_error() -> None:
     """
-    Test that JupyterRunCellTool handles syntax errors by capturing the error details
+    Test that JupyterRunCellTool handles syntax errors by capturing the error
+    details
     and setting success to False.
     """
     tool = JupyterRunCellTool()
@@ -79,7 +86,8 @@ def test_jupyter_run_cell_tool_syntax_error() -> None:
 
 def test_jupyter_run_cell_tool_timeout() -> None:
     """
-    Test that JupyterRunCellTool respects the timeout parameter and raises a TimeoutError
+    Test that JupyterRunCellTool respects the timeout parameter and raises a
+    TimeoutError
     if the code execution exceeds the specified limit.
     """
     tool = JupyterRunCellTool()

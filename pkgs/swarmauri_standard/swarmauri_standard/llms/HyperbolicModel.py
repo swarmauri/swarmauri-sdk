@@ -26,11 +26,14 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "HyperbolicModel")
 class HyperbolicModel(LLMBase):
     """
-    HyperbolicModel class for interacting with the Hyperbolic AI language models API.
+    HyperbolicModel class for interacting with the Hyperbolic AI language
+    models API.
 
     Attributes:
-        api_key (str): API key for authenticating requests to the Hyperbolic API.
-        allowed_models (List[str]): List of allowed model names that can be used.
+        api_key (str): API key for authenticating requests to the Hyperbolic
+        API.
+        allowed_models (List[str]): List of allowed model names that can be
+        used.
         name (str): The default model name to use for predictions.
         type (Literal["HyperbolicModel"]): The type identifier for this class.
 
@@ -65,7 +68,8 @@ class HyperbolicModel(LLMBase):
         Initialize the HyperbolicModel class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -87,7 +91,8 @@ class HyperbolicModel(LLMBase):
         Formats conversation messages into the structure expected by the API.
 
         Args:
-            messages (List[MessageBase]): List of message objects from the conversation history.
+            messages (List[MessageBase]): List of message objects from the
+            conversation history.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -187,13 +192,16 @@ class HyperbolicModel(LLMBase):
         Generates a response from the model based on the given conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
-            max_tokens (Optional[int]): Maximum tokens for the model's response.
+            max_tokens (Optional[int]): Maximum tokens for the model's
+            response.
             top_p (float): Cumulative probability for nucleus sampling.
             top_k (int): Maximum number of tokens to consider at each step.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -242,7 +250,8 @@ class HyperbolicModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
-        Async method to generate a response from the model based on the given conversation.
+        Async method to generate a response from the model based on the given
+        conversation.
 
         Args are same as predict method.
         """
@@ -428,7 +437,8 @@ class HyperbolicModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations and generates responses for each
+        sequentially.
 
         Args are same as predict method.
         """

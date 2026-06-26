@@ -38,7 +38,8 @@ class ColemanLiauIndexTool(ToolBase):
         Executes the CLI tool and returns the readability score.
 
         Coleman-Liau Index formula:
-        CLI = 0.0588 * (characters/words * 100) - 0.296 * (sentences/words * 100) - 15.8
+        CLI = 0.0588 * (characters/words * 100) - 0.296 * (sentences/words *
+        100) - 15.8
 
         Parameters:
             data (Dict[str, Any]): The input data containing "input_text".
@@ -112,7 +113,8 @@ class ColemanLiauIndexTool(ToolBase):
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
-        Validates the input data to ensure it contains the necessary 'input_text' key.
+        Validates the input data to ensure it contains the necessary
+        'input_text' key.
 
         Parameters:
             data (Dict[str, Any]): The input data to validate.

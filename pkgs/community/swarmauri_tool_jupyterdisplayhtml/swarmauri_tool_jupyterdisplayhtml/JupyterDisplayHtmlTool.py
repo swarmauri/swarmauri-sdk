@@ -12,9 +12,12 @@ logger = logging.getLogger(__name__)
 """
 JupyterDisplayHtmlTool.py
 
-This module defines the JupyterDisplayHtmlTool, a tool that displays HTML content within
-a Jupyter Notebook cell. It inherits from the ToolBase class and supports dynamic HTML
-content updates, integrates with other visualization tools, handles malformed HTML gracefully,
+This module defines the JupyterDisplayHtmlTool, a tool that displays HTML
+content within
+a Jupyter Notebook cell. It inherits from the ToolBase class and supports
+dynamic HTML
+content updates, integrates with other visualization tools, handles malformed
+HTML gracefully,
 and returns a confirmation of the displayed output.
 """
 
@@ -22,17 +25,22 @@ and returns a confirmation of the displayed output.
 @ComponentBase.register_type(ToolBase, "JupyterDisplayHtmlTool")
 class JupyterDisplayHtmlTool(ToolBase):
     """
-    JupyterDisplayHtmlTool is responsible for rendering HTML within a Jupyter Notebook cell.
-    It supports dynamic updates by allowing multiple calls with new HTML content, integrates
-    easily with other visualization tools, and logs the display actions and any errors
+    JupyterDisplayHtmlTool is responsible for rendering HTML within a Jupyter
+    Notebook cell.
+    It supports dynamic updates by allowing multiple calls with new HTML
+    content, integrates
+    easily with other visualization tools, and logs the display actions and any
+    errors
     encountered.
 
     Attributes:
         version (str): The version of the JupyterDisplayHtmlTool.
-        parameters (List[Parameter]): A list of parameters required to render HTML content.
+        parameters (List[Parameter]): A list of parameters required to render
+        HTML content.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterDisplayHtmlTool"]): The type identifier for the tool.
+        type (Literal["JupyterDisplayHtmlTool"]): The type identifier for the
+        tool.
     """
 
     version: str = "1.0.0"
@@ -41,7 +49,10 @@ class JupyterDisplayHtmlTool(ToolBase):
             Parameter(
                 name="html_content",
                 input_type="string",
-                description="The HTML content to display within the Jupyter Notebook cell.",
+                description=(
+                    "The HTML content to display within the Jupyter Notebook "
+                    "cell."
+                ),
                 required=True,
             ),
         ]
@@ -52,16 +63,20 @@ class JupyterDisplayHtmlTool(ToolBase):
 
     def __call__(self, html_content: str) -> Dict[str, str]:
         """
-        Renders the provided HTML content in a Jupyter Notebook cell and returns a
+        Renders the provided HTML content in a Jupyter Notebook cell and
+        returns a
         status message indicating whether the operation succeeded.
 
         Args:
             html_content (str): The HTML content to be rendered.
 
         Returns:
-            Dict[str, str]: A dictionary containing 'status' and 'message' keys.
-                            If successful, 'status' will be 'success' and 'message'
-                            will confirm the rendered HTML. In the event of an error,
+            Dict[str, str]: A dictionary containing 'status' and 'message'
+            keys.
+                            If successful, 'status' will be 'success' and
+                            'message'
+                            will confirm the rendered HTML. In the event of an
+                            error,
                             'status' will be 'error' and 'message' will contain
                             the error description.
 

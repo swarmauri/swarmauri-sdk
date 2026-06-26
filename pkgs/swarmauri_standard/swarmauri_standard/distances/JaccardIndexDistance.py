@@ -14,7 +14,8 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "JaccardIndexDistance")
 class JaccardIndexDistance(DistanceBase):
     """
-    A class implementing Jaccard Index as a similarity and distance metric between two vectors.
+    A class implementing Jaccard Index as a similarity and distance metric
+    between two vectors.
     """
 
     type: Literal["JaccardIndexDistance"] = "JaccardIndexDistance"
@@ -41,11 +42,13 @@ class JaccardIndexDistance(DistanceBase):
         intersection = len(set_a.intersection(set_b))
         union = len(set_a.union(set_b))
 
-        # In the special case where the union is zero, return 1.0 which implies complete dissimilarity.
+        # In the special case where the union is zero, return 1.0 which implies
+        # complete dissimilarity.
         if union == 0:
             return 1.0
 
-        # Compute Jaccard similarity and then return the distance as 1 - similarity.
+        # Compute Jaccard similarity and then return the distance as 1 -
+        # similarity.
         jaccard_similarity = intersection / union
         return 1 - jaccard_similarity
 
@@ -67,7 +70,8 @@ class JaccardIndexDistance(DistanceBase):
         intersection = len(set_a.intersection(set_b))
         union = len(set_a.union(set_b))
 
-        # In case the union is zero, which means both vectors have no elements, return 1.0 implying identical sets.
+        # In case the union is zero, which means both vectors have no elements,
+        # return 1.0 implying identical sets.
         if union == 0:
             return 1.0
 

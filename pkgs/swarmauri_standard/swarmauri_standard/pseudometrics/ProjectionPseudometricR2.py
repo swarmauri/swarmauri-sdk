@@ -57,7 +57,10 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         if projection_axis not in [0, 1]:
             logger.error(
-                f"Invalid projection axis: {projection_axis}. Must be 0 (x-axis) or 1 (y-axis)."
+                (
+                    f"Invalid projection axis: {projection_axis}. Must be 0 "
+                    f"(x-axis) or 1 (y-axis)."
+                )
             )
             raise ValueError(
                 "Projection axis must be 0 (x-axis) or 1 (y-axis)"
@@ -65,7 +68,10 @@ class ProjectionPseudometricR2(PseudometricBase):
 
         super().__init__(**kwargs, projection_axis=projection_axis)
         logger.debug(
-            f"Initialized ProjectionPseudometricR2 with projection_axis={projection_axis}"
+            (
+                f"Initialized ProjectionPseudometricR2 with "
+                f"projection_axis={projection_axis}"
+            )
         )
 
     def _validate_and_extract_coordinates(
@@ -99,7 +105,8 @@ class ProjectionPseudometricR2(PseudometricBase):
                 # Check if it's a 2D point
                 if point_array.size != 2:
                     raise ValueError(
-                        f"Expected a 2D point, got {point_array.size} dimensions"
+                        f"Expected a 2D point, got {point_array.size} "
+                        f"dimensions"
                     )
 
                 # Flatten in case it's a 2x1 or 1x2 array
@@ -113,7 +120,11 @@ class ProjectionPseudometricR2(PseudometricBase):
                 # Check if it can be interpreted as a 2D point
                 if point_array.size != 2:
                     raise ValueError(
-                        f"Expected a matrix that can be interpreted as a 2D point, got shape {point_array.shape}"
+                        (
+                            f"Expected a matrix that can be interpreted as a "
+                            f"2D point, "
+                            f"got shape {point_array.shape}"
+                        )
                     )
 
                 # Flatten to extract coordinates
@@ -126,7 +137,7 @@ class ProjectionPseudometricR2(PseudometricBase):
                     parts = point.strip("()[]{}").split(",")
                     if len(parts) != 2:
                         raise ValueError(
-                            f"Expected a string representing a 2D point (e.g., '1,2'), got {point}"
+                            f"Expected a string representing a 2D point (e.g., '1,2'), got {point}"  # noqa: E501
                         )
 
                     x = float(parts[0].strip())
@@ -138,7 +149,8 @@ class ProjectionPseudometricR2(PseudometricBase):
                     )
 
             elif callable(point):
-                # Evaluate the callable at t=0 and t=1 to get x and y coordinates
+                # Evaluate the callable at t=0 and t=1 to get x and y
+                # coordinates
                 try:
                     x = float(point(0))
                     y = float(point(1))
@@ -165,7 +177,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         Calculate the projection pseudometric distance between two 2D points.
 
-        The distance is calculated as the absolute difference between the projected
+        The distance is calculated as the absolute difference between the
+        projected
         coordinates on the specified axis.
 
         Parameters
@@ -213,19 +226,23 @@ class ProjectionPseudometricR2(PseudometricBase):
         ],
     ) -> List[List[float]]:
         """
-        Calculate the pairwise projection distances between two collections of 2D points.
+        Calculate the pairwise projection distances between two collections of
+        2D points.
 
         Parameters
         ----------
-        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The first collection of 2D points
-        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The second collection of 2D points
 
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the projection distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the projection
+            distance between xs[i] and ys[j]
 
         Raises
         ------
@@ -235,7 +252,10 @@ class ProjectionPseudometricR2(PseudometricBase):
             If inputs cannot be interpreted as 2D points
         """
         logger.debug(
-            f"Calculating pairwise projection distances between {len(xs)} and {len(ys)} points"
+            (
+                f"Calculating pairwise projection distances between "
+                f"{len(xs)} and {len(ys)} points"
+            )
         )
 
         try:
@@ -270,7 +290,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
     ) -> bool:
         """
-        Check if the projection pseudometric satisfies the non-negativity property.
+        Check if the projection pseudometric satisfies the non-negativity
+        property.
 
         Parameters
         ----------
@@ -316,7 +337,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         Returns
         -------
         bool
-            True if d(x,y) = d(y,x) within tolerance, which is always the case for this pseudometric
+            True if d(x,y) = d(y,x) within tolerance, which is always the case
+            for this pseudometric
         """
         try:
             # Calculate distances in both directions
@@ -354,7 +376,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         Returns
         -------
         bool
-            True if d(x,z) ≤ d(x,y) + d(y,z) within tolerance, which is always the case for this pseudometric
+            True if d(x,z) ≤ d(x,y) + d(y,z) within tolerance, which is always
+            the case for this pseudometric
         """
         try:
             # Calculate the three distances
@@ -375,10 +398,13 @@ class ProjectionPseudometricR2(PseudometricBase):
         y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
     ) -> bool:
         """
-        Check if the projection pseudometric satisfies the weak identity property.
+        Check if the projection pseudometric satisfies the weak identity
+        property.
 
-        In a pseudometric, d(x,y) = 0 is allowed even when x ≠ y. For the projection
-        pseudometric, this happens when two points have the same coordinate on the
+        In a pseudometric, d(x,y) = 0 is allowed even when x ≠ y. For the
+        projection
+        pseudometric, this happens when two points have the same coordinate on
+        the
         projection axis but differ in the other coordinate.
 
         Parameters
@@ -391,7 +417,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         Returns
         -------
         bool
-            True if the pseudometric correctly handles the weak identity property
+            True if the pseudometric correctly handles the weak identity
+            property
         """
         try:
             # Extract coordinates
@@ -416,7 +443,8 @@ class ProjectionPseudometricR2(PseudometricBase):
             if not points_differ:
                 return abs(dist) < 1e-10
 
-            # If points differ and have different projections, distance should be > 0
+            # If points differ and have different projections, distance should
+            # be > 0
             return dist > 0
 
         except Exception as e:

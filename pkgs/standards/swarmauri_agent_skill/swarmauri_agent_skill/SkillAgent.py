@@ -282,8 +282,14 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
                     "",
                     cls._build_resource_context(skill),
                     "",
-                    "Available tool: SkillExecutionTool. Use this single tool "
-                    "to run skill-local argv command arrays when execution is needed.",
+                    (
+                        "Available tool: SkillExecutionTool. Use this single "
+                        "tool "
+                    )(
+                        "to run skill-local argv command arrays when execution "  # noqa: E501
+                        "is "
+                        "needed."
+                    ),
                 ]
             ).strip()
             for skill in skills

@@ -78,7 +78,10 @@ except Exception:  # pragma: no cover - runtime check
 def _ensure_crypto() -> None:
     if not _CRYPTO_OK:
         raise RuntimeError(
-            "CMSSigner requires the 'cryptography' package. Install with: pip install cryptography"
+            (
+                "CMSSigner requires the 'cryptography' package. Install with: "
+                "pip install cryptography"
+            )
         )
 
 

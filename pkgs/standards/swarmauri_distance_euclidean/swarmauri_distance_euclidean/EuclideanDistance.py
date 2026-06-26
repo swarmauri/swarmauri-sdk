@@ -8,7 +8,10 @@ from swarmauri_standard.distances.EuclideanDistance import (
 class EuclideanDistance(_StandardEuclideanDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "EuclideanDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "EuclideanDistance is deprecated and will be removed from the "
+                "active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

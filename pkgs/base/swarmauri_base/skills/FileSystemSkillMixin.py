@@ -73,7 +73,11 @@ class FileSystemSkillMixin(BaseModel):
                     rel = child.relative_to(root).as_posix()
                     if child.suffix.lower() not in cls._SUPPORTED_EXTENSIONS:
                         raise ValueError(
-                            f"Unsupported skill resource extension for {field_name}: {rel}"
+                            (
+                                f"Unsupported skill resource extension for "
+                                f"{field_name}: "
+                                f"{rel}"
+                            )
                         )
                     if rel not in seen:
                         current.append(rel)

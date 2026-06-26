@@ -14,8 +14,10 @@ class UseInnerProductMixin(IUseInnerProduct):
     """
     Base mixin class for structures dependent on inner products.
 
-    This mixin provides functionality for components that require an inner product
-    structure for their operations. It maintains a reference to an inner product
+    This mixin provides functionality for components that require an inner
+    product
+    structure for their operations. It maintains a reference to an inner
+    product
     object and implements the IUseInnerProduct interface.
 
     Attributes
@@ -42,7 +44,10 @@ class UseInnerProductMixin(IUseInnerProduct):
         self._inner_product = inner_product
         super().__init__(*args, **kwargs)
         logger.debug(
-            f"Initialized {self.__class__.__name__} with inner product {inner_product}"
+            (
+                f"Initialized {self.__class__.__name__} with inner product "
+                f"{inner_product}"
+            )
         )
 
     def get_inner_product(self) -> Literal[IInnerProduct]:

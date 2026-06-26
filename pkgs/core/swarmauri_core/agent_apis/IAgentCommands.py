@@ -4,7 +4,8 @@ from typing import Any, List
 
 class IAgentCommands(ABC):
     """
-    Interface for the API object that enables a SwarmAgent to host various API routes.
+    Interface for the API object that enables a SwarmAgent to host various API
+    routes.
     """
 
     @abstractmethod

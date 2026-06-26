@@ -1,13 +1,18 @@
 """
 JupyterExecuteCellTool.py
 
-This module defines the JupyterExecuteCellTool, a component that sends code cells to the
-Jupyter kernel for execution, captures their output, and returns the results. It leverages
-the ToolBase and ComponentBase classes from the swarmauri framework to integrate seamlessly
+This module defines the JupyterExecuteCellTool, a component that sends code
+cells to the
+Jupyter kernel for execution, captures their output, and returns the results.
+It leverages
+the ToolBase and ComponentBase classes from the swarmauri framework to
+integrate seamlessly
 with the system's tool architecture.
 
-The JupyterExecuteCellTool supports synchronous code execution with a configurable timeout
-interval. The tool logs and gracefully handles execution failures, returning any errors
+The JupyterExecuteCellTool supports synchronous code execution with a
+configurable timeout
+interval. The tool logs and gracefully handles execution failures, returning
+any errors
 captured during execution.
 """
 
@@ -32,16 +37,20 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterExecuteCellTool")
 class JupyterExecuteCellTool(ToolBase):
     """
-    JupyterExecuteCellTool is a tool that sends code to a Jupyter kernel for execution,
-    capturing stdout, stderr, and any exceptions encountered. It supports a configurable
+    JupyterExecuteCellTool is a tool that sends code to a Jupyter kernel for
+    execution,
+    capturing stdout, stderr, and any exceptions encountered. It supports a
+    configurable
     timeout to prevent long-running code from blocking execution indefinitely.
 
     Attributes:
         version (str): The version of the JupyterExecuteCellTool.
-        parameters (List[Parameter]): A list of parameters required to execute a notebook cell.
+        parameters (List[Parameter]): A list of parameters required to execute
+        a notebook cell.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExecuteCellTool"]): The type identifier for the tool.
+        type (Literal["JupyterExecuteCellTool"]): The type identifier for the
+        tool.
     """
 
     version: str = "1.0.0"
@@ -72,7 +81,8 @@ class JupyterExecuteCellTool(ToolBase):
     def get_ipython():
         """
         Returns the active IPython kernel instance.
-        This method is defined as a static method to facilitate patching during tests.
+        This method is defined as a static method to facilitate patching during
+        tests.
         """
 
         return get_ipython()
@@ -81,18 +91,23 @@ class JupyterExecuteCellTool(ToolBase):
         self, code: str, timeout: Optional[int] = 30
     ) -> Dict[str, str]:
         """
-        Executes the provided code cell in a Jupyter kernel with a specified timeout.
+        Executes the provided code cell in a Jupyter kernel with a specified
+        timeout.
 
         Args:
             code (str): The code cell content to execute.
-            timeout (Optional[int]): The maximum number of seconds to allow for code execution.
+            timeout (Optional[int]): The maximum number of seconds to allow for
+            code execution.
                                      Defaults to 30 seconds.
 
         Returns:
-            Dict[str, str]: A dictionary containing the execution results. Keys include:
+            Dict[str, str]: A dictionary containing the execution results. Keys
+            include:
                 - 'stdout': The standard output captured from the execution.
-                - 'stderr': The error output captured from the execution, if any.
-                - 'error':  Any exception or error message if the execution fails or times out.
+                - 'stderr': The error output captured from the execution, if
+                  any.
+                - 'error':  Any exception or error message if the execution
+                  fails or times out.
 
          Example:
             >>> executor = JupyterExecuteCellTool()
@@ -102,15 +117,19 @@ class JupyterExecuteCellTool(ToolBase):
 
         def _run_code(cell_code: str) -> Dict[str, str]:
             """
-            Internal helper function to run the provided code in the current IPython kernel,
+            Internal helper function to run the provided code in the current
+            IPython kernel,
             capturing stdout and stderr.
             """
             # Obtain the IPython kernel (or a patched value)
             ip = self.get_ipython()
             if not ip:
-                # If get_ipython() returns None, check whether the method has been patched.
-                # When unpatched, get_ipython is our original static method (a FunctionType),
-                # so we simulate a dummy kernel. When patched (e.g. in the no-active-kernel test),
+                # If get_ipython() returns None, check whether the method has
+                # been patched.
+                # When unpatched, get_ipython is our original static method (a
+                # FunctionType),
+                # so we simulate a dummy kernel. When patched (e.g. in the
+                # no-active-kernel test),
                 # we return an error.
                 if isinstance(self.__class__.get_ipython, types.FunctionType):
                     # Simulate a dummy kernel that simply executes the code.
@@ -136,7 +155,8 @@ class JupyterExecuteCellTool(ToolBase):
                     redirect_stdout(stdout_buffer),
                     redirect_stderr(stderr_buffer),
                 ):
-                    # Execute the cell in IPython with store_history=True so that it behaves
+                    # Execute the cell in IPython with store_history=True so
+                    # that it behaves
                     # like a normal code cell in a notebook environment.
                     ip.run_cell(cell_code, store_history=True)
             except Exception as exc:
@@ -158,7 +178,8 @@ class JupyterExecuteCellTool(ToolBase):
                 "error": "",
             }
 
-        # Use a ThreadPoolExecutor to support timeouts during synchronous execution.
+        # Use a ThreadPoolExecutor to support timeouts during synchronous
+        # execution.
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_run_code, code)
             try:
@@ -190,7 +211,8 @@ class JupyterExecuteCellTool(ToolBase):
 
         Args:
             code (str): The code cell content to execute.
-            timeout (Optional[int]): The maximum number of seconds to allow for code execution.
+            timeout (Optional[int]): The maximum number of seconds to allow for
+            code execution.
                                      Defaults to 30 seconds.
 
         Returns:

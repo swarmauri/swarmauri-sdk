@@ -28,7 +28,8 @@ PrivateKeySecret = SecretStr | SecretBytes
     OAuth20AppClientBase, "SalesforceOAuth20AppClient"
 )
 class SalesforceOAuth20AppClient(OAuth20AppClientBase):
-    """Request machine-to-machine access tokens using Salesforce's JWT bearer flow."""
+    """Request machine-to-machine access tokens using Salesforce's JWT bearer
+    flow."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
@@ -61,7 +62,11 @@ class SalesforceOAuth20AppClient(OAuth20AppClientBase):
     def model_post_init(self, __context: Any) -> None:
         if not self.private_key_jwk and not self.private_key_pem:
             raise ValueError(
-                "private key (PEM or JWK) required for Salesforce JWT bearer flow"
+                (
+                    "private key (PEM or JWK) required for Salesforce JWT "
+                    "bearer "
+                    "flow"
+                )
             )
 
     def _audience_value(self) -> str:

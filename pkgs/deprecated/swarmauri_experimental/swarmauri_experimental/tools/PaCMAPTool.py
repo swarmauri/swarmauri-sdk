@@ -18,19 +18,27 @@ class PaCMAPTool(ToolBase):
             Parameter(
                 name="X",
                 type="object",
-                description="X (np.ndarray): The high-dimensional data points to reduce.",
+                description=(
+                    "X (np.ndarray): The high-dimensional data points to "
+                    "reduce."
+                ),
                 required=True,
             ),
             Parameter(
                 name="n_neighbors",
                 type="integer",
-                description="The size of local neighborhood (in terms of number of neighboring data points) used for manifold approximation.",
+                description=(
+                    "The size of local neighborhood (in terms of number of "
+                    "neighboring data points) used for manifold approximation."
+                ),
                 required=False,
             ),
             Parameter(
                 name="n_components",
                 type="integer",
-                description="The dimension of the space into which to embed the data.",
+                description=(
+                    "The dimension of the space into which to embed the data."
+                ),
                 required=True,
             ),
             Parameter(
@@ -54,7 +62,8 @@ class PaCMAPTool(ToolBase):
         - kwargs: Additional keyword arguments for the PaCMAP algorithm.
 
         Returns:
-        - Dict[str, Union[np.ndarray, None]]: A dictionary containing the reduced data points.
+        - Dict[str, Union[np.ndarray, None]]: A dictionary containing the
+          reduced data points.
         """
         # Set default values for any unspecified parameters
         X = kwargs.get("X")

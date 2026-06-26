@@ -14,7 +14,8 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
     Evaluator that computes the Gunning Fog Index (GFI) for text readability.
 
     The Gunning Fog Index estimates the years of formal education needed to
-    understand text on a first reading. Higher scores indicate more complex text.
+    understand text on a first reading. Higher scores indicate more complex
+    text.
     The formula is: 0.4 * ((words/sentences) + 100 * (complex_words/words))
 
     A complex word is defined as having three or more syllables.
@@ -29,7 +30,9 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
     # public API
     # ------------------------------------------------------------------
     def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
-        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        """
+        Return ``{"score": float, "metadata": dict}`` for the given program.
+        """
         score, meta = self._compute_score(program, **kwargs)
         return {"score": score, "metadata": meta}
 
@@ -45,8 +48,10 @@ class GunningFogEvaluator(EvaluatorBase, ComponentBase):
 
         Returns:
             A tuple containing:
-                - float: The Gunning Fog Index score (lower is better for readability)
-                - Dict[str, Any]: Metadata including sentence count, word count, and complex word count
+                - float: The Gunning Fog Index score (lower is better for
+                  readability)
+                - Dict[str, Any]: Metadata including sentence count, word
+                  count, and complex word count
         """
         text = self._get_program_text(program)
         if not text or not isinstance(text, str):

@@ -55,11 +55,11 @@ def test_call():
     )
 
     assert result.get("num_characters") == num_characters, (
-        f"Expected Number of Characters is {num_characters}, but got {result.get('num_characters')}"
+        f"Expected Number of Characters is {num_characters}, but got {result.get('num_characters')}"  # noqa: E501
     )
     assert result.get("num_words") == num_words, (
-        f"Expected Number of Words is {num_words}, but got {result.get('num_words')}"
+        f"Expected Number of Words is {num_words}, but got {result.get('num_words')}"  # noqa: E501
     )
     assert result.get("num_sentences") == num_sentences, (
-        f"Expected Number of Sentence is {num_sentences}, but got {result.get('num_sentences')}"
+        f"Expected Number of Sentence is {num_sentences}, but got {result.get('num_sentences')}"  # noqa: E501
     )

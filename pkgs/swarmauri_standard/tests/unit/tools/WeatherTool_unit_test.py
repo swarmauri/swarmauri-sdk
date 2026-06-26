@@ -47,5 +47,5 @@ def test_call():
     )
 
     assert result.get("weather_info") == expected_result, (
-        f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"
+        f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"  # noqa: E501
     )

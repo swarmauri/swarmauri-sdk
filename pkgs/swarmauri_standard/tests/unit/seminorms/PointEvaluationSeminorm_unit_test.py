@@ -320,7 +320,9 @@ def test_error_unsupported_input_type():
 
 @pytest.mark.unit
 def test_error_point_not_in_domain():
-    """Test that compute raises ValueError when the point is not in the domain."""
+    """
+    Test that compute raises ValueError when the point is not in the domain.
+    """
     seminorm = PointEvaluationSeminorm(point=10)
 
     with pytest.raises(ValueError):
@@ -344,7 +346,8 @@ def test_complex_input_handling():
 
 @pytest.mark.unit
 def test_serialization_roundtrip():
-    """Test that a seminorm can be serialized to dict and back without data loss."""
+    """Test that a seminorm can be serialized to dict and back without data
+    loss."""
     original = PointEvaluationSeminorm(point="test", absolute=False)
     data = original.to_dict()
     reconstructed = PointEvaluationSeminorm.from_dict(data)

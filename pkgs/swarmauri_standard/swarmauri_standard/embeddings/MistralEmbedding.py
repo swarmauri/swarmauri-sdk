@@ -13,21 +13,28 @@ class MistralEmbedding(EmbeddingBase):
     """
     A class for generating embeddings using the Mistral API via REST endpoints.
 
-    This class allows users to obtain embeddings for text data using specified models
+    This class allows users to obtain embeddings for text data using specified
+    models
     from the Mistral API through direct HTTP requests.
 
     Attributes:
-        model (str): The model to use for generating embeddings. Defaults to 'mistral-embed'.
+        model (str): The model to use for generating embeddings. Defaults to
+        'mistral-embed'.
         allowed_models (List[str]): List of supported Mistral embedding models.
-        api_key (str): API key for authentication. Can be None for serialization.
+        api_key (str): API key for authentication. Can be None for
+        serialization.
 
     Raises:
-        ValueError: If an invalid model is provided during initialization or if the API
+        ValueError: If an invalid model is provided during initialization or if
+        the API
                    request fails.
 
     Example:
         >>> mistral_embedding = MistralEmbedding(api_key='your_api_key')
-        >>> embeddings = mistral_embedding.infer_vector(["Hello, world!", "Data science is awesome."])
+        >>> embeddings = mistral_embedding.infer_vector([
+        ...     "Hello, world!",
+        ...     "Data science is awesome.",
+        ... ])
     """
 
     type: Literal["MistralEmbedding"] = "MistralEmbedding"
@@ -49,7 +56,7 @@ class MistralEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
 
         if self.api_key.get_secret_value():
@@ -67,10 +74,12 @@ class MistralEmbedding(EmbeddingBase):
             data (List[str]): A list of strings to generate embeddings for.
 
         Returns:
-            List[Vector]: A list of Vector objects containing the generated embeddings.
+            List[Vector]: A list of Vector objects containing the generated
+            embeddings.
 
         Raises:
-            ValueError: If an error occurs during the API request or response processing.
+            ValueError: If an error occurs during the API request or response
+            processing.
         """
         if not self.api_key.get_secret_value():
             raise ValueError("API key must be provided for inference")

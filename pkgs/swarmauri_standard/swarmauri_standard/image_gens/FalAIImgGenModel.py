@@ -13,15 +13,20 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ImageGenBase, "FalAIImgGenModel")
 class FalAIImgGenModel(ImageGenBase):
     """
-    A model class for generating images from text using FluxPro's image generation model,
-    provided by FalAI. This class uses a queue-based API to handle image generation requests.
+    A model class for generating images from text using FluxPro's image
+    generation model,
+    provided by FalAI. This class uses a queue-based API to handle image
+    generation requests.
 
     Attributes:
-        allowed_models (List[str]): List of valid model names for image generation.
-        api_key (str): The API key for authenticating requests with the FalAI service.
+        allowed_models (List[str]): List of valid model names for image
+        generation.
+        api_key (str): The API key for authenticating requests with the FalAI
+        service.
         model_name (str): The name of the model used for image generation.
         type (Literal): The model type, fixed as "FalAIImgGenModel".
-        max_retries (int): The maximum number of retries for polling request status.
+        max_retries (int): The maximum number of retries for polling request
+        status.
         retry_delay (float): Delay in seconds between status check retries.
     """
 
@@ -112,7 +117,8 @@ class FalAIImgGenModel(ImageGenBase):
         Initializes the model with the specified API key and model name.
 
         Args:
-            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may
+            includes api_key and allowed_models.
 
         Raises:
             ValueError: If an invalid model name is provided.
@@ -165,7 +171,8 @@ class FalAIImgGenModel(ImageGenBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, prompt: str, **kwargs: Dict[str, Any]) -> Dict:
         """
-        Sends an image generation request to the queue and returns the request ID.
+        Sends an image generation request to the queue and returns the request
+        ID.
 
         Args:
             prompt (str): The text prompt for image generation.
@@ -280,7 +287,8 @@ class FalAIImgGenModel(ImageGenBase):
             Dict: The final response containing the generated image URL.
 
         Raises:
-            TimeoutError: If the request does not complete within the retry limit.
+            TimeoutError: If the request does not complete within the retry
+            limit.
         """
         for _ in range(self.max_retries):
             status_data = self._check_status(request_id)
@@ -297,7 +305,8 @@ class FalAIImgGenModel(ImageGenBase):
 
     async def _async_wait_for_completion(self, request_id: str) -> Dict:
         """
-        Asynchronously waits for a request to complete, polling the status endpoint.
+        Asynchronously waits for a request to complete, polling the status
+        endpoint.
 
         Args:
             request_id (str): The ID of the request.
@@ -306,7 +315,8 @@ class FalAIImgGenModel(ImageGenBase):
             Dict: The final response containing the generated image URL.
 
         Raises:
-            TimeoutError: If the request does not complete within the retry limit.
+            TimeoutError: If the request does not complete within the retry
+            limit.
         """
         for _ in range(self.max_retries):
             status_data = await self._async_check_status(request_id)
@@ -341,7 +351,8 @@ class FalAIImgGenModel(ImageGenBase):
         self, prompt: str, **kwargs: Dict[str, Any]
     ) -> str:
         """
-        Asynchronously generates an image based on the prompt and returns the image URL.
+        Asynchronously generates an image based on the prompt and returns the
+        image URL.
 
         Args:
             prompt (str): The text prompt for image generation

@@ -12,8 +12,10 @@ class ChunkerBase(IChunker, ComponentBase):
     """
     Interface for chunking text into smaller pieces.
 
-    This interface defines abstract methods for chunking texts. Implementing classes
-    should provide concrete implementations for these methods tailored to their specific
+    This interface defines abstract methods for chunking texts. Implementing
+    classes
+    should provide concrete implementations for these methods tailored to their
+    specific
     chunking algorithms.
     """
 

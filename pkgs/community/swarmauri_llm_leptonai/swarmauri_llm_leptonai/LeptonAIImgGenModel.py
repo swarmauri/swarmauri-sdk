@@ -11,7 +11,8 @@ from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 @ComponentBase.register_type(ImageGenBase, "LeptonAIImgGenModel")
 class LeptonAIImgGenModel(ImageGenBase):
     """
-    A model for generating images from text using Lepton AI's SDXL image generation model.
+    A model for generating images from text using Lepton AI's SDXL image
+    generation model.
     It returns the image as bytes.
     Get your API KEY from Lepton AI.
     """
@@ -49,11 +50,13 @@ class LeptonAIImgGenModel(ImageGenBase):
         return response.content
 
     def generate_image(self, prompt: str, **kwargs) -> bytes:
-        """Generates an image based on the prompt and returns the image as bytes."""
+        """Generates an image based on the prompt and returns the image as
+        bytes."""
         return self._send_request(prompt, **kwargs)
 
     async def agenerate_image(self, prompt: str, **kwargs) -> bytes:
-        """Asynchronously generates an image based on the prompt and returns the image as bytes."""
+        """Asynchronously generates an image based on the prompt and returns
+        the image as bytes."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
             None, self.generate_image, prompt, **kwargs

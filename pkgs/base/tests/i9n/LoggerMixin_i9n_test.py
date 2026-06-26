@@ -52,7 +52,8 @@ def test_logging_output():
     # Assign our custom logger to the DummyModel's default_logger.
     DummyModel.default_logger = logger_base
 
-    # Instantiate DummyModel which triggers logger initialization via model_post_init.
+    # Instantiate DummyModel which triggers logger initialization via
+    # model_post_init.
     model = DummyModel(name="IntegrationTest")
 
     # Emit a test log message.

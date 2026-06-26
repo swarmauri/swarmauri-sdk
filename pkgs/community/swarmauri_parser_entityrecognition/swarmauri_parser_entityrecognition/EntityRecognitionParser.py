@@ -47,7 +47,8 @@ from swarmauri_standard.documents.Document import Document
 class EntityRecognitionParser(ParserBase):
     """
     EntityRecognitionParser leverages NER capabilities to parse text and
-    extract entities with their respective tags such as PERSON, LOCATION, ORGANIZATION, etc.
+    extract entities with their respective tags such as PERSON, LOCATION,
+    ORGANIZATION, etc.
     """
 
     _nlp: Any = PrivateAttr()
@@ -64,7 +65,11 @@ class EntityRecognitionParser(ParserBase):
         except OSError:
             # First fallback: Try using blank English model
             print(
-                "Warning: Could not load en_core_web_sm model. Using fallback options."
+                (
+                    "Warning: Could not load en_core_web_sm model. Using "
+                    "fallback "
+                    "options."
+                )
             )
             try:
                 # Install the model if not found
@@ -76,9 +81,13 @@ class EntityRecognitionParser(ParserBase):
                 self._nlp = spacy.load("en_core_web_sm")
                 self._fallback = False
             except Exception:
-                # Final fallback: Use a blank model with minimal NER capabilities.
+                # Final fallback: Use a blank model with minimal NER
+                # capabilities.
                 print(
-                    "Warning: Using blank English model with minimal NER capabilities."
+                    (
+                        "Warning: Using blank English model with minimal NER "
+                        "capabilities."
+                    )
                 )
                 self._nlp = spacy.blank("en")
                 # Add a basic entity recognizer
@@ -89,13 +98,16 @@ class EntityRecognitionParser(ParserBase):
 
     def parse(self, text: Union[str, Any]) -> List[Document]:
         """
-        Parses the input text, identifies entities, and returns a list of documents with entities tagged.
+        Parses the input text, identifies entities, and returns a list of
+        documents with entities tagged.
 
         Parameters:
-        - text (Union[str, Any]): The input text to be parsed and analyzed for entities.
+        - text (Union[str, Any]): The input text to be parsed and analyzed for
+          entities.
 
         Returns:
-        - List[IDocument]: A list of IDocument instances representing the identified entities in the text.
+        - List[IDocument]: A list of IDocument instances representing the
+          identified entities in the text.
         """
         # Ensure the input is a string type before processing
         if not isinstance(text, str):
@@ -107,7 +119,8 @@ class EntityRecognitionParser(ParserBase):
         # Compile identified entities into documents
         entities_docs = []
         for i, ent in enumerate(doc.ents):
-            # Create a document for each entity with metadata carrying entity type
+            # Create a document for each entity with metadata carrying entity
+            # type
             # Remove doc_id from the constructor parameters
             entity_doc = Document(
                 content=ent.text,

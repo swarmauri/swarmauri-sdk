@@ -12,7 +12,8 @@ from swarmauri_core.crypto.types import KeyRef
 class CompositeCertService(CertServiceBase):
     """
     Router that delegates ICertService operations to one of several providers.
-    Useful when you have multiple backends (local CA, ACME, PKCS#11, Vault, etc.)
+    Useful when you have multiple backends (local CA, ACME, PKCS#11, Vault,
+    etc.)
     and want one facade for apps.
 
     Compliant with RFC 5280 and RFC 2986.

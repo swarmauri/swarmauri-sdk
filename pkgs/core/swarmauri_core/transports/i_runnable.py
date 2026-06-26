@@ -13,7 +13,8 @@ class Handler(Protocol):
 
 
 class IRunnable(ABC):
-    """Runnable transports can open server/client contexts and run a handler within them."""
+    """Runnable transports can open server/client contexts and run a handler
+    within them."""
 
     @abstractmethod
     async def _run_async(

@@ -44,7 +44,10 @@ try:
     _RUST_AVAILABLE = True
 except ImportError as e:
     warnings.warn(
-        f"Rust crypto backend not available: {e}. Using fallback implementation."
+        (
+            f"Rust crypto backend not available: {e}. Using fallback "
+            f"implementation."
+        )
     )
     _RUST_AVAILABLE = False
 

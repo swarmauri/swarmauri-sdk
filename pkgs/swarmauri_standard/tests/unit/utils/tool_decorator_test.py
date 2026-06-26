@@ -7,7 +7,8 @@ from swarmauri_base.tools.ToolBase import ToolBase
 @pytest.mark.unit
 def test_tool_decorator_basic_functionality():
     """
-    Test that the tool decorator correctly creates a ToolBase subclass from a decorated function.
+    Test that the tool decorator correctly creates a ToolBase subclass from a
+    decorated function.
     """
 
     # Define a simple function to decorate
@@ -95,7 +96,8 @@ def test_tool_decorator_complex_types():
 @pytest.mark.unit
 def test_tool_decorator_no_docstring():
     """
-    Test that the tool decorator works correctly with functions that have no docstring.
+    Test that the tool decorator works correctly with functions that have no
+    docstring.
     """
 
     @tool

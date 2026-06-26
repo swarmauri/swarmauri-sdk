@@ -1,9 +1,12 @@
 """
 JupyterExportPythonTool.py
 
-This module defines the JupyterExportPythonTool, a component that exports a Jupyter Notebook
-(NotebookNode) to a Python script. It leverages the swarmauri tool architecture and nbconvert
-to perform the notebook-to-script conversion, supports optional custom templates, and logs
+This module defines the JupyterExportPythonTool, a component that exports a
+Jupyter Notebook
+(NotebookNode) to a Python script. It leverages the swarmauri tool architecture
+and nbconvert
+to perform the notebook-to-script conversion, supports optional custom
+templates, and logs
 errors as needed.
 """
 
@@ -24,16 +27,20 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterExportPythonTool")
 class JupyterExportPythonTool(ToolBase):
     """
-    JupyterExportPythonTool is a tool that converts a Jupyter Notebook (NotebookNode) into
-    a Python script. It supports custom templates for export, logs operations and errors,
+    JupyterExportPythonTool is a tool that converts a Jupyter Notebook
+    (NotebookNode) into
+    a Python script. It supports custom templates for export, logs operations
+    and errors,
     and returns the exported Python script as a string.
 
     Attributes:
         version (str): The version of the JupyterExportPythonTool.
-        parameters (List[Parameter]): A list of parameters required to perform the export.
+        parameters (List[Parameter]): A list of parameters required to perform
+        the export.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExportPythonTool"]): The type identifier for the tool.
+        type (Literal["JupyterExportPythonTool"]): The type identifier for the
+        tool.
     """
 
     version: str = "1.0.0"
@@ -42,13 +49,21 @@ class JupyterExportPythonTool(ToolBase):
             Parameter(
                 name="notebook",
                 input_type="object",
-                description="The NotebookNode object representing the Jupyter Notebook to export.",
+                description=(
+                    "The NotebookNode object representing the Jupyter Notebook "  # noqa: E501
+                    "to "
+                    "export."
+                ),
                 required=True,
             ),
             Parameter(
                 name="template_file",
                 input_type="string",
-                description="Optional custom template path for exporting the notebook to a Python script.",
+                description=(
+                    "Optional custom template path for exporting the notebook "
+                    "to "
+                    "a Python script."
+                ),
                 required=False,
             ),
         ]
@@ -61,17 +76,22 @@ class JupyterExportPythonTool(ToolBase):
         self, notebook: NotebookNode, template_file: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Converts the provided Jupyter Notebook (NotebookNode) to a Python script using
-        nbconvert. Optionally applies a custom template if template_file is provided.
+        Converts the provided Jupyter Notebook (NotebookNode) to a Python
+        script using
+        nbconvert. Optionally applies a custom template if template_file is
+        provided.
 
         Args:
             notebook (NotebookNode): The notebook object to be exported.
-            template_file (str, optional): Path to a custom template file to structure
+            template_file (str, optional): Path to a custom template file to
+            structure
                                            the exported Python script.
 
         Returns:
-            Dict[str, Any]: A dictionary containing either "exported_script" with the
-                            Python code as a string, or an "error" message if an exception
+            Dict[str, Any]: A dictionary containing either "exported_script"
+            with the
+                            Python code as a string, or an "error" message if
+                            an exception
                             occurred during export.
 
         Example:

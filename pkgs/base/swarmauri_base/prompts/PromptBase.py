@@ -21,8 +21,10 @@ class PromptBase(IPrompt, ComponentBase):
 
     def __call__(self):
         """
-        Enables the instance to be callable, allowing direct retrieval of the message.
-        This method facilitates intuitive access to the prompt's message, mimicking callable
+        Enables the instance to be callable, allowing direct retrieval of the
+        message.
+        This method facilitates intuitive access to the prompt's message,
+        mimicking callable
         behavior seen in functional programming paradigms.
 
         Returns:
@@ -32,8 +34,10 @@ class PromptBase(IPrompt, ComponentBase):
 
     def set_prompt(self, prompt: str):
         """
-        Updates the internal message of the chat prompt. This method provides a way to change
-        the content of the prompt dynamically, reflecting changes in the conversational context
+        Updates the internal message of the chat prompt. This method provides a
+        way to change
+        the content of the prompt dynamically, reflecting changes in the
+        conversational context
         or user inputs.
 
         Parameters:

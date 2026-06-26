@@ -21,8 +21,10 @@ class SSIVSimilarity(ISimilarity):
         Parameters:
         - state_a (Set[str]): A set of variables representing state A.
         - state_b (Set[str]): A set of variables representing state B.
-        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
-        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
+        - importance_a (Dict[str, float]): A dictionary where keys are
+          variables in state A and values are their importance weights.
+        - importance_b (Dict[str, float]): A dictionary where keys are
+          variables in state B and values are their importance weights.
 
         Returns:
         - float: The SSIV similarity measure, ranging from 0 to 1.
@@ -39,13 +41,16 @@ class SSIVSimilarity(ISimilarity):
         importance_b: Dict[str, float],
     ) -> float:
         """
-        Calculate the State Similarity of Important Variables (SSIV) between two states.
+        Calculate the State Similarity of Important Variables (SSIV) between
+        two states.
 
         Parameters:
         - state_a (Set[str]): A set of variables representing state A.
         - state_b (Set[str]): A set of variables representing state B.
-        - importance_a (Dict[str, float]): A dictionary where keys are variables in state A and values are their importance weights.
-        - importance_b (Dict[str, float]): A dictionary where keys are variables in state B and values are their importance weights.
+        - importance_a (Dict[str, float]): A dictionary where keys are
+          variables in state A and values are their importance weights.
+        - importance_b (Dict[str, float]): A dictionary where keys are
+          variables in state B and values are their importance weights.
 
         Returns:
         - float: The SSIV similarity measure, ranging from 0 to 1.

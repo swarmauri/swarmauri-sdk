@@ -10,7 +10,8 @@ from .SalesforceOAuthLoginMixin import SalesforceOAuthLoginMixin
 
 
 class SalesforceOIDCLoginMixin(SalesforceOAuthLoginMixin):
-    """Extend the Salesforce OAuth mixin with discovery and ID token verification."""
+    """Extend the Salesforce OAuth mixin with discovery and ID token
+    verification."""
 
     discovery_cache: Optional[Mapping[str, Any]] = None
 

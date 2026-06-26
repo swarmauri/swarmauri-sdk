@@ -10,7 +10,8 @@ from swarmauri_base.ObserveBase import ObserveBase
 @ObserveBase.register_model()
 class MemoryLoggingHandler(HandlerBase):
     """
-    A handler that stores logging records in memory until a capacity is reached,
+    A handler that stores logging records in memory until a capacity is
+    reached,
     then flushes to a target handler.
 
     This handler buffers log records in memory and flushes them to a target
@@ -47,7 +48,11 @@ class MemoryLoggingHandler(HandlerBase):
         """
         if not self.target:
             raise ValueError(
-                "MemoryLoggingHandler requires a target handler for flushing records"
+                (
+                    "MemoryLoggingHandler requires a target handler for "
+                    "flushing "
+                    "records"
+                )
             )
 
         # Resolve the target handler
@@ -55,7 +60,7 @@ class MemoryLoggingHandler(HandlerBase):
             # This is a placeholder for resolving handler by name
             # In a real implementation, you would look up the handler by name
             raise ValueError(
-                f"Target handler resolution by name '{self.target}' not implemented"
+                f"Target handler resolution by name '{self.target}' not implemented"  # noqa: E501
             )
         else:
             self._target_handler = self.target.compile_handler()

@@ -178,7 +178,8 @@ def test_analyze_file_for_any_file_error(evaluator):
 def test_compute_score(
     evaluator, mock_program, num_occurrences, expected_score
 ):
-    """Test the _compute_score method with different numbers of Any occurrences."""
+    """Test the _compute_score method with different numbers of Any
+    occurrences."""
     # Mock the methods to control the test
     with (
         patch.object(evaluator, "_get_python_files") as mock_get_files,

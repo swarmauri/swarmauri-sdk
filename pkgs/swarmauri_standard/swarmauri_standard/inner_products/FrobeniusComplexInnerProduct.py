@@ -23,7 +23,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
     which is defined as <A, B> = Tr(A* B), where A* is the conjugate transpose
     of A and Tr denotes the trace operation.
 
-    The Frobenius inner product satisfies all inner product properties including
+    The Frobenius inner product satisfies all inner product properties
+    including
     conjugate symmetry, linearity in the first argument, and positivity.
 
     Attributes
@@ -44,7 +45,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         """
         Compute the Frobenius inner product between two matrices.
 
-        For complex matrices A and B, computes Tr(A* B) where A* is the conjugate
+        For complex matrices A and B, computes Tr(A* B) where A* is the
+        conjugate
         transpose of A and Tr is the trace operation.
 
         Parameters
@@ -67,7 +69,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             If matrix dimensions are incompatible
         """
         logger.debug(
-            f"Computing Frobenius inner product between {type(a)} and {type(b)}"
+            (
+                f"Computing Frobenius inner product between {type(a)} and "
+                f"{type(b)}"
+            )
         )
 
         try:
@@ -78,7 +83,7 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             # Check if dimensions match
             if a_matrix.shape != b_matrix.shape:
                 raise ValueError(
-                    f"Matrix dimensions don't match: {a_matrix.shape} vs {b_matrix.shape}"
+                    f"Matrix dimensions don't match: {a_matrix.shape} vs {b_matrix.shape}"  # noqa: E501
                 )
 
             # Compute the inner product: Tr(A* B)
@@ -98,7 +103,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
-        Check if the Frobenius inner product satisfies the conjugate symmetry property:
+        Check if the Frobenius inner product satisfies the conjugate symmetry
+        property:
         <a, b> = conj(<b, a>).
 
         Parameters
@@ -145,7 +151,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
         beta: float,
     ) -> bool:
         """
-        Check if the Frobenius inner product satisfies linearity in the first argument:
+        Check if the Frobenius inner product satisfies linearity in the first
+        argument:
         <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>.
 
         Parameters
@@ -167,7 +174,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         try:
@@ -227,7 +237,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             # Compute <a, a>
             inner_product = self.compute(a_matrix, a_matrix)
 
-            # For complex matrices, the inner product should be a real number >= 0
+            # For complex matrices, the inner product should be a real number
+            # >= 0
             is_real = np.isclose(inner_product.imag, 0)
             is_nonnegative = inner_product.real >= 0
 
@@ -240,7 +251,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                f"<a,a> = {inner_product}, is_real: {is_real}, is_nonnegative: {is_nonnegative}"
+                (
+                    f"<a,a> = {inner_product}, is_real: {is_real}, "
+                    f"is_nonnegative: {is_nonnegative}"
+                )
             )
             logger.debug(f"Zero iff a is zero: {is_zero_iff_a_zero}")
 

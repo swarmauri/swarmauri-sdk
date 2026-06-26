@@ -45,7 +45,10 @@ def test_serialization():
             0.00,  # Replace with the expected ARI score for this input
         ),
         (
-            "Some longer text to test the algorithm with more complexity and variability in sentence length and word choice.",
+            (
+                "Some longer text to test the algorithm with more complexity "
+                "and variability in sentence length and word choice."
+            ),
             12.16,  # Replace with the expected ARI score for this input
         ),
     ],
@@ -70,5 +73,5 @@ def test_call(input_text, expected_score):
     assert result.get("ari_score") == pytest.approx(
         expected_score, rel=1e-2
     ), (
-        f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"
+        f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"  # noqa: E501
     )

@@ -24,7 +24,8 @@ def _norm_alg(a: Optional[Alg]) -> Optional[Alg]:
 class CompositeCrypto(ICrypto, ComponentBase):
     """Algorithm-routing crypto provider.
 
-    Delegates to the first child that advertises support for the requested algorithm.
+    Delegates to the first child that advertises support for the requested
+    algorithm.
     """
 
     def __init__(self, providers: Sequence[ICrypto]) -> None:
@@ -47,7 +48,8 @@ class CompositeCrypto(ICrypto, ComponentBase):
     # -------- routing helpers --------
     def _pick(self, area: str, alg: Optional[Alg]) -> ICrypto:
         alg_n = _norm_alg(alg)
-        # If caller passed None for the algorithm, we let providers apply their own default;
+        # If caller passed None for the algorithm, we let providers apply their
+        # own default;
         # pick the first provider advertising *any* alg for that area.
         for p in self._providers:
             caps = p.supports()
@@ -116,7 +118,8 @@ class CompositeCrypto(ICrypto, ComponentBase):
         aad: Optional[bytes] = None,
         nonce: Optional[bytes] = None,
     ) -> MultiRecipientEnvelope:
-        # Route primarily by enc_alg; if None, pick a provider that supports "encrypt" and has for_many.
+        # Route primarily by enc_alg; if None, pick a provider that supports
+        # "encrypt" and has for_many.
         return await self._pick("encrypt", enc_alg).encrypt_for_many(
             recipients,
             pt,
@@ -139,7 +142,8 @@ class CompositeCrypto(ICrypto, ComponentBase):
         *,
         alg: Optional[Alg] = None,
     ) -> bytes:
-        # Some providers embed alg tag in sealed blob; we still require alg for routing clarity.
+        # Some providers embed alg tag in sealed blob; we still require alg for
+        # routing clarity.
         return await self._pick("unseal", alg).unseal(
             recipient_priv, sealed, alg=alg
         )

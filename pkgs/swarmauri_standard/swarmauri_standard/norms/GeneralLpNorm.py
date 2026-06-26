@@ -25,8 +25,10 @@ class GeneralLpNorm(NormBase):
     """
     General Lp norm implementation with parameter p in (1, ∞).
 
-    This class implements the Lp norm for various magnitudes of p on real-valued functions.
-    The Lp norm of a vector x is defined as (sum(|x_i|^p))^(1/p) for finite p > 1.
+    This class implements the Lp norm for various magnitudes of p on
+    real-valued functions.
+    The Lp norm of a vector x is defined as (sum(|x_i|^p))^(1/p) for finite p >
+    1.
 
     Attributes
     ----------
@@ -81,7 +83,8 @@ class GeneralLpNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to convert.
 
         Returns
@@ -105,7 +108,8 @@ class GeneralLpNorm(NormBase):
             return np.array([ord(c) for c in x], dtype=float)
         elif callable(x):
             # For callable, we need to define a domain
-            # This is a simplified example - in practice, this would depend on the context
+            # This is a simplified example - in practice, this would depend on
+            # the context
             domain = np.linspace(0, 1, 100)
             return np.array([x(t) for t in domain], dtype=float)
         else:
@@ -122,7 +126,8 @@ class GeneralLpNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input for which to compute the norm.
 
         Returns
@@ -163,7 +168,8 @@ class GeneralLpNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -189,17 +195,20 @@ class GeneralLpNorm(NormBase):
         """
         Check if the Lp norm satisfies the definiteness property.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        The definiteness property states that the norm of x is 0 if and only if
+        x is 0.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
         -------
         bool
-            True if the norm satisfies the definiteness property, False otherwise.
+            True if the norm satisfies the definiteness property, False
+            otherwise.
         """
         try:
             x_array = self._convert_to_array(x)
@@ -234,15 +243,18 @@ class GeneralLpNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The first input.
-        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        y : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The second input.
 
         Returns
         -------
         bool
-            True if the norm satisfies the triangle inequality, False otherwise.
+            True if the norm satisfies the triangle inequality, False
+            otherwise.
 
         Raises
         ------
@@ -256,7 +268,11 @@ class GeneralLpNorm(NormBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise TypeError(
-                    "Inputs must have the same shape for triangle inequality check"
+                    (
+                        "Inputs must have the same shape for triangle "
+                        "inequality "
+                        "check"
+                    )
                 )
 
             # Compute norms
@@ -287,11 +303,13 @@ class GeneralLpNorm(NormBase):
         """
         Check if the Lp norm satisfies the absolute homogeneity property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input.
         scalar : float
             The scalar value.
@@ -299,7 +317,8 @@ class GeneralLpNorm(NormBase):
         Returns
         -------
         bool
-            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            True if the norm satisfies the absolute homogeneity property, False
+            otherwise.
 
         Raises
         ------

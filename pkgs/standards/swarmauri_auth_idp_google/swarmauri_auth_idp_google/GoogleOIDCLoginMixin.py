@@ -121,7 +121,7 @@ class GoogleOIDCLoginMixin:
                     userinfo_response = await client.get_retry(
                         metadata["userinfo_endpoint"],
                         headers={
-                            "Authorization": f"Bearer {tokens['access_token']}",
+                            "Authorization": f"Bearer {tokens['access_token']}",  # noqa: E501
                             "Accept": "application/json",
                         },
                     )

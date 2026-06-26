@@ -186,14 +186,20 @@ class GcpKmsKeyProvider(KeyProviderBase):
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
         raise NotImplementedError(
-            "Use Cloud KMS ImportJobs to import external keys (not provided here)"
+            (
+                "Use Cloud KMS ImportJobs to import external keys (not "
+                "provided here)"
+            )
         )
 
     async def rotate_key(
         self, kid: str, *, spec_overrides: Optional[dict] = None
     ) -> KeyRef:
         raise NotImplementedError(
-            "Configure rotation via Cloud KMS CryptoKey rotation config or create new versions"
+            (
+                "Configure rotation via Cloud KMS CryptoKey rotation config "
+                "or create new versions"
+            )
         )
 
     async def destroy_key(
@@ -275,7 +281,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
 
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
         token = self._token()
-        list_url = f"{API_ROOT}/projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys?pageSize=1000"
+        list_url = f"{API_ROOT}/projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys?pageSize=1000"  # noqa: E501
         r = requests.get(
             list_url, headers=self._hdr(token), timeout=self._timeout
         )
@@ -518,7 +524,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         }
 
     def _key_name(self, kid: str) -> str:
-        return f"projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys/{kid}"
+        return f"projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys/{kid}"  # noqa: E501
 
     def _version_name(self, kid: str, version: int) -> str:
         return f"{self._key_name(kid)}/cryptoKeyVersions/{int(version)}"
@@ -541,7 +547,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             if primary:
                 vname = primary
             else:
-                lv_url = f"{API_ROOT}/{self._key_name(kid)}/cryptoKeyVersions?pageSize=1000"
+                lv_url = f"{API_ROOT}/{self._key_name(kid)}/cryptoKeyVersions?pageSize=1000"  # noqa: E501
                 rv = requests.get(
                     lv_url, headers=self._hdr(token), timeout=self._timeout
                 )

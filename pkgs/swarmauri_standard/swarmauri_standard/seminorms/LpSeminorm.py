@@ -126,7 +126,10 @@ class LpSeminorm(SeminormBase):
             If the computation cannot be performed on the given input
         """
         logger.debug(
-            f"Computing Lp seminorm with p={self.p} for input of type {type(x)}"
+            (
+                f"Computing Lp seminorm with p={self.p} for input of type "
+                f"{type(x)}"
+            )
         )
 
         try:
@@ -175,7 +178,10 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
 
         try:
@@ -184,7 +190,10 @@ class LpSeminorm(SeminormBase):
 
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
+                    (
+                        f"Inputs must have the same shape: {x_arr.shape} vs "
+                        f"{y_arr.shape}"
+                    )
                 )
 
             # Compute the seminorm of x + y
@@ -194,7 +203,8 @@ class LpSeminorm(SeminormBase):
             x_seminorm = self.compute(x_arr)
             y_seminorm = self.compute(y_arr)
 
-            # Check the triangle inequality with a small epsilon for numerical stability
+            # Check the triangle inequality with a small epsilon for numerical
+            # stability
             return sum_seminorm <= x_seminorm + y_seminorm + self.epsilon
 
         except Exception as e:
@@ -203,7 +213,8 @@ class LpSeminorm(SeminormBase):
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||
@@ -228,7 +239,10 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
 
         try:
@@ -245,7 +259,8 @@ class LpSeminorm(SeminormBase):
             x_seminorm = self.compute(x_arr)
             expected_scaled_seminorm = alpha_abs * x_seminorm
 
-            # Check scalar homogeneity with a small epsilon for numerical stability
+            # Check scalar homogeneity with a small epsilon for numerical
+            # stability
             return abs(
                 scaled_seminorm - expected_scaled_seminorm
             ) <= self.epsilon * (1 + expected_scaled_seminorm)

@@ -169,7 +169,8 @@ def test_distance_vectors(sobolev_metric, vector_pair):
         # We can't directly verify subtraction was called, but we can check
         # that the diff was passed to compute
         args, _ = mock_compute.call_args
-        # Verify the difference vector was passed (don't need to check exact values)
+        # Verify the difference vector was passed (don't need to check exact
+        # values)
         assert isinstance(args[0], Vector)
 
 
@@ -294,7 +295,8 @@ def test_check_non_negativity(sobolev_metric, test_functions):
     with patch.object(sobolev_metric, "distance", return_value=0.0):
         assert sobolev_metric.check_non_negativity(f1, f2) is True
 
-    # Patch the distance method to return a negative value (should not happen with a proper norm)
+    # Patch the distance method to return a negative value (should not happen
+    # with a proper norm)
     with patch.object(sobolev_metric, "distance", return_value=-0.5):
         assert sobolev_metric.check_non_negativity(f1, f2) is False
 
@@ -304,7 +306,8 @@ def test_check_identity_of_indiscernibles(sobolev_metric, test_functions):
     """Test the identity of indiscernibles axiom check."""
     f1, f2, _ = test_functions
 
-    # Patch the distance method to return zero and _are_effectively_equal to return True
+    # Patch the distance method to return zero and _are_effectively_equal to
+    # return True
     with (
         patch.object(sobolev_metric, "distance", return_value=0.0),
         patch.object(
@@ -313,7 +316,8 @@ def test_check_identity_of_indiscernibles(sobolev_metric, test_functions):
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f1) is True
 
-    # Patch the distance method to return non-zero and _are_effectively_equal to return False
+    # Patch the distance method to return non-zero and _are_effectively_equal
+    # to return False
     with (
         patch.object(sobolev_metric, "distance", return_value=1.5),
         patch.object(
@@ -322,7 +326,8 @@ def test_check_identity_of_indiscernibles(sobolev_metric, test_functions):
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f2) is True
 
-    # Patch the distance method to return zero but _are_effectively_equal to return False (inconsistent)
+    # Patch the distance method to return zero but _are_effectively_equal to
+    # return False (inconsistent)
     with (
         patch.object(sobolev_metric, "distance", return_value=0.0),
         patch.object(
@@ -331,7 +336,8 @@ def test_check_identity_of_indiscernibles(sobolev_metric, test_functions):
     ):
         assert sobolev_metric.check_identity_of_indiscernibles(f1, f2) is False
 
-    # Patch the distance method to return non-zero but _are_effectively_equal to return True (inconsistent)
+    # Patch the distance method to return non-zero but _are_effectively_equal
+    # to return True (inconsistent)
     with (
         patch.object(sobolev_metric, "distance", return_value=1.5),
         patch.object(
@@ -350,7 +356,8 @@ def test_check_symmetry(sobolev_metric, test_functions):
     with patch.object(sobolev_metric, "distance", return_value=1.5):
         assert sobolev_metric.check_symmetry(f1, f2) is True
 
-    # Patch the distance method to return different values depending on the order
+    # Patch the distance method to return different values depending on the
+    # order
     distance_values = [1.5, 1.5001]  # Close enough to be considered equal
     with patch.object(sobolev_metric, "distance", side_effect=distance_values):
         assert sobolev_metric.check_symmetry(f1, f2) is True
@@ -366,7 +373,8 @@ def test_check_triangle_inequality(sobolev_metric, test_functions):
     """Test the triangle inequality axiom check."""
     f1, f2, f3 = test_functions
 
-    # Patch the distance method to return values that satisfy the triangle inequality
+    # Patch the distance method to return values that satisfy the triangle
+    # inequality
     distance_values = [
         3.0,
         4.0,
@@ -375,7 +383,8 @@ def test_check_triangle_inequality(sobolev_metric, test_functions):
     with patch.object(sobolev_metric, "distance", side_effect=distance_values):
         assert sobolev_metric.check_triangle_inequality(f1, f2, f3) is True
 
-    # Patch the distance method to return values at the boundary of the triangle inequality
+    # Patch the distance method to return values at the boundary of the
+    # triangle inequality
     distance_values = [
         3.0,
         4.0,
@@ -384,7 +393,8 @@ def test_check_triangle_inequality(sobolev_metric, test_functions):
     with patch.object(sobolev_metric, "distance", side_effect=distance_values):
         assert sobolev_metric.check_triangle_inequality(f1, f2, f3) is True
 
-    # Patch the distance method to return values that violate the triangle inequality
+    # Patch the distance method to return values that violate the triangle
+    # inequality
     distance_values = [
         3.0,
         4.0,

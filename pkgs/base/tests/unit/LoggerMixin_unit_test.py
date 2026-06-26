@@ -1,7 +1,8 @@
 """
 Unit tests for LoggerMixin.
 
-These tests validate the logger initialization and configuration for models that
+These tests validate the logger initialization and configuration for models
+that
 inherit from :class:`LoggerMixin`.
 """
 
@@ -14,7 +15,8 @@ from swarmauri_base.LoggerMixin import (
 class DummyModel(LoggerMixin):
     """Dummy model for testing :class:`LoggerMixin`.
 
-    This model verifies that :class:`LoggerMixin` leaves ``logger`` unset when no
+    This model verifies that :class:`LoggerMixin` leaves ``logger`` unset when
+    no
     logger is supplied. A custom logger can be provided at instantiation or via
     ``default_logger``.
 

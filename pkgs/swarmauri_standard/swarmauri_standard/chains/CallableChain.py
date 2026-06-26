@@ -13,7 +13,8 @@ class CallableChain(ICallableChain):
         result = None
         for func, args, kwargs in self.callables:
             if result is not None:
-                # If there was a previous result, use it as the first argument for the next function
+                # If there was a previous result, use it as the first argument
+                # for the next function
                 args = [result] + list(args)
             result = func(*args, **kwargs)
         return result

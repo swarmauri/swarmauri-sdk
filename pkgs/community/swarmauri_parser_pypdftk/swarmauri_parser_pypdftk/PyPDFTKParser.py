@@ -22,7 +22,8 @@ class PyPDFTKParser(ParserBase):
         - source (str): The path to the PDF file.
 
         Returns:
-        - List[IDocument]: A list containing a single Document instance with the extracted data fields.
+        - List[IDocument]: A list containing a single Document instance with
+          the extracted data fields.
         """
         if not isinstance(source, str):
             raise ValueError("PyPDFTKParser expects a file path as a string.")
@@ -45,6 +46,6 @@ class PyPDFTKParser(ParserBase):
 
         except Exception as e:
             print(
-                f"An unexpected error occurred while parsing the PDF '{source}': {e}"
+                f"An unexpected error occurred while parsing the PDF '{source}': {e}"  # noqa: E501
             )
             return []

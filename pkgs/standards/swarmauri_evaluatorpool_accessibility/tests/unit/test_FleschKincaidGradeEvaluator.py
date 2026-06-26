@@ -242,7 +242,8 @@ def test_compute_score_with_empty_text(evaluator, mock_program):
 @pytest.mark.unit
 def test_compute_score_with_insufficient_content(evaluator, mock_program):
     """
-    Test the _compute_score method with text that has insufficient content for analysis.
+    Test the _compute_score method with text that has insufficient content for
+    analysis.
 
     Args:
         evaluator: The FleschKincaidGradeEvaluator instance
@@ -270,7 +271,8 @@ def test_formula_calculation(evaluator, mock_program):
         evaluator: The FleschKincaidGradeEvaluator instance
         mock_program: Mock Program object
     """
-    # Create text with known characteristics for predictable formula calculation
+    # Create text with known characteristics for predictable formula
+    # calculation
     test_text = "This is a test. This is another test. This is a third test."
     mock_program.get_source_files.return_value = {"main.txt": test_text}
 

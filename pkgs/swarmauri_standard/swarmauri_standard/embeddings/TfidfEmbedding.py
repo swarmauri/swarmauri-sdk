@@ -27,14 +27,16 @@ class TfidfEmbedding(EmbeddingBase):
 
     def extract_features(self) -> List[str]:
         """
-        Returns the list of features (vocabulary terms) that were extracted during fitting.
+        Returns the list of features (vocabulary terms) that were extracted
+        during fitting.
         """
         return self._features
 
     def fit(self, documents: List[str]) -> None:
         """
         Fits the TF-IDF model on the provided documents.
-        It computes the vocabulary, document frequencies, idf values, and the TF-IDF
+        It computes the vocabulary, document frequencies, idf values, and the
+        TF-IDF
         vectors for each document.
         """
         N = len(documents)
@@ -75,7 +77,8 @@ class TfidfEmbedding(EmbeddingBase):
 
     def fit_transform(self, documents: List[str]) -> List[Vector]:
         """
-        Fits the model on the provided documents and returns the TF-IDF vectors as a list
+        Fits the model on the provided documents and returns the TF-IDF vectors
+        as a list
         of Vector instances.
         """
         self.fit(documents)
@@ -83,7 +86,8 @@ class TfidfEmbedding(EmbeddingBase):
 
     def transform(self, documents: List[str]) -> List[Vector]:
         """
-        Transforms new documents into TF-IDF vectors using the vocabulary and idf values
+        Transforms new documents into TF-IDF vectors using the vocabulary and
+        idf values
         computed during fitting. Any term not in the vocabulary is ignored.
         """
         if not self._features or not self._idf:
@@ -99,7 +103,8 @@ class TfidfEmbedding(EmbeddingBase):
             vector = []
             for token in self._features:
                 tf_value = tf[token] / doc_len if doc_len > 0 else 0.0
-                # If the token is not in the fitted vocabulary, its idf defaults to 0.
+                # If the token is not in the fitted vocabulary, its idf
+                # defaults to 0.
                 idf_value = self._idf.get(token, 0.0)
                 vector.append(tf_value * idf_value)
             transformed_vectors.append(Vector(value=vector))
@@ -107,9 +112,12 @@ class TfidfEmbedding(EmbeddingBase):
 
     def infer_vector(self, data: str, documents: List[str]) -> Vector:
         """
-        Infers a TF-IDF vector for a new document. In this implementation, we append the
-        new document to the provided corpus, re-fit the model, and return the vector for
-        the new document. (Note: This re-fits the model which might be inefficient for
+        Infers a TF-IDF vector for a new document. In this implementation, we
+        append the
+        new document to the provided corpus, re-fit the model, and return the
+        vector for
+        the new document. (Note: This re-fits the model which might be
+        inefficient for
         production but mirrors the original logic.)
         """
         documents.append(data)
@@ -118,7 +126,8 @@ class TfidfEmbedding(EmbeddingBase):
 
     def save_model(self, path: str) -> None:
         """
-        Saves the TF-IDF model (i.e. the vocabulary and idf values) to the specified path
+        Saves the TF-IDF model (i.e. the vocabulary and idf values) to the
+        specified path
         using joblib.
         """
         model_data = {
@@ -129,7 +138,8 @@ class TfidfEmbedding(EmbeddingBase):
 
     def load_model(self, path: str) -> None:
         """
-        Loads a TF-IDF model (i.e. the vocabulary and idf values) from the specified path
+        Loads a TF-IDF model (i.e. the vocabulary and idf values) from the
+        specified path
         using joblib.
         """
         model_data = joblib.load(path)

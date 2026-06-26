@@ -11,9 +11,12 @@ logger = logging.getLogger(__name__)
 """
 JupyterExecuteNotebookWithParametersTool.py
 
-This module defines the JupyterExecuteNotebookWithParametersTool, a component that executes Jupyter
-notebooks using papermill, injecting custom parameters, capturing execution logs, and returning
-the path to the executed notebook output. It inherits from ToolBase and integrates seamlessly
+This module defines the JupyterExecuteNotebookWithParametersTool, a component
+that executes Jupyter
+notebooks using papermill, injecting custom parameters, capturing execution
+logs, and returning
+the path to the executed notebook output. It inherits from ToolBase and
+integrates seamlessly
 with the Swarmauri framework.
 """
 
@@ -23,18 +26,24 @@ with the Swarmauri framework.
 )
 class JupyterExecuteNotebookWithParametersTool(ToolBase):
     """
-    JupyterExecuteNotebookWithParametersTool is a tool that executes Jupyter notebooks with custom
-    parameter injection using papermill. This tool captures execution logs, errors, and returns
-    the path to the resulting executed notebook. It can be utilized within CI/CD pipelines when
+    JupyterExecuteNotebookWithParametersTool is a tool that executes Jupyter
+    notebooks with custom
+    parameter injection using papermill. This tool captures execution logs,
+    errors, and returns
+    the path to the resulting executed notebook. It can be utilized within
+    CI/CD pipelines when
     batch processing multiple notebooks.
 
     Attributes:
-        version (str): The version of the JupyterExecuteNotebookWithParametersTool.
-        parameters (List[Parameter]): A list of parameters the tool expects, including notebook_path,
+        version (str): The version of the
+        JupyterExecuteNotebookWithParametersTool.
+        parameters (List[Parameter]): A list of parameters the tool expects,
+        including notebook_path,
                                       output_notebook_path, and params.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExecuteNotebookWithParametersTool"]): The type identifier.
+        type (Literal["JupyterExecuteNotebookWithParametersTool"]): The type
+        identifier.
     """
 
     version: str = "1.0.0"
@@ -43,25 +52,34 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
             Parameter(
                 name="notebook_path",
                 input_type="string",
-                description="The path to the Jupyter Notebook file to execute.",
+                description=(
+                    "The path to the Jupyter Notebook file to execute."
+                ),
                 required=True,
             ),
             Parameter(
                 name="output_notebook_path",
                 input_type="string",
-                description="The path where the output notebook will be saved.",
+                description=(
+                    "The path where the output notebook will be saved."
+                ),
                 required=True,
             ),
             Parameter(
                 name="params",
                 input_type="object",
-                description="A dictionary of parameters to inject into the notebook.",
+                description=(
+                    "A dictionary of parameters to inject into the notebook."
+                ),
                 required=False,
             ),
         ]
     )
     name: str = "JupyterExecuteNotebookWithParametersTool"
-    description: str = "Executes Jupyter notebooks with papermill, injecting parameters and capturing outputs."
+    description: str = (
+        "Executes Jupyter notebooks with papermill, injecting "
+        "parameters and capturing outputs."
+    )
     type: Literal["JupyterExecuteNotebookWithParametersTool"] = (
         "JupyterExecuteNotebookWithParametersTool"
     )
@@ -73,25 +91,35 @@ class JupyterExecuteNotebookWithParametersTool(ToolBase):
         params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
-        Executes the specified Jupyter notebook using papermill, injecting the provided parameters
+        Executes the specified Jupyter notebook using papermill, injecting the
+        provided parameters
         and saving the executed notebook to the specified output path.
 
         Args:
-            notebook_path (str): The path to the Jupyter Notebook file to be executed.
-            output_notebook_path (str): The path where the executed notebook will be saved.
-            params (Optional[Dict[str, Any]]): A dictionary of parameters to inject into the notebook.
+            notebook_path (str): The path to the Jupyter Notebook file to be
+            executed.
+            output_notebook_path (str): The path where the executed notebook
+            will be saved.
+            params (Optional[Dict[str, Any]]): A dictionary of parameters to
+            inject into the notebook.
 
         Returns:
-            Dict[str, str]: A dictionary containing information about the execution result. If
-                            successful, it includes the key 'executed_notebook' pointing to the
-                            output notebook path. If an error occurs, the dictionary contains an
+            Dict[str, str]: A dictionary containing information about the
+            execution result. If
+                            successful, it includes the key 'executed_notebook'
+                            pointing to the
+                            output notebook path. If an error occurs, the
+                            dictionary contains an
                             'error' key with a descriptive message.
 
         Raises:
             ValueError: If the notebook_path is not a .ipynb file.
         """
         logger.info(
-            "Starting notebook execution with JupyterExecuteNotebookWithParametersTool."
+            (
+                "Starting notebook execution with "
+                "JupyterExecuteNotebookWithParametersTool."
+            )
         )
         logger.debug(
             "notebook_path: %s, output_notebook_path: %s, params: %s",

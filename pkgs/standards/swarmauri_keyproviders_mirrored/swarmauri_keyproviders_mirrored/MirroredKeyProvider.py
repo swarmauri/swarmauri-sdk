@@ -29,17 +29,22 @@ class MirroredKeyProvider(KeyProviderBase):
     """Mirror/Failover key provider.
 
     Primary is the system of record. Secondary is best-effort replication:
-      - mirror_mode="full"         → replicate private material when policy allows
-      - mirror_mode="public_only"  → replicate only public JWK/PEM (verification)
+      - mirror_mode="full"         → replicate private material when policy
+        allows
+      - mirror_mode="public_only"  → replicate only public JWK/PEM
+        (verification)
       - mirror_mode="none"         → no replication, but reads may failover
 
     Reads:
-      - get_key/get_public_jwk: primary first; on failure (or missing), try secondary
+      - get_key/get_public_jwk: primary first; on failure (or missing), try
+        secondary
       - jwks(): union (primary dominates on kid collisions)
 
     Writes:
-      - create/import/rotate/destroy: do primary first; if ok, attempt to mirror
-        and record (kid,version) → (sec_kid,sec_version) mapping. Mapping is used
+      - create/import/rotate/destroy: do primary first; if ok, attempt to
+        mirror
+        and record (kid,version) → (sec_kid,sec_version) mapping. Mapping is
+        used
         for destroy/version lookups on the secondary.
 
     Notes:
@@ -280,7 +285,11 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary get_key failed for %s.%s (%s); failing over",
+                (
+                    "MirroredKeyProvider: primary get_key failed for %s.%s "
+                    "(%s); "
+                    "failing over"
+                ),
                 kid,
                 version,
                 e,
@@ -304,7 +313,10 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary list_versions failed for %s (%s); trying secondary",
+                (
+                    "MirroredKeyProvider: primary list_versions failed for %s "
+                    "(%s); trying secondary"
+                ),
                 kid,
                 e,
             )
@@ -319,7 +331,11 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary get_public_jwk failed for %s.%s (%s); failing over",
+                (
+                    "MirroredKeyProvider: primary get_public_jwk failed for "
+                    "%s.%s "
+                    "(%s); failing over"
+                ),
                 kid,
                 version,
                 e,
@@ -341,7 +357,10 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary jwks failed (%s); using secondary only",
+                (
+                    "MirroredKeyProvider: primary jwks failed (%s); using "
+                    "secondary only"
+                ),
                 e,
             )
             try:
@@ -373,7 +392,11 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary random_bytes failed (%s); using secondary",
+                (
+                    "MirroredKeyProvider: primary random_bytes failed (%s); "
+                    "using "
+                    "secondary"
+                ),
                 e,
             )
             return await self._s.random_bytes(n)
@@ -387,7 +410,10 @@ class MirroredKeyProvider(KeyProviderBase):
             if not self._fail_open_reads:
                 raise
             log.warning(
-                "MirroredKeyProvider: primary hkdf failed (%s); using secondary",
+                (
+                    "MirroredKeyProvider: primary hkdf failed (%s); using "
+                    "secondary"
+                ),
                 e,
             )
             return await self._s.hkdf(ikm, salt=salt, info=info, length=length)

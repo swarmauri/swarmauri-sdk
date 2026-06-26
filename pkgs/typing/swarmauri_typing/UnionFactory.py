@@ -93,7 +93,8 @@ class UnionFactory:
 
         union_members = self._union_types_getter(model_name)
 
-        # If no types are returned, fall back to Annotated[Any, UnionFactoryMetadata]
+        # If no types are returned, fall back to Annotated[Any,
+        # UnionFactoryMetadata]
         if not union_members:
             final_annotated = Annotated[
                 Any, UnionFactoryMetadata(data=model_name, name=self.name)

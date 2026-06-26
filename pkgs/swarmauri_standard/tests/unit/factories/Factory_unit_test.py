@@ -76,7 +76,10 @@ def test_factory_duplicate_register(factory):
     factory.register("Parser", "HTMLTagStripParser", HTMLTagStripParser)
     with pytest.raises(
         ValueError,
-        match="Type 'HTMLTagStripParser' is already registered under resource 'Parser'.",
+        match=(
+            "Type 'HTMLTagStripParser' is already registered under "
+            "resource 'Parser'."
+        ),
     ):
         factory.register("Parser", "HTMLTagStripParser", HTMLTagStripParser)
 

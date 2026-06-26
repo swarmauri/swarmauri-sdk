@@ -196,7 +196,8 @@ def test_batch(llm_config):
         response = result.get_last().content
         assert isinstance(response, str)
         assert expected_answers[i] in response, (
-            f"Expected {expected_answers[i]} in batch response #{i + 1} from {provider}"
+            f"Expected {expected_answers[i]} in batch response #{i + 1} "
+            f"from {provider}"
         )
         logging.info(
             f"Provider {provider}, prompt '{prompts[i]}', response: {response}"
@@ -275,7 +276,8 @@ async def test_abatch(llm_config):
         response = result.get_last().content
         assert isinstance(response, str)
         assert expected_answers[i] in response, (
-            f"Expected {expected_answers[i]} in async batch response #{i + 1} from {provider}"
+            f"Expected {expected_answers[i]} in async batch response "
+            f"#{i + 1} from {provider}"
         )
 
 
@@ -321,7 +323,10 @@ def test_json_response_format(llm_config):
     conv = Conversation()
     conv.add_message(
         HumanMessage(
-            content="Return a JSON object with keys 'name' and 'capital' for France"
+            content=(
+                "Return a JSON object with keys 'name' and 'capital' for "
+                "France"
+            )
         )
     )
 

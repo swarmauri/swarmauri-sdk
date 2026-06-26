@@ -98,7 +98,8 @@ def test_call_cell_execution_error(
     result = tool("fake_notebook.ipynb")
 
     assert result == mock_notebook, (
-        "Even if a CellExecutionError occurs, the tool should return the notebook."
+        "Even if a CellExecutionError occurs, the tool should return "
+        "the notebook."
     )
 
 
@@ -126,5 +127,6 @@ def test_call_unexpected_exception(
     result = tool("fake_notebook.ipynb")
 
     assert result == mock_notebook, (
-        "When an unexpected exception occurs, the tool should still return the notebook."
+        "When an unexpected exception occurs, the tool should still "
+        "return the notebook."
     )

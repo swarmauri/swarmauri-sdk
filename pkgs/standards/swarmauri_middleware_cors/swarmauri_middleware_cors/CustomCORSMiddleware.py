@@ -49,7 +49,8 @@ class CustomCORSMiddleware(MiddlewareBase):
             allow_credentials: Whether to allow credentials. Defaults to True.
             allow_methods: List of allowed HTTP methods. Defaults to ["*"].
             allow_headers: List of allowed request headers. Defaults to ["*"].
-            expose_headers: List of headers to expose in responses. Defaults to [].
+            expose_headers: List of headers to expose in responses. Defaults to
+            [].
             max_age: Maximum age for CORS configuration. Defaults to 600.
         """
         super().__init__(**kwargs)
@@ -171,7 +172,8 @@ class CustomCORSMiddleware(MiddlewareBase):
             message: The error message to include in the response.
 
         Returns:
-            A response object with the error message and appropriate status code.
+            A response object with the error message and appropriate status
+            code.
         """
         response = Response(content=message, status_code=403)
         return response

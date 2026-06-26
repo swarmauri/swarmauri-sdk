@@ -93,7 +93,8 @@ def test_compute_with_vectors(hermitian_inner_product, vector_samples):
     # Compute the inner product
     result = hermitian_inner_product.compute(v1, v2)
 
-    # Manual calculation for comparison (with real numbers, this is just a standard dot product)
+    # Manual calculation for comparison (with real numbers, this is just a
+    # standard dot product)
     expected = np.dot(v1.to_numpy(), v2.to_numpy())
 
     assert np.isclose(result, expected)

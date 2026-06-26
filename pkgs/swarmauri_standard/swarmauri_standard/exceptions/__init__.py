@@ -1,8 +1,10 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of exceptions names (file names without the ".py" extension) and corresponding class names
+# # List of exceptions names (file names without the ".py" extension) and
+# corresponding class names
 # exceptions_files = [
-#     ("swarmauri_standard.exceptions.IndexErrorWithContext", "IndexErrorWithContext"),
+# ("swarmauri_standard.exceptions.IndexErrorWithContext",
+# "IndexErrorWithContext"),
 # ]
 
 # # Lazy loading of exceptions classes, storing them in variables

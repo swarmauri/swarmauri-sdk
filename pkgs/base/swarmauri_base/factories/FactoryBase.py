@@ -27,7 +27,8 @@ class FactoryBase(IFactory, ComponentBase):
 
     def create(self, type: str, *args: Any, **kwargs: Any) -> Any:
         """
-        Create an instance of the class associated with the given resource and type.
+        Create an instance of the class associated with the given resource and
+        type.
         """
         raise NotImplementedError(
             "create method must be implemented in derived classes."

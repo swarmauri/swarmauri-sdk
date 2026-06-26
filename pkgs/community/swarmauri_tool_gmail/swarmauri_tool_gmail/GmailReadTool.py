@@ -16,13 +16,13 @@ class GmailReadTool(ToolBase):
             Parameter(
                 name="query",
                 input_type="string",
-                description="""The query to filter emails. For example, "is:unread" or "from:example@gmail.com".""",
+                description="""The query to filter emails. For example, "is:unread" or "from:example@gmail.com".""",  # noqa: E501
                 required=True,
             ),
             Parameter(
                 name="max_results",
                 input_type="integer",
-                description="""The maximum number of emails to return. Defaults to 10.""",
+                description="""The maximum number of emails to return. Defaults to 10.""",  # noqa: E501
             ),
         ]
     )
@@ -49,7 +49,8 @@ class GmailReadTool(ToolBase):
         self, query: str = "", max_results: int = 10
     ) -> Dict[str, str]:
         """
-        Fetches emails from the authenticated Gmail account based on the given query.
+        Fetches emails from the authenticated Gmail account based on the given
+        query.
 
         Parameters:
         query (str): The query to filter emails. For example, "is:unread".
@@ -97,7 +98,7 @@ class GmailReadTool(ToolBase):
                     if header["name"] == "Date"
                 )
 
-                formatted_msg = f"\nSender: {sender}\nReply-To: {reply_to}\nSubject: {subject}\nDate: {date_time}\n"
+                formatted_msg = f"\nSender: {sender}\nReply-To: {reply_to}\nSubject: {subject}\nDate: {date_time}\n"  # noqa: E501
                 message_data += formatted_msg
 
             return {"gmail_messages": message_data}

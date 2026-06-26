@@ -10,8 +10,10 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ParserBase, "XMLParser")
 class XMLParser(ParserBase):
     """
-    A parser that extracts information from XML data and converts it into IDocument objects.
-    This parser assumes a simple use-case where each targeted XML element represents a separate document.
+    A parser that extracts information from XML data and converts it into
+    IDocument objects.
+    This parser assumes a simple use-case where each targeted XML element
+    represents a separate document.
     """
 
     element_tag: str = Field(default="root")
@@ -19,13 +21,15 @@ class XMLParser(ParserBase):
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
-        Parses XML data and converts elements with the specified tag into IDocument instances.
+        Parses XML data and converts elements with the specified tag into
+        IDocument instances.
 
         Parameters:
         - data (Union[str, Any]): The XML data as a string to be parsed.
 
         Returns:
-        - List[IDocument]: A list of IDocument instances created from the XML elements.
+        - List[IDocument]: A list of IDocument instances created from the XML
+          elements.
         """
         if isinstance(data, str):
             root = ET.fromstring(

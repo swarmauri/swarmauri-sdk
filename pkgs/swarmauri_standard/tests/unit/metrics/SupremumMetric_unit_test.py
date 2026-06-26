@@ -86,7 +86,8 @@ def test_distance_numpy_arrays(supremum_metric):
 
 @pytest.mark.unit
 def test_distance_with_different_dimensions(supremum_metric):
-    """Test that the distance method raises ValueError for different dimensions."""
+    """Test that the distance method raises ValueError for different
+    dimensions."""
     x = [1, 2, 3]
     y = [1, 2]
 

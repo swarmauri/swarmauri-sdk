@@ -22,11 +22,14 @@ class ChainBase(IChain, ComponentBase):
 
     def remove_step(self, step: ChainStepBase) -> None:
         """
-        Removes an existing step from the chain. This alters the chain's execution sequence
-        by excluding the specified step from subsequent executions of the chain.
+        Removes an existing step from the chain. This alters the chain's
+        execution sequence
+        by excluding the specified step from subsequent executions of the
+        chain.
 
         Parameters:
-            step (ChainStepBase): The Callable representing the step to remove from the chain.
+            step (ChainStepBase): The Callable representing the step to remove
+            from the chain.
         """
 
         raise NotImplementedError("This is not yet implemented")

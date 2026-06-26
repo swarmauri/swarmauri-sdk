@@ -41,7 +41,8 @@ class TestTool(ToolBase):
                 "paint": "mspaint",
             }
         elif os_name == "Darwin":
-            # On macOS, we use the 'open' command with the -a flag to open applications.
+            # On macOS, we use the 'open' command with the -a flag to open
+            # applications.
             commands = {
                 "notepad": ["open", "-a", "TextEdit"],
                 "calc": ["open", "-a", "Calculator"],

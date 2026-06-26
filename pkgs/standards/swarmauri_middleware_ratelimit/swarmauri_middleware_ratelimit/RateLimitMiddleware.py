@@ -30,7 +30,8 @@ class RateLimitMiddleware(MiddlewareBase, ComponentBase):
         Time window in seconds during which the rate limit applies. Defaults to
         ``60`` seconds.
     use_token : bool, optional
-        If ``True``, use a token from ``token_header`` instead of the client IP to
+        If ``True``, use a token from ``token_header`` instead of the client IP
+        to
         identify callers. Defaults to ``False``.
     token_header : str, optional
         Header name used to extract the token when ``use_token`` is ``True``.

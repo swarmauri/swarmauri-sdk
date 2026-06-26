@@ -16,14 +16,17 @@ class TogetherModel(LLMBase):
     """
     A class for interacting with Together.xyz's model API for text generation.
 
-    This implementation uses httpx for both synchronous and asynchronous HTTP requests,
-    providing support for predictions, streaming responses, and batch processing.
+    This implementation uses httpx for both synchronous and asynchronous HTTP
+    requests,
+    providing support for predictions, streaming responses, and batch
+    processing.
 
     Attributes:
         api_key (str): Together API key for authentication
             See https://together.xyz/ for details.
 
-        allowed_models (List[str]): List of known/supported model identifiers on Together.
+        allowed_models (List[str]): List of known/supported model identifiers
+        on Together.
             This is optional—can be removed or replaced.
 
         name (str): The currently selected model name
@@ -70,10 +73,12 @@ class TogetherModel(LLMBase):
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats conversation history into a list of dictionaries suitable for the Together API requests.
+        Formats conversation history into a list of dictionaries suitable for
+        the Together API requests.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): The conversation history.
+            messages (List[SubclassUnion[MessageBase]]): The conversation
+            history.
 
         Returns:
             List[Dict[str, str]]: Formatted message list.
@@ -103,11 +108,13 @@ class TogetherModel(LLMBase):
         Creates the payload for the Together API request.
 
         Args:
-            formatted_messages (List[Dict[str, str]]): Formatted messages for the conversation.
+            formatted_messages (List[Dict[str, str]]): Formatted messages for
+            the conversation.
             temperature (float): Sampling temperature for the response.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Whether to request a JSON-like response.
-                               (Not specifically used in Together, but you could adjust the prompt accordingly.)
+                               (Not specifically used in Together, but you
+                               could adjust the prompt accordingly.)
             stop (List[str], optional): Stop sequences.
             stream (bool): Whether to stream the response.
             top_p (float): Nucleus sampling parameter.
@@ -124,14 +131,16 @@ class TogetherModel(LLMBase):
             "top_p": top_p,
             "top_k": top_k,
             "repetition_penalty": repetition_penalty,
-            # If max_tokens is None or 0, we can pass null. Otherwise pass the integer.
+            # If max_tokens is None or 0, we can pass null. Otherwise pass the
+            # integer.
             "max_tokens": max_tokens if max_tokens else None,
             "stop": stop,
             "stream": stream,
         }
 
         # If you want a JSON-specific format in the response,
-        # you might handle that at the prompt-level or with system instructions.
+        # you might handle that at the prompt-level or with system
+        # instructions.
 
         return payload
 
@@ -151,7 +160,8 @@ class TogetherModel(LLMBase):
             conversation: The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            enable_json (bool): Not explicitly used in Together but left for consistency.
+            enable_json (bool): Not explicitly used in Together but left for
+            consistency.
             stop (List[str], optional): Stop sequences for the response.
 
         Returns:
@@ -187,7 +197,8 @@ class TogetherModel(LLMBase):
             conversation: The conversation object containing message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            enable_json (bool): Not explicitly used in Together but left for consistency.
+            enable_json (bool): Not explicitly used in Together but left for
+            consistency.
             stop (List[str], optional): Stop sequences for the response.
 
         Returns:
@@ -249,7 +260,8 @@ class TogetherModel(LLMBase):
                 if isinstance(line, bytes):
                     line = line.decode("utf-8")
 
-                # Together.xyz typically sends streamed data with 'data: ' lines,
+                # Together.xyz typically sends streamed data with 'data: '
+                # lines,
                 # similar to OpenAI's style. Confirm in practice or via docs.
                 if line.startswith("data: "):
                     line = line[6:]  # Remove 'data: '
@@ -331,7 +343,8 @@ class TogetherModel(LLMBase):
             conversations (List): List of conversation objects.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            enable_json (bool): Not explicitly used in Together but left for consistency.
+            enable_json (bool): Not explicitly used in Together but left for
+            consistency.
             stop (List[str], optional): Stop sequences for the responses.
 
         Returns:
@@ -358,13 +371,15 @@ class TogetherModel(LLMBase):
         max_concurrent=5,
     ) -> List:
         """
-        Processes multiple conversations asynchronously, with concurrency control.
+        Processes multiple conversations asynchronously, with concurrency
+        control.
 
         Args:
             conversations (List): List of conversation objects.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            enable_json (bool): Not explicitly used in Together but left for consistency.
+            enable_json (bool): Not explicitly used in Together but left for
+            consistency.
             stop (List[str], optional): Stop sequences for the responses.
             max_concurrent (int): Maximum number of concurrent tasks.
 

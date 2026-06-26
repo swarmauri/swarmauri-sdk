@@ -87,7 +87,9 @@ class PriceSpec(PriceSpecProto, BillingSpec):
     )
     unit_amount_minor: Optional[int] = Field(
         default=None,
-        description="Unit amount represented in the currency's smallest denomination",
+        description=(
+            "Unit amount represented in the currency's smallest denomination"
+        ),
     )
     nickname: Optional[str] = Field(
         default=None, description="Optional nickname for the price"
@@ -150,7 +152,7 @@ class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
 
     amount_minor: Optional[int] = Field(
         default=None,
-        description="Amount to collect in the currency's smallest denomination",
+        description="Amount to collect in the currency's smallest denomination",  # noqa: E501
     )
     currency: Optional[str] = Field(
         default=None, description="ISO currency code for the payment"
@@ -217,7 +219,10 @@ class SubscriptionSpec(SubscriptionSpecProto, BillingSpec):
     )
     collection_method: Optional[str] = Field(
         default=None,
-        description="Collection method accepted by the provider (e.g. charge_automatically)",
+        description=(
+            "Collection method accepted by the provider (e.g. "
+            "charge_automatically)"
+        ),
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata associated with the subscription"
@@ -431,7 +436,7 @@ class TransferRequest(TransferReqProto, BillingSpec):
 
     amount_minor: Optional[int] = Field(
         default=None,
-        description="Amount to transfer in the currency's smallest denomination",
+        description="Amount to transfer in the currency's smallest denomination",  # noqa: E501
     )
     currency: Optional[str] = Field(
         default=None, description="Currency of the transfer"
@@ -475,7 +480,9 @@ class CouponSpec(CouponSpecProto, BillingSpec):
     )
     amount_off_minor: Optional[int] = Field(
         default=None,
-        description="Fixed amount discount in the smallest currency denomination",
+        description=(
+            "Fixed amount discount in the smallest currency denomination"
+        ),
     )
     currency: Optional[str] = Field(
         default=None, description="Currency for fixed-amount coupons"

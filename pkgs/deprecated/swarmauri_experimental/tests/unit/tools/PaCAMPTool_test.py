@@ -90,7 +90,10 @@ def test_call(
         result = tool(**kwargs)
 
         @pytest.mark.parametrize(
-            "X, n_neighbors, n_components, n_iterations, expected_shape, should_raise",
+            (
+                "X, n_neighbors, n_components, n_iterations, expected_shape, "
+                "should_raise"
+            ),
             [
                 (
                     np.random.rand(100, 50),
@@ -131,7 +134,9 @@ def test_call(
                     500,
                     None,
                     True,
-                ),  # Invalid case: n_components is None, should raise TypeError
+                    # Invalid case: n_components is None, should raise
+                    # TypeError
+                ),
             ],
         )
         @pytest.mark.unit

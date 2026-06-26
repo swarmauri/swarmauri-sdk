@@ -23,7 +23,8 @@ class HTMLTagStripParser(ParserBase):
             data (str): The HTML content to be parsed.
 
         Returns:
-            List[Document]: A list containing a single IDocument instance of the stripped text.
+            List[Document]: A list containing a single IDocument instance of
+            the stripped text.
         """
 
         # Ensure that input is a string

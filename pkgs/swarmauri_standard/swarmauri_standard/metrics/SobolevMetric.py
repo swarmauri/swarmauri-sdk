@@ -57,7 +57,10 @@ class SobolevMetric(MetricBase):
         # Create a SobolevNorm instance to handle the norm calculations
         self.norm = SobolevNorm(order=self.order, weights=self.weights)
         logger.debug(
-            f"Initialized SobolevMetric with order {self.order} and weights {self.weights}"
+            (
+                f"Initialized SobolevMetric with order {self.order} and "
+                f"weights {self.weights}"
+            )
         )
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
@@ -65,7 +68,8 @@ class SobolevMetric(MetricBase):
         Calculate the Sobolev distance between two functions or vectors.
 
         The Sobolev distance is defined as the Sobolev norm of the difference
-        between the two inputs, taking into account both values and derivatives.
+        between the two inputs, taking into account both values and
+        derivatives.
 
         Parameters
         ----------
@@ -87,7 +91,10 @@ class SobolevMetric(MetricBase):
             If input types are not supported
         """
         logger.debug(
-            f"Calculating Sobolev distance between {type(x).__name__} and {type(y).__name__}"
+            (
+                f"Calculating Sobolev distance between {type(x).__name__} "
+                f"and {type(y).__name__}"
+            )
         )
 
         try:
@@ -96,7 +103,11 @@ class SobolevMetric(MetricBase):
                 callable(x) and callable(y)
             ):
                 raise TypeError(
-                    f"Inputs must be of the same type, got {type(x).__name__} and {type(y).__name__}"
+                    (
+                        f"Inputs must be of the same type, got "
+                        f"{type(x).__name__} "
+                        f"and {type(y).__name__}"
+                    )
                 )
 
             # For callable functions
@@ -136,7 +147,10 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        "Sequences must have the same length for distance calculation"
+                        (
+                            "Sequences must have the same length for distance "
+                            "calculation"
+                        )
                     )
                 diff_xy = [x[i] - y[i] for i in range(len(x))]
                 return self.norm.compute(diff_xy)
@@ -159,7 +173,8 @@ class SobolevMetric(MetricBase):
         y: Union[MetricInput, MetricInputCollection],
     ) -> Union[List[float], IVector, IMatrix]:
         """
-        Calculate Sobolev distances between collections of functions or vectors.
+        Calculate Sobolev distances between collections of functions or
+        vectors.
 
         Parameters
         ----------
@@ -196,7 +211,11 @@ class SobolevMetric(MetricBase):
                 # Return vector of distances between corresponding elements
                 if x.shape[0] != y.shape[0]:
                     raise ValueError(
-                        "Vectors must have the same length for element-wise distances"
+                        (
+                            "Vectors must have the same length for "
+                            "element-wise "
+                            "distances"
+                        )
                     )
                 result = x.zeros(x.shape[0])
                 for i in range(x.shape[0]):
@@ -204,7 +223,8 @@ class SobolevMetric(MetricBase):
                 return result
 
             elif isinstance(x, list) and isinstance(y, list):
-                # Return a distance matrix even for same-length lists if they contain Vector objects
+                # Return a distance matrix even for same-length lists if they
+                # contain Vector objects
                 if len(x) > 0 and isinstance(x[0], IVector):
                     result = [
                         [0.0 for _ in range(len(y))] for _ in range(len(x))
@@ -223,7 +243,8 @@ class SobolevMetric(MetricBase):
                             result[i][j] = self.distance(x[i], y[j])
                     return result
                 else:
-                    # Return list of distances for same-length lists of non-Vector objects
+                    # Return list of distances for same-length lists of
+                    # non-Vector objects
                     return [self.distance(x[i], y[i]) for i in range(len(x))]
 
             elif (
@@ -240,7 +261,10 @@ class SobolevMetric(MetricBase):
 
             else:
                 raise TypeError(
-                    f"Unsupported collection types: {type(x).__name__} and {type(y).__name__}"
+                    (
+                        f"Unsupported collection types: {type(x).__name__} and "  # noqa: E501
+                        f"{type(y).__name__}"
+                    )
                 )
 
         except Exception as e:
@@ -251,7 +275,8 @@ class SobolevMetric(MetricBase):
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the Sobolev metric satisfies the non-negativity axiom: d(x,y)
+        ≥ 0.
 
         Parameters
         ----------
@@ -277,7 +302,8 @@ class SobolevMetric(MetricBase):
         self, x: MetricInput, y: MetricInput
     ) -> bool:
         """
-        Check if the Sobolev metric satisfies the identity of indiscernibles axiom:
+        Check if the Sobolev metric satisfies the identity of indiscernibles
+        axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
@@ -313,7 +339,8 @@ class SobolevMetric(MetricBase):
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Sobolev metric satisfies the symmetry axiom: d(x,y) =
+        d(y,x).
 
         Parameters
         ----------
@@ -364,7 +391,8 @@ class SobolevMetric(MetricBase):
             dist_yz = self.distance(y, z)
             dist_xz = self.distance(x, z)
 
-            # Check the triangle inequality with a small tolerance for numerical issues
+            # Check the triangle inequality with a small tolerance for
+            # numerical issues
             return dist_xz <= dist_xy + dist_yz + 1e-10 * (
                 1 + dist_xy + dist_yz
             )
@@ -374,7 +402,8 @@ class SobolevMetric(MetricBase):
 
     def _are_effectively_equal(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if two inputs are effectively equal for the purposes of the metric.
+        Check if two inputs are effectively equal for the purposes of the
+        metric.
 
         Parameters
         ----------
@@ -390,7 +419,8 @@ class SobolevMetric(MetricBase):
         """
         try:
             if callable(x) and callable(y):
-                # Sample the functions at several points to check if they're equal
+                # Sample the functions at several points to check if they're
+                # equal
                 test_points = np.linspace(0, 1, 20)
 
                 # Check function values

@@ -12,9 +12,11 @@ from swarmauri_base.ObserveBase import ObserveBase
 @ObserveBase.register_model()
 class TimedRotatingFileLoggingHandler(HandlerBase):
     """
-    A handler that extends FileHandler to rollover log files based on time intervals.
+    A handler that extends FileHandler to rollover log files based on time
+    intervals.
 
-    This handler uses TimedRotatingFileHandler from the standard logging module to
+    This handler uses TimedRotatingFileHandler from the standard logging module
+    to
     rotate log files at specified time intervals, such as daily at midnight.
 
     Attributes
@@ -33,7 +35,8 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
     encoding : Optional[str]
         The encoding to use for the log file
     delay : bool
-        If True, the file opening is deferred until the first log record is emitted
+        If True, the file opening is deferred until the first log record is
+        emitted
     utc : bool
         If True, times in UTC will be used; otherwise local time is used
     atTime : Optional[datetime]
@@ -88,7 +91,8 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
         # Apply formatter if specified, otherwise use a default formatter
         if self.formatter:
             if isinstance(self.formatter, str):
-                # If formatter is a string, create a Formatter with the string as format
+                # If formatter is a string, create a Formatter with the string
+                # as format
                 handler.setFormatter(logging.Formatter(self.formatter))
             else:
                 # If formatter is a FormatterBase instance, compile it

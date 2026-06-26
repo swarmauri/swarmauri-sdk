@@ -255,10 +255,10 @@ class GitVectorStore(VectorStoreRetrieveMixin, VectorStoreBase):
             f"ref {metadata['ref'] or 'HEAD'}",
             f"subject {metadata['subject']}",
             f"author {metadata['author_name']} <{metadata['author_email']}>",
-            f"committer {metadata['committer_name']} <{metadata['committer_email']}>",
+            f"committer {metadata['committer_name']} <{metadata['committer_email']}>",  # noqa: E501
             f"authored_at {metadata['authored_at']}",
             f"committed_at {metadata['committed_at']}",
-            f"parents {' '.join(metadata['parents']) if metadata['parents'] else '(root)'}",
+            f"parents {' '.join(metadata['parents']) if metadata['parents'] else '(root)'}",  # noqa: E501
         ]
         if metadata["body"]:
             content_lines.extend(

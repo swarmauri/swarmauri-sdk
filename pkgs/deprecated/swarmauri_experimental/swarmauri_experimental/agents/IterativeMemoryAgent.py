@@ -49,7 +49,8 @@ class IterativeMemoryAgent(
     AgentBase,
 ):
     """
-    A subclass of AgentBase that integrates the RAG workflow and additional capabilities.
+    A subclass of AgentBase that integrates the RAG workflow and additional
+    capabilities.
     """
 
     llm: SubclassUnion[LLMBase]
@@ -77,7 +78,11 @@ class IterativeMemoryAgent(
                 input_data = json.loads(input_data)
             elif not isinstance(input_data, dict):
                 raise ValueError(
-                    "Input must be a dictionary or a JSON string representing a dictionary."
+                    (
+                        "Input must be a dictionary or a JSON string "
+                        "representing a "
+                        "dictionary."
+                    )
                 )
 
             # Propagate the template
@@ -171,7 +176,8 @@ class IterativeMemoryAgent(
 
     def reload(self, folder_path: str):
         """
-        Reloads the vector store by clearing it and loading documents from the folder.
+        Reloads the vector store by clearing it and loading documents from the
+        folder.
         """
         self.vector_store = Doc2VecVectorStore()
         self.vector_store._comparator = MetricVectorStoreComparator(
@@ -224,7 +230,8 @@ class IterativeMemoryAgent(
             raise e
 
     def load_documents_from_folder(self, folder_path: str):
-        """Recursively walks through a folder and loads documents from all files."""
+        """Recursively walks through a folder and loads documents from all
+        files."""
         documents = []
 
         # Traverse through all directories and files
@@ -244,5 +251,8 @@ class IterativeMemoryAgent(
         # Add all loaded documents to the vector store
         self.vector_store.add_documents(documents)
         print(
-            f"Successfully loaded {len(documents)} documents from folder into the vector store."
+            (
+                f"Successfully loaded {len(documents)} documents from folder "
+                f"into the vector store."
+            )
         )

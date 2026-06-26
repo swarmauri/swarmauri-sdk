@@ -14,10 +14,12 @@ from swarmauri_base.certs.CertServiceBase import CertServiceBase
 class OcspVerifyService(CertServiceBase):
     """OCSP verification service compliant with RFC 6960 and RFC 5280.
 
-    - Implements ``verify_cert`` using OCSP responders advertised in the certificate's
+    - Implements ``verify_cert`` using OCSP responders advertised in the
+      certificate's
       Authority Information Access extension.
     - ``parse_cert`` extracts subject/issuer, dates, and OCSP URLs.
-    - ``create_csr``/``create_self_signed``/``sign_cert`` are not implemented (verify-only service).
+    - ``create_csr``/``create_self_signed``/``sign_cert`` are not implemented
+      (verify-only service).
     """
 
     type: Literal["OcspVerifyService"] = "OcspVerifyService"
@@ -51,7 +53,10 @@ class OcspVerifyService(CertServiceBase):
         cert_obj = x509.load_pem_x509_certificate(cert, default_backend())
         if not intermediates:
             raise ValueError(
-                "OCSP verification requires issuer certificate in 'intermediates'"
+                (
+                    "OCSP verification requires issuer certificate in "
+                    "'intermediates'"
+                )
             )
         issuer_obj = x509.load_pem_x509_certificate(
             intermediates[0], default_backend()

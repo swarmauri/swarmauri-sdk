@@ -9,7 +9,8 @@ class IAgent(ABC):
         self, input_data: Optional[Any], llm_kwargs: Optional[Dict]
     ) -> Any:
         """
-        Executive method that triggers the agent's action based on the input data.
+        Executive method that triggers the agent's action based on the input
+        data.
         """
         pass
 
@@ -20,7 +21,8 @@ class IAgent(ABC):
         llm_kwargs: Optional[Dict] = None,
     ) -> Any:
         """
-        Async executive method that triggers the agent's action based on the input data.
+        Async executive method that triggers the agent's action based on the
+        input data.
         """
         pass
 
@@ -43,7 +45,8 @@ class IAgent(ABC):
         llm_kwargs: Optional[Dict] = None,
     ) -> List[Any]:
         """
-        Default async batch implementation: concurrently calls `aexec` on all inputs.
+        Default async batch implementation: concurrently calls `aexec` on all
+        inputs.
         Subclasses can override for more efficient implementations.
         """
         pass

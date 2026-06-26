@@ -17,8 +17,10 @@ class HammingMetric(MetricBase):
     """
     Hamming distance metric implementation.
 
-    Hamming distance counts the number of positions at which two sequences differ.
-    It is primarily used for binary/bitwise data and categorical vectors of equal length.
+    Hamming distance counts the number of positions at which two sequences
+    differ.
+    It is primarily used for binary/bitwise data and categorical vectors of
+    equal length.
 
     Attributes
     ----------
@@ -32,7 +34,8 @@ class HammingMetric(MetricBase):
         """
         Calculate the Hamming distance between two sequences.
 
-        The Hamming distance is the number of positions at which the corresponding
+        The Hamming distance is the number of positions at which the
+        corresponding
         elements of two sequences are different.
 
         Parameters
@@ -107,7 +110,11 @@ class HammingMetric(MetricBase):
             if x.ndim == 1 and y.ndim == 1:
                 if x.shape[0] != y.shape[0]:
                     raise ValueError(
-                        f"Sequences must have equal length: {x.shape[0]} != {y.shape[0]}"
+                        (
+                            f"Sequences must have equal length: {x.shape[0]} "
+                            f"!= "
+                            f"{y.shape[0]}"
+                        )
                     )
                 return float(np.sum(x != y))
 
@@ -115,7 +122,11 @@ class HammingMetric(MetricBase):
             elif x.ndim == 2 and y.ndim == 2:
                 if x.shape[1] != y.shape[1]:
                     raise ValueError(
-                        f"Sequences must have equal length: {x.shape[1]} != {y.shape[1]}"
+                        (
+                            f"Sequences must have equal length: {x.shape[1]} "
+                            f"!= "
+                            f"{y.shape[1]}"
+                        )
                     )
 
                 # Calculate distances between all pairs
@@ -159,7 +170,8 @@ class HammingMetric(MetricBase):
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Hamming metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the Hamming metric satisfies the non-negativity axiom: d(x,y)
+        ≥ 0.
 
         Hamming distance always satisfies this axiom as it counts differences,
         which cannot be negative.
@@ -184,7 +196,8 @@ class HammingMetric(MetricBase):
         self, x: MetricInput, y: MetricInput
     ) -> bool:
         """
-        Check if the Hamming metric satisfies the identity of indiscernibles axiom:
+        Check if the Hamming metric satisfies the identity of indiscernibles
+        axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
@@ -214,7 +227,8 @@ class HammingMetric(MetricBase):
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Hamming metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Hamming metric satisfies the symmetry axiom: d(x,y) =
+        d(y,x).
 
         Parameters
         ----------

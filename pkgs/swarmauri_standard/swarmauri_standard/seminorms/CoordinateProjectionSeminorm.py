@@ -17,8 +17,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
     """
     Seminorm via projection onto a subset of coordinates.
 
-    This seminorm ignores certain components of the vector, resulting in possible degeneracy.
-    It projects the input onto a specified subset of coordinates and computes the norm
+    This seminorm ignores certain components of the vector, resulting in
+    possible degeneracy.
+    It projects the input onto a specified subset of coordinates and computes
+    the norm
     only on those coordinates.
 
     Attributes
@@ -40,8 +42,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
         Parameters
         ----------
         projection_indices : Set[int]
-            The set of indices to project onto. These are the components that will
-            be considered when computing the seminorm, all other components will be ignored.
+            The set of indices to project onto. These are the components that
+            will
+            be considered when computing the seminorm, all other components
+            will be ignored.
 
         Raises
         ------
@@ -54,12 +58,16 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
         self.projection_indices = projection_indices
         logger.info(
-            f"Initialized CoordinateProjectionSeminorm with projection indices: {projection_indices}"
+            (
+                f"Initialized CoordinateProjectionSeminorm with projection "
+                f"indices: {projection_indices}"
+            )
         )
 
     def compute(self, x: InputType) -> float:
         """
-        Compute the seminorm of the input by projecting onto specified coordinates.
+        Compute the seminorm of the input by projecting onto specified
+        coordinates.
 
         Parameters
         ----------
@@ -95,7 +103,8 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
     def _compute_vector(self, x: IVector) -> float:
         """
-        Compute the seminorm for a vector by projecting onto specified coordinates.
+        Compute the seminorm for a vector by projecting onto specified
+        coordinates.
 
         Parameters
         ----------
@@ -116,7 +125,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(components):
             raise ValueError(
-                f"Projection index {max_index} out of bounds for vector of length {len(components)}"
+                (
+                    f"Projection index {max_index} out of bounds for vector of "  # noqa: E501
+                    f"length {len(components)}"
+                )
             )
 
         # Project onto the selected coordinates
@@ -131,9 +143,11 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
     def _compute_matrix(self, x: IMatrix) -> float:
         """
-        Compute the seminorm for a matrix by projecting onto specified coordinates.
+        Compute the seminorm for a matrix by projecting onto specified
+        coordinates.
 
-        For matrices, we flatten the matrix to a vector and then apply the projection.
+        For matrices, we flatten the matrix to a vector and then apply the
+        projection.
 
         Parameters
         ----------
@@ -156,7 +170,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(flattened):
             raise ValueError(
-                f"Projection index {max_index} out of bounds for flattened matrix of length {len(flattened)}"
+                (
+                    f"Projection index {max_index} out of bounds for flattened "  # noqa: E501
+                    f"matrix of length {len(flattened)}"
+                )
             )
 
         # Project onto the selected coordinates
@@ -169,7 +186,8 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
     def _compute_sequence(self, x: Sequence) -> float:
         """
-        Compute the seminorm for a sequence by projecting onto specified coordinates.
+        Compute the seminorm for a sequence by projecting onto specified
+        coordinates.
 
         Parameters
         ----------
@@ -191,7 +209,11 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(x):
             raise ValueError(
-                f"Projection index {max_index} out of bounds for sequence of length {len(x)}"
+                (
+                    f"Projection index {max_index} out of bounds for sequence "
+                    f"of "
+                    f"length {len(x)}"
+                )
             )
 
         # Project onto the selected coordinates
@@ -229,7 +251,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
 
         # Compute norms
@@ -255,7 +280,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             sum_xy = x + y
         else:
             raise TypeError(
-                f"Unsupported or incompatible input types: {type(x)} and {type(y)}"
+                (
+                    f"Unsupported or incompatible input types: {type(x)} and "
+                    f"{type(y)}"
+                )
             )
 
         # Compute norm of the sum
@@ -268,7 +296,8 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||
@@ -293,7 +322,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
 
         # Compute ||x||

@@ -11,7 +11,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "PatternMatchingMeasurement")
 class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """
-    A measurement class to calculate the percentage of data points that match a given pattern in a column.
+    A measurement class to calculate the percentage of data points that match a
+    given pattern in a column.
     """
 
     unit: str = "percentage"
@@ -21,7 +22,8 @@ class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
         self, data: pd.DataFrame, column: str, pattern: str
     ) -> float:
         """
-        Calculate the percentage of data points that match a given pattern in a column.
+        Calculate the percentage of data points that match a given pattern in a
+        column.
 
         Parameters:
             data (pd.DataFrame): The input DataFrame.
@@ -34,5 +36,6 @@ class PatternMatchingMeasurement(MeasurementBase, MeasurementCalculateMixin):
         # Perform pattern matching
         matches = data[column].str.contains(pattern, regex=True)
 
-        # Calculate the proportion of True values (i.e., the percentage of matches)
+        # Calculate the proportion of True values (i.e., the percentage of
+        # matches)
         return matches.mean() * 100  # Returning percentage as a float

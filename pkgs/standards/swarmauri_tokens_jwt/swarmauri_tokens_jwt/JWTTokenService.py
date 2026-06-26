@@ -1,7 +1,8 @@
 """JWT token service implementation.
 
 Provides the :class:`JWTTokenService` for minting and verifying JSON Web
-Tokens (JWT) using keys supplied by an :class:`~swarmauri_core.key_providers.IKeyProvider`.
+Tokens (JWT) using keys supplied by an
+:class:`~swarmauri_core.key_providers.IKeyProvider`.
 """
 
 from __future__ import annotations

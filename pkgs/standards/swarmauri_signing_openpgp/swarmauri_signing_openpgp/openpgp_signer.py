@@ -33,7 +33,10 @@ except Exception:  # pragma: no cover - runtime check
 def _ensure_pgpy() -> None:
     if not _PGPY_AVAILABLE:
         raise RuntimeError(
-            "OpenPGPSigner requires the 'pgpy' package. Install with: pip install pgpy"
+            (
+                "OpenPGPSigner requires the 'pgpy' package. Install with: pip "
+                "install pgpy"
+            )
         )
 
 
@@ -187,7 +190,8 @@ def _min_signers(require: Optional[Mapping[str, object]]) -> int:
 
 @register_type(resource_type=SigningBase)
 class OpenPGPSigner(SigningBase):
-    """Produce detached OpenPGP signatures for bytes, digests and structured envelopes."""
+    """Produce detached OpenPGP signatures for bytes, digests and structured
+    envelopes."""
 
     def __init__(
         self,

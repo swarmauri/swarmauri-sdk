@@ -36,7 +36,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         """
         Compute the Frobenius inner product between two real matrices.
 
-        The Frobenius inner product is defined as the sum of element-wise products,
+        The Frobenius inner product is defined as the sum of element-wise
+        products,
         which is equivalent to Tr(A^T B) for real matrices.
 
         Parameters
@@ -60,7 +61,10 @@ class FrobeniusRealInnerProduct(InnerProductBase):
             raise ValueError("Both inputs must be numpy arrays (matrices)")
 
         logger.debug(
-            f"Computing Frobenius inner product between matrices of shape {a.shape} and {b.shape}"
+            (
+                f"Computing Frobenius inner product between matrices of "
+                f"shape {a.shape} and {b.shape}"
+            )
         )
 
         if a.shape != b.shape:
@@ -74,7 +78,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
             )
 
         # Compute the Frobenius inner product
-        # For real matrices, this is equivalent to np.sum(a * b) or np.trace(a.T @ b)
+        # For real matrices, this is equivalent to np.sum(a * b) or
+        # np.trace(a.T @ b)
         result = np.sum(a * b)
 
         logger.debug(f"Frobenius inner product result: {result}")
@@ -84,7 +89,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         self, a: Union[NDArray, Matrix], b: Union[NDArray, Matrix]
     ) -> bool:
         """
-        Check if the Frobenius inner product satisfies conjugate symmetry property.
+        Check if the Frobenius inner product satisfies conjugate symmetry
+        property.
 
         For real matrices, this simplifies to checking if <a,b> = <b,a>.
 
@@ -101,7 +107,10 @@ class FrobeniusRealInnerProduct(InnerProductBase):
             True if conjugate symmetry holds, False otherwise
         """
         logger.debug(
-            f"Checking conjugate symmetry for matrices of shape {a.shape} and {b.shape}"
+            (
+                f"Checking conjugate symmetry for matrices of shape "
+                f"{a.shape} and {b.shape}"
+            )
         )
 
         # For real matrices, conjugate symmetry means <a,b> = <b,a>
@@ -112,7 +121,10 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         is_symmetric = np.isclose(forward, backward)
 
         logger.debug(
-            f"Conjugate symmetry check result: {is_symmetric} ({forward} vs {backward})"
+            (
+                f"Conjugate symmetry check result: {is_symmetric} ({forward} "
+                f"vs {backward})"
+            )
         )
         return bool(is_symmetric)
 
@@ -125,7 +137,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         beta: float,
     ) -> bool:
         """
-        Check if the Frobenius inner product satisfies linearity in the first argument.
+        Check if the Frobenius inner product satisfies linearity in the first
+        argument.
 
         This checks if <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>.
 
@@ -163,7 +176,10 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         is_linear = np.isclose(left_side, right_side)
 
         logger.debug(
-            f"Linearity check result: {is_linear} ({left_side} vs {right_side})"
+            (
+                f"Linearity check result: {is_linear} ({left_side} vs "
+                f"{right_side})"
+            )
         )
         return bool(is_linear)
 
@@ -199,6 +215,9 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         result = is_non_negative and is_zero_iff_a_zero
 
         logger.debug(
-            f"Positivity check result: {result} (inner product: {inner_product})"
+            (
+                f"Positivity check result: {result} (inner product: "
+                f"{inner_product})"
+            )
         )
         return result

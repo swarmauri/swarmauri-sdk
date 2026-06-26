@@ -32,7 +32,10 @@ class ToolLLMBase(IToolPredict, ComponentBase):
         allowed_models = values.allowed_models
         if name and name not in allowed_models:
             raise ValueError(
-                f"Model name {name} is not allowed. Choose from {allowed_models}"
+                (
+                    f"Model name {name} is not allowed. Choose from "
+                    f"{allowed_models}"
+                )
             )
         return values
 
@@ -83,17 +86,24 @@ class ToolLLMBase(IToolPredict, ComponentBase):
         self, tool_calls, toolkit, messages
     ) -> List[MessageBase]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
-                               a "function" key with a nested dictionary that includes the "name" and "arguments"
-                               of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (ToolkitBase): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+            tool_calls (list): A list of dictionaries representing tool calls.
+            Each dictionary should contain
+                               a "function" key with a nested dictionary that
+                               includes the "name" and "arguments"
+                               of the function to be called, and an "id" key
+                               for the tool call identifier.
+            toolkit (ToolkitBase): An object that provides access to tools via
+            the `get_tool_by_name` method.
+            messages (list): A list of message dictionaries to which the
+            results of the tool calls will be appended.
 
         Returns:
-            List[MessageBase]: The updated list of messages with the results of the tool calls appended.
+            List[MessageBase]: The updated list of messages with the results of
+            the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:

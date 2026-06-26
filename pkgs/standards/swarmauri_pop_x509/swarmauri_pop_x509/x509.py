@@ -21,7 +21,8 @@ class X509PoPVerifier(PopVerifierBase):
     def __init__(self) -> None:
         super().__init__(
             kind=PoPKind.X509,
-            header_name="",  # No detached header; proof is in the TLS handshake
+            # No detached header; proof is in the TLS handshake
+            header_name="",
             features=Feature.MTLS,
             algorithms=("tls13-handshake",),
         )

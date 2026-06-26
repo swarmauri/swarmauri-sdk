@@ -70,7 +70,8 @@ class TestRateLimitMiddleware:
 
     @pytest.mark.asyncio
     async def test_dispatch_not_exceeded(self, middleware):  # Make async
-        """Test that request is processed normally when rate limit is not exceeded."""
+        """Test that request is processed normally when rate limit is not
+        exceeded."""
         # Mock request object
         request = type(
             "Request",

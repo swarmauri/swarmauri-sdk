@@ -21,7 +21,7 @@ class Factory(FactoryBase):
         """
         if type in self._resource_registry.get(resource, {}):
             raise ValueError(
-                f"Type '{type}' is already registered under resource '{resource}'."
+                f"Type '{type}' is already registered under resource '{resource}'."  # noqa: E501
             )
 
         if resource not in self._resource_registry:
@@ -36,7 +36,8 @@ class Factory(FactoryBase):
         self, resource: str, type: str, *args: Any, **kwargs: Any
     ) -> Any:
         """
-        Create an instance of the class associated with the given resource and type.
+        Create an instance of the class associated with the given resource and
+        type.
         """
         if resource not in self._resource_registry:
             self._resource_registry[resource] = get_classes_from_module(

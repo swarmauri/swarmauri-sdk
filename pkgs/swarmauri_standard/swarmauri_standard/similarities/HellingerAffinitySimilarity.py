@@ -15,7 +15,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
     """
     Hellinger Affinity Similarity measure for probability distributions.
 
-    This similarity measure works on discrete probability vectors and is based on
+    This similarity measure works on discrete probability vectors and is based
+    on
     the Hellinger distance. It measures the similarity between two probability
     distributions using a square-root based approach.
 
@@ -76,7 +77,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculate the Hellinger Affinity similarity between two probability distributions.
+        Calculate the Hellinger Affinity similarity between two probability
+        distributions.
 
         Parameters
         ----------
@@ -93,7 +95,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If the distributions have incompatible dimensions or are not valid probability vectors
+            If the distributions have incompatible dimensions or are not valid
+            probability vectors
         TypeError
             If the input types are not supported
         """
@@ -126,7 +129,10 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Check if dimensions match
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    f"Probability vectors must have the same shape, got {x_arr.shape} and {y_arr.shape}"
+                    (
+                        f"Probability vectors must have the same shape, got "
+                        f"{x_arr.shape} and {y_arr.shape}"
+                    )
                 )
 
             # Calculate Hellinger Affinity: sum of square roots of products
@@ -144,14 +150,16 @@ class HellingerAffinitySimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Hellinger Affinity similarities between one distribution and multiple others.
+        Calculate Hellinger Affinity similarities between one distribution and
+        multiple others.
 
         Parameters
         ----------
         x : ComparableType
             Reference probability distribution
         ys : Sequence[ComparableType]
-            Sequence of probability distributions to compare against the reference
+            Sequence of probability distributions to compare against the
+            reference
 
         Returns
         -------
@@ -161,7 +169,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If any distributions have incompatible dimensions or are not valid probability vectors
+            If any distributions have incompatible dimensions or are not valid
+            probability vectors
         TypeError
             If any input types are not supported
         """
@@ -194,15 +203,20 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Hellinger Affinity similarities: {str(e)}"
+                (
+                    f"Error calculating multiple Hellinger Affinity "
+                    f"similarities: {str(e)}"
+                )
             )
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculate the Hellinger dissimilarity between two probability distributions.
+        Calculate the Hellinger dissimilarity between two probability
+        distributions.
 
-        The Hellinger dissimilarity is defined as 1 - H(P, Q), where H is the Hellinger Affinity.
+        The Hellinger dissimilarity is defined as 1 - H(P, Q), where H is the
+        Hellinger Affinity.
 
         Parameters
         ----------
@@ -219,7 +233,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If the distributions have incompatible dimensions or are not valid probability vectors
+            If the distributions have incompatible dimensions or are not valid
+            probability vectors
         TypeError
             If the input types are not supported
         """
@@ -239,14 +254,16 @@ class HellingerAffinitySimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Hellinger dissimilarities between one distribution and multiple others.
+        Calculate Hellinger dissimilarities between one distribution and
+        multiple others.
 
         Parameters
         ----------
         x : ComparableType
             Reference probability distribution
         ys : Sequence[ComparableType]
-            Sequence of probability distributions to compare against the reference
+            Sequence of probability distributions to compare against the
+            reference
 
         Returns
         -------
@@ -256,7 +273,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If any distributions have incompatible dimensions or are not valid probability vectors
+            If any distributions have incompatible dimensions or are not valid
+            probability vectors
         TypeError
             If any input types are not supported
         """
@@ -268,7 +286,10 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return [1.0 - sim for sim in sims]
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Hellinger dissimilarities: {str(e)}"
+                (
+                    f"Error calculating multiple Hellinger dissimilarities: "
+                    f"{str(e)}"
+                )
             )
             raise
 
@@ -287,9 +308,11 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
     def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Check if the Hellinger Affinity similarity measure is reflexive: s(x,x) = 1.
+        Check if the Hellinger Affinity similarity measure is reflexive: s(x,x)
+        = 1.
 
-        For valid probability distributions, the Hellinger Affinity of a distribution
+        For valid probability distributions, the Hellinger Affinity of a
+        distribution
         with itself is always 1.
 
         Parameters
@@ -324,7 +347,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Check if the Hellinger Affinity similarity measure is symmetric: s(x,y) = s(y,x).
+        Check if the Hellinger Affinity similarity measure is symmetric: s(x,y)
+        = s(y,x).
 
         The Hellinger Affinity is symmetric by definition.
 
@@ -362,9 +386,11 @@ class HellingerAffinitySimilarity(SimilarityBase):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the Hellinger Affinity satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        Check if the Hellinger Affinity satisfies the identity of discernibles:
+        s(x,y) = 1 ⟺ x = y.
 
-        For Hellinger Affinity, this property holds: the similarity is 1 if and only if
+        For Hellinger Affinity, this property holds: the similarity is 1 if and
+        only if
         the two distributions are identical.
 
         Parameters
@@ -377,7 +403,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
         Returns
         -------
         bool
-            True if the identity of discernibles property holds, False otherwise
+            True if the identity of discernibles property holds, False
+            otherwise
 
         Raises
         ------

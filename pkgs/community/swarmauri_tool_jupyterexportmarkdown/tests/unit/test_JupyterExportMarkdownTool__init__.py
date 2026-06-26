@@ -1,7 +1,8 @@
 """
 Unit tests for the swarmauri_tool_jupyterexportmarkdown package initialization.
 
-This module ensures that the __init__.py file correctly exposes the JupyterExportMarkdownTool
+This module ensures that the __init__.py file correctly exposes the
+JupyterExportMarkdownTool
 class and the __version__ attribute.
 """
 
@@ -13,7 +14,8 @@ from swarmauri_tool_jupyterexportmarkdown import (
 
 def test_jupyter_export_markdown_tool_existence() -> None:
     """
-    Test that the JupyterExportMarkdownTool class is properly exposed by the package.
+    Test that the JupyterExportMarkdownTool class is properly exposed by the
+    package.
     Verifies that the imported symbol is not None and is indeed a class.
     """
     assert JupyterExportMarkdownTool is not None, (

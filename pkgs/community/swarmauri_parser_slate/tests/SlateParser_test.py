@@ -44,7 +44,8 @@ def test_parser_serialization():
 @pytest.mark.unit
 def test_parser_success_mock_file_path():
     """
-    Test the parser's ability to successfully parse a PDF file and extract text.
+    Test the parser's ability to successfully parse a PDF file and extract
+    text.
     """
     os.chdir(os.path.dirname(__file__))
 
@@ -80,7 +81,8 @@ def test_parser_success_mock_file_path():
 @pytest.mark.unit
 def test_parser_success_file_path():
     """
-    Test the parser's ability to successfully read and parse a PDF file and extract text.
+    Test the parser's ability to successfully read and parse a PDF file and
+    extract text.
     """
     os.chdir(os.path.dirname(__file__))
 

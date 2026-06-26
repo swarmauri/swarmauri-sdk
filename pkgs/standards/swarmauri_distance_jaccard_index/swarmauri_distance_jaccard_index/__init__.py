@@ -4,7 +4,10 @@ import warnings
 from .JaccardIndexDistance import JaccardIndexDistance
 
 warnings.warn(
-    "swarmauri_distance_jaccard_index is deprecated and will be removed from the active workspace by v0.12.0.",
+    (
+        "swarmauri_distance_jaccard_index is deprecated and will be "
+        "removed from the active workspace by v0.12.0."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

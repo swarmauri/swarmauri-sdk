@@ -1,13 +1,18 @@
 """
 JupyterExecuteAndConvertTool.py
 
-This module defines the JupyterExecuteAndConvertTool, a component that executes a Jupyter
-notebook file and converts it to a specified format (e.g., HTML or PDF) using nbconvert.
-It leverages the ToolBase and ComponentBase classes from the swarmauri framework to integrate
+This module defines the JupyterExecuteAndConvertTool, a component that executes
+a Jupyter
+notebook file and converts it to a specified format (e.g., HTML or PDF) using
+nbconvert.
+It leverages the ToolBase and ComponentBase classes from the swarmauri
+framework to integrate
 seamlessly with the system's tool architecture.
 
-The JupyterExecuteAndConvertTool can handle timeouts, log the execution process, and return
-information about the converted file. Errors are handled gracefully and surfaced back to
+The JupyterExecuteAndConvertTool can handle timeouts, log the execution
+process, and return
+information about the converted file. Errors are handled gracefully and
+surfaced back to
 the caller as needed.
 """
 
@@ -27,18 +32,23 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterExecuteAndConvertTool")
 class JupyterExecuteAndConvertTool(ToolBase):
     """
-    JupyterExecuteAndConvertTool is a tool that executes a Jupyter notebook file via the
-    nbconvert CLI and then converts the executed notebook to a specified output format.
-    It handles timeouts, logs the process, and provides a return value that contains
+    JupyterExecuteAndConvertTool is a tool that executes a Jupyter notebook
+    file via the
+    nbconvert CLI and then converts the executed notebook to a specified output
+    format.
+    It handles timeouts, logs the process, and provides a return value that
+    contains
     the path to the converted file and the status of the operation.
 
     Attributes:
         version (str): The version of the JupyterExecuteAndConvertTool.
-        parameters (List[Parameter]): A list of parameters required to perform the
+        parameters (List[Parameter]): A list of parameters required to perform
+        the
             notebook execution and conversion.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExecuteAndConvertTool"]): The type identifier for the tool.
+        type (Literal["JupyterExecuteAndConvertTool"]): The type identifier for
+        the tool.
     """
 
     version: str = "1.0.0"
@@ -53,7 +63,10 @@ class JupyterExecuteAndConvertTool(ToolBase):
             Parameter(
                 name="output_format",
                 input_type="string",
-                description="The format to which the executed notebook should be converted (e.g., 'html', 'pdf').",
+                description=(
+                    "The format to which the executed notebook should be "
+                    "converted (e.g., 'html', 'pdf')."
+                ),
                 required=True,
                 enum=["html", "pdf"],
             ),
@@ -80,17 +93,22 @@ class JupyterExecuteAndConvertTool(ToolBase):
         execution_timeout: int = 600,
     ) -> Dict[str, Any]:
         """
-        Executes the specified Jupyter notebook file and converts it to the chosen output format.
+        Executes the specified Jupyter notebook file and converts it to the
+        chosen output format.
 
         Args:
             notebook_path (str): The path to the Jupyter notebook to execute.
-            output_format (str): The format for the output conversion. Defaults to "html".
-            execution_timeout (int): The maximum time (in seconds) allowed for execution.
+            output_format (str): The format for the output conversion. Defaults
+            to "html".
+            execution_timeout (int): The maximum time (in seconds) allowed for
+            execution.
                                      Defaults to 600 (10 minutes).
 
         Returns:
-            Dict[str, Any]: A dictionary containing the conversion status and path to the
-            output file. In case of an error, the dictionary keys "error" and "message"
+            Dict[str, Any]: A dictionary containing the conversion status and
+            path to the
+            output file. In case of an error, the dictionary keys "error" and
+            "message"
             will be set to describe the problem.
 
         Example:
@@ -139,11 +157,17 @@ class JupyterExecuteAndConvertTool(ToolBase):
 
         except subprocess.TimeoutExpired:
             logger.error(
-                f"Notebook execution timed out after {execution_timeout} seconds."
+                (
+                    f"Notebook execution timed out after {execution_timeout} "
+                    f"seconds."
+                )
             )
             return {
                 "error": "TimeoutExpired",
-                "message": f"Notebook execution timed out after {execution_timeout} seconds.",
+                "message": (
+                    f"Notebook execution timed out after {execution_timeout} "
+                    f"seconds."
+                ),
             }
         except subprocess.CalledProcessError as cpe:
             logger.error(
@@ -151,7 +175,10 @@ class JupyterExecuteAndConvertTool(ToolBase):
             )
             return {
                 "error": "ExecutionError",
-                "message": f"An error occurred while executing the notebook: {str(cpe)}",
+                "message": (
+                    f"An error occurred while executing the notebook: "
+                    f"{str(cpe)}"
+                ),
             }
         except Exception as e:
             logger.error(f"Unexpected error during execution: {str(e)}")
@@ -180,7 +207,11 @@ class JupyterExecuteAndConvertTool(ToolBase):
                 f"{os.path.splitext(executed_notebook)[0]}.{output_format}"
             )
             logger.info(
-                f"Notebook successfully converted to {output_format}. File: {converted_file}"
+                (
+                    f"Notebook successfully converted to {output_format}. "
+                    f"File: "
+                    f"{converted_file}"
+                )
             )
 
             return {"converted_file": converted_file, "status": "success"}
@@ -191,7 +222,10 @@ class JupyterExecuteAndConvertTool(ToolBase):
             )
             return {
                 "error": "ConversionError",
-                "message": f"An error occurred while converting the notebook: {str(cpe)}",
+                "message": (
+                    f"An error occurred while converting the notebook: "
+                    f"{str(cpe)}"
+                ),
             }
         except Exception as e:
             logger.error(f"Unexpected error during conversion: {str(e)}")

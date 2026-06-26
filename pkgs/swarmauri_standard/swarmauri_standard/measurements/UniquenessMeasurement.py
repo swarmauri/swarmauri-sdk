@@ -8,10 +8,12 @@ from swarmauri_base.ComponentBase import ComponentBase
 class UniquenessMeasurement(MeasurementBase):
     """
     Measurement for evaluating the uniqueness of values in a dataset.
-    Uniqueness is calculated as the percentage of distinct values relative to the total number of values.
+    Uniqueness is calculated as the percentage of distinct values relative to
+    the total number of values.
 
     Attributes:
-        type (Literal['UniquenessMeasurement']): Type identifier for the measurement
+        type (Literal['UniquenessMeasurement']): Type identifier for the
+        measurement
         unit (str): Unit of measurement (percentage)
         value (float): Stores the calculated uniqueness score
     """
@@ -26,7 +28,8 @@ class UniquenessMeasurement(MeasurementBase):
         Calculates the uniqueness score for different data types.
 
         Args:
-            data: Input data which can be a pandas DataFrame, List, or Dictionary
+            data: Input data which can be a pandas DataFrame, List, or
+            Dictionary
 
         Returns:
             float: Uniqueness score as a percentage (0-100)
@@ -62,7 +65,10 @@ class UniquenessMeasurement(MeasurementBase):
 
         else:
             raise ValueError(
-                "Unsupported data type. Please provide DataFrame, List, or Dict."
+                (
+                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
+                    "Dict."
+                )
             )
 
     def call(
@@ -91,7 +97,8 @@ class UniquenessMeasurement(MeasurementBase):
             df: Input DataFrame
 
         Returns:
-            Dict[str, float]: Dictionary mapping column names to their uniqueness scores
+            Dict[str, float]: Dictionary mapping column names to their
+            uniqueness scores
 
         Raises:
             ValueError: If input is not a pandas DataFrame

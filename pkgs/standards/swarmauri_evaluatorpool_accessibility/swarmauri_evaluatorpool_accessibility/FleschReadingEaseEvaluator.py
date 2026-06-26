@@ -21,11 +21,13 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     """
     Evaluator that computes the Flesch Reading Ease score for text content.
 
-    The Flesch Reading Ease score is a readability metric that uses sentence length
+    The Flesch Reading Ease score is a readability metric that uses sentence
+    length
     and syllable count to determine how easy a text is to read. The formula is:
     FRE = 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)
 
-    Higher scores (closer to 100) indicate text that is easier to read, while lower
+    Higher scores (closer to 100) indicate text that is easier to read, while
+    lower
     scores indicate more complex text.
 
     Attributes:
@@ -39,7 +41,9 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
     # public API
     # ------------------------------------------------------------------
     def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
-        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        """
+        Return ``{"score": float, "metadata": dict}`` for the given program.
+        """
         score, meta = self._compute_score(program, **kwargs)
         return {"score": score, "metadata": meta}
 
@@ -82,8 +86,10 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
 
         Returns:
             A tuple containing:
-                - float: The Flesch Reading Ease score (0-100, higher is easier to read)
-                - Dict[str, Any]: Metadata including sentence and syllable statistics
+                - float: The Flesch Reading Ease score (0-100, higher is easier
+                  to read)
+                - Dict[str, Any]: Metadata including sentence and syllable
+                  statistics
 
         Raises:
             ValueError: If the text cannot be processed
@@ -141,7 +147,7 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
 
         if self.logger:
             self.logger.info(
-                f"Flesch Reading Ease score: {fre_score:.2f} ({metadata['readability_interpretation']})"
+                f"Flesch Reading Ease score: {fre_score:.2f} ({metadata['readability_interpretation']})"  # noqa: E501
             )
         return fre_score, metadata
 
@@ -237,7 +243,8 @@ class FleschReadingEaseEvaluator(EvaluatorBase, ComponentBase):
 
     def _interpret_score(self, score: float) -> str:
         """
-        Provide a human-readable interpretation of the Flesch Reading Ease score.
+        Provide a human-readable interpretation of the Flesch Reading Ease
+        score.
 
         Args:
             score: The Flesch Reading Ease score (0-100)

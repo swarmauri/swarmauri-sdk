@@ -169,7 +169,10 @@ class SshKeyProvider(KeyProviderBase):
             ssh_pub = public
         else:
             raise ValueError(
-                "Provide either PEM private in 'material' or OpenSSH public in 'public'"
+                (
+                    "Provide either PEM private in 'material' or OpenSSH public "  # noqa: E501
+                    "in 'public'"
+                )
             )
 
         ref = KeyRef(

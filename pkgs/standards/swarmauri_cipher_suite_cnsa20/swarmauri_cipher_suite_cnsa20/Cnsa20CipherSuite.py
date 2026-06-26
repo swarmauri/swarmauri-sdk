@@ -109,7 +109,10 @@ class Cnsa20CipherSuite(CipherSuiteBase):
                 "wrap": {"default": "ML-KEM-768", "allowed": list(_KEM)},
             },
             "notes": [
-                "Includes ML-DSA, SLH-DSA, and ML-KEM selections from NSA CNSA 2.0.",
+                (
+                    "Includes ML-DSA, SLH-DSA, and ML-KEM selections from NSA "
+                    "CNSA 2.0."
+                ),
             ],
         }
 

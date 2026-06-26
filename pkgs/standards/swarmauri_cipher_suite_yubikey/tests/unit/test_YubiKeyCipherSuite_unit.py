@@ -91,7 +91,10 @@ def test_features_descriptor(cipher_suite: YubiKeyCipherSuite) -> None:
         "rsa_pss": {"mgf1": "hash-match", "saltLen": "hashLen"},
     }
     assert features["notes"] == [
-        "PIV-backed signing/unwrap; EdDSA allowed on non-FIPS models/firmware.",
+        (
+            "PIV-backed signing/unwrap; EdDSA allowed on non-FIPS "
+            "models/firmware."
+        ),
     ]
 
 

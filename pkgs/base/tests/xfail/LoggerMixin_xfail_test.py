@@ -1,7 +1,8 @@
 """
 Unit tests for LoggerMixin.
 
-These tests validate the logger initialization and configuration for models that inherit
+These tests validate the logger initialization and configuration for models
+that inherit
 from LoggerMixin.
 """
 
@@ -16,7 +17,8 @@ class DummyModel(LoggerMixin):
     """
     Dummy model for testing LoggerMixin.
 
-    This model is used to verify that LoggerMixin correctly initializes a logger,
+    This model is used to verify that LoggerMixin correctly initializes a
+    logger,
     using either the class-level default or a provided custom logger.
 
     Attributes:
@@ -29,9 +31,11 @@ class DummyModel(LoggerMixin):
 @pytest.mark.xfail
 def test_custom_logger_injection():
     """
-    Test that a custom logger passed during initialization is used by DummyModel.
+    Test that a custom logger passed during initialization is used by
+    DummyModel.
 
-    This test confirms that when a custom logger is provided, LoggerMixin assigns it to the instance,
+    This test confirms that when a custom logger is provided, LoggerMixin
+    assigns it to the instance,
     preserving the custom settings.
     """
     custom_logger = logging.getLogger("CustomLogger")

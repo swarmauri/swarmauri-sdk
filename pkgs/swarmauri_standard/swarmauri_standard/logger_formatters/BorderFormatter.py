@@ -41,7 +41,8 @@ class BorderFormatter(FormatterBase):
             self.message_format, self.date_format
         )
 
-        # Create a custom formatter that wraps the original formatter's output with borders
+        # Create a custom formatter that wraps the original formatter's output
+        # with borders
         class BorderedFormatter(logging.Formatter):
             def __init__(self, parent_formatter, border_formatter):
                 super().__init__()

@@ -19,7 +19,8 @@ class SkillExecutionTool(ToolBase):
     version: str = "0.1.0"
     name: str = "SkillExecutionTool"
     description: str = (
-        "Runs argv command arrays relative to a selected skill root and returns "
+        "Runs argv command arrays relative to a selected skill root and "
+        "returns "
         "structured subprocess results."
     )
     parameters: List[Parameter] = Field(
@@ -27,13 +28,17 @@ class SkillExecutionTool(ToolBase):
             Parameter(
                 name="skill_name",
                 input_type="string",
-                description="Name of the selected skill whose root should be used.",
+                description=(
+                    "Name of the selected skill whose root should be used."
+                ),
                 required=True,
             ),
             Parameter(
                 name="commands",
                 input_type="array",
-                description="One or more commands, each represented as an argv array.",
+                description=(
+                    "One or more commands, each represented as an argv array."
+                ),
                 required=True,
             ),
             Parameter(

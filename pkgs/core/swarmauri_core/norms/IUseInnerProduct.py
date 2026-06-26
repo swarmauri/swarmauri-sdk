@@ -15,7 +15,8 @@ class IUseInnerProduct(ABC):
     Abstract interface marking components using inner product geometry.
 
     This interface indicates dependency on inner product structure and defines
-    methods for operations that rely on inner product geometry, such as computing
+    methods for operations that rely on inner product geometry, such as
+    computing
     angles between vectors, verifying orthogonality, projection, and validating
     the parallelogram law.
     """

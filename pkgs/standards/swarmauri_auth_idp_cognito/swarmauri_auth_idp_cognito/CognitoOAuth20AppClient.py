@@ -13,7 +13,8 @@ from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 @ComponentBase.register_type(OAuth20AppClientBase, "CognitoOAuth20AppClient")
 class CognitoOAuth20AppClient(OAuth20AppClientBase):
-    """Request machine-to-machine access tokens from Cognito's OAuth 2.0 endpoint."""
+    """Request machine-to-machine access tokens from Cognito's OAuth 2.0
+    endpoint."""
 
     model_config = ConfigDict(extra="forbid")
 

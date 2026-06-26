@@ -34,7 +34,9 @@ class AuthorizeNetBillingProvider(
     WebhooksMixin,
     BillingProviderBase,
 ):
-    """Authorize.Net JSON API provider focusing on card transaction workflows."""
+    """
+    Authorize.Net JSON API provider focusing on card transaction workflows.
+    """
 
     CAPABILITIES = frozenset(
         {
@@ -90,7 +92,10 @@ class AuthorizeNetBillingProvider(
         )
         if response.status_code >= 400:
             raise RuntimeError(
-                f"Authorize.Net API error {response.status_code}: {response.text}"
+                (
+                    f"Authorize.Net API error {response.status_code}: "
+                    f"{response.text}"
+                )
             )
         raw = response.content.decode("utf-8-sig")
         data = json.loads(raw)
@@ -100,7 +105,8 @@ class AuthorizeNetBillingProvider(
             raise RuntimeError(str(messages.get("message", result)))
         return result
 
-    # --------------------------------------------------------------------- utils
+    # ---------------------------------------------------------------------
+    # utils
     @staticmethod
     def _dump(obj: Any) -> Mapping[str, Any]:
         if hasattr(obj, "model_dump"):
@@ -118,7 +124,8 @@ class AuthorizeNetBillingProvider(
             "payload": payload,
         }
 
-    # ----------------------------------------------------------- online payments
+    # ----------------------------------------------------------- online
+    # payments
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
         amount = int(req.resolve("amount_minor") or 0)
         currency = (req.resolve("currency") or "USD").upper()
@@ -126,7 +133,10 @@ class AuthorizeNetBillingProvider(
         payment = metadata.get("payment") or metadata.get("opaque_data")
         if not payment:
             raise ValueError(
-                "Authorize.Net payments require metadata['payment'] or metadata['opaque_data']"
+                (
+                    "Authorize.Net payments require metadata['payment'] or "
+                    "metadata['opaque_data']"
+                )
             )
         if "dataDescriptor" in payment or "dataValue" in payment:
             payment_payload = {"opaqueData": payment}
@@ -202,7 +212,8 @@ class AuthorizeNetBillingProvider(
             "raw": raw,
         }
 
-    # --------------------------------------------------------------------- refund
+    # ---------------------------------------------------------------------
+    # refund
     def _create_refund(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -219,7 +230,7 @@ class AuthorizeNetBillingProvider(
             {
                 "transactionRequest": {
                     "transactionType": "refundTransaction",
-                    "amount": f"{int(req.resolve('amount_minor') or 0) / 100:.2f}",
+                    "amount": f"{int(req.resolve('amount_minor') or 0) / 100:.2f}",  # noqa: E501
                     "payment": payment_payload,
                     "refTransId": getattr(payment, "id", ""),
                 }
@@ -245,7 +256,8 @@ class AuthorizeNetBillingProvider(
             "raw": raw,
         }
 
-    # ------------------------------------------------------------------- customer
+    # -------------------------------------------------------------------
+    # customer
     def _create_customer(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -285,7 +297,8 @@ class AuthorizeNetBillingProvider(
             payment_method_id=getattr(pm, "id", ""),
         )
 
-    # --------------------------------------------------------------- payment info
+    # --------------------------------------------------------------- payment
+    # info
     def _create_payment_method(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -331,7 +344,8 @@ class AuthorizeNetBillingProvider(
             )
         return methods
 
-    # --------------------------------------------------------------------- reports
+    # ---------------------------------------------------------------------
+    # reports
     def _create_report(
         self, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -346,7 +360,8 @@ class AuthorizeNetBillingProvider(
             ),
         }
 
-    # ------------------------------------------------------------------------ risk
+    # ------------------------------------------------------------------------
+    # risk
     def _verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
@@ -374,7 +389,8 @@ class AuthorizeNetBillingProvider(
             },
         )
 
-    # --------------------------------------------------------------------- webhooks
+    # ---------------------------------------------------------------------
+    # webhooks
     def _parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> Mapping[str, Any]:

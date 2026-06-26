@@ -16,7 +16,9 @@ from swarmauri_core.billing import (
 
 
 class BillingProviderBase(IBillingProvider, ComponentBase):
-    """Base class for billing providers shared across concrete implementations."""
+    """
+    Base class for billing providers shared across concrete implementations.
+    """
 
     CAPABILITIES: ClassVar[FrozenSet[Capability]] = ALL_CAPABILITIES
 

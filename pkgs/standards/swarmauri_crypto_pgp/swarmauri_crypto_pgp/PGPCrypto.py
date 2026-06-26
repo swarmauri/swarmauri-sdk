@@ -4,11 +4,13 @@ Implements the ICrypto contract using:
 - AES-256-GCM for symmetric encrypt/decrypt (AEAD)
 - OpenPGP public-key encryption for:
     • wrapping the session key to many recipients (KEM+AEAD mode)
-    • sealing/unsealing (direct public-key encryption of plaintext) for one or many
+    • sealing/unsealing (direct public-key encryption of plaintext) for one or
+    many
 
 Notes
 -----
-- For wrap/encrypt_for_many/seal, ``KeyRef.public`` must contain an ASCII-armored
+- For wrap/encrypt_for_many/seal, ``KeyRef.public`` must contain an
+  ASCII-armored
   OpenPGP public key (as produced by ``gpg --armor --export``)
 - For unwrap/unseal, ``KeyRef.material`` must contain an ASCII-armored OpenPGP
   private key (as produced by ``gpg --armor --export-secret-keys``)
@@ -47,7 +49,8 @@ _SEAL_ALG = "OpenPGP-SEAL"
 
 @ComponentBase.register_type(CryptoBase, "PGPCrypto")
 class PGPCrypto(CryptoBase):
-    """Concrete implementation of the ICrypto contract using AES-GCM and OpenPGP."""
+    """Concrete implementation of the ICrypto contract using AES-GCM and
+    OpenPGP."""
 
     type: Literal["PGPCrypto"] = "PGPCrypto"
 
@@ -130,7 +133,8 @@ class PGPCrypto(CryptoBase):
         return aead.decrypt(ct.nonce, blob, aad or ct.aad)
 
     # ─────────────────────────── sealing ───────────────────────────
-    # (OpenPGP public-key encryption of plaintext; gpg handles hybrid internally)
+    # (OpenPGP public-key encryption of plaintext; gpg handles hybrid
+    # internally)
 
     async def seal(
         self,
@@ -175,7 +179,11 @@ class PGPCrypto(CryptoBase):
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient_priv.material is None:
             raise ValueError(
-                "KeyRef.material must contain ASCII-armored OpenPGP private key"
+                (
+                    "KeyRef.material must contain ASCII-armored OpenPGP "
+                    "private "
+                    "key"
+                )
             )
 
         passphrase = None
@@ -219,7 +227,11 @@ class PGPCrypto(CryptoBase):
                 for r in recipients:
                     if r.public is None:
                         raise ValueError(
-                            "Recipient KeyRef.public must contain ASCII-armored OpenPGP public key"
+                            (
+                                "Recipient KeyRef.public must contain "
+                                "ASCII-armored OpenPGP "
+                                "public key"
+                            )
                         )
                     import_result = gpg.import_keys(
                         r.public.decode()
@@ -258,7 +270,8 @@ class PGPCrypto(CryptoBase):
                 aad=None,  # AAD is not bound in OpenPGP-seal mode
             )
 
-        # 2) Default KEM+AEAD path (shared AES-GCM ct + PGP-wrapped session key)
+        # 2) Default KEM+AEAD path (shared AES-GCM ct + PGP-wrapped session
+        # key)
         enc_alg = self._normalize_aead_alg(enc_alg)
         if enc_alg != _AEAD_DEFAULT:
             raise UnsupportedAlgorithm(f"Unsupported enc_alg: {enc_alg}")
@@ -278,7 +291,11 @@ class PGPCrypto(CryptoBase):
             for r in recipients:
                 if r.public is None:
                     raise ValueError(
-                        "Recipient KeyRef.public must contain ASCII-armored OpenPGP public key"
+                        (
+                            "Recipient KeyRef.public must contain "
+                            "ASCII-armored OpenPGP "
+                            "public key"
+                        )
                     )
                 import_result = gpg.import_keys(
                     r.public.decode()
@@ -367,7 +384,11 @@ class PGPCrypto(CryptoBase):
             )
         if kek.material is None:
             raise ValueError(
-                "KeyRef.material must contain ASCII-armored OpenPGP private key"
+                (
+                    "KeyRef.material must contain ASCII-armored OpenPGP "
+                    "private "
+                    "key"
+                )
             )
 
         passphrase = None

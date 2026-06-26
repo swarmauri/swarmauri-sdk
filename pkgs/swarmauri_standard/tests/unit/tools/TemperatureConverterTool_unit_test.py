@@ -55,9 +55,9 @@ def test_call(from_unit, to_unit, value, expected_result):
             f"Expected keys {expected_keys} but got {result.keys()}"
         )
         assert isinstance(result.get(f"temperature_in_{to_unit}"), str), (
-            f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"
+            f"Expected str, but got {type(result.get(f'temperature_in_{to_unit}')).__name__}"  # noqa: E501
         )
 
         assert result.get(f"temperature_in_{to_unit}") == expected_result, (
-            f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"
+            f"Expected Temperature {expected_result}, but got {result.get(f'temperature_in_{to_unit}')}"  # noqa: E501
         )

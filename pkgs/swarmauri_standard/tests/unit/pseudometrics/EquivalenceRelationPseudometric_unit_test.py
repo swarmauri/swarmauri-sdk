@@ -13,17 +13,20 @@ logger = logging.getLogger(__name__)
 
 # Define simple equivalence relations for testing
 def mod3_equivalence(x: int, y: int) -> bool:
-    """Equivalence relation where numbers are equivalent if they have the same remainder when divided by 3."""
+    """Equivalence relation where numbers are equivalent if they have the same
+    remainder when divided by 3."""
     return x % 3 == y % 3
 
 
 def string_length_equivalence(x: str, y: str) -> bool:
-    """Equivalence relation where strings are equivalent if they have the same length."""
+    """Equivalence relation where strings are equivalent if they have the same
+    length."""
     return len(x) == len(y)
 
 
 def list_length_equivalence(x: List[Any], y: List[Any]) -> bool:
-    """Equivalence relation where lists are equivalent if they have the same length."""
+    """Equivalence relation where lists are equivalent if they have the same
+    length."""
     return len(x) == len(y)
 
 
@@ -71,7 +74,8 @@ def always_equivalent_pseudometric():
 
 @pytest.fixture
 def never_equivalent_pseudometric():
-    """Fixture for a pseudometric where nothing is equivalent (except to itself)."""
+    """Fixture for a pseudometric where nothing is equivalent (except to
+    itself)."""
     return EquivalenceRelationPseudometric(
         equivalence_relation=never_equivalent
     )
@@ -176,7 +180,8 @@ def test_distances_matrix(mod3_pseudometric):
 def test_distance_error_handling():
     """Test error handling in the distance method."""
 
-    # Create a pseudometric with an equivalence relation that raises an exception
+    # Create a pseudometric with an equivalence relation that raises an
+    # exception
     def error_relation(x, y):
         raise ValueError("Test error")
 
@@ -194,7 +199,8 @@ def test_distance_error_handling():
 def test_distances_error_handling():
     """Test error handling in the distances method."""
 
-    # Create a pseudometric with an equivalence relation that raises an exception
+    # Create a pseudometric with an equivalence relation that raises an
+    # exception
     def error_relation(x, y):
         raise ValueError("Test error")
 
@@ -204,7 +210,10 @@ def test_distances_error_handling():
 
     with pytest.raises(
         ValueError,
-        match="Failed to calculate distances matrix: Failed to calculate distance: Test error",
+        match=(
+            "Failed to calculate distances matrix: Failed to calculate "
+            "distance: Test error"
+        ),
     ):
         pseudometric.distances([1, 2], [3, 4])
 
@@ -242,7 +251,8 @@ def test_check_symmetry(mod3_pseudometric):
 def test_check_symmetry_error_handling():
     """Test error handling in the check_symmetry method."""
 
-    # Create a pseudometric with an equivalence relation that raises an exception
+    # Create a pseudometric with an equivalence relation that raises an
+    # exception
     def error_relation(x, y):
         raise ValueError("Test error")
 
@@ -252,7 +262,10 @@ def test_check_symmetry_error_handling():
 
     with pytest.raises(
         ValueError,
-        match="Failed to check symmetry: Failed to calculate distance: Test error",
+        match=(
+            "Failed to check symmetry: Failed to calculate distance: Test "
+            "error"
+        ),
     ):
         pseudometric.check_symmetry(1, 2)
 
@@ -270,7 +283,8 @@ def test_check_triangle_inequality(mod3_pseudometric):
 def test_check_triangle_inequality_error_handling():
     """Test error handling in the check_triangle_inequality method."""
 
-    # Create a pseudometric with an equivalence relation that raises an exception
+    # Create a pseudometric with an equivalence relation that raises an
+    # exception
     def error_relation(x, y):
         raise ValueError("Test error")
 
@@ -280,7 +294,10 @@ def test_check_triangle_inequality_error_handling():
 
     with pytest.raises(
         ValueError,
-        match="Failed to check triangle inequality: Failed to calculate distance: Test error",
+        match=(
+            "Failed to check triangle inequality: Failed to calculate "
+            "distance: Test error"
+        ),
     ):
         pseudometric.check_triangle_inequality(1, 2, 3)
 
@@ -299,7 +316,8 @@ def test_check_weak_identity(mod3_pseudometric):
 def test_check_weak_identity_error_handling():
     """Test error handling in the check_weak_identity method."""
 
-    # Create a pseudometric with an equivalence relation that raises an exception
+    # Create a pseudometric with an equivalence relation that raises an
+    # exception
     def error_relation(x, y):
         raise ValueError("Test error")
 

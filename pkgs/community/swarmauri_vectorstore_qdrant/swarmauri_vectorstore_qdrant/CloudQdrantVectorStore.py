@@ -36,8 +36,10 @@ class CloudQdrantVectorStore(
     VectorStoreBase,
 ):
     """
-    CloudQdrantVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging Qdrant as the backend.
+    CloudQdrantVectorStore is a concrete implementation that integrates
+    functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging
+    Qdrant as the backend.
     """
 
     type: Literal["CloudQdrantVectorStore"] = "CloudQdrantVectorStore"
@@ -58,7 +60,8 @@ class CloudQdrantVectorStore(
 
     def connect(self) -> None:
         """
-        Connects to the Qdrant cloud vector store using the provided credentials.
+        Connects to the Qdrant cloud vector store using the provided
+        credentials.
         """
         if self.client is None:
             self.client = QdrantClient(
@@ -80,7 +83,8 @@ class CloudQdrantVectorStore(
                     size=self.vector_size, distance=Distance.COSINE
                 )
             except TypeError:
-                # Unit tests may patch VectorParams with a lightweight placeholder.
+                # Unit tests may patch VectorParams with a lightweight
+                # placeholder.
                 vectors_config = {
                     "size": self.vector_size,
                     "distance": Distance.COSINE,
@@ -132,7 +136,8 @@ class CloudQdrantVectorStore(
         Add multiple documents to the document store in a batch operation.
 
         Parameters:
-            documents (List[Document]): A list of documents to be added to the store.
+            documents (List[Document]): A list of documents to be added to the
+            store.
         """
         points = [
             PointStruct(
@@ -155,7 +160,8 @@ class CloudQdrantVectorStore(
             id (str): The unique identifier of the document to retrieve.
 
         Returns:
-            Union[Document, None]: The requested document if found; otherwise, None.
+            Union[Document, None]: The requested document if found; otherwise,
+            None.
         """
         response = self.client.retrieve(
             collection_name=self.collection_name,

@@ -13,7 +13,9 @@ from .CognitoLoginMixin import CognitoLoginMixin
 
 @ComponentBase.register_type(OIDC10LoginBase, "CognitoOIDC10Login")
 class CognitoOIDC10Login(CognitoLoginMixin, OIDC10LoginBase):
-    """AWS Cognito OIDC 1.0 Authorization Code flow with ID token validation."""
+    """
+    AWS Cognito OIDC 1.0 Authorization Code flow with ID token validation.
+    """
 
     issuer: str
     client_id: str

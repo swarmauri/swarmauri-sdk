@@ -7,7 +7,8 @@ class IVectorize(ABC):
     """
     Interface for converting text to vectors.
     Implementations of this interface transform input text into numerical
-    vectors that can be used in machine learning models, similarity calculations,
+    vectors that can be used in machine learning models, similarity
+    calculations,
     and other vector-based operations.
     """
 

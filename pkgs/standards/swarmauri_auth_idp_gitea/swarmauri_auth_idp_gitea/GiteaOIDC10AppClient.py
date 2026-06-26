@@ -14,7 +14,9 @@ from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 @ComponentBase.register_type(OIDC10AppClientBase, "GiteaOIDC10AppClient")
 class GiteaOIDC10AppClient(OIDC10AppClientBase):
-    """Request client credentials tokens using Gitea's OIDC discovery metadata."""
+    """
+    Request client credentials tokens using Gitea's OIDC discovery metadata.
+    """
 
     model_config = ConfigDict(extra="forbid")
 

@@ -45,7 +45,8 @@ def test_model_post_init():
 @pytest.mark.unit
 def test_compile_formatter(formatter):
     """
-    Test that compile_formatter returns a logging.Formatter with the format method overridden.
+    Test that compile_formatter returns a logging.Formatter with the format
+    method overridden.
     """
     log_formatter = formatter.compile_formatter()
     assert isinstance(log_formatter, logging.Formatter)
@@ -66,7 +67,8 @@ def test_compile_formatter(formatter):
 )
 def test_format_record_with_different_fields(fields, expected_parts):
     """
-    Test that format_record correctly formats log records with different field configurations.
+    Test that format_record correctly formats log records with different field
+    configurations.
 
     Args:
         fields: List of fields to include in the formatter
@@ -98,7 +100,8 @@ def test_format_record_with_different_fields(fields, expected_parts):
 @pytest.mark.unit
 def test_format_record_with_extra_attributes():
     """
-    Test that format_record includes extra attributes when include_extra is True.
+    Test that format_record includes extra attributes when include_extra is
+    True.
     """
     formatter = KeyValueFormatter(include_extra=True)
 
@@ -132,7 +135,8 @@ def test_format_record_with_extra_attributes():
 @pytest.mark.unit
 def test_format_record_without_extra_attributes():
     """
-    Test that format_record excludes extra attributes when include_extra is False.
+    Test that format_record excludes extra attributes when include_extra is
+    False.
     """
     formatter = KeyValueFormatter(include_extra=False)
 

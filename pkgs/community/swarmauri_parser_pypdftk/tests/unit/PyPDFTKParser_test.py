@@ -43,7 +43,8 @@ def test_parser_serialization():
 @pytest.mark.unit
 def test_parser_success():
     """
-    Test the parser's ability to successfully parse a PDF and extract data fields.
+    Test the parser's ability to successfully parse a PDF and extract data
+    fields.
     """
     parser = Parser()
     file_path = "resources/demo.pdf"

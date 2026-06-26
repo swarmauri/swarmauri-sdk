@@ -28,26 +28,33 @@ class FleschKincaidTool(ToolBase):
         Parameter(
             name="input_text",
             input_type="string",
-            description="The input text for which to calculate the Flesch-Kincaid scores.",
+            description=(
+                "The input text for which to calculate the Flesch-Kincaid "
+                "scores."
+            ),
             required=True,
         )
     ]
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, float]:
         """
-        Executes the Flesch-Kincaid tool and returns both the Reading Ease and Grade Level scores.
+        Executes the Flesch-Kincaid tool and returns both the Reading Ease and
+        Grade Level scores.
 
         Flesch Reading Ease formula:
-        Reading Ease = 206.835 - 1.015 * (words/sentences) - 84.6 * (syllables/words)
+        Reading Ease = 206.835 - 1.015 * (words/sentences) - 84.6 *
+        (syllables/words)
 
         Flesch-Kincaid Grade Level formula:
-        Grade Level = 0.39 * (words/sentences) + 11.8 * (syllables/words) - 15.59
+        Grade Level = 0.39 * (words/sentences) + 11.8 * (syllables/words) -
+        15.59
 
         Parameters:
             data (Dict[str, Any]): The input data containing "input_text".
 
         Returns:
-            Dict[str, float]: A dictionary with 'reading_ease' and 'grade_level' scores.
+            Dict[str, float]: A dictionary with 'reading_ease' and
+            'grade_level' scores.
 
         Raises:
             ValueError: If the input data is invalid.

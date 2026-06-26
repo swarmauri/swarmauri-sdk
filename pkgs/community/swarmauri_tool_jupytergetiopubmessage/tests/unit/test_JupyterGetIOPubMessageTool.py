@@ -1,8 +1,10 @@
 """
 Unit tests for the JupyterGetIOPubMessageTool class.
 
-This module contains pytest-based test cases for verifying the functionality and correctness
-of the JupyterGetIOPubMessageTool class. It uses mock WebSocket objects to simulate the
+This module contains pytest-based test cases for verifying the functionality
+and correctness
+of the JupyterGetIOPubMessageTool class. It uses mock WebSocket objects to
+simulate the
 behavior of a Jupyter kernel connection.
 """
 
@@ -50,7 +52,8 @@ def mock_websocket(monkeypatch):
 
 def test_init():
     """
-    Tests the basic attributes of the JupyterGetIOPubMessageTool upon instantiation.
+    Tests the basic attributes of the JupyterGetIOPubMessageTool upon
+    instantiation.
     """
     tool = JupyterGetIOPubMessageTool()
     assert tool.version == "1.0.0", "Tool version should be 1.0.0"
@@ -74,7 +77,8 @@ def test_init():
 
 def test_retrieves_messages(mock_websocket):
     """
-    Tests that JupyterGetIOPubMessageTool correctly retrieves various IOPub messages and stops
+    Tests that JupyterGetIOPubMessageTool correctly retrieves various IOPub
+    messages and stops
     on an idle status message without timing out.
     """
     # Prepare mock messages
@@ -138,7 +142,8 @@ def test_retrieves_messages(mock_websocket):
 @pytest.mark.parametrize("idle_messages", [[], None])
 def test_timeout(mock_websocket, idle_messages):
     """
-    Tests that JupyterGetIOPubMessageTool correctly reports a timeout when no idle status message
+    Tests that JupyterGetIOPubMessageTool correctly reports a timeout when no
+    idle status message
     is received within the specified duration.
     """
     # Add messages that never include an idle status.
@@ -162,10 +167,12 @@ def test_timeout(mock_websocket, idle_messages):
         ]
     )
 
-    # Patch time.time to simulate passage of time so we trigger timeout quickly.
+    # Patch time.time to simulate passage of time so we trigger timeout
+    # quickly.
     with patch.object(time, "time") as mock_time:
         start = 1000.0
-        # Create a list of timestamps. Once exhausted, fake_time() will always return the final time.
+        # Create a list of timestamps. Once exhausted, fake_time() will always
+        # return the final time.
         times = [start, start + 1.0, start + 1.5, start + 2.0, start + 2.5]
 
         def fake_time():
@@ -186,7 +193,8 @@ def test_timeout(mock_websocket, idle_messages):
 
 def test_error_handling(mock_websocket):
     """
-    Tests that JupyterGetIOPubMessageTool handles error messages properly and logs the traceback.
+    Tests that JupyterGetIOPubMessageTool handles error messages properly and
+    logs the traceback.
     """
     error_traceback = [
         "Traceback (most recent call last):",

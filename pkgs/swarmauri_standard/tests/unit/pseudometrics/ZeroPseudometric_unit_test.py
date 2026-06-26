@@ -56,7 +56,8 @@ def test_distance_always_returns_zero(zero_pseudometric):
 @pytest.mark.unit
 def test_distances_returns_matrix_of_zeros(zero_pseudometric):
     """
-    Test that the distances method returns a matrix of zeros with correct dimensions.
+    Test that the distances method returns a matrix of zeros with correct
+    dimensions.
     """
     # Test cases with different collection sizes
     test_cases = [
@@ -232,7 +233,8 @@ def test_distance_parametrized(zero_pseudometric, x, y):
 @pytest.mark.unit
 def test_serialization_deserialization():
     """
-    Test that the ZeroPseudometric can be serialized and deserialized correctly.
+    Test that the ZeroPseudometric can be serialized and deserialized
+    correctly.
     """
     zero_pseudometric = ZeroPseudometric()
 

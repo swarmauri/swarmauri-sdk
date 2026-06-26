@@ -184,7 +184,7 @@ def test_http_signature_uses_httpsig_hmac_shape() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_request_applies_security_headers_and_verifies_response_jws() -> (
+async def test_request_applies_security_headers_and_verifies_response_jws() -> (  # noqa: E501
     None
 ):
     response_body = b'{"ok":true}'

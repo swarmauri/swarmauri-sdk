@@ -12,7 +12,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ImageGenBase, "OpenAIImgGenModel")
 class OpenAIImgGenModel(ImageGenBase):
     """
-    OpenAIImgGenModel is a class for generating images using OpenAI's DALL-E models.
+    OpenAIImgGenModel is a class for generating images using OpenAI's DALL-E
+    models.
 
     Attributes:
         api_key (str): The API key for authenticating with the OpenAI API.
@@ -38,7 +39,8 @@ class OpenAIImgGenModel(ImageGenBase):
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **kwargs (Dict[str, Any]): Additional keyword arguments, which may include api_key and allowed_models.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may
+            include api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
@@ -184,7 +186,8 @@ class OpenAIImgGenModel(ImageGenBase):
         max_concurrent: int = 5,
     ) -> List[List[str]]:
         """
-        Asynchronously process multiple prompts for image generation with controlled concurrency.
+        Asynchronously process multiple prompts for image generation with
+        controlled concurrency.
 
         Parameters:
         - prompts (List[str]): List of prompts.

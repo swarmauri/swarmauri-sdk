@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_measurement_tokencountestimator.TokenCountEstimatorMeasurement import (
+from swarmauri_measurement_tokencountestimator.TokenCountEstimatorMeasurement import (  # noqa: E501
     TokenCountEstimatorMeasurement as Measurement,
 )
 

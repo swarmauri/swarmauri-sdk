@@ -78,7 +78,8 @@ def test_is_abstract_class(evaluator):
 @pytest.mark.unit
 def test_has_abstractmethod_decorator(evaluator):
     """
-    Test the _has_abstractmethod_decorator method with various method definitions.
+    Test the _has_abstractmethod_decorator method with various method
+    definitions.
     """
     # Method with abstractmethod decorator
     method_code = """
@@ -155,7 +156,8 @@ class TestClass(ABC):
 @pytest.mark.unit
 def test_check_file_with_non_compliant_code(evaluator):
     """
-    Test the _check_file method with code that doesn't properly use abstractmethod.
+    Test the _check_file method with code that doesn't properly use
+    abstractmethod.
     """
     file_path = "test_file.py"
     source_code = """

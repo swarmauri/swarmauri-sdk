@@ -28,7 +28,8 @@ def default_pseudometric():
 @pytest.fixture
 def custom_pseudometrics():
     """
-    Fixture that returns various LpPseudometric instances with different parameters.
+    Fixture that returns various LpPseudometric instances with different
+    parameters.
 
     Returns
     -------
@@ -156,7 +157,8 @@ def test_distance_with_coordinates():
     pseudometric = LpPseudometric(p=2, coordinates=[0, 2])
     x = [1, 10, 2]
     y = [0, 5, 0]
-    # Only coordinates 0 and 2 are considered, so distance = sqrt(1^2 + 2^2) = sqrt(5)
+    # Only coordinates 0 and 2 are considered, so distance = sqrt(1^2 + 2^2) =
+    # sqrt(5)
     expected = math.sqrt(5)
     assert math.isclose(pseudometric.distance(x, y), expected, abs_tol=1e-10)
 
@@ -173,7 +175,8 @@ def test_distance_with_callable():
 
     pseudometric = LpPseudometric(p=2, domain=(0, 1))
     # Approximation of the L2 distance between f and g over [0,1]
-    # The exact value would be sqrt(integral of (t^2 - 2*t^2)^2 dt from 0 to 1) = sqrt(1/5)
+    # The exact value would be sqrt(integral of (t^2 - 2*t^2)^2 dt from 0 to 1)
+    # = sqrt(1/5)
     # But the implementation uses sampling, so we allow for some error
     distance = pseudometric.distance(f, g)
     assert 0.4 < distance < 0.5
@@ -247,7 +250,8 @@ def test_check_weak_identity_same_point(default_pseudometric):
 
 @pytest.mark.unit
 def test_check_weak_identity_different_points_with_coordinates():
-    """Test the check_weak_identity method with different points but same selected coordinates."""
+    """Test the check_weak_identity method with different points but same
+    selected coordinates."""
     pseudometric = LpPseudometric(p=2, coordinates=[0, 1])
     x = [1, 2, 3]
     y = [

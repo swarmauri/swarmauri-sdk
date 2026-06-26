@@ -31,17 +31,24 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "AnthropicToolModel")
 class AnthropicToolModel(ToolLLMBase):
     """
-    A model class for integrating with the Anthropic API to enable tool-assisted AI interactions.
+    A model class for integrating with the Anthropic API to enable
+    tool-assisted AI interactions.
 
-    This class supports various functionalities, including synchronous and asynchronous message prediction,
-    streaming responses, and batch processing of conversations. It utilizes Anthropic's schema and tool-conversion
-    techniques to facilitate enhanced interactions involving tool usage within conversations.
+    This class supports various functionalities, including synchronous and
+    asynchronous message prediction,
+    streaming responses, and batch processing of conversations. It utilizes
+    Anthropic's schema and tool-conversion
+    techniques to facilitate enhanced interactions involving tool usage within
+    conversations.
 
     Attributes:
-        api_key (str): The API key used for authenticating requests to the Anthropic API.
-        allowed_models (List[str]): A list of allowed model versions that can be used.
+        api_key (str): The API key used for authenticating requests to the
+        Anthropic API.
+        allowed_models (List[str]): A list of allowed model versions that can
+        be used.
         name (str): The default model name used for predictions.
-        type (Literal): The type of the model, which is set to "AnthropicToolModel".
+        type (Literal): The type of the model, which is set to
+        "AnthropicToolModel".
 
     Linked to Allowed Models: https://docs.anthropic.com/en/docs/build-with-claude/tool-use
     Link to API KEY: https://console.anthropic.com/settings/keys
@@ -101,7 +108,8 @@ class AnthropicToolModel(ToolLLMBase):
             tools (Dict): A dictionary of tools to be converted.
 
         Returns:
-            List[Dict[str, Any]]: A list of tool schemas converted to the Anthropic format.
+            List[Dict[str, Any]]: A list of tool schemas converted to the
+            Anthropic format.
         """
         schema_result = [
             AnthropicSchemaConverter().convert(tools[tool]) for tool in tools
@@ -113,7 +121,8 @@ class AnthropicToolModel(ToolLLMBase):
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats a list of messages to a schema that matches the Anthropic API's expectations.
+        Formats a list of messages to a schema that matches the Anthropic API's
+        expectations.
 
         Args:
             messages (List[Type[MessageBase]]): The conversation history.
@@ -136,7 +145,8 @@ class AnthropicToolModel(ToolLLMBase):
         messages: List[Type[MessageBase]],
     ) -> List[Type[MessageBase]]:
         """
-        Processes tool calls from Anthropic API response and adds the results to messages.
+        Processes tool calls from Anthropic API response and adds the results
+        to messages.
 
         Args:
             tool_calls (List): The tool calls from Anthropic response.
@@ -192,18 +202,24 @@ class AnthropicToolModel(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> Conversation:
         """
-        Predicts the response based on the given conversation and optional toolkit.
+        Predicts the response based on the given conversation and optional
+        toolkit.
 
         Args:
             conversation (IConversation): The current conversation object.
-            toolkit: Optional toolkit object containing tools for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            multiturn (bool): Whether to process multiple turns in a single call.
-            temperature (float): The temperature for the model's output randomness.
+            toolkit: Optional toolkit object containing tools for tool-based
+            responses.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto' for automatic tool usage.
+            multiturn (bool): Whether to process multiple turns in a single
+            call.
+            temperature (float): The temperature for the model's output
+            randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            IConversation: The updated conversation with the assistant's response.
+            IConversation: The updated conversation with the assistant's
+            response.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -252,7 +268,8 @@ class AnthropicToolModel(ToolLLMBase):
 
         conversation.add_messages(tool_messages)
 
-        # For multiturn, we need to make a follow-up request with the tool results
+        # For multiturn, we need to make a follow-up request with the tool
+        # results
         if multiturn and tool_calls:
             # Create a new payload without tools
             followup_payload = {
@@ -296,18 +313,24 @@ class AnthropicToolModel(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> IConversation:
         """
-        Asynchronous version of the `predict` method to handle concurrent processing of requests.
+        Asynchronous version of the `predict` method to handle concurrent
+        processing of requests.
 
         Args:
             conversation (IConversation): The current conversation object.
-            toolkit: Optional toolkit object containing tools for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            multiturn (bool): Whether to process multiple turns in a single call.
-            temperature (float): The temperature for the model's output randomness.
+            toolkit: Optional toolkit object containing tools for tool-based
+            responses.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto' for automatic tool usage.
+            multiturn (bool): Whether to process multiple turns in a single
+            call.
+            temperature (float): The temperature for the model's output
+            randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            IConversation: The updated conversation with the assistant's response.
+            IConversation: The updated conversation with the assistant's
+            response.
         """
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f"formatted_messages: {formatted_messages}")
@@ -358,7 +381,8 @@ class AnthropicToolModel(ToolLLMBase):
 
         conversation.add_messages(tool_messages)
 
-        # For multiturn, we need to make a follow-up request with the tool results
+        # For multiturn, we need to make a follow-up request with the tool
+        # results
         if multiturn and tool_calls:
             # Create a new payload without tools
             followup_payload = {
@@ -396,12 +420,14 @@ class AnthropicToolModel(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> Iterator[str]:
         """
-        Streams the response for a conversation in real-time, yielding text as it is received.
+        Streams the response for a conversation in real-time, yielding text as
+        it is received.
 
         Args:
             conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto'.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto'.
             temperature (float): Controls randomness in the output.
             max_tokens (int): Maximum tokens in the response.
 
@@ -510,17 +536,20 @@ class AnthropicToolModel(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
         """
-        Asynchronously streams the response for a conversation, yielding text in real-time.
+        Asynchronously streams the response for a conversation, yielding text
+        in real-time.
 
         Args:
             conversation (IConversation): The current conversation object.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto'.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto'.
             temperature (float): Controls randomness in the output.
             max_tokens (int): Maximum tokens in the response.
 
         Yields:
-            AsyncIterator[str]: Chunks of text received from the streaming response.
+            AsyncIterator[str]: Chunks of text received from the streaming
+            response.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -620,14 +649,18 @@ class AnthropicToolModel(ToolLLMBase):
         Processes a batch of conversations in a synchronous manner.
 
         Args:
-            conversations (List[IConversation]): A list of conversation objects to process.
+            conversations (List[IConversation]): A list of conversation objects
+            to process.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            temperature (float): The temperature for the model's output randomness.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto' for automatic tool usage.
+            temperature (float): The temperature for the model's output
+            randomness.
             max_tokens (int): The maximum number of tokens in the response.
 
         Returns:
-            List[IConversation]: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with
+            the assistant's responses.
         """
         results = []
         for conv in conversations:
@@ -651,18 +684,24 @@ class AnthropicToolModel(ToolLLMBase):
         max_concurrent=5,
     ) -> List[IConversation]:
         """
-        Processes a batch of conversations asynchronously with limited concurrency.
+        Processes a batch of conversations asynchronously with limited
+        concurrency.
 
         Args:
-            conversations (List[IConversation]): A list of conversation objects to process.
+            conversations (List[IConversation]): A list of conversation objects
+            to process.
             toolkit: Optional toolkit object for tool-based responses.
-            tool_choice: Optional parameter to choose specific tools or set to 'auto' for automatic tool usage.
-            temperature (float): The temperature for the model's output randomness.
+            tool_choice: Optional parameter to choose specific tools or set to
+            'auto' for automatic tool usage.
+            temperature (float): The temperature for the model's output
+            randomness.
             max_tokens (int): The maximum number of tokens in the response.
-            max_concurrent (int): The maximum number of concurrent processes allowed.
+            max_concurrent (int): The maximum number of concurrent processes
+            allowed.
 
         Returns:
-            List[IConversation]: A list of conversation objects updated with the assistant's responses.
+            List[IConversation]: A list of conversation objects updated with
+            the assistant's responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

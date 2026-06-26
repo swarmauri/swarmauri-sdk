@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "SearchWordTool")
 class SearchWordTool(ToolBase):
     """
-    A tool for searching for a specific word or phrase in a file and highlighting occurrences.
+    A tool for searching for a specific word or phrase in a file and
+    highlighting occurrences.
 
     Attributes:
         version (str): The version of the tool.
@@ -24,21 +25,26 @@ class SearchWordTool(ToolBase):
     version: str = "0.1.dev1"
     name: str = "SearchWordTool"
     type: Literal["SearchWordTool"] = "SearchWordTool"
-    description: str = "Searches for a specific word or phrase in a file and highlights occurrences."
+    description: str = (
+        "Searches for a specific word or phrase in a file and "
+        "highlights occurrences."
+    )
     parameters: List[str] = ["file_path", "search_word"]
 
     def __call__(
         self, file_path: str, search_word: str
     ) -> Dict[str, List[str]]:
         """
-        Executes the search tool and returns the occurrences of the search word.
+        Executes the search tool and returns the occurrences of the search
+        word.
 
         Parameters:
             file_path (str): The path to the file to search in.
             search_word (str): The word or phrase to search for.
 
         Returns:
-            Dict[str, List[str]]: A dictionary containing the highlighted lines and the count of occurrences.
+            Dict[str, List[str]]: A dictionary containing the highlighted lines
+            and the count of occurrences.
 
         Raises:
             FileNotFoundError: If the file does not exist.
@@ -53,7 +59,7 @@ class SearchWordTool(ToolBase):
                     text, search_word
                 )
                 logger.info(
-                    f"Found {count_occurances} occurrences of '{search_word}' in {file_path}."
+                    f"Found {count_occurances} occurrences of '{search_word}' in {file_path}."  # noqa: E501
                 )
                 return {"lines": occurrences, "count": count_occurances}
             except FileNotFoundError as e:
@@ -64,7 +70,8 @@ class SearchWordTool(ToolBase):
 
     def search_in_file(self, lines: List[str], search_word: str) -> List[str]:
         """
-        Searches for the specified word in the provided lines and highlights it.
+        Searches for the specified word in the provided lines and highlights
+        it.
 
         Parameters:
             lines (List[str]): The lines of the file to search through.

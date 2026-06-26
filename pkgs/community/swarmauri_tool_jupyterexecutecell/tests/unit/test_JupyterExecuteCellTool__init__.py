@@ -16,7 +16,8 @@ from swarmauri_tool_jupyterexecutecell import (
 
 def test_jupyter_execute_cell_tool_exposed() -> None:
     """
-    Test if the JupyterExecuteCellTool is exposed correctly by the package's __init__.py.
+    Test if the JupyterExecuteCellTool is exposed correctly by the package's
+    __init__.py.
     """
     # Ensure the imported class is not None.
     assert JupyterExecuteCellTool is not None, (
@@ -26,7 +27,8 @@ def test_jupyter_execute_cell_tool_exposed() -> None:
 
 def test_jupyter_execute_cell_tool_in_all() -> None:
     """
-    Test that JupyterExecuteCellTool is included in the package's __all__ attribute.
+    Test that JupyterExecuteCellTool is included in the package's __all__
+    attribute.
     """
     assert "JupyterExecuteCellTool" in exposed_items, (
         "JupyterExecuteCellTool should be listed in __all__."

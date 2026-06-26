@@ -15,7 +15,8 @@ class HTTPLoggingHandler(HandlerBase):
     """
     Handler for sending log records to an HTTP endpoint.
 
-    This handler sends log records to a specified HTTP endpoint using either GET or POST methods.
+    This handler sends log records to a specified HTTP endpoint using either
+    GET or POST methods.
     It supports optional timeout and basic authentication credentials.
     """
 
@@ -37,9 +38,11 @@ class HTTPLoggingHandler(HandlerBase):
         Compiles an HTTP logging handler using the specified configuration.
 
         Returns:
-            logging.Handler: An HTTP handler configured with the specified parameters.
+            logging.Handler: An HTTP handler configured with the specified
+            parameters.
         """
-        # Create a custom HTTP handler that includes our timeout and credentials
+        # Create a custom HTTP handler that includes our timeout and
+        # credentials
         handler = self._create_http_handler()
 
         # Set the log level
@@ -99,7 +102,7 @@ class HTTPLoggingHandler(HandlerBase):
                         headers = {
                             "Authorization": "Basic "
                             + urllib.parse.quote_plus(
-                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"
+                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"  # noqa: E501
                             )
                         }
                     else:

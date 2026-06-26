@@ -13,7 +13,8 @@ class JaccardIndexSimilarity(SimilarityBase):
     """
     Jaccard Index similarity measure for sets.
 
-    The Jaccard Index is defined as the size of the intersection divided by the size of the union
+    The Jaccard Index is defined as the size of the intersection divided by the
+    size of the union
     of the sample sets. It ranges from 0 (no similarity) to 1 (identical sets).
 
     This similarity measure is symmetric and bounded in the range [0,1].
@@ -75,7 +76,8 @@ class JaccardIndexSimilarity(SimilarityBase):
 
     def similarities(self, x: Set, ys: Sequence[Set]) -> List[float]:
         """
-        Calculate Jaccard Index similarities between one set and multiple other sets.
+        Calculate Jaccard Index similarities between one set and multiple other
+        sets.
 
         Parameters
         ----------
@@ -87,7 +89,8 @@ class JaccardIndexSimilarity(SimilarityBase):
         Returns
         -------
         List[float]
-            List of Jaccard Index similarity scores between x and each element in ys
+            List of Jaccard Index similarity scores between x and each element
+            in ys
 
         Raises
         ------

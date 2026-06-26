@@ -8,7 +8,8 @@ from swarmauri_core.certs.ICertService import ICertService
 
 
 class CertServiceBase(ICertService, ComponentBase):
-    """Abstract base class for certificate services compliant with RFC 5280 and RFC 2986."""
+    """Abstract base class for certificate services compliant with RFC 5280 and
+    RFC 2986."""
 
     resource: Optional[str] = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True

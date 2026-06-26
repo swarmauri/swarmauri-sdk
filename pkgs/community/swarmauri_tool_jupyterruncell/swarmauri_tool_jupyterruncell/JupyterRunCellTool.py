@@ -1,10 +1,14 @@
 """
 JupyterRunCellTool.py
 
-This module defines the JupyterRunCellTool, a component that executes Python code cells
-in an interactive IPython environment. It captures the standard output and standard error
-streams, handles timeouts, and returns the results for further processing. The tool
-integrates seamlessly with the swarmauri tool architecture and supports automated
+This module defines the JupyterRunCellTool, a component that executes Python
+code cells
+in an interactive IPython environment. It captures the standard output and
+standard error
+streams, handles timeouts, and returns the results for further processing. The
+tool
+integrates seamlessly with the swarmauri tool architecture and supports
+automated
 testing workflows.
 """
 
@@ -27,13 +31,16 @@ logger.setLevel(logging.INFO)
 @ComponentBase.register_type(ToolBase, "JupyterRunCellTool")
 class JupyterRunCellTool(ToolBase):
     """
-    JupyterRunCellTool is a tool that executes Python code within an interactive IPython shell.
-    It captures the stdout and stderr streams, handles execution timeouts, logs the process,
+    JupyterRunCellTool is a tool that executes Python code within an
+    interactive IPython shell.
+    It captures the stdout and stderr streams, handles execution timeouts, logs
+    the process,
     and returns the output for further processing.
 
     Attributes:
         version (str): The version of the JupyterRunCellTool.
-        parameters (List[Parameter]): A list of parameters that define the code snippet to be run
+        parameters (List[Parameter]): A list of parameters that define the code
+        snippet to be run
                                       and the optional timeout in seconds.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
@@ -52,14 +59,20 @@ class JupyterRunCellTool(ToolBase):
             Parameter(
                 name="timeout",
                 input_type="number",
-                description="Optional timeout (in seconds) for the code execution. Default is 0 (no timeout).",
+                description=(
+                    "Optional timeout (in seconds) for the code execution. "
+                    "Default is 0 (no timeout)."
+                ),
                 required=False,
                 default=0,
             ),
         ]
     )
     name: str = "JupyterRunCellTool"
-    description: str = "Executes Python code in an IPython environment, capturing stdout and stderr."
+    description: str = (
+        "Executes Python code in an IPython environment, capturing "
+        "stdout and stderr."
+    )
     type: Literal["JupyterRunCellTool"] = "JupyterRunCellTool"
 
     def __call__(
@@ -70,15 +83,20 @@ class JupyterRunCellTool(ToolBase):
 
         Args:
             code (str): The Python code to execute in a cell.
-            timeout (float, optional): The maximum amount of time (in seconds) to allow for
-                                       code execution. If 0 or not provided, no timeout
+            timeout (float, optional): The maximum amount of time (in seconds)
+            to allow for
+                                       code execution. If 0 or not provided, no
+                                       timeout
                                        is imposed. Defaults to 0.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
-                - "cell_output" (str): Captured standard output from running the code cell.
-                - "error_output" (str): Captured errors or exception traces, if any.
-                - "success" (bool): Indicates if execution succeeded without any unhandled exceptions.
+                - "cell_output" (str): Captured standard output from running
+                  the code cell.
+                - "error_output" (str): Captured errors or exception traces, if
+                  any.
+                - "success" (bool): Indicates if execution succeeded without
+                  any unhandled exceptions.
 
         Example:
             >>> tool = JupyterRunCellTool()

@@ -268,7 +268,10 @@ class ParamikoCrypto(CryptoBase):
             raise UnsupportedAlgorithm(f"Unsupported seal alg: {alg}")
         if recipient_priv.material is None:
             raise ValueError(
-                "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                (
+                    "KeyRef.material must contain PEM-encoded RSA private key "
+                    "bytes"
+                )
             )
 
         priv = self._load_rsa_priv_pem(recipient_priv.material)
@@ -281,7 +284,8 @@ class ParamikoCrypto(CryptoBase):
             ),
         )
 
-    # ───────────── hybrid encrypt-for-many via RSA-OAEP (KEM+AEAD) ─────────────
+    # ───────────── hybrid encrypt-for-many via RSA-OAEP (KEM+AEAD)
+    # ─────────────
 
     async def encrypt_for_many(
         self,
@@ -326,7 +330,11 @@ class ParamikoCrypto(CryptoBase):
             for r in recipients:
                 if r.public is None:
                     raise ValueError(
-                        "Recipient KeyRef.public must contain OpenSSH RSA public key bytes"
+                        (
+                            "Recipient KeyRef.public must contain OpenSSH RSA "
+                            "public key "
+                            "bytes"
+                        )
                     )
                 rsa_pub = self._load_rsa_pub_ssh(r.public)
                 self._seal_size_check(rsa_pub, len(pt))
@@ -376,7 +384,11 @@ class ParamikoCrypto(CryptoBase):
         for r in recipients:
             if r.public is None:
                 raise ValueError(
-                    "Recipient KeyRef.public must contain OpenSSH RSA public key bytes"
+                    (
+                        "Recipient KeyRef.public must contain OpenSSH RSA "
+                        "public key "
+                        "bytes"
+                    )
                 )
             rsa_pub = self._load_rsa_pub_ssh(r.public)
             enc_k = rsa_pub.encrypt(
@@ -470,7 +482,11 @@ class ParamikoCrypto(CryptoBase):
             raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrap_alg}")
         if kek.material is None:
             raise ValueError(
-                "KeyRef.material must contain symmetric key bytes for AES-GCM wrap"
+                (
+                    "KeyRef.material must contain symmetric key bytes for "
+                    "AES-GCM "
+                    "wrap"
+                )
             )
         if len(kek.material) not in (16, 24, 32):
             raise ValueError(
@@ -520,7 +536,11 @@ class ParamikoCrypto(CryptoBase):
         if wrapped.wrap_alg == _WRAP_ALG:
             if kek.material is None:
                 raise ValueError(
-                    "KeyRef.material must contain PEM-encoded RSA private key bytes"
+                    (
+                        "KeyRef.material must contain PEM-encoded RSA private "
+                        "key "
+                        "bytes"
+                    )
                 )
             priv = self._load_rsa_priv_pem(kek.material)
             return priv.decrypt(
@@ -539,7 +559,11 @@ class ParamikoCrypto(CryptoBase):
             )
         if kek.material is None:
             raise ValueError(
-                "KeyRef.material must contain symmetric key bytes for AES-GCM unwrap"
+                (
+                    "KeyRef.material must contain symmetric key bytes for "
+                    "AES-GCM "
+                    "unwrap"
+                )
             )
         if wrapped.nonce is None:
             raise ValueError("WrappedKey.nonce required for AES-GCM unwrap")

@@ -153,7 +153,10 @@ def _load_private_key(ref: KeyRef):
     """Load a private key from a KeyRef."""
     if not ref or ref.material is None:
         raise ValueError(
-            "KeyRef.material (private key PEM) is required to create/sign a CSR."
+            (
+                "KeyRef.material (private key PEM) is required to create/sign "
+                "a CSR."
+            )
         )
     return serialization.load_pem_private_key(ref.material, password=None)
 
@@ -202,7 +205,10 @@ class StepCaCertService(CertServiceBase):
                 timeout=self.timeout_s,
                 verify=self.verify_tls,
                 headers={
-                    "Accept": "application/json, application/pem-certificate-chain, text/plain",
+                    "Accept": (
+                        "application/json, application/pem-certificate-chain, "
+                        "text/plain"
+                    ),
                 },
             )
         return self._client
@@ -352,7 +358,10 @@ class StepCaCertService(CertServiceBase):
             ott = await self.token_provider(claims)
         if not ott:
             raise ValueError(
-                "StepCaCertService.sign_cert requires 'ott' in opts or a token_provider on the service.",
+                (
+                    "StepCaCertService.sign_cert requires 'ott' in opts or a "
+                    "token_provider on the service."
+                ),
             )
         payload["ott"] = ott
         payload["token"] = ott

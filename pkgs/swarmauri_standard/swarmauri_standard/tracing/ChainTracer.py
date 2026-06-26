@@ -10,11 +10,14 @@ class ChainTracer(IChainTracer):
         self, chain: List[Tuple[Callable[..., Any], List[Any], Dict[str, Any]]]
     ) -> "ChainTracer":
         """
-        Processes each item in the operation chain by executing the specified external function
-        with its args and kwargs. Logs starting, annotating, and ending the trace based on tuple position.
+        Processes each item in the operation chain by executing the specified
+        external function
+        with its args and kwargs. Logs starting, annotating, and ending the
+        trace based on tuple position.
 
         Args:
-            chain (List[Tuple[Callable[..., Any], List[Any], Dict[str, Any]]]): A list where each tuple contains:
+            chain (List[Tuple[Callable[..., Any], List[Any], Dict[str, Any]]]):
+            A list where each tuple contains:
                 - An external function to execute.
                 - A list of positional arguments for the function.
                 - A dictionary of keyword arguments for the function.

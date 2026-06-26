@@ -41,7 +41,8 @@ def custom_gamma_similarity():
 
 @pytest.mark.unit
 def test_initialization():
-    """Test that the similarity measure initializes correctly with default and custom parameters."""
+    """Test that the similarity measure initializes correctly with default and
+    custom parameters."""
     # Default initialization
     similarity = GaussianRBFSimilarity()
     assert similarity.gamma == 1.0
@@ -70,7 +71,8 @@ def test_serialization(gaussian_rbf_similarity: GaussianRBFSimilarity):
 
 @pytest.mark.unit
 def test_initialization_invalid_gamma():
-    """Test that initialization with invalid gamma values raises appropriate exceptions."""
+    """Test that initialization with invalid gamma values raises appropriate
+    exceptions."""
     # Test with zero gamma
     with pytest.raises(ValueError, match="Gamma must be positive"):
         GaussianRBFSimilarity(gamma=0)

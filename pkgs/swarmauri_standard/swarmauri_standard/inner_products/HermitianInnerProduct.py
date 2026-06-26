@@ -18,9 +18,12 @@ class HermitianInnerProduct(InnerProductBase):
     """
     Concrete implementation of InnerProductBase for Hermitian inner products.
 
-    This class implements the Hermitian inner product, which is a complex inner product
-    with conjugate symmetry, satisfying the properties of an inner product space.
-    The Hermitian inner product is defined as <a, b> = Σ(a_i * conj(b_i)) for vectors.
+    This class implements the Hermitian inner product, which is a complex inner
+    product
+    with conjugate symmetry, satisfying the properties of an inner product
+    space.
+    The Hermitian inner product is defined as <a, b> = Σ(a_i * conj(b_i)) for
+    vectors.
 
     Attributes
     ----------
@@ -39,8 +42,10 @@ class HermitianInnerProduct(InnerProductBase):
         Compute the Hermitian inner product between two objects.
 
         For vectors: <a, b> = Σ(a_i * conj(b_i))
-        For matrices: <A, B> = Tr(A† * B) where A† is the conjugate transpose of A
-        For callables: Depends on implementation, typically involves integration
+        For matrices: <A, B> = Tr(A† * B) where A† is the conjugate transpose
+        of A
+        For callables: Depends on implementation, typically involves
+        integration
 
         Parameters
         ----------
@@ -62,7 +67,10 @@ class HermitianInnerProduct(InnerProductBase):
             If the dimensions of the inputs don't match
         """
         logger.debug(
-            f"Computing Hermitian inner product between {type(a)} and {type(b)}"
+            (
+                f"Computing Hermitian inner product between {type(a)} and "
+                f"{type(b)}"
+            )
         )
 
         # ADDED: Handle mixed case where one is ndarray and one is Vector
@@ -84,7 +92,7 @@ class HermitianInnerProduct(InnerProductBase):
 
             # Check dimensions
             if a_array.shape != b_array.shape:
-                error_msg = f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"
+                error_msg = f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"  # noqa: E501
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -109,7 +117,8 @@ class HermitianInnerProduct(InnerProductBase):
                 logger.debug(f"Computed array inner product: {result}")
                 return result
             elif len(a.shape) == 2:  # Matrix case
-                # For matrices, the Hermitian inner product is the trace of A† * B
+                # For matrices, the Hermitian inner product is the trace of A†
+                # * B
                 result = np.trace(a.conj().T @ b)
                 logger.debug(f"Computed matrix inner product: {result}")
                 return result
@@ -120,12 +129,18 @@ class HermitianInnerProduct(InnerProductBase):
 
         # Handle callables (functions)
         elif callable(a) and callable(b):
-            error_msg = "Inner product for callable objects requires integration and is not directly implemented"
+            error_msg = (
+                "Inner product for callable objects requires integration and "
+                "is not directly implemented"
+            )
             logger.error(error_msg)
             raise NotImplementedError(error_msg)
 
         else:
-            error_msg = f"Unsupported types for Hermitian inner product: {type(a)} and {type(b)}"
+            error_msg = (
+                f"Unsupported types for Hermitian inner product: {type(a)} "
+                f"and {type(b)}"
+            )
             logger.error(error_msg)
             raise TypeError(error_msg)
 
@@ -206,7 +221,10 @@ class HermitianInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         try:
@@ -254,7 +272,10 @@ class HermitianInnerProduct(InnerProductBase):
                 )
 
             else:
-                error_msg = f"Unsupported types for linearity check: {type(a1)}, {type(a2)}, and {type(b)}"
+                error_msg = (
+                    f"Unsupported types for linearity check: {type(a1)}, "
+                    f"{type(a2)}, and {type(b)}"
+                )
                 logger.error(error_msg)
                 raise TypeError(error_msg)
 
@@ -321,7 +342,11 @@ class HermitianInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                f"<a, a> = {aa_inner.real}, is_non_negative = {is_non_negative}, is_zero_iff_a_zero = {is_zero_iff_a_zero}"
+                (
+                    f"<a, a> = {aa_inner.real}, is_non_negative = "
+                    f"{is_non_negative}, is_zero_iff_a_zero = "
+                    f"{is_zero_iff_a_zero}"
+                )
             )
 
             return result

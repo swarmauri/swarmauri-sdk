@@ -121,7 +121,8 @@ def test_count_sentences(evaluator, text, expected_sentences):
 )
 def test_calculate_score(evaluator, grade_level, expected_score):
     """Test score calculation based on grade level."""
-    # The expected scores are based on default target_grade_level=8 and max_grade_level=16
+    # The expected scores are based on default target_grade_level=8 and
+    # max_grade_level=16
     assert evaluator._calculate_score(grade_level) == pytest.approx(
         expected_score, abs=0.01
     )
@@ -196,7 +197,11 @@ def test_compute_score_no_words(evaluator, mock_program):
     [
         ("Simple short sentences. Easy words.", 3),
         (
-            "The Coleman-Liau index is a readability assessment that approximates the U.S. grade level thought necessary to comprehend the text.",
+            (
+                "The Coleman-Liau index is a readability assessment that "
+                "approximates the U.S. grade level thought necessary to "
+                "comprehend the text."
+            ),
             12,
         ),
         ("Hello world.", 5),
@@ -263,7 +268,8 @@ def test_edge_case_identical_target_and_max_grade_level():
         target_grade_level=10, max_grade_level=10
     )
 
-    # With identical target and max, the score should be 1.0 for target and 0.0 otherwise
+    # With identical target and max, the score should be 1.0 for target and 0.0
+    # otherwise
     assert evaluator._calculate_score(10) == 1.0
     assert evaluator._calculate_score(9) < 1.0
 

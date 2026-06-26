@@ -1,5 +1,6 @@
 """
-Tests for the __init__.py module in the swarmauri_middleware_ratepolicy package.
+Tests for the __init__.py module in the swarmauri_middleware_ratepolicy
+package.
 
 This module ensures that the package initializer loads correctly and that all
 public-facing symbols are properly exported.
@@ -86,7 +87,8 @@ def test_all_variable() -> None:
 
     # Check that all expected symbols are present
     assert all(s in all_symbols for s in expected_symbols), (
-        f"Not all expected symbols found in __all__. Expected: {expected_symbols}"
+        f"Not all expected symbols found in __all__. Expected: "
+        f"{expected_symbols}"
     )
 
     # Check that no unexpected symbols are present

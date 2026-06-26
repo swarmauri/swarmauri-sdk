@@ -11,7 +11,10 @@ from swarmauri_base.ComponentBase import ComponentBase
 class MatplotlibTool(ToolBase):
     version: str = "1.0.0"
     name: str = "MatplotlibTool"
-    description: str = "Generates a plot using Matplotlib library based on provided configuration."
+    description: str = (
+        "Generates a plot using Matplotlib library based on provided "
+        "configuration."
+    )
     type: Literal["MatplotlibTool"] = "MatplotlibTool"
 
     parameters: List[Parameter] = Field(
@@ -19,7 +22,10 @@ class MatplotlibTool(ToolBase):
             Parameter(
                 name="plot_type",
                 input_type="string",
-                description="Type of plot to generate (e.g., 'line', 'bar', 'scatter').",
+                description=(
+                    "Type of plot to generate (e.g., 'line', 'bar', "
+                    "'scatter')."
+                ),
                 required=True,
                 enum=["line", "bar", "scatter"],
             ),

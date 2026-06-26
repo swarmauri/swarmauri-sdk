@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 @pytest.mark.i9n
 def test_package_initializer() -> None:
     """
-    Test that the package initializer loads correctly and exports the expected classes.
+    Test that the package initializer loads correctly and exports the expected
+    classes.
     """
     logger.info("Testing package initializer")
 

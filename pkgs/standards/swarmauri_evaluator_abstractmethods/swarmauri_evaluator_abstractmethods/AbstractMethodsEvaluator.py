@@ -13,11 +13,15 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(EvaluatorBase, "AbstractMethodsEvaluator")
 class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
     """
-    Evaluator that verifies all methods in abstract base classes are properly marked as abstract.
+    Evaluator that verifies all methods in abstract base classes are properly
+    marked as abstract.
 
-    This evaluator parses Python source code to identify classes that inherit from ABC
-    (Abstract Base Class) and verifies that all methods defined in these classes are
-    decorated with @abstractmethod. It helps enforce proper interface design by ensuring
+    This evaluator parses Python source code to identify classes that inherit
+    from ABC
+    (Abstract Base Class) and verifies that all methods defined in these
+    classes are
+    decorated with @abstractmethod. It helps enforce proper interface design by
+    ensuring
     that abstract classes properly declare their contract.
     """
 
@@ -31,7 +35,9 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
 
     ignore_dunder: bool = Field(
         default=True,
-        description="Whether to ignore dunder methods (starting and ending with __)",
+        description=(
+            "Whether to ignore dunder methods (starting and ending with __)"
+        ),
     )
 
     abc_base_classes: List[str] = Field(
@@ -43,10 +49,13 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Computes a score based on proper use of @abstractmethod in abstract base classes.
+        Computes a score based on proper use of @abstractmethod in abstract
+        base classes.
 
-        The score is calculated as the ratio of properly decorated abstract methods
-        to the total number of methods that should be abstract. A score of 1.0 means
+        The score is calculated as the ratio of properly decorated abstract
+        methods
+        to the total number of methods that should be abstract. A score of 1.0
+        means
         all methods in abstract classes are properly decorated.
 
         Args:
@@ -56,7 +65,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         Returns:
             A tuple containing:
                 - float: A scalar fitness score (1.0 for perfect compliance)
-                - Dict[str, Any]: Metadata about the evaluation including issues found
+                - Dict[str, Any]: Metadata about the evaluation including
+                  issues found
         """
         # Get source code from the program
         source_files = program.get_source_files()
@@ -160,20 +170,21 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
                                         "line": method_node.lineno,
                                         "class_name": node.name,
                                         "method_name": method_name,
-                                        "has_abstractmethod": has_abstractmethod,
-                                        "message": f"Method '{method_name}' in abstract class '{node.name}' should be decorated with @abstractmethod",
+                                        "has_abstractmethod": has_abstractmethod,  # noqa: E501
+                                        "message": f"Method '{method_name}' in abstract class '{node.name}' should be decorated with @abstractmethod",  # noqa: E501
                                     }
                                 )
                             else:
-                                # Include properly decorated methods for completeness
+                                # Include properly decorated methods for
+                                # completeness
                                 issues.append(
                                     {
                                         "file": file_path,
                                         "line": method_node.lineno,
                                         "class_name": node.name,
                                         "method_name": method_name,
-                                        "has_abstractmethod": has_abstractmethod,
-                                        "message": f"Method '{method_name}' in abstract class '{node.name}' is properly decorated",
+                                        "has_abstractmethod": has_abstractmethod,  # noqa: E501
+                                        "message": f"Method '{method_name}' in abstract class '{node.name}' is properly decorated",  # noqa: E501
                                     }
                                 )
 
@@ -208,7 +219,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         """
         Determines if a class is an abstract base class.
 
-        Checks if the class inherits from ABC or any other configured abstract base classes.
+        Checks if the class inherits from ABC or any other configured abstract
+        base classes.
 
         Args:
             class_node: AST node representing a class definition
@@ -233,7 +245,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         """
         Constructs the full qualified name from an attribute node.
 
-        For example, converts an AST representation of 'abc.ABC' into the string 'abc.ABC'.
+        For example, converts an AST representation of 'abc.ABC' into the
+        string 'abc.ABC'.
 
         Args:
             node: AST attribute node
@@ -261,7 +274,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
         """
         Checks if a method has the @abstractmethod decorator.
 
-        Examines the decorators of a method to determine if it's marked as abstract.
+        Examines the decorators of a method to determine if it's marked as
+        abstract.
 
         Args:
             method_node: AST node representing a function definition
@@ -296,7 +310,8 @@ class AbstractMethodsEvaluator(EvaluatorBase, ComponentBase):
 
         Args:
             scores: List of individual scores to aggregate
-            metadata_list: List of metadata dictionaries corresponding to each score
+            metadata_list: List of metadata dictionaries corresponding to each
+            score
 
         Returns:
             A tuple containing:

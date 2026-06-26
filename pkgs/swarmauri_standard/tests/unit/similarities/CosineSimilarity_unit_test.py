@@ -211,7 +211,8 @@ def test_check_identity_of_discernibles(cosine_similarity, x, y, expected):
 
 @pytest.mark.unit
 def test_serialization_deserialization():
-    """Test that the CosineSimilarity can be serialized and deserialized correctly."""
+    """Test that the CosineSimilarity can be serialized and deserialized
+    correctly."""
     cosine_sim = CosineSimilarity()
     serialized = cosine_sim.model_dump_json()
     deserialized = CosineSimilarity.model_validate_json(serialized)
@@ -237,7 +238,8 @@ def test_numerical_stability():
     x = [1e-10, 2e-10, 3e-10]
     y = [4e-10, 5e-10, 6e-10]
     result = cosine_sim.similarity(x, y)
-    # The result should be the same as with larger values with the same proportions
+    # The result should be the same as with larger values with the same
+    # proportions
     expected = cosine_sim.similarity([1, 2, 3], [4, 5, 6])
     assert abs(result - expected) < 1e-10
 

@@ -78,7 +78,8 @@ class RemoteOIDCTokenService(TokenServiceBase):
 
     Features
     --------
-    - Resolves OIDC discovery: <issuer>/.well-known/openid-configuration → jwks_uri.
+    - Resolves OIDC discovery: <issuer>/.well-known/openid-configuration →
+      jwks_uri.
       (You may also pass jwks_url directly; that bypasses discovery.)
     - Caches discovery + JWKS in-memory with TTL; thread-safe refresh; honors
       ETag / Last-Modified for conditional GETs.
@@ -98,7 +99,8 @@ class RemoteOIDCTokenService(TokenServiceBase):
         request_timeout_s: int = 5,
         user_agent: str = "RemoteOIDCTokenService/1.0",
         expected_alg_whitelist: Optional[Iterable[str]] = None,
-        accept_unsigned: bool = False,   # for test envs only; strongly discouraged
+        accept_unsigned: bool = False,   # for test envs only; strongly
+        discouraged
     )
     """
 
@@ -196,7 +198,8 @@ class RemoteOIDCTokenService(TokenServiceBase):
 
         Checks performed:
           - JWS signature using remote JWKS (by 'kid' header).
-          - 'iss' must equal configured issuer (or explicit 'issuer' arg if provided).
+          - 'iss' must equal configured issuer (or explicit 'issuer' arg if
+            provided).
           - 'aud' validated if provided by caller.
           - 'exp','nbf','iat' validated with 'leeway_s'.
           - Optional 'nonce' and 'auth_time'/'max_age' checks if provided.
@@ -211,7 +214,8 @@ class RemoteOIDCTokenService(TokenServiceBase):
             # Choose allowed algorithms
             allowed = self._derive_allowed_algs_locked()
 
-            # Build a key resolver that picks verification key from cached JWKS by kid
+            # Build a key resolver that picks verification key from cached JWKS
+            # by kid
             jwks = self._jwks_obj or {"keys": []}
 
         def _resolve_key(header, payload):  # pragma: no cover - internal

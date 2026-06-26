@@ -72,7 +72,9 @@ def http_signature(secret: str | bytes, body: bytes) -> str:
 
 @ComponentBase.register_type(TransportBase, "HttpsUnicastTransport")
 class HttpsUnicastTransport(TransportBase):
-    """HTTPS unicast transport with Swarmauri trust and request-signing policy."""
+    """
+    HTTPS unicast transport with Swarmauri trust and request-signing policy.
+    """
 
     type: Literal["HttpsUnicastTransport"] = "HttpsUnicastTransport"
 
@@ -216,7 +218,10 @@ class HttpsUnicastTransport(TransportBase):
 
     async def _start_server(self, **bind_kwargs: Any) -> None:
         raise NotImplementedError(
-            "HttpsUnicastTransport provides HTTPS client transport orchestration"
+            (
+                "HttpsUnicastTransport provides HTTPS client transport "
+                "orchestration"
+            )
         )
 
     async def _stop_server(self) -> None:
@@ -266,7 +271,10 @@ class HttpsUnicastTransport(TransportBase):
             response_jws_verified = True
         elif self.require_response_jws:
             raise ValueError(
-                f"missing {self.security_policy.response_jws_header} response header"
+                (
+                    f"missing {self.security_policy.response_jws_header} "
+                    f"response header"
+                )
             )
 
         descriptor = self.cipher_descriptor

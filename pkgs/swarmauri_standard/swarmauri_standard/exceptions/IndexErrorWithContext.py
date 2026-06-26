@@ -8,7 +8,8 @@ class IndexErrorWithContext(Exception):
         self.handle_error()
 
     def handle_error(self):
-        # You might want to log this information or handle it differently depending on your application's needs
+        # You might want to log this information or handle it differently
+        # depending on your application's needs
         frame = self.stack_info[
             1
         ]  # Assuming the IndexError occurs one level up from where it's caught

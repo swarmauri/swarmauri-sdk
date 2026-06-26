@@ -13,7 +13,8 @@ from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 @ComponentBase.register_type(OIDC10AppClientBase, "CognitoOIDC10AppClient")
 class CognitoOIDC10AppClient(OIDC10AppClientBase):
-    """Request machine-to-machine tokens using Cognito's OIDC discovery metadata."""
+    """Request machine-to-machine tokens using Cognito's OIDC discovery
+    metadata."""
 
     model_config = ConfigDict(extra="forbid")
 

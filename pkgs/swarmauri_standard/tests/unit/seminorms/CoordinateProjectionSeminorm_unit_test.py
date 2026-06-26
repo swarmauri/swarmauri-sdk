@@ -206,7 +206,8 @@ def test_initialization_with_empty_indices():
     ],
 )
 def test_compute_vector(indices, expected, vector_data):
-    """Test computing the seminorm for a vector with different projection indices."""
+    """Test computing the seminorm for a vector with different projection
+    indices."""
     seminorm = CoordinateProjectionSeminorm(indices)
     vector = MockVector(vector_data)
     result = seminorm.compute(vector)
@@ -234,7 +235,8 @@ def test_compute_matrix(seminorm, mock_matrix):
 
 @pytest.mark.unit
 def test_compute_matrix_out_of_bounds():
-    """Test computing the seminorm for a matrix with out-of-bounds projection indices."""
+    """Test computing the seminorm for a matrix with out-of-bounds projection
+    indices."""
     seminorm = CoordinateProjectionSeminorm({10})  # Index 10 is out of bounds
     matrix = MockMatrix([[1.0, 2.0], [3.0, 4.0]])
     with pytest.raises(ValueError, match="Projection index 10 out of bounds"):
@@ -263,7 +265,8 @@ def test_compute_sequence(data, indices, expected):
 
 @pytest.mark.unit
 def test_compute_unsupported_type(seminorm):
-    """Test that computing the seminorm for an unsupported type raises TypeError."""
+    """Test that computing the seminorm for an unsupported type raises
+    TypeError."""
     with pytest.raises(TypeError, match="Unsupported input type"):
         seminorm.compute(42)  # Integer is not a supported type
 
@@ -302,7 +305,8 @@ def test_triangle_inequality_numpy(seminorm):
 
 @pytest.mark.unit
 def test_triangle_inequality_incompatible_types(seminorm):
-    """Test that checking triangle inequality with incompatible types raises TypeError."""
+    """Test that checking triangle inequality with incompatible types raises
+    TypeError."""
     x = MockVector([1.0, 2.0, 3.0, 4.0, 5.0])
     y = [5.0, 4.0, 3.0, 2.0, 1.0]
     with pytest.raises(
@@ -313,7 +317,8 @@ def test_triangle_inequality_incompatible_types(seminorm):
 
 @pytest.mark.unit
 def test_triangle_inequality_different_lengths():
-    """Test that checking triangle inequality with sequences of different lengths raises ValueError."""
+    """Test that checking triangle inequality with sequences of different
+    lengths raises ValueError."""
     seminorm = CoordinateProjectionSeminorm({0, 1, 2})
     x = [1.0, 2.0, 3.0]
     y = [5.0, 4.0, 3.0, 2.0, 1.0]
@@ -357,7 +362,8 @@ def test_scalar_homogeneity_numpy(seminorm):
 
 @pytest.mark.unit
 def test_scalar_homogeneity_unsupported_type(seminorm):
-    """Test that checking scalar homogeneity with an unsupported type raises TypeError."""
+    """Test that checking scalar homogeneity with an unsupported type raises
+    TypeError."""
     with pytest.raises(TypeError, match="Unsupported input type"):
         seminorm.check_scalar_homogeneity(
             42, 2.5

@@ -11,10 +11,12 @@ from swarmauri_standard.programs.Program import Program
 @ComponentBase.register_type(EvaluatorBase, "ColemanLiauIndexEvaluator")
 class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     """
-    Coleman–Liau Index evaluator compliant with the Program/Evaluator contracts.
+    Coleman–Liau Index evaluator compliant with the Program/Evaluator
+    contracts.
 
     • ``evaluate()`` returns ``{"score": float, "metadata": dict}``.
-    • ``_compute_score()`` returns ``Tuple[float, Dict[str, Any]]`` for internal use.
+    • ``_compute_score()`` returns ``Tuple[float, Dict[str, Any]]`` for
+    internal use.
     """
 
     type: Literal["ColemanLiauIndexEvaluator"] = "ColemanLiauIndexEvaluator"
@@ -27,7 +29,9 @@ class ColemanLiauIndexEvaluator(EvaluatorBase, ComponentBase):
     # Public API – called by the pool / runner
     # ──────────────────────────────────────────────────────────────────────
     def evaluate(self, program: Program, **kwargs) -> Dict[str, Any]:
-        """Return ``{"score": float, "metadata": dict}`` for the given program."""
+        """
+        Return ``{"score": float, "metadata": dict}`` for the given program.
+        """
         score, meta = self._compute_score(program, **kwargs)
         return {"score": score, "metadata": meta}
 

@@ -3,7 +3,8 @@ Module: test___init__.py
 
 This module contains pytest-based unit tests for the __init__.py file of the
 swarmauri_tool_jupytergetshellmessage package. It ensures that the package
-is correctly exporting classes and attributes, including the JupyterGetShellMessageTool
+is correctly exporting classes and attributes, including the
+JupyterGetShellMessageTool
 class and the package version.
 """
 

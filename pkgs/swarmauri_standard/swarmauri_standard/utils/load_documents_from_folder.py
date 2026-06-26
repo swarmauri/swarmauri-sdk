@@ -12,14 +12,19 @@ def load_documents_from_folder(
     exclude_folders=None,
 ):
     """
-    Recursively walks through a folder and reads documents from files based on inclusion and exclusion criteria.
+    Recursively walks through a folder and reads documents from files based on
+    inclusion and exclusion criteria.
 
     Args:
         folder_path (str): The path to the folder containing files.
-        include_extensions (list or None): A list of file extensions to explicitly include (e.g., ["txt", "json"]).
-        exclude_extensions (list or None): A list of file extensions to explicitly exclude (e.g., ["log", "tmp"]).
-        include_folders (list or None): A list of folder names to explicitly include.
-        exclude_folders (list or None): A list of folder names to explicitly exclude.
+        include_extensions (list or None): A list of file extensions to
+        explicitly include (e.g., ["txt", "json"]).
+        exclude_extensions (list or None): A list of file extensions to
+        explicitly exclude (e.g., ["log", "tmp"]).
+        include_folders (list or None): A list of folder names to explicitly
+        include.
+        exclude_folders (list or None): A list of folder names to explicitly
+        exclude.
 
     Returns:
         list: A list of Document objects with content and metadata.
@@ -39,12 +44,18 @@ def load_documents_from_folder(
         if not include_all_folders:
             if include_folders and current_folder_name not in include_folders:
                 logging.info(
-                    f"Skipping folder due to inclusion filter: {current_folder_name}"
+                    (
+                        f"Skipping folder due to inclusion filter: "
+                        f"{current_folder_name}"
+                    )
                 )
                 continue
             if exclude_folders and current_folder_name in exclude_folders:
                 logging.info(
-                    f"Skipping folder due to exclusion filter: {current_folder_name}"
+                    (
+                        f"Skipping folder due to exclusion filter: "
+                        f"{current_folder_name}"
+                    )
                 )
                 continue
 

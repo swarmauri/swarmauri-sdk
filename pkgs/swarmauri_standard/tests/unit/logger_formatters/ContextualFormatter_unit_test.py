@@ -105,7 +105,8 @@ def test_add_context_key(basic_formatter):
 
 @pytest.mark.unit
 def test_compile_formatter(basic_formatter, custom_formatter):
-    """Test that compile_formatter returns a properly configured ContextualFormatterImpl."""
+    """Test that compile_formatter returns a properly configured
+    ContextualFormatterImpl."""
     # Test with default formatter
     formatter_impl = basic_formatter.compile_formatter()
     assert isinstance(formatter_impl, ContextualFormatterImpl)
@@ -299,7 +300,9 @@ def test_format_log_record_include_empty_context():
 
 @pytest.mark.unit
 def test_format_log_record_partial_context():
-    """Test formatting a log record with only some context attributes present."""
+    """
+    Test formatting a log record with only some context attributes present.
+    """
     formatter = ContextualFormatterImpl(
         fmt="%(levelname)s: %(message)s",
         context_keys=["request_id", "user_id", "session_id"],

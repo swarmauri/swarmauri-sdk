@@ -39,7 +39,8 @@ class RemoteCaCertService(CertServiceBase):
             when verifying or parsing certificates.
 
     Notes:
-        This service does not generate CSRs; pair it with ``X509CertService`` or
+        This service does not generate CSRs; pair it with ``X509CertService``
+        or
         ``CsrOnlyService``. By default it assumes a JSON API with the request
         body ``{"csr": "<base64-PEM-or-DER>"}`` and response
         ``{"cert": "<base64-PEM-or-DER>"}``. These mappings can be overridden

@@ -16,7 +16,7 @@ def _extract_basic_request_filtering_example() -> str:
 
     content = README_PATH.read_text(encoding="utf-8")
     pattern = re.compile(
-        r"```python\n# README Example: Basic request filtering\n(?P<code>.*?)```",
+        r"```python\n# README Example: Basic request filtering\n(?P<code>.*?)```",  # noqa: E501
         re.DOTALL,
     )
     match = pattern.search(content)

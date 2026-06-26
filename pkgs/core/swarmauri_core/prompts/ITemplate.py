@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 
 class ITemplate(ABC):
     """
-    Interface for template-based prompt generation within the SwarmAURI framework.
-    Defines standard operations and attributes for managing and utilizing templates.
+    Interface for template-based prompt generation within the SwarmAURI
+    framework.
+    Defines standard operations and attributes for managing and utilizing
+    templates.
     """
 
     @abstractmethod
@@ -14,7 +16,8 @@ class ITemplate(ABC):
         Sets or updates the current template string.
 
         Args:
-            template (str): The new template string to be used for generating prompts.
+            template (str): The new template string to be used for generating
+            prompts.
         """
         pass
 
@@ -26,8 +29,10 @@ class ITemplate(ABC):
         Sets or updates the variables to be substituted into the template.
 
         Args:
-            variables (List[Dict[str, str]]): A dictionary of variables where each key-value
-                                        pair corresponds to a placeholder name and its
+            variables (List[Dict[str, str]]): A dictionary of variables where
+            each key-value
+                                        pair corresponds to a placeholder name
+                                        and its
                                         replacement value in the template.
         """
         pass
@@ -35,13 +40,16 @@ class ITemplate(ABC):
     @abstractmethod
     def generate_prompt(self, **kwargs: dict[str, Any]) -> str:
         """
-        Generates a prompt string based on the current template and provided keyword arguments.
+        Generates a prompt string based on the current template and provided
+        keyword arguments.
 
         Args:
-            **kwargs dict[str, Any]: Keyword arguments containing variables for template substitution.
+            **kwargs dict[str, Any]: Keyword arguments containing variables for
+            template substitution.
 
         Returns:
-            str: The generated prompt string with template variables replaced by their
+            str: The generated prompt string with template variables replaced
+            by their
                  corresponding values provided in `kwargs`.
         """
         pass

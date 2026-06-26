@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 
 @ComponentBase.register_type(MiddlewareBase, "CircuitBreakerMiddleware")
 class CircuitBreakerMiddleware(MiddlewareBase):
-    """Circuit Breaker Middleware with async support and PyBreaker state storage."""
+    """Circuit Breaker Middleware with async support and PyBreaker state
+    storage."""
 
     fail_max: int = 5
     reset_timeout: int = 30
@@ -51,7 +52,11 @@ class CircuitBreakerMiddleware(MiddlewareBase):
                 self._half_open_used = True
                 CircuitBreaker.half_open(cb)
                 logger.info(
-                    "Circuit half-open: Waiting for test request to determine health"
+                    (
+                        "Circuit half-open: Waiting for test request to "
+                        "determine "
+                        "health"
+                    )
                 )
             else:
                 from fastapi import HTTPException

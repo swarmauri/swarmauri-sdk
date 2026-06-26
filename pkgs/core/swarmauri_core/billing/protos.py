@@ -24,11 +24,15 @@ class CheckoutReqProto(BillingProto):
 
 
 class ProductRefProto(BillingProto):
-    """Protocol model representing a product identifier returned by a provider."""
+    """
+    Protocol model representing a product identifier returned by a provider.
+    """
 
 
 class PriceRefProto(BillingProto):
-    """Protocol model representing a price identifier returned by a provider."""
+    """
+    Protocol model representing a price identifier returned by a provider.
+    """
 
 
 class CheckoutIntentProto(BillingProto):
@@ -40,7 +44,9 @@ class PaymentIntentReqProto(BillingProto):
 
 
 class PaymentRefProto(BillingProto):
-    """Protocol model representing a payment reference returned by a provider."""
+    """
+    Protocol model representing a payment reference returned by a provider.
+    """
 
 
 class SubscriptionSpecProto(BillingProto):
@@ -52,7 +58,9 @@ class InvoiceSpecProto(BillingProto):
 
 
 class SplitSpecProto(BillingProto):
-    """Protocol model describing split configuration for marketplace charges."""
+    """
+    Protocol model describing split configuration for marketplace charges.
+    """
 
 
 class RefundReqProto(BillingProto):
@@ -64,7 +72,8 @@ class CustomerSpecProto(BillingProto):
 
 
 class CustomerRefProto(BillingProto):
-    """Protocol model representing a customer identifier returned by a provider."""
+    """Protocol model representing a customer identifier returned by a
+    provider."""
 
 
 class PaymentMethodSpecProto(BillingProto):
@@ -72,7 +81,8 @@ class PaymentMethodSpecProto(BillingProto):
 
 
 class PaymentMethodRefProto(BillingProto):
-    """Protocol model representing a payment method identifier returned by a provider."""
+    """Protocol model representing a payment method identifier returned by a
+    provider."""
 
 
 class PayoutReqProto(BillingProto):
@@ -84,7 +94,9 @@ class TransferReqProto(BillingProto):
 
 
 class BalanceRefProto(BillingProto):
-    """Protocol model representing a balance snapshot returned by a provider."""
+    """
+    Protocol model representing a balance snapshot returned by a provider.
+    """
 
 
 class ReportReqProto(BillingProto):

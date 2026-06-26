@@ -19,7 +19,9 @@ from github import Github, UnknownObjectException
 
 @ComponentBase.register_type(StorageAdapterBase, "GithubReleaseStorageAdapter")
 class GithubReleaseStorageAdapter(StorageAdapterBase):
-    """Storage adapter that uses GitHub Releases to store and retrieve assets."""
+    """
+    Storage adapter that uses GitHub Releases to store and retrieve assets.
+    """
 
     def __init__(
         self,
@@ -81,9 +83,11 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
                 prerelease=prerelease,
             )
 
-    # ------------------------------------------------------------------- public
+    # -------------------------------------------------------------------
+    # public
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Upload ``data`` under ``key`` as a release asset and return the artifact URI."""
+        """Upload ``data`` under ``key`` as a release asset and return the
+        artifact URI."""
         normalized_key = self.normalize_key(key)
         key = self._full_key(key)
 
@@ -123,7 +127,8 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
             f"Asset '{key}' not found in release '{self._tag}'"
         )
 
-    # --------------------------------------------------------------- convenience
+    # ---------------------------------------------------------------
+    # convenience
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
         """Upload all files under *src* using an optional *prefix*."""
         base = Path(src)
@@ -175,7 +180,8 @@ class GithubReleaseStorageAdapter(StorageAdapterBase):
                 asset.delete_asset()
                 return
 
-    # --------------------------------------------------------------------- class
+    # ---------------------------------------------------------------------
+    # class
     @classmethod
     def from_uri(
         cls,

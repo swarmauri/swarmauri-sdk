@@ -21,7 +21,8 @@ class FitzPdfParser(ParserBase):
         - data (Union[str, Any]): The path to the PDF file.
 
         Returns:
-        - List[IDocument]: A list with a single IDocument instance containing the extracted text.
+        - List[IDocument]: A list with a single IDocument instance containing
+          the extracted text.
         """
         # Ensure data is a valid str path to a PDF file
         if not isinstance(data, str):

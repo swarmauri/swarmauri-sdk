@@ -51,7 +51,9 @@ class ICipherSuite(ABC):
         """Return descriptive metadata describing the suite capabilities."""
 
     def lint(self) -> Sequence[str]:
-        """Return linter warnings about misconfiguration or policy conflicts."""
+        """
+        Return linter warnings about misconfiguration or policy conflicts.
+        """
 
         issues: list[str] = []
         supported = self.supports()

@@ -16,8 +16,10 @@ class GaussianRBFSimilarity(SimilarityBase):
     """
     Gaussian Radial Basis Function (RBF) similarity measure.
 
-    This similarity measure uses the Gaussian kernel to calculate similarity between vectors,
-    where similarity decays exponentially with the squared Euclidean distance between points.
+    This similarity measure uses the Gaussian kernel to calculate similarity
+    between vectors,
+    where similarity decays exponentially with the squared Euclidean distance
+    between points.
 
     The similarity is defined as: s(x,y) = exp(-gamma * ||x-y||^2)
 
@@ -39,7 +41,8 @@ class GaussianRBFSimilarity(SimilarityBase):
         Parameters
         ----------
         gamma : float, default=1.0
-            The scaling parameter for the squared distance. Higher values make the similarity
+            The scaling parameter for the squared distance. Higher values make
+            the similarity
             more localized (decay faster with distance).
 
         Raises
@@ -88,7 +91,10 @@ class GaussianRBFSimilarity(SimilarityBase):
             # Ensure inputs have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Input shapes must match: got {x_array.shape} and {y_array.shape}"
+                    (
+                        f"Input shapes must match: got {x_array.shape} and "
+                        f"{y_array.shape}"
+                    )
                 )
 
             return x_array, y_array
@@ -130,7 +136,11 @@ class GaussianRBFSimilarity(SimilarityBase):
             similarity_value = exp(-self.gamma * squared_distance)
 
             logger.debug(
-                f"Calculated similarity: {similarity_value} for inputs with squared distance: {squared_distance}"
+                (
+                    f"Calculated similarity: {similarity_value} for inputs "
+                    f"with "
+                    f"squared distance: {squared_distance}"
+                )
             )
             return similarity_value
 

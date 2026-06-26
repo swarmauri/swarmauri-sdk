@@ -32,13 +32,16 @@ class KeywordExtractorParser(ParserBase):
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
-        Extract keywords from input text and return as list of Document instances containing keyword information.
+        Extract keywords from input text and return as list of Document
+        instances containing keyword information.
 
         Parameters:
-        - data (Union[str, Any]): The input text from which to extract keywords.
+        - data (Union[str, Any]): The input text from which to extract
+          keywords.
 
         Returns:
-        - List[Document]: A list of Document instances, each containing information about an extracted keyword.
+        - List[Document]: A list of Document instances, each containing
+          information about an extracted keyword.
         """
         # Ensure data is in string format for analysis
         text = str(data) if not isinstance(data, str) else data

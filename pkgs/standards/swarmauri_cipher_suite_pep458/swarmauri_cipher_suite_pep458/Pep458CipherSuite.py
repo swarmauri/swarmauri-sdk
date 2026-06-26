@@ -70,8 +70,15 @@ class Pep458CipherSuite(CipherSuiteBase):
             },
             "compliance": {"pep458": True, "tuf": "1.x"},
             "notes": [
-                "Implements offline root and online timestamp role separation per PEP 458.",
-                "Pair with swarmauri_signing_pep458.Pep458Signer for signature production.",
+                (
+                    "Implements offline root and online timestamp role "
+                    "separation "
+                    "per PEP 458."
+                ),
+                (
+                    "Pair with swarmauri_signing_pep458.Pep458Signer for "
+                    "signature production."
+                ),
             ],
         }
 

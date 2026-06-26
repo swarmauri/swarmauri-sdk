@@ -1,8 +1,10 @@
 """
 test_JupyterExportHtmlTool.py
 
-This module contains pytest-based test cases for the JupyterExportHtmlTool class, ensuring that
-the tool correctly converts Jupyter Notebooks into HTML and properly handles optional parameters
+This module contains pytest-based test cases for the JupyterExportHtmlTool
+class, ensuring that
+the tool correctly converts Jupyter Notebooks into HTML and properly handles
+optional parameters
 such as template files, extra CSS, and extra JS.
 """
 
@@ -17,10 +19,11 @@ from swarmauri_tool_jupyterexporthtml.JupyterExportHtmlTool import (
 @pytest.fixture
 def valid_notebook_json() -> str:
     """
-    Provides a minimal valid JSON representation of a Jupyter Notebook for testing.
+    Provides a minimal valid JSON representation of a Jupyter Notebook for
+    testing.
     """
     return (
-        '{"cells": [{"cell_type": "markdown", "metadata": {}, "source": ["# Test Notebook"]}],'
+        '{"cells": [{"cell_type": "markdown", "metadata": {}, "source": ["# Test Notebook"]}],'  # noqa: E501
         '"metadata": {}, "nbformat": 4, "nbformat_minor": 5}'
     )
 
@@ -84,7 +87,8 @@ def test_jupyter_export_html_tool_call_with_template(
         notebook_json=valid_notebook_json, template_file="dummy_template.tpl"
     )
     assert isinstance(result, dict), "Result should be a dictionary."
-    # Not testing actual template application here, as we cannot load a real template in this test.
+    # Not testing actual template application here, as we cannot load a real
+    # template in this test.
 
 
 def test_jupyter_export_html_tool_call_with_extra_css(
@@ -108,7 +112,8 @@ def test_jupyter_export_html_tool_call_with_extra_js(
     valid_notebook_json: str,
 ) -> None:
     """
-    Tests that an inline JavaScript string is correctly embedded in the exported HTML.
+    Tests that an inline JavaScript string is correctly embedded in the
+    exported HTML.
     """
     tool = JupyterExportHtmlTool()
     js_content = "console.log('Test JS');"
@@ -139,8 +144,10 @@ def test_jupyter_export_html_tool_failure_with_invalid_json(
 
 def test_jupyter_export_html_tool_required_parameter() -> None:
     """
-    Ensures that the notebook_json parameter is indeed required and an error-like
-    result is returned if it is missing or None. The tool uses Pydantic modeling,
+    Ensures that the notebook_json parameter is indeed required and an
+    error-like
+    result is returned if it is missing or None. The tool uses Pydantic
+    modeling,
     which may raise exceptions if required parameters are missing.
     """
     tool = JupyterExportHtmlTool()

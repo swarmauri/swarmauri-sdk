@@ -60,7 +60,8 @@ def test_call(test_data: str, expected_min_size: int):
     # Validate that the base64 string is of reasonable length
     assert len(image_b64) > expected_min_size
 
-    # Optional: Validate that the base64 string can be decoded to image bytes (additional check)
+    # Optional: Validate that the base64 string can be decoded to image bytes
+    # (additional check)
     try:
         decoded_image = base64.b64decode(image_b64)
         assert decoded_image  # Ensure decoded bytes are not empty

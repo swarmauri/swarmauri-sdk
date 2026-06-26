@@ -12,13 +12,15 @@ class ITransactional(ABC):
     @abstractmethod
     def commit_transaction(self):
         """
-        Commits the current transaction, making all operations within the transaction permanent.
+        Commits the current transaction, making all operations within the
+        transaction permanent.
         """
         pass
 
     @abstractmethod
     def abort_transaction(self):
         """
-        Aborts the current transaction, reverting all operations performed within the transaction.
+        Aborts the current transaction, reverting all operations performed
+        within the transaction.
         """
         pass

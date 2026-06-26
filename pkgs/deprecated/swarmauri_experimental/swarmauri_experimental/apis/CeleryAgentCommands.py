@@ -6,7 +6,8 @@ from typing import Callable, Any, Dict
 class CeleryAgentCommands(IAgentCommands):
     def __init__(self, broker_url: str, backend_url: str):
         """
-        Initializes the Celery application with the specified broker and backend URLs.
+        Initializes the Celery application with the specified broker and
+        backend URLs.
         """
         self.app = Celery(
             "swarmauri_agent_tasks", broker=broker_url, backend=backend_url

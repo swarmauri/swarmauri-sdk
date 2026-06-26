@@ -7,7 +7,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ChunkerBase, "DelimiterBasedChunker")
 class DelimiterBasedChunker(ChunkerBase):
     """
-    A concrete implementation of IChunker that splits text into chunks based on specified delimiters.
+    A concrete implementation of IChunker that splits text into chunks based on
+    specified delimiters.
     """
 
     version: str = "0.1.0.dev13"
@@ -16,20 +17,24 @@ class DelimiterBasedChunker(ChunkerBase):
 
     def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[str]:
         """
-        Chunks the given text based on the delimiters specified during initialization.
+        Chunks the given text based on the delimiters specified during
+        initialization.
 
         Parameters:
         - text (Union[str, Any]): The input text to be chunked.
 
         Returns:
-        - List[str]: A list of text chunks split based on the specified delimiters.
+        - List[str]: A list of text chunks split based on the specified
+          delimiters.
         """
         delimiter_pattern = f"({'|'.join(map(re.escape, self.delimiters))})"
 
-        # Split the text based on the delimiter pattern, including the delimiters in the result
+        # Split the text based on the delimiter pattern, including the
+        # delimiters in the result
         chunks = re.split(delimiter_pattern, text)
 
-        # Combine delimiters with the preceding text chunk since re.split() separates them
+        # Combine delimiters with the preceding text chunk since re.split()
+        # separates them
         combined_chunks = []
         for i in range(
             0, len(chunks), 2

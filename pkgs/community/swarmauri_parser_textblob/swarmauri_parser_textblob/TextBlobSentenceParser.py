@@ -24,13 +24,15 @@ class TextBlobSentenceParser(ParserBase):
 
     def parse(self, data: Union[str, Any]) -> List[Document]:
         """
-        Parses the input text into sentence-based document chunks using TextBlob.
+        Parses the input text into sentence-based document chunks using
+        TextBlob.
 
         Args:
             data (Union[str, Any]): The input text to be parsed.
 
         Returns:
-            List[IDocument]: A list of IDocument instances, each representing a sentence.
+            List[IDocument]: A list of IDocument instances, each representing a
+            sentence.
         """
         # Ensure the input is a string
         if not isinstance(data, str):

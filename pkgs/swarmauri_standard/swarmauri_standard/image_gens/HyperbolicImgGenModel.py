@@ -13,14 +13,18 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ImageGenBase, "HyperbolicImgGenModel")
 class HyperbolicImgGenModel(ImageGenBase):
     """
-    A model class for generating images from text prompts using Hyperbolic's image generation API.
+    A model class for generating images from text prompts using Hyperbolic's
+    image generation API.
 
     Attributes:
         api_key (str): The API key for authenticating with the Hyperbolic API.
-        allowed_models (List[str]): A list of available models for image generation.
-        asyncio (ClassVar): The asyncio module for handling asynchronous operations.
+        allowed_models (List[str]): A list of available models for image
+        generation.
+        asyncio (ClassVar): The asyncio module for handling asynchronous
+        operations.
         name (str): The name of the model to be used for image generation.
-        type (Literal["HyperbolicImgGenModel"]): The type identifier for the model class.
+        type (Literal["HyperbolicImgGenModel"]): The type identifier for the
+        model class.
         height (int): Height of the generated image.
         width (int): Width of the generated image.
         steps (int): Number of inference steps.
@@ -63,11 +67,13 @@ class HyperbolicImgGenModel(ImageGenBase):
         """
         Initializes the HyperbolicImgGenModel instance.
 
-        This constructor sets up HTTP clients for both synchronous and asynchronous
+        This constructor sets up HTTP clients for both synchronous and
+        asynchronous
         operations and configures request headers with the provided API key.
 
         Args:
-            **kwargs (Dict[str, Any]): Additional keyword arguments, which may include api_key and allowed_models.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may
+            include api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
@@ -128,7 +134,8 @@ class HyperbolicImgGenModel(ImageGenBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str) -> dict:
         """
-        Sends an asynchronous request to the Hyperbolic API for image generation.
+        Sends an asynchronous request to the Hyperbolic API for image
+        generation.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -144,7 +151,8 @@ class HyperbolicImgGenModel(ImageGenBase):
 
     def generate_image(self, prompt: str) -> str:
         """
-        Generates an image synchronously based on the provided prompt and returns it as a base64-encoded string.
+        Generates an image synchronously based on the provided prompt and
+        returns it as a base64-encoded string.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -157,7 +165,8 @@ class HyperbolicImgGenModel(ImageGenBase):
 
     async def agenerate_image(self, prompt: str) -> str:
         """
-        Generates an image asynchronously based on the provided prompt and returns it as a base64-encoded string.
+        Generates an image asynchronously based on the provided prompt and
+        returns it as a base64-encoded string.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -173,13 +182,15 @@ class HyperbolicImgGenModel(ImageGenBase):
 
     def batch_generate(self, prompts: List[str]) -> List[str]:
         """
-        Generates images for a batch of prompts synchronously and returns them as a list of base64-encoded strings.
+        Generates images for a batch of prompts synchronously and returns them
+        as a list of base64-encoded strings.
 
         Args:
             prompts (List[str]): A list of text prompts for image generation.
 
         Returns:
-            List[str]: A list of base64-encoded representations of the generated images.
+            List[str]: A list of base64-encoded representations of the
+            generated images.
         """
         return [self.generate_image_base64(prompt) for prompt in prompts]
 
@@ -187,14 +198,16 @@ class HyperbolicImgGenModel(ImageGenBase):
         self, prompts: List[str], max_concurrent: int = 5
     ) -> List[str]:
         """
-        Generates images for a batch of prompts asynchronously and returns them as a list of base64-encoded strings.
+        Generates images for a batch of prompts asynchronously and returns them
+        as a list of base64-encoded strings.
 
         Args:
             prompts (List[str]): A list of text prompts for image generation.
             max_concurrent (int): The maximum number of concurrent tasks.
 
         Returns:
-            List[str]: A list of base64-encoded representations of the generated images.
+            List[str]: A list of base64-encoded representations of the
+            generated images.
         """
         try:
             semaphore = asyncio.Semaphore(max_concurrent)

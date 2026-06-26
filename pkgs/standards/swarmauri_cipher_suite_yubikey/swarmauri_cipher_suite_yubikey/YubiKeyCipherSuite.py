@@ -71,7 +71,10 @@ class YubiKeyCipherSuite(CipherSuiteBase):
             },
             "compliance": {"fips": False},
             "notes": [
-                "PIV-backed signing/unwrap; EdDSA allowed on non-FIPS models/firmware.",
+                (
+                    "PIV-backed signing/unwrap; EdDSA allowed on non-FIPS "
+                    "models/firmware."
+                ),
             ],
         }
 

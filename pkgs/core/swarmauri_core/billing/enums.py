@@ -7,7 +7,9 @@ from typing import Dict, FrozenSet, Iterable
 
 
 class Capability(str, Enum):
-    """Provider capability identifiers exposed by Swarmauri billing providers."""
+    """
+    Provider capability identifiers exposed by Swarmauri billing providers.
+    """
 
     PRODUCTS_PRICES = "products_prices"
     HOSTED_CHECKOUT = "hosted_checkout"
@@ -66,8 +68,10 @@ ALL_CAPABILITIES: FrozenSet[Capability] = frozenset(cap for cap in Capability)
 """Complete set of billing capabilities."""
 
 
-# Mapping from Swarmauri billing capabilities to tigrbl_billing capability identifiers.
-# Keeping the mapping in string form avoids importing the tigrbl package as a runtime dependency.
+# Mapping from Swarmauri billing capabilities to tigrbl_billing capability
+# identifiers.
+# Keeping the mapping in string form avoids importing the tigrbl package as a
+# runtime dependency.
 CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
     Capability.PRODUCTS_PRICES: frozenset({"PRICE"}),
     Capability.HOSTED_CHECKOUT: frozenset({"CHARGE"}),
@@ -93,7 +97,8 @@ CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
 def capabilities_to_tigrbl(
     capabilities: Iterable[Capability],
 ) -> FrozenSet[str]:
-    """Translate Swarmauri billing capabilities to tigrbl capability identifiers."""
+    """Translate Swarmauri billing capabilities to tigrbl capability
+    identifiers."""
 
     mapped = set()
     for capability in capabilities:

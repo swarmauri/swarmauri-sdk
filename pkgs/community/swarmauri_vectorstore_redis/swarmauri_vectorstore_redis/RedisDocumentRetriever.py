@@ -27,7 +27,8 @@ class RedisDocumentRetriever(DocumentStoreRetrieveBase):
 
     @property
     def redis_client(self) -> Client:
-        """Lazily initialize and return the Redis client using a factory method."""
+        """Lazily initialize and return the Redis client using a factory
+        method."""
         if self._redis_client is None:
             self._redis_client = Client(
                 self.redis_idx_name, host=self.redis_host, port=self.redis_port
@@ -40,7 +41,8 @@ class RedisDocumentRetriever(DocumentStoreRetrieveBase):
 
         Args:
             query (str): The query string used for document retrieval.
-            top_k (int, optional): The number of top relevant documents to retrieve. Defaults to 5.
+            top_k (int, optional): The number of top relevant documents to
+            retrieve. Defaults to 5.
 
         Returns:
             List[Document]: A list of the top_k most relevant documents.
@@ -50,8 +52,10 @@ class RedisDocumentRetriever(DocumentStoreRetrieveBase):
         documents = [
             Document(
                 id=doc.id,
-                content=doc.content,  # Note: Adjust 'text' based on actual Redis document schema
-                metadata=doc.__dict__,  # Including full document fields and values in metadata
+                # Note: Adjust 'text' based on actual Redis document schema
+                content=doc.content,
+                # Including full document fields and values in metadata
+                metadata=doc.__dict__,
             )
             for doc in query_result.docs
         ]

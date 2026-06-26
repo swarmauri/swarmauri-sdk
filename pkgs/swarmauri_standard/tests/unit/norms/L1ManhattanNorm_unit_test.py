@@ -115,7 +115,9 @@ def test_compute_with_unsupported_type(l1_norm):
 
 @pytest.mark.unit
 def test_compute_with_invalid_sequence(l1_norm):
-    """Test that computing L1 norm with non-numeric sequence raises TypeError."""
+    """
+    Test that computing L1 norm with non-numeric sequence raises TypeError.
+    """
     with pytest.raises(TypeError):
         l1_norm.compute(["a", "b", "c"])
 
@@ -167,7 +169,8 @@ def test_triangle_inequality(l1_norm, x, y):
 
 @pytest.mark.unit
 def test_triangle_inequality_incompatible_inputs(l1_norm):
-    """Test that triangle inequality check raises TypeError for incompatible inputs."""
+    """Test that triangle inequality check raises TypeError for incompatible
+    inputs."""
     with pytest.raises(TypeError):
         l1_norm.check_triangle_inequality([1, 2, 3], [4, 5])
 
@@ -189,7 +192,8 @@ def test_absolute_homogeneity(l1_norm, input_data, scalar):
 
 @pytest.mark.unit
 def test_absolute_homogeneity_unsupported_type(l1_norm):
-    """Test that absolute homogeneity check raises TypeError for unsupported types."""
+    """Test that absolute homogeneity check raises TypeError for unsupported
+    types."""
     with pytest.raises(TypeError):
         l1_norm.check_absolute_homogeneity("not a valid input", 2.0)
 

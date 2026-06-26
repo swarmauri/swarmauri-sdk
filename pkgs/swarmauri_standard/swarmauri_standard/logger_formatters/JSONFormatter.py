@@ -12,9 +12,12 @@ class JSONFormatter(FormatterBase):
     """
     JSON formatter for log records.
 
-    This formatter converts log records into JSON strings, making logs easily parseable
-    by log aggregation and analysis tools. Each log record is serialized as a JSON object
-    containing standard fields like timestamp, log level, logger name, and message.
+    This formatter converts log records into JSON strings, making logs easily
+    parseable
+    by log aggregation and analysis tools. Each log record is serialized as a
+    JSON object
+    containing standard fields like timestamp, log level, logger name, and
+    message.
 
     Attributes
     ----------
@@ -46,7 +49,8 @@ class _JSONLogFormatter(logging.Formatter):
     """
     Internal class that handles the actual formatting of log records to JSON.
 
-    This class is not meant to be used directly but is created by JSONFormatter.
+    This class is not meant to be used directly but is created by
+    JSONFormatter.
     """
 
     def __init__(self, config: JSONFormatter):

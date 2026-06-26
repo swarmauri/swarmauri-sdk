@@ -1,9 +1,12 @@
 """
 JupyterExportLatexTool.py
 
-This module defines the JupyterExportLatexTool, a component that converts Jupyter notebooks
-(NotebookNode objects) into LaTeX format. It supports custom LaTeX templates, logs the export
-process, handles conversion errors, and can optionally produce a PDF. This tool is designed
+This module defines the JupyterExportLatexTool, a component that converts
+Jupyter notebooks
+(NotebookNode objects) into LaTeX format. It supports custom LaTeX templates,
+logs the export
+process, handles conversion errors, and can optionally produce a PDF. This tool
+is designed
 to meet academic publication standards.
 """
 
@@ -24,15 +27,19 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ToolBase, "JupyterExportLatexTool")
 class JupyterExportLatexTool(ToolBase):
     """
-    JupyterExportLatexTool is responsible for converting a Jupyter Notebook (NotebookNode)
-    into a LaTeX document. It supports using a custom LaTeX template, can log and handle
+    JupyterExportLatexTool is responsible for converting a Jupyter Notebook
+    (NotebookNode)
+    into a LaTeX document. It supports using a custom LaTeX template, can log
+    and handle
     conversion errors, and optionally convert the generated LaTeX to PDF.
     Attributes:
         version (str): The version of the JupyterExportLatexTool.
-        parameters (List[Parameter]): A list of parameters required to perform the export.
+        parameters (List[Parameter]): A list of parameters required to perform
+        the export.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExportLatexTool"]): The type identifier for the tool.
+        type (Literal["JupyterExportLatexTool"]): The type identifier for the
+        tool.
     """
 
     model_config = {"arbitrary_types_allowed": True}  # Allow arbitrary types
@@ -45,7 +52,10 @@ class JupyterExportLatexTool(ToolBase):
             Parameter(
                 name="notebook_node",
                 input_type="object",
-                description="A nbformat.NotebookNode object representing a Jupyter notebook.",
+                description=(
+                    "A nbformat.NotebookNode object representing a Jupyter "
+                    "notebook."
+                ),
                 required=True,
             ),
             Parameter(
@@ -57,7 +67,10 @@ class JupyterExportLatexTool(ToolBase):
             Parameter(
                 name="template_path",
                 input_type="string",
-                description="Path to a custom LaTeX template if use_custom_template is True.",
+                description=(
+                    "Path to a custom LaTeX template if use_custom_template is "  # noqa: E501
+                    "True."
+                ),
                 required=False,
             ),
             Parameter(
@@ -69,7 +82,10 @@ class JupyterExportLatexTool(ToolBase):
         ]
     )
     name: str = "JupyterExportLatexTool"
-    description: str = "Converts Jupyter notebooks to LaTeX and optionally to PDF for academic publication."
+    description: str = (
+        "Converts Jupyter notebooks to LaTeX and optionally to PDF "
+        "for academic publication."
+    )
     type: Literal["JupyterExportLatexTool"] = "JupyterExportLatexTool"
 
     def __call__(
@@ -80,20 +96,26 @@ class JupyterExportLatexTool(ToolBase):
         to_pdf: bool = False,
     ) -> Dict[str, Any]:
         """
-        Converts a Jupyter notebook (NotebookNode) into LaTeX format, optionally using a
-        custom template, and returns the resulting LaTeX content. This method can also
+        Converts a Jupyter notebook (NotebookNode) into LaTeX format,
+        optionally using a
+        custom template, and returns the resulting LaTeX content. This method
+        can also
         generate a PDF version if requested.
 
         Args:
             notebook_node (NotebookNode): The Jupyter NotebookNode to convert.
-            use_custom_template (bool, optional): Whether to apply a custom LaTeX template.
-            template_path (str, optional): Custom template path if use_custom_template is True.
-            to_pdf (bool, optional): If True, the method will also convert the LaTeX to a PDF file.
+            use_custom_template (bool, optional): Whether to apply a custom
+            LaTeX template.
+            template_path (str, optional): Custom template path if
+            use_custom_template is True.
+            to_pdf (bool, optional): If True, the method will also convert the
+            LaTeX to a PDF file.
 
         Returns:
             Dict[str, Any]: A dictionary containing:
                 - "latex_content": The generated LaTeX content as a string.
-                - "pdf_file_path": The file path to the generated PDF if to_pdf is True.
+                - "pdf_file_path": The file path to the generated PDF if to_pdf
+                  is True.
                 - "error": An error message if any exception occurred.
 
         Example:
@@ -129,8 +151,10 @@ class JupyterExportLatexTool(ToolBase):
             try:
                 body, _ = latex_exporter.from_notebook_node(notebook_node)
             except Exception as e:
-                # If using a custom template and the error message equals the template file’s basename,
-                # assume the template is invalid and fall back to the default template.
+                # If using a custom template and the error message equals the
+                # template file’s basename,
+                # assume the template is invalid and fall back to the default
+                # template.
                 if (
                     use_custom_template
                     and template_path
@@ -157,7 +181,8 @@ class JupyterExportLatexTool(ToolBase):
                         abs_template_path
                     )
 
-                # Check if xelatex is available. If not, create a dummy PDF file in a persistent temp directory.
+                # Check if xelatex is available. If not, create a dummy PDF
+                # file in a persistent temp directory.
                 if shutil.which("xelatex") is None:
                     temp_dir = (
                         tempfile.mkdtemp()

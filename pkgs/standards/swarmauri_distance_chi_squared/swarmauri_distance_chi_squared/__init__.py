@@ -4,7 +4,10 @@ import warnings
 from .ChiSquaredDistance import ChiSquaredDistance
 
 warnings.warn(
-    "swarmauri_distance_chi_squared is deprecated and will be removed from the active workspace by v0.12.0.",
+    (
+        "swarmauri_distance_chi_squared is deprecated and will be "
+        "removed from the active workspace by v0.12.0."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

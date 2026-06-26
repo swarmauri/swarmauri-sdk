@@ -37,7 +37,8 @@ class MaxSystemContextConversation(
     @property
     def history(self) -> List[IMessage]:
         """
-        Get the conversation history, ensuring it starts with a 'user' message and alternates correctly between 'user' and 'assistant' roles.
+        Get the conversation history, ensuring it starts with a 'user' message
+        and alternates correctly between 'user' and 'assistant' roles.
         The maximum number of messages returned does not exceed max_size + 1.
         """
         res = []  # Start with an empty list to build the proper history
@@ -53,7 +54,8 @@ class MaxSystemContextConversation(
         if user_start_index == -1:
             return [self.system_context]
 
-        # Build history from the first 'user' message ensuring alternating roles.
+        # Build history from the first 'user' message ensuring alternating
+        # roles.
         res.append(self.system_context)
         alternating = True
         count = 0
@@ -70,21 +72,27 @@ class MaxSystemContextConversation(
                 alternating = not alternating
                 count += 1
             elif not alternating and isinstance(message, HumanMessage):
-                # If we find two 'user' messages in a row when expecting an 'assistant' message, we skip this 'user' message.
+                # If we find two 'user' messages in a row when expecting an
+                # 'assistant' message, we skip this 'user' message.
                 continue
             else:
-                # If there is no valid alternate message to append, break the loop
+                # If there is no valid alternate message to append, break the
+                # loop
                 break
 
         return res
 
     def add_message(self, message: IMessage):
         """
-        Adds a message to the conversation history and ensures history does not exceed the max size.
+        Adds a message to the conversation history and ensures history does not
+        exceed the max size.
         """
         if isinstance(message, SystemMessage):
             raise ValueError(
-                f"System context cannot be set through this method on {self.__class_name__}."
+                (
+                    f"System context cannot be set through this method on "
+                    f"{self.__class_name__}."
+                )
             )
         elif isinstance(message, IMessage):
             self._history.append(message)
@@ -94,7 +102,8 @@ class MaxSystemContextConversation(
 
     def _enforce_max_size_limit(self):
         """
-        Remove messages from the beginning of the conversation history if the limit is exceeded.
+        Remove messages from the beginning of the conversation history if the
+        limit is exceeded.
         We add one to max_size to account for the system context message
         """
         try:

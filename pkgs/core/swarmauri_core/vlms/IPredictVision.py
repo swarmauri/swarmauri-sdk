@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 class IPredictVision(ABC):
     """
-    Interface focusing on the basic properties and settings essential for defining models.
+    Interface focusing on the basic properties and settings essential for
+    defining models.
     """
 
     @abstractmethod

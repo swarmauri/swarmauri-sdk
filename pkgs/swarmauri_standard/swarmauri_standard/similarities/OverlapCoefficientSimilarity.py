@@ -18,8 +18,10 @@ class OverlapCoefficientSimilarity(SimilarityBase):
     Overlap Coefficient Similarity implementation.
 
     The Overlap Coefficient measures the overlap between two sets.
-    It is defined as the size of the intersection divided by the size of the smaller set.
-    This makes it sensitive to complete inclusion, where one set is a subset of the other.
+    It is defined as the size of the intersection divided by the size of the
+    smaller set.
+    This makes it sensitive to complete inclusion, where one set is a subset of
+    the other.
 
     Attributes
     ----------
@@ -117,7 +119,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Overlap Coefficient similarities between one set and multiple other sets.
+        Calculate Overlap Coefficient similarities between one set and multiple
+        other sets.
 
         Parameters
         ----------
@@ -129,7 +132,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         Returns
         -------
         List[float]
-            List of Overlap Coefficient similarity scores between x and each element in ys
+            List of Overlap Coefficient similarity scores between x and each
+            element in ys
 
         Raises
         ------
@@ -158,10 +162,12 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
                 if not set_y:
                     logger.error(
-                        "Comparison set must be non-empty for Overlap Coefficient"
+                        "Comparison set must be non-empty for Overlap "
+                        "Coefficient"
                     )
                     raise ValueError(
-                        "Comparison set must be non-empty for Overlap Coefficient"
+                        "Comparison set must be non-empty for Overlap "
+                        "Coefficient"
                     )
 
                 # Calculate intersection
@@ -176,7 +182,10 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Overlap Coefficient similarities: {str(e)}"
+                (
+                    f"Error calculating multiple Overlap Coefficient "
+                    f"similarities: {str(e)}"
+                )
             )
             raise
 
@@ -222,7 +231,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
     def check_reflexivity(self, x: ComparableType) -> bool:
         """
-        Check if the Overlap Coefficient similarity measure is reflexive: s(x,x) = 1.
+        Check if the Overlap Coefficient similarity measure is reflexive:
+        s(x,x) = 1.
 
         Parameters
         ----------
@@ -259,7 +269,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
         """
-        Check if the Overlap Coefficient similarity measure is symmetric: s(x,y) = s(y,x).
+        Check if the Overlap Coefficient similarity measure is symmetric:
+        s(x,y) = s(y,x).
 
         Parameters
         ----------
@@ -288,10 +299,12 @@ class OverlapCoefficientSimilarity(SimilarityBase):
         self, x: ComparableType, y: ComparableType
     ) -> bool:
         """
-        Check if the Overlap Coefficient satisfies the identity of discernibles: s(x,y) = 1 ⟺ x = y.
+        Check if the Overlap Coefficient satisfies the identity of
+        discernibles: s(x,y) = 1 ⟺ x = y.
 
         Note: The Overlap Coefficient does not strictly satisfy this property.
-        It returns 1 when one set is a subset of the other, not only when they are identical.
+        It returns 1 when one set is a subset of the other, not only when they
+        are identical.
 
         Parameters
         ----------
@@ -326,7 +339,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
 
             # If similarity is 1, check if sets are identical
             if abs(similarity_value - 1.0) < 1e-10:
-                # The Overlap Coefficient can be 1 even if the sets are not identical
+                # The Overlap Coefficient can be 1 even if the sets are not
+                # identical
                 # It will be 1 if one set is a subset of the other
                 return set_x == set_y
 

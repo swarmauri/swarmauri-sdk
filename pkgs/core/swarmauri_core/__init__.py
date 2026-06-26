@@ -3,7 +3,8 @@ __long_desc__ = """
 # Swarmauri Core
 
 ## Core 
-- **Core Interfaces**: Define the fundamental communication and data-sharing protocols between components in a Swarmauri-based system.
+- **Core Interfaces**: Define the fundamental communication and data-sharing
+  protocols between components in a Swarmauri-based system.
 
 
 Visit us at: https://swarmauri.com

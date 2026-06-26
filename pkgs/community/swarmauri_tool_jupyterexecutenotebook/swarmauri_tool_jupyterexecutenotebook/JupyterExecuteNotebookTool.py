@@ -32,16 +32,19 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterExecuteNotebookTool")
 class JupyterExecuteNotebookTool(ToolBase):
     """
-    JupyterExecuteNotebookTool is a tool that executes a Jupyter notebook by running
+    JupyterExecuteNotebookTool is a tool that executes a Jupyter notebook by
+    running
     all cells sequentially. It captures and logs the outputs or errors produced
     during the execution and returns the executed notebook object.
 
     Attributes:
         version (str): The version of the JupyterExecuteNotebookTool.
-        parameters (List[Parameter]): A list of parameters required to execute the notebook.
+        parameters (List[Parameter]): A list of parameters required to execute
+        the notebook.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExecuteNotebookTool"]): The type identifier for the tool.
+        type (Literal["JupyterExecuteNotebookTool"]): The type identifier for
+        the tool.
     """
 
     version: str = "1.0.0"
@@ -56,7 +59,11 @@ class JupyterExecuteNotebookTool(ToolBase):
             Parameter(
                 name="timeout",
                 input_type="number",
-                description="Maximum time (in seconds) for each cell to execute. Defaults to 30.",
+                description=(
+                    "Maximum time (in seconds) for each cell to execute. "
+                    "Defaults "
+                    "to 30."
+                ),
                 required=False,
             ),
         ]
@@ -70,23 +77,29 @@ class JupyterExecuteNotebookTool(ToolBase):
 
     def __call__(self, notebook_path: str, timeout: int = 30) -> NotebookNode:
         """
-        Executes the given Jupyter notebook by running all cells sequentially. Captures
-        all outputs and errors, updating the NotebookNode object with the results.
+        Executes the given Jupyter notebook by running all cells sequentially.
+        Captures
+        all outputs and errors, updating the NotebookNode object with the
+        results.
 
         Args:
-            notebook_path (str): The file path to the Jupyter notebook to execute.
-            timeout (int, optional): The maximum time (in seconds) allowed for each
+            notebook_path (str): The file path to the Jupyter notebook to
+            execute.
+            timeout (int, optional): The maximum time (in seconds) allowed for
+            each
                                      cell to execute. Defaults to 30.
 
         Returns:
-            NotebookNode: The notebook object after execution, containing updated
-                          outputs. If cell execution fails, the error is recorded
+            NotebookNode: The notebook object after execution, containing
+            updated
+                          outputs. If cell execution fails, the error is
+                          recorded
                           in the notebook outputs.
 
         Example:
             >>> tool = JupyterExecuteNotebookTool()
             >>> executed_notebook = tool("example_notebook.ipynb", 60)
-            >>> # The returned NotebookNode now contains the executed cells and outputs.
+        >>> # The returned notebook contains executed cells and outputs.
         """
         return self.execute_notebook(notebook_path, timeout)
 
@@ -94,17 +107,23 @@ class JupyterExecuteNotebookTool(ToolBase):
         self, notebook_path: str, timeout: int = 30
     ) -> NotebookNode:
         """
-        Executes the given Jupyter notebook by running all cells sequentially. Captures
-        all outputs and errors, updating the NotebookNode object with the results.
+        Executes the given Jupyter notebook by running all cells sequentially.
+        Captures
+        all outputs and errors, updating the NotebookNode object with the
+        results.
 
         Args:
-            notebook_path (str): The file path to the Jupyter notebook to execute.
-            timeout (int, optional): The maximum time (in seconds) allowed for each
+            notebook_path (str): The file path to the Jupyter notebook to
+            execute.
+            timeout (int, optional): The maximum time (in seconds) allowed for
+            each
                                      cell to execute. Defaults to 30.
 
         Returns:
-            NotebookNode: The notebook object after execution, containing updated
-                          outputs. If cell execution fails, the error is recorded
+            NotebookNode: The notebook object after execution, containing
+            updated
+                          outputs. If cell execution fails, the error is
+                          recorded
                           in the notebook outputs.
         """
         logger.info(
@@ -133,7 +152,8 @@ class JupyterExecuteNotebookTool(ToolBase):
         except (CellExecutionError, CellTimeoutError) as e:
             logger.error("A cell execution error occurred.")
             logger.exception(e)
-            # The executed notebook still contains partial output and the error details.
+            # The executed notebook still contains partial output and the error
+            # details.
             return notebook
 
         except Exception as e:
@@ -141,5 +161,6 @@ class JupyterExecuteNotebookTool(ToolBase):
                 "An unexpected error occurred during notebook execution."
             )
             logger.exception(e)
-            # Return the partially executed or unmodified notebook in case of failure.
+            # Return the partially executed or unmodified notebook in case of
+            # failure.
             return notebook

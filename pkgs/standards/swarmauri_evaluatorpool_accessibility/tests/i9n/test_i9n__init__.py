@@ -24,7 +24,11 @@ def test_import_package() -> None:
         import swarmauri_evaluatorpool_accessibility as package
 
         logger.info(
-            f"Successfully imported swarmauri_evaluatorpool_accessibility package - {package.__version__}"
+            (
+                f"Successfully imported "
+                f"swarmauri_evaluatorpool_accessibility package - "
+                f"{package.__version__}"
+            )
         )
         assert True
     except ImportError as e:
@@ -37,7 +41,8 @@ def test_version_availability() -> None:
     """
     Test that the package has a version attribute.
 
-    This test verifies that the __version__ attribute is defined in the package.
+    This test verifies that the __version__ attribute is defined in the
+    package.
     """
     import swarmauri_evaluatorpool_accessibility
 
@@ -106,7 +111,8 @@ def test_class_instantiation(package_import: Any) -> None:
     Args:
         package_import: The imported package module.
 
-    This test verifies that the main pool class can be instantiated without errors.
+    This test verifies that the main pool class can be instantiated without
+    errors.
     """
     try:
         pool = package_import.AccessibilityEvaluatorPool()
@@ -125,7 +131,8 @@ def test_package_structure(package_import: Any) -> None:
     Args:
         package_import: The imported package module.
 
-    This test verifies that the package has the expected structure and components.
+    This test verifies that the package has the expected structure and
+    components.
     """
     # Check if the package has the expected module structure
     evaluator_classes = [

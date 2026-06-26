@@ -15,7 +15,9 @@ class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
 
     collection: Optional[object] = Field(
         None,
-        description="Collection object for interacting with the persistent-based store",
+        description=(
+            "Collection object for interacting with the persistent-based store"
+        ),
     )
 
     path: Optional[str] = Field(
@@ -27,7 +29,9 @@ class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
     )
     client: Optional[object] = Field(
         None,
-        description="Client object for interacting with the persistent-based store",
+        description=(
+            "Client object for interacting with the persistent-based store"
+        ),
     )
 
     vectorizer: Optional[object] = Field(

@@ -33,8 +33,10 @@ class GitFilterBase(IGitFilter):
         try:
             self.download(oid)
         except (FileNotFoundError, KeyError):
-            # Some storage backends may raise ``KeyError`` instead of ``FileNotFoundError``
-            # when an object is missing. Treat both cases as a cache miss and upload.
+            # Some storage backends may raise ``KeyError`` instead of
+            # ``FileNotFoundError``
+            # when an object is missing. Treat both cases as a cache miss and
+            # upload.
             self.upload(oid, io.BytesIO(data))
         return oid
 

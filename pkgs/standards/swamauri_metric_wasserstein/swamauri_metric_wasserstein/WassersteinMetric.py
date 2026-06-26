@@ -30,7 +30,10 @@ class WassersteinMetric(MetricBase):
 
         if not all(isfinite(value) for value in chain(values_a, values_b)):
             raise ValueError(
-                "Wasserstein distance requires vectors with only finite values."
+                (
+                    "Wasserstein distance requires vectors with only finite "
+                    "values."
+                )
             )
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:

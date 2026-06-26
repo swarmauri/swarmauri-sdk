@@ -14,8 +14,10 @@ class EvalResultBase(IEvalResult, ComponentBase):
     """
     Abstract base class for evaluation results.
 
-    This class provides reusable logic for packaging evaluation results including
-    score storage, metadata handling, and serialization. It implements the IEvalResult
+    This class provides reusable logic for packaging evaluation results
+    including
+    score storage, metadata handling, and serialization. It implements the
+    IEvalResult
     interface with base functionality.
 
     Attributes
@@ -91,7 +93,8 @@ class EvalResultBase(IEvalResult, ComponentBase):
                 raise ValueError("Metadata must be a dictionary")
 
             # Additional validation logic would go here
-            # This would typically involve checking against self._metadata_schema
+            # This would typically involve checking against
+            # self._metadata_schema
 
             logger.debug("Metadata validation passed")
         except Exception as e:

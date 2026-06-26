@@ -33,7 +33,8 @@ def test_levenshtein_metric_initialization():
 
 @pytest.mark.unit
 def test_levenshtein_metric_serialization():
-    """Test that LevenshteinMetric can be serialized and deserialized correctly."""
+    """Test that LevenshteinMetric can be serialized and deserialized
+    correctly."""
     metric = LevenshteinMetric()
     serialized = metric.model_dump_json()
     deserialized = LevenshteinMetric.model_validate_json(serialized)
@@ -172,7 +173,8 @@ def test_non_negativity_axiom(levenshtein_metric, str1, str2):
     ],
 )
 def test_identity_of_indiscernibles_axiom(levenshtein_metric, str1, str2):
-    """Test that the identity of indiscernibles axiom holds for Levenshtein distance."""
+    """Test that the identity of indiscernibles axiom holds for Levenshtein
+    distance."""
     assert (
         levenshtein_metric.check_identity_of_indiscernibles(str1, str2) is True
     )
@@ -208,7 +210,9 @@ def test_symmetry_axiom(levenshtein_metric, str1, str2):
     ],
 )
 def test_triangle_inequality_axiom(levenshtein_metric, str1, str2, str3):
-    """Test that the triangle inequality axiom holds for Levenshtein distance."""
+    """
+    Test that the triangle inequality axiom holds for Levenshtein distance.
+    """
     assert (
         levenshtein_metric.check_triangle_inequality(str1, str2, str3) is True
     )

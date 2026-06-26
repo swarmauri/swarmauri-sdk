@@ -8,7 +8,9 @@ Headers = Dict[str, str]
 
 
 class IHttpClient(ABC):
-    """Interface for transports capable of issuing HTTP-style client requests."""
+    """
+    Interface for transports capable of issuing HTTP-style client requests.
+    """
 
     @abstractmethod
     async def request(

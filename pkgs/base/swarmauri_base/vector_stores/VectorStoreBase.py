@@ -11,10 +11,13 @@ from swarmauri_standard.documents.Document import Document
 @ComponentBase.register_model()
 class VectorStoreBase(IVectorStore, ComponentBase):
     """
-    Abstract base class for document stores, implementing the IVectorStore interface.
+    Abstract base class for document stores, implementing the IVectorStore
+    interface.
 
-    This class provides a standard API for adding, updating, getting, and deleting documents in a vector store.
-    The specifics of storing (e.g., in a database, in-memory, or file system) are to be implemented by concrete subclasses.
+    This class provides a standard API for adding, updating, getting, and
+    deleting documents in a vector store.
+    The specifics of storing (e.g., in a database, in-memory, or file system)
+    are to be implemented by concrete subclasses.
     """
 
     documents: List[Document] = []
@@ -47,7 +50,8 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         Add multiple documents to the document store in a batch operation.
 
         Parameters:
-        - documents (List[IDocument]): A list of documents to be added to the store.
+        - documents (List[IDocument]): A list of documents to be added to the
+          store.
         """
         pass
 
@@ -60,7 +64,8 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         - doc_id (str): The unique identifier of the document to retrieve.
 
         Returns:
-        - Optional[IDocument]: The requested document if found; otherwise, None.
+        - Optional[IDocument]: The requested document if found; otherwise,
+          None.
         """
         pass
 

@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 class IGenImage(ABC):
     """
-    Interface focusing on the basic properties and settings essential for defining image generating models.
+    Interface focusing on the basic properties and settings essential for
+    defining image generating models.
     """
 
     @abstractmethod

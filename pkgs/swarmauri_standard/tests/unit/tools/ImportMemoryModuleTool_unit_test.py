@@ -31,13 +31,16 @@ def test_serialization():
 def test_call():
     tool = Tool()
     name_of_new_module = "test_module"
-    code_snippet = "def example_function():\t\treturn 'This function is imported from memory.'"
+    code_snippet = "def example_function():\t\treturn 'This function is imported from memory.'"  # noqa: E501
 
     dot_separated_package_page = "test_package"
 
     expected_keys = {"message"}
 
-    expected_message = f"{name_of_new_module} has been successfully imported into {dot_separated_package_page}"
+    expected_message = (
+        f"{name_of_new_module} has been successfully imported into "
+        f"{dot_separated_package_page}"
+    )
 
     result = tool(name_of_new_module, code_snippet, dot_separated_package_page)
 

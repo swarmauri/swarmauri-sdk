@@ -90,7 +90,8 @@ class IParser(ABC):
         pass
 
 
-# Example: Attempting to instantiate IParser will raise an error since it's abstract
+# Example: Attempting to instantiate IParser will raise an error since it's
+# abstract
 try:
     parser = IParser()
 except TypeError as e:

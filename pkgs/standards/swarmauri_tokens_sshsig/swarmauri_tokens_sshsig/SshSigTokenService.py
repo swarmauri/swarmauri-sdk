@@ -94,7 +94,8 @@ class SshSigTokenService(TokenServiceBase):
         """Initialize the token service.
 
         key_provider (IKeyProvider): Provider used to resolve signing keys.
-        default_issuer (Optional[str]): Issuer claim applied when minting tokens.
+        default_issuer (Optional[str]): Issuer claim applied when minting
+        tokens.
         default_namespace (str): Namespace used when constructing signatures.
         RETURNS (None): The initialized service.
         """
@@ -240,7 +241,11 @@ class SshSigTokenService(TokenServiceBase):
         if ref.public is None:
             await self._kp.get_public_jwk(base_kid, ver)
             raise RuntimeError(
-                "Public key PEM not available from provider; ensure .public is populated"
+                (
+                    "Public key PEM not available from provider; ensure "
+                    ".public "
+                    "is populated"
+                )
             )
 
         pk = load_pem_public_key(ref.public)
@@ -249,7 +254,8 @@ class SshSigTokenService(TokenServiceBase):
             if alg == "ssh-ed25519":
                 if not isinstance(pk, Ed25519PublicKey):
                     raise ValueError(
-                        "Header alg is ssh-ed25519 but public key is not Ed25519"
+                        "Header alg is ssh-ed25519 but public key is not "
+                        "Ed25519"
                     )
                 pk.verify(sig, preimage)
             elif alg == "ecdsa-sha2-nistp256":
@@ -257,7 +263,11 @@ class SshSigTokenService(TokenServiceBase):
                     pk, ec.EllipticCurvePublicKey
                 ) or pk.curve.name not in ("secp256r1", "prime256v1"):
                     raise ValueError(
-                        "Header alg is ecdsa-sha2-nistp256 but public key is not P-256"
+                        (
+                            "Header alg is ecdsa-sha2-nistp256 but public key "
+                            "is not "
+                            "P-256"
+                        )
                     )
                 pk.verify(sig, preimage, ec.ECDSA(hashes.SHA256()))
         except InvalidSignature as exc:

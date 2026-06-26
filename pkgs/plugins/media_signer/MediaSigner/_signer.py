@@ -46,7 +46,9 @@ except Exception:  # pragma: no cover - plugin optional
 
 
 class MediaSigner(ComponentBase):
-    """High-level async facade that routes signing calls to registered plugins."""
+    """
+    High-level async facade that routes signing calls to registered plugins.
+    """
 
     resource: Optional[str] = ResourceTypes.SIGNING.value
     type: str = "MediaSigner"

@@ -52,7 +52,8 @@ def test_custom_initialization():
 @pytest.mark.unit
 def test_model_post_init():
     """
-    Test that model_post_init correctly updates the format string based on configuration.
+    Test that model_post_init correctly updates the format string based on
+    configuration.
     """
     # Test with all options enabled
     formatter = ColorFormatter(
@@ -88,7 +89,8 @@ def test_disable_enable_colors(color_formatter):
 @pytest.mark.unit
 def test_compile_formatter_without_colors():
     """
-    Test that compile_formatter returns a standard formatter when colors are disabled.
+    Test that compile_formatter returns a standard formatter when colors are
+    disabled.
     """
     formatter = ColorFormatter(use_colors=False)
     log_formatter = formatter.compile_formatter()
@@ -101,7 +103,8 @@ def test_compile_formatter_without_colors():
 @pytest.mark.unit
 def test_compile_formatter_with_colors():
     """
-    Test that compile_formatter returns a custom formatter when colors are enabled.
+    Test that compile_formatter returns a custom formatter when colors are
+    enabled.
     """
     formatter = ColorFormatter(use_colors=True)
     log_formatter = formatter.compile_formatter()

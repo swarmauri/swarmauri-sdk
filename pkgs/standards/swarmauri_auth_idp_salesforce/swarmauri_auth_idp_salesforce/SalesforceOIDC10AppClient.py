@@ -18,7 +18,8 @@ from .SalesforceOAuth20AppClient import (
 
 @ComponentBase.register_type(OIDC10AppClientBase, "SalesforceOIDC10AppClient")
 class SalesforceOIDC10AppClient(OIDC10AppClientBase):
-    """Discover Salesforce endpoints and request machine tokens over JWT bearer."""
+    """Discover Salesforce endpoints and request machine tokens over JWT
+    bearer."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

@@ -32,7 +32,8 @@ def test_type(client: SalesforceOAuth21AppClient) -> None:
 def test_serialization(client: SalesforceOAuth21AppClient) -> None:
     dumped = json.loads(client.model_dump_json())
     cloned = SalesforceOAuth21AppClient.model_construct(**dumped)
-    # private_key_jwk is a Mapping and should serialize; ensure identity fields match
+    # private_key_jwk is a Mapping and should serialize; ensure identity fields
+    # match
     assert cloned.id == client.id
     assert cloned.client_id == client.client_id
 

@@ -22,7 +22,8 @@ class LoggingMiddleware(MiddlewareBase, ComponentBase):
     processing pipeline and helps with debugging and monitoring.
 
     Attributes:
-        resource: Optional[str] = "Middleware"  # Default resource type for middlewares
+        resource: Optional[str] = "Middleware"  # Default resource type for
+        middlewares
     """
 
     def __init__(self):
@@ -33,7 +34,9 @@ class LoggingMiddleware(MiddlewareBase, ComponentBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain while logging activity.
+        """
+        Dispatches the request to the next middleware in the chain while
+        logging activity.
 
         This method processes the incoming request, logs relevant information,
         and then passes the request to the next middleware in the chain.

@@ -25,7 +25,8 @@ class HttpSigMiddleware(MiddlewareBase, ComponentBase):
     Attributes:
         type: Literal["HttpSigMiddleware"] = "HttpSigMiddleware"
         secret_key: str -- Shared secret used for HMAC calculation
-        header_name: str -- Header containing the signature (default ``X-Signature``)
+        header_name: str -- Header containing the signature (default
+        ``X-Signature``)
     """
 
     type: Literal["HttpSigMiddleware"] = "HttpSigMiddleware"

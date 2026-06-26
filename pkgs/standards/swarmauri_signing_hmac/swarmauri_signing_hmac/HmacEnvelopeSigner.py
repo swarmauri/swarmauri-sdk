@@ -31,7 +31,10 @@ def _canon_json(obj: Any) -> bytes:
 def _canon_cbor(obj: Any) -> bytes:
     if not _CBOR_OK:
         raise RuntimeError(
-            "CBOR canonicalization requires 'cbor2'. Install with: pip install cbor2"
+            (
+                "CBOR canonicalization requires 'cbor2'. Install with: pip "
+                "install cbor2"
+            )
         )
     return cbor2.dumps(obj)
 
@@ -44,7 +47,7 @@ def _alg_to_hash(alg: JWAAlg):
     }
     if alg not in table:
         raise ValueError(
-            f"Unsupported HMAC alg '{alg}'. Use one of: {', '.join(a.value for a in table)}"
+            f"Unsupported HMAC alg '{alg}'. Use one of: {', '.join(a.value for a in table)}"  # noqa: E501
         )
     return table[alg]
 
@@ -199,7 +202,10 @@ class HmacEnvelopeSigner(SigningBase):
         key_entries = (opts or {}).get("keys") or []
         if not isinstance(key_entries, (list, tuple)) or not key_entries:
             raise RuntimeError(
-                "HMAC verification requires opts['keys'] with one or more KeyRef entries."
+                (
+                    "HMAC verification requires opts['keys'] with one or more "
+                    "KeyRef entries."
+                )
             )
         for entry in key_entries:  # type: ignore[assignment]
             prefer_alg: Optional[JWAAlg] = None

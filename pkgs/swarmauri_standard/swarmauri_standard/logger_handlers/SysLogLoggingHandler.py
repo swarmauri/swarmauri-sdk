@@ -15,8 +15,10 @@ class SysLogLoggingHandler(HandlerBase):
     """
     SysLog handler for forwarding logs to a local or remote syslog daemon.
 
-    This handler uses the SysLogHandler from Python's logging module to send logs
-    to a syslog server. It can be configured with different addresses, facilities,
+    This handler uses the SysLogHandler from Python's logging module to send
+    logs
+    to a syslog server. It can be configured with different addresses,
+    facilities,
     and socket types.
     """
 
@@ -60,7 +62,8 @@ class SysLogLoggingHandler(HandlerBase):
                 else:
                     handler.setFormatter(self.formatter.compile_formatter())
             else:
-                # Default formatter for syslog that includes the logger name and level
+                # Default formatter for syslog that includes the logger name
+                # and level
                 default_formatter = logging.Formatter(
                     "%(name)s[%(process)d]: %(levelname)s - %(message)s"
                 )
@@ -69,7 +72,8 @@ class SysLogLoggingHandler(HandlerBase):
             return handler
 
         except (socket.error, OSError) as e:
-            # Log error and fallback to a NullHandler if syslog connection fails
+            # Log error and fallback to a NullHandler if syslog connection
+            # fails
             logging.error(
                 f"Failed to connect to syslog server at {self.address}: {e}"
             )
@@ -91,4 +95,8 @@ class SysLogLoggingHandler(HandlerBase):
             if isinstance(self.address, tuple)
             else self.address
         )
-        return f"SysLogLoggingHandler(address={addr_str}, facility={self.facility}, level={logging.getLevelName(self.level)})"
+        return (
+            f"SysLogLoggingHandler(address={addr_str}, "
+            f"facility={self.facility}, "
+            f"level={logging.getLevelName(self.level)})"
+        )

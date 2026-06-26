@@ -93,7 +93,10 @@ class VaultTransitKeyProvider(KeyProviderBase):
         super().__init__()
         if hvac is None and client is None:  # pragma: no cover - runtime guard
             raise ImportError(
-                "hvac is required for VaultTransitKeyProvider (pip install hvac)"
+                (
+                    "hvac is required for VaultTransitKeyProvider (pip install "  # noqa: E501
+                    "hvac)"
+                )
             )
         self._client = client or hvac.Client(
             url=url, token=token, namespace=namespace, verify=verify

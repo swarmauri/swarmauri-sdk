@@ -236,7 +236,11 @@ class RotatingJWTTokenService(TokenServiceBase):
 
         if alg != self._alg:
             raise ValueError(
-                f"This service is configured for alg={self._alg.value}, got {alg.value}"
+                (
+                    f"This service is configured for alg={self._alg.value}, "
+                    f"got "
+                    f"{alg.value}"
+                )
             )
 
         await self._maybe_rotate()

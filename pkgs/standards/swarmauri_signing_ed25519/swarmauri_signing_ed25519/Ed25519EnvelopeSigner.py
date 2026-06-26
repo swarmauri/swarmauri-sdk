@@ -49,7 +49,10 @@ def _canon_cbor(obj: Any) -> bytes:
 def _ensure_crypto() -> None:
     if not _CRYPTOGRAPHY_OK:
         raise RuntimeError(
-            "Ed25519EnvelopeSigner requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "Ed25519EnvelopeSigner requires 'cryptography'. Install with: "
+                "pip install cryptography"
+            )
         )
 
 
@@ -72,7 +75,10 @@ def _keyref_to_private(key: KeyRef) -> Ed25519PrivateKey:
             if len(data) == 64:
                 return Ed25519PrivateKey.from_private_bytes(bytes(data[:32]))
             raise ValueError(
-                "Unsupported Ed25519 private key length; expected 32 or 64 bytes."
+                (
+                    "Unsupported Ed25519 private key length; expected 32 or 64 "  # noqa: E501
+                    "bytes."
+                )
             )
     raise TypeError("Unsupported KeyRef for Ed25519 private key.")
 

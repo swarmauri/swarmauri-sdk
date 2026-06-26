@@ -25,18 +25,23 @@ class SentenceComplexityTool(ToolBase):
     )
 
     name: str = "SentenceComplexityTool"
-    description: str = "Evaluates sentence complexity based on average sentence length and the number of clauses."
+    description: str = (
+        "Evaluates sentence complexity based on average sentence "
+        "length and the number of clauses."
+    )
     type: Literal["SentenceComplexityTool"] = "SentenceComplexityTool"
 
     def __call__(self, text: str) -> Dict[str, float]:
         """
-        Evaluate sentence complexity based on average sentence length and the number of clauses.
+        Evaluate sentence complexity based on average sentence length and the
+        number of clauses.
 
         Parameters:
         - text (str): The text to analyze.
 
         Returns:
-        - dict: A dictionary containing average sentence length and average number of clauses per sentence.
+        - dict: A dictionary containing average sentence length and average
+          number of clauses per sentence.
         """
         if not text.strip():
             raise ValueError("Input text cannot be empty.")

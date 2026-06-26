@@ -54,7 +54,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         kwargs["beta"] = beta
         super().__init__(**kwargs)
         logger.info(
-            f"Initialized SobolevH1InnerProduct with alpha={alpha}, beta={beta}"
+            (
+                f"Initialized SobolevH1InnerProduct with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
     def compute(
@@ -83,7 +86,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         Raises
         ------
         TypeError
-            If the inputs are not of compatible types or don't provide derivative information
+            If the inputs are not of compatible types or don't provide
+            derivative information
         """
         logger.debug(
             f"Computing H1 inner product between {type(a)} and {type(b)}"
@@ -98,7 +102,10 @@ class SobolevH1InnerProduct(InnerProductBase):
             # Use the concrete Vector class
             return self._compute_for_vectors(a, b)
         else:
-            error_msg = f"Cannot compute H1 inner product for types {type(a)} and {type(b)}"
+            error_msg = (
+                f"Cannot compute H1 inner product for types {type(a)} and "
+                f"{type(b)}"
+            )
             logger.error(error_msg)
             raise TypeError(error_msg)
 
@@ -115,9 +122,11 @@ class SobolevH1InnerProduct(InnerProductBase):
         Parameters
         ----------
         f : Callable
-            First function that returns both value and derivative as a tuple (f(x), f'(x))
+            First function that returns both value and derivative as a tuple
+            (f(x), f'(x))
         g : Callable
-            Second function that returns both value and derivative as a tuple (g(x), g'(x))
+            Second function that returns both value and derivative as a tuple
+            (g(x), g'(x))
         domain : tuple, optional
             Integration domain (a, b), by default (0, 1)
         num_points : int, optional
@@ -151,7 +160,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            f"H1 inner product result: {result} (L2 part: {l2_part}, derivative part: {derivative_part})"
+            (
+                f"H1 inner product result: {result} (L2 part: {l2_part}, "
+                f"derivative part: {derivative_part})"
+            )
         )
 
         return result
@@ -160,7 +172,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         """
         Compute H1 inner product for two arrays.
 
-        For this implementation, we assume the arrays represent discrete function values
+        For this implementation, we assume the arrays represent discrete
+        function values
         on a uniform grid, and we compute derivatives using finite differences.
 
         Parameters
@@ -211,7 +224,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            f"H1 inner product result: {result} (L2 part: {l2_part}, derivative part: {derivative_part})"
+            (
+                f"H1 inner product result: {result} (L2 part: {l2_part}, "
+                f"derivative part: {derivative_part})"
+            )
         )
 
         return result
@@ -239,7 +255,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         a_values = a.to_numpy()
         b_values = b.to_numpy()
 
-        # Compute derivatives using finite differences (same as in _compute_for_arrays)
+        # Compute derivatives using finite differences (same as in
+        # _compute_for_arrays)
         a_derivative = np.zeros_like(a_values)
         b_derivative = np.zeros_like(b_values)
 
@@ -267,7 +284,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            f"H1 inner product result: {result} (L2 part: {l2_part}, derivative part: {derivative_part})"
+            (
+                f"H1 inner product result: {result} (L2 part: {l2_part}, "
+                f"derivative part: {derivative_part})"
+            )
         )
 
         return result
@@ -278,7 +298,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
-        Check if the H1 inner product satisfies the conjugate symmetry property.
+        Check if the H1 inner product satisfies the conjugate symmetry
+        property.
 
         Parameters
         ----------
@@ -308,7 +329,10 @@ class SobolevH1InnerProduct(InnerProductBase):
             is_symmetric = np.isclose(inner_ab, inner_ba)
 
         logger.debug(
-            f"Conjugate symmetry check result: {is_symmetric} (<a,b>={inner_ab}, <b,a>={inner_ba})"
+            (
+                f"Conjugate symmetry check result: {is_symmetric} "
+                f"(<a,b>={inner_ab}, <b,a>={inner_ba})"
+            )
         )
         return is_symmetric
 
@@ -321,7 +345,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         beta: float,
     ) -> bool:
         """
-        Check if the H1 inner product satisfies linearity in the first argument.
+        Check if the H1 inner product satisfies linearity in the first
+        argument.
 
         Verifies if <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>
 
@@ -349,7 +374,10 @@ class SobolevH1InnerProduct(InnerProductBase):
             If the inputs cannot be linearly combined
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         # Compute individual inner products
@@ -391,14 +419,20 @@ class SobolevH1InnerProduct(InnerProductBase):
             linear_combo = CombinedVector()
             left_side = self.compute(linear_combo, b)
         else:
-            error_msg = f"Cannot create linear combination of types {type(a1)} and {type(a2)}"
+            error_msg = (
+                f"Cannot create linear combination of types {type(a1)} and "
+                f"{type(a2)}"
+            )
             logger.error(error_msg)
             raise TypeError(error_msg)
 
         # Check if the two sides are approximately equal
         is_linear = np.isclose(left_side, right_side)
         logger.debug(
-            f"Linearity check result: {is_linear} (left side: {left_side}, right side: {right_side})"
+            (
+                f"Linearity check result: {is_linear} (left side: "
+                f"{left_side}, right side: {right_side})"
+            )
         )
 
         return is_linear
@@ -452,7 +486,10 @@ class SobolevH1InnerProduct(InnerProductBase):
 
         is_positive = is_non_negative and is_zero_for_zero_only
         logger.debug(
-            f"Positivity check result: {is_positive} (inner product: {inner_aa})"
+            (
+                f"Positivity check result: {is_positive} (inner product: "
+                f"{inner_aa})"
+            )
         )
 
         return is_positive

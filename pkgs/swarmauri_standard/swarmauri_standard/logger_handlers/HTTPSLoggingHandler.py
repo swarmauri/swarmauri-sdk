@@ -13,7 +13,8 @@ from swarmauri_base.ObserveBase import ObserveBase
 @ObserveBase.register_model()
 class HTTPSLoggingHandler(HandlerBase):
     """
-    A logging handler that sends log records over HTTPS to a specified endpoint.
+    A logging handler that sends log records over HTTPS to a specified
+    endpoint.
 
     This handler securely transmits log records to a remote server using HTTPS,
     with support for client certificates and custom SSL/TLS configurations.
@@ -43,7 +44,8 @@ class HTTPSLoggingHandler(HandlerBase):
         Creates and configures an HTTPS logging handler.
 
         Returns:
-            logging.Handler: A configured logging handler for HTTPS transmission.
+            logging.Handler: A configured logging handler for HTTPS
+            transmission.
         """
         # Create a custom handler that sends log records over HTTPS
         handler = _HTTPSHandler(
@@ -79,7 +81,8 @@ class HTTPSLoggingHandler(HandlerBase):
 
 class _HTTPSHandler(logging.Handler):
     """
-    Internal handler class that handles the actual HTTPS transmission of log records.
+    Internal handler class that handles the actual HTTPS transmission of log
+    records.
     """
 
     def __init__(
@@ -202,7 +205,10 @@ class _HTTPSHandler(logging.Handler):
             # Check if the request was successful
             if response.status >= 400:
                 logging.getLogger("HTTPSLoggingHandler").warning(
-                    f"Failed to send log record: HTTP {response.status} - {response.reason}"
+                    (
+                        f"Failed to send log record: HTTP {response.status} - "
+                        f"{response.reason}"
+                    )
                 )
 
             # Close the connection

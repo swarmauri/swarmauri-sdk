@@ -17,7 +17,9 @@ from .CognitoLoginMixin import CognitoLoginMixin
 
 @ComponentBase.register_type(OAuth21LoginBase, "CognitoOAuth21Login")
 class CognitoOAuth21Login(CognitoLoginMixin, OAuth21LoginBase):
-    """AWS Cognito OAuth 2.1 Authorization Code flow leveraging OIDC discovery."""
+    """
+    AWS Cognito OAuth 2.1 Authorization Code flow leveraging OIDC discovery.
+    """
 
     issuer: str
     client_id: str

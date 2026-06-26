@@ -13,7 +13,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing OpenAIAudioTTS from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "removed in a future version. Please use 'from swarmauri_standard.tts import "  # noqa: E501
     "OpenaiTTS' or 'from swarmauri.tts import OpenaiTTS' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -23,12 +23,15 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "OpenAIAudioTTS")
 class OpenAIAudioTTS(LLMBase):
     """
-    A class to interact with OpenAI's Text-to-Speech API, allowing for synchronous
-    and asynchronous text-to-speech synthesis, as well as streaming capabilities.
+    A class to interact with OpenAI's Text-to-Speech API, allowing for
+    synchronous
+    and asynchronous text-to-speech synthesis, as well as streaming
+    capabilities.
 
     Attributes:
         api_key (str): The API key for accessing OpenAI's TTS service.
-        allowed_models (List[str]): List of models supported by the TTS service.
+        allowed_models (List[str]): List of models supported by the TTS
+        service.
         allowed_voices (List[str]): List of available voices.
         name (str): The default model name used for TTS.
         type (Literal): The type of TTS model.
@@ -90,7 +93,10 @@ class OpenAIAudioTTS(LLMBase):
         allowed_voices = values.allowed_voices
         if voice and voice not in allowed_voices:
             raise ValueError(
-                f"Model name {voice} is not allowed. Choose from {allowed_voices}"
+                (
+                    f"Model name {voice} is not allowed. Choose from "
+                    f"{allowed_voices}"
+                )
             )
         return values
 
@@ -211,7 +217,8 @@ class OpenAIAudioTTS(LLMBase):
         Synchronously process multiple text-to-speech requests in batch mode.
 
         Args:
-            text_path_dict (Dict[str, str]): Dictionary mapping text to output paths.
+            text_path_dict (Dict[str, str]): Dictionary mapping text to output
+            paths.
 
         Returns:
             List[str]: List of paths to the saved audio files.
@@ -231,7 +238,8 @@ class OpenAIAudioTTS(LLMBase):
         with controlled concurrency.
 
         Args:
-            text_path_dict (Dict[str, str]): Dictionary mapping text to output paths.
+            text_path_dict (Dict[str, str]): Dictionary mapping text to output
+            paths.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
@@ -251,7 +259,8 @@ class OpenAIAudioTTS(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

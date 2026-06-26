@@ -10,7 +10,8 @@ global_tracer = SimpleTracer()
 @contextmanager
 def VariableTracer(name: str, initial_value=None):
     """
-    Context manager for tracing the declaration, modification, and usage of a variable.
+    Context manager for tracing the declaration, modification, and usage of a
+    variable.
     """
     global_tracer.start_trace(
         name=f"Variable: {name}",
@@ -21,7 +22,8 @@ def VariableTracer(name: str, initial_value=None):
     try:
         yield traced_variable
     finally:
-        # Optionally record any final value or state of the variable before it goes out of scope
+        # Optionally record any final value or state of the variable before it
+        # goes out of scope
         global_tracer.annotate_trace(
             key=f"{name}_final", value={"final_value": traced_variable.value}
         )

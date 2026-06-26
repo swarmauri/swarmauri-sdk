@@ -28,7 +28,8 @@ def advanced_http_handler():
     Creates an HTTP logging handler with advanced options for testing.
 
     Returns:
-        HTTPLoggingHandler: An HTTP logging handler with timeout and credentials.
+        HTTPLoggingHandler: An HTTP logging handler with timeout and
+        credentials.
     """
     return HTTPLoggingHandler(
         host="example.com",

@@ -51,19 +51,24 @@ class CompositeTokenService(TokenServiceBase):
     Routing rules (in order of preference):
     ---------------------------------------
     MINT:
-      1) If headers['typ'] matches a service 'formats' entry (e.g., "JWT", "SSH-CERT", "paseto"),
+      1) If headers['typ'] matches a service 'formats' entry (e.g., "JWT",
+      "SSH-CERT", "paseto"),
          pick that service.
-      2) If claims['cnf'] contains 'x5t#S256' -> use mTLS-bound service (if registered).
+      2) If claims['cnf'] contains 'x5t#S256' -> use mTLS-bound service (if
+      registered).
          If contains 'jkt' -> use DPoP-bound service (if registered).
       3) If alg looks SSH-ish ('ssh-' prefix), choose an SSH-CERT service.
-      4) Otherwise, choose a service that supports the requested 'alg' and includes "JWT" format.
+      4) Otherwise, choose a service that supports the requested 'alg' and
+      includes "JWT" format.
          If multiple match, prefer the first registered.
 
-      (Optional override) You may also pass headers['svc'] = <service_name> (its .type value)
+      (Optional override) You may also pass headers['svc'] = <service_name>
+      (its .type value)
       to force a particular service.
 
     VERIFY:
-      1) SSH certificate line (starts with 'ssh-' and contains '-cert-') -> SSH-CERT service.
+      1) SSH certificate line (starts with 'ssh-' and contains '-cert-') ->
+      SSH-CERT service.
       2) If JWT-like (two dots present), peek header/payload:
           - If cnf.x5t#S256 present -> mTLS-bound service.
           - If cnf.jkt present -> DPoP-bound service.
@@ -74,7 +79,8 @@ class CompositeTokenService(TokenServiceBase):
       - Union of all child services' JWKS; de-duplicate by 'kid'.
 
     Notes:
-      - This class does NOT do background refresh; it simply delegates synchronously.
+      - This class does NOT do background refresh; it simply delegates
+        synchronously.
       - Child services must implement the same async interface.
     """
 

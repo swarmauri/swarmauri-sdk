@@ -8,7 +8,10 @@ from swarmauri_standard.distances.ChebyshevDistance import (
 class ChebyshevDistance(_StandardChebyshevDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "ChebyshevDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "ChebyshevDistance is deprecated and will be removed from the "
+                "active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

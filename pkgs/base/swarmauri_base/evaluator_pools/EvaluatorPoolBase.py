@@ -21,12 +21,14 @@ P = TypeVar("P", bound=IProgram)
 @ComponentBase.register_model()
 class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     """
-    Thread-safe evaluator-pool base class with registry, dispatch and aggregation.
+    Thread-safe evaluator-pool base class with registry, dispatch and
+    aggregation.
     """
 
     resource: Optional[str] = ResourceTypes.EVALUATOR_POOL.value
 
-    # ── runtime-only attributes (excluded from pydantic serialisation) ──────────
+    # ── runtime-only attributes (excluded from pydantic serialisation)
+    # ──────────
     evaluators: Dict[str, IEvaluate] = Field(default_factory=dict)
     lock: Any = Field(default=None, exclude=True)
     executor: Any = Field(default=None, exclude=True)
@@ -34,9 +36,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # life-cycle
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     def __init__(self, **kwargs: Any):
         super().__init__(**kwargs)
         self.evaluators = {}
@@ -70,9 +72,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
                 f"Failed to shut down evaluator pool: {e}"
             ) from e
 
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # registry ops
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     def add_evaluator(
         self, evaluator: IEvaluate, name: Optional[str] = None
     ) -> str:
@@ -106,9 +108,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
         with self.lock:
             return len(self.evaluators)
 
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # evaluation API
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     def evaluate(
         self, programs: Sequence[P], **kwargs
     ) -> Sequence[IEvalResult]:
@@ -170,9 +172,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             )
         return results
 
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # aggregation
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     def aggregate(self, scores: Sequence[float]) -> float:
         if not scores:
             raise ValueError("Cannot aggregate an empty score list")
@@ -189,9 +191,9 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             raise TypeError("Aggregation function must return a numeric value")
         self.aggregation_func = func
 
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     # result helpers / hooks
-    # ────────────────────────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
     def _create_eval_result(
         self,
         program: IProgram,

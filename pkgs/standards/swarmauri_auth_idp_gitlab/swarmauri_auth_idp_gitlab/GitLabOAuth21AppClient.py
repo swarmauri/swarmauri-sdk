@@ -70,7 +70,9 @@ class GitLabOAuth21AppClient(OAuth21AppClientBase):
             payload, key=key, algorithm=algorithm, headers=headers or None
         )
         return {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion_type": (
+                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+            ),
             "client_assertion": assertion,
         }
 

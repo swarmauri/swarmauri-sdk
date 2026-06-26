@@ -48,7 +48,8 @@ class LpPseudometric(PseudometricBase):
 
     This class defines a pseudometric over function space using Lp integration,
     possibly on a subset of coordinates or domain. It allows for calculating
-    distances between functions or vectors based on the Lp norm of their differences,
+    distances between functions or vectors based on the Lp norm of their
+    differences,
     but may not distinguish between all distinct inputs.
 
     Attributes
@@ -84,7 +85,8 @@ class LpPseudometric(PseudometricBase):
         domain : Optional[Tuple[float, float]], optional
             The domain interval [a, b] to integrate over, by default None
         coordinates : Optional[List[int]], optional
-            Specific coordinates to include in the distance calculation, by default None
+            Specific coordinates to include in the distance calculation, by
+            default None
         epsilon : float, optional
             Small value used for numerical stability, by default 1e-10
 
@@ -107,7 +109,11 @@ class LpPseudometric(PseudometricBase):
         if domain is not None:
             if len(domain) != 2 or domain[0] >= domain[1]:
                 raise ValueError(
-                    f"Domain must be a valid interval [a, b] where a < b, got {domain}"
+                    (
+                        f"Domain must be a valid interval [a, b] where a < b, "
+                        f"got "
+                        f"{domain}"
+                    )
                 )
 
         # Validate coordinates if provided
@@ -123,7 +129,10 @@ class LpPseudometric(PseudometricBase):
         self.epsilon = epsilon
 
         logger.info(
-            f"Initialized LpPseudometric with p={p}, domain={domain}, coordinates={coordinates}"
+            (
+                f"Initialized LpPseudometric with p={p}, domain={domain}, "
+                f"coordinates={coordinates}"
+            )
         )
 
     def _convert_to_array(self, x: InputType):
@@ -205,30 +214,47 @@ class LpPseudometric(PseudometricBase):
             if len(arr.shape) == 1:
                 if coord_max >= arr.shape[0]:
                     raise ValueError(
-                        f"Coordinate index out of bounds: max index {coord_max}, array shape {arr.shape}"
+                        (
+                            f"Coordinate index out of bounds: max index "
+                            f"{coord_max}, "
+                            f"array shape {arr.shape}"
+                        )
                     )
                 return arr[self.coordinates]
             elif len(arr.shape) == 2:
                 if coord_max >= arr.shape[0]:
                     raise ValueError(
-                        f"Coordinate index out of bounds: max index {coord_max}, array shape {arr.shape}"
+                        (
+                            f"Coordinate index out of bounds: max index "
+                            f"{coord_max}, "
+                            f"array shape {arr.shape}"
+                        )
                     )
                 return arr[self.coordinates, :]
             else:
                 raise ValueError(
-                    f"Cannot filter coordinates for array with shape {arr.shape}"
+                    f"Cannot filter coordinates for array with shape "
+                    f"{arr.shape}"
                 )
         else:  # pragma: no cover - numpy fallback
             if isinstance(arr[0], (list, tuple)):
                 if coord_max >= len(arr):
                     raise ValueError(
-                        f"Coordinate index out of bounds: max index {coord_max}, array length {len(arr)}"
+                        (
+                            f"Coordinate index out of bounds: max index "
+                            f"{coord_max}, "
+                            f"array length {len(arr)}"
+                        )
                     )
                 return [arr[i] for i in self.coordinates]
             else:
                 if coord_max >= len(arr):
                     raise ValueError(
-                        f"Coordinate index out of bounds: max index {coord_max}, array length {len(arr)}"
+                        (
+                            f"Coordinate index out of bounds: max index "
+                            f"{coord_max}, "
+                            f"array length {len(arr)}"
+                        )
                     )
                 return [arr[i] for i in self.coordinates]
 
@@ -256,7 +282,10 @@ class LpPseudometric(PseudometricBase):
             If inputs have incompatible dimensions
         """
         logger.debug(
-            f"Calculating Lp pseudometric distance with p={self.p} between inputs of types {type(x)} and {type(y)}"
+            (
+                f"Calculating Lp pseudometric distance with p={self.p} "
+                f"between inputs of types {type(x)} and {type(y)}"
+            )
         )
 
         try:
@@ -271,7 +300,11 @@ class LpPseudometric(PseudometricBase):
             ):
                 if x_arr.shape != y_arr.shape:
                     raise ValueError(
-                        f"Inputs must have the same shape: {x_arr.shape} vs {y_arr.shape}"
+                        (
+                            f"Inputs must have the same shape: {x_arr.shape} "
+                            f"vs "
+                            f"{y_arr.shape}"
+                        )
                     )
             else:  # pragma: no cover - numpy fallback
                 if isinstance(x_arr[0], (list, tuple)) != isinstance(
@@ -298,12 +331,14 @@ class LpPseudometric(PseudometricBase):
             else:  # pragma: no cover - numpy fallback
                 diff = [abs(a - b) for a, b in zip(x_arr, y_arr)]
 
-            # Apply normalization factor for callable inputs (domain integration)
+            # Apply normalization factor for callable inputs (domain
+            # integration)
             scaling_factor = 1.0
             if callable(x) and callable(y) and self.domain is not None:
                 # For continuous functions, we need to scale by domain width
                 domain_width = self.domain[1] - self.domain[0]
-                # The scaling depends on number of sample points (default is 100)
+                # The scaling depends on number of sample points (default is
+                # 100)
                 scaling_factor = domain_width / len(diff)
 
             # Handle special cases for common p values with scaling
@@ -357,7 +392,8 @@ class LpPseudometric(PseudometricBase):
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the distance between
+            xs[i] and ys[j]
 
         Raises
         ------
@@ -367,7 +403,10 @@ class LpPseudometric(PseudometricBase):
             If inputs have incompatible dimensions
         """
         logger.debug(
-            f"Calculating pairwise Lp pseudometric distances between {len(xs)} and {len(ys)} objects"
+            (
+                f"Calculating pairwise Lp pseudometric distances between "
+                f"{len(xs)} and {len(ys)} objects"
+            )
         )
 
         result = []
@@ -378,7 +417,11 @@ class LpPseudometric(PseudometricBase):
                     row.append(self.distance(x, y))
                 except Exception as e:
                     logger.error(
-                        f"Error calculating distance between xs[{i}] and ys[{j}]: {str(e)}"
+                        (
+                            f"Error calculating distance between xs[{i}] and "
+                            f"ys[{j}]: "
+                            f"{str(e)}"
+                        )
                     )
                     raise
             result.append(row)
@@ -490,11 +533,13 @@ class LpPseudometric(PseudometricBase):
         Returns
         -------
         bool
-            True if the pseudometric properly handles the weak identity property
+            True if the pseudometric properly handles the weak identity
+            property
         """
         # For Lp pseudometric, weak identity is satisfied when:
         # 1. d(x,x) = 0 for any x
-        # 2. If objects differ only outside the measured domain/coordinates, d(x,y) = 0
+        # 2. If objects differ only outside the measured domain/coordinates,
+        # d(x,y) = 0
 
         try:
             # Check if d(x,x) = 0
@@ -511,7 +556,8 @@ class LpPseudometric(PseudometricBase):
                 return True
 
             # If we're only measuring certain coordinates and the objects are
-            # identical in those coordinates but different elsewhere, d(x,y) should be 0
+            # identical in those coordinates but different elsewhere, d(x,y)
+            # should be 0
             x_arr = self._convert_to_array(x)
             y_arr = self._convert_to_array(y)
 
@@ -519,7 +565,8 @@ class LpPseudometric(PseudometricBase):
                 x_filtered = self._filter_coordinates(x_arr)
                 y_filtered = self._filter_coordinates(y_arr)
 
-                # If the filtered arrays are equal but the original arrays are not,
+                # If the filtered arrays are equal but the original arrays are
+                # not,
                 # then we have a case of weak identity
                 return np.array_equal(
                     x_filtered, y_filtered
@@ -557,4 +604,7 @@ class LpPseudometric(PseudometricBase):
         str
             Detailed string representation
         """
-        return f"LpPseudometric(p={self.p}, domain={self.domain}, coordinates={self.coordinates}, epsilon={self.epsilon})"
+        return (
+            f"LpPseudometric(p={self.p}, domain={self.domain}, "
+            f"coordinates={self.coordinates}, epsilon={self.epsilon})"
+        )

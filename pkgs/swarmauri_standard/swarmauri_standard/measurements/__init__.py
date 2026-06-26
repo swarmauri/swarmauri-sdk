@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of measurements names (file names without the ".py" extension) and corresponding class names
+# # List of measurements names (file names without the ".py" extension) and
+# corresponding class names
 # measurements_files = [
 #     (
 #         "swarmauri_standard.measurements.CompletenessMeasurement",
@@ -28,8 +29,9 @@
 #         "swarmauri_standard.measurements.RatioOfSumsMeasurement",
 #         "RatioOfSumsMeasurement",
 #     ),
-#     ("swarmauri_standard.measurements.StaticMeasurement", "StaticMeasurement"),
-#     ("swarmauri_standard.measurements.UniquenessMeasurement", "UniquenessMeasurement"),
+#     ("swarmauri_standard.measurements.StaticMeasurement", "StaticMeasurement"),  # noqa: E501
+# ("swarmauri_standard.measurements.UniquenessMeasurement",
+# "UniquenessMeasurement"),
 #     ("swarmauri_standard.measurements.ZeroMeasurement", "ZeroMeasurement"),
 # ]
 

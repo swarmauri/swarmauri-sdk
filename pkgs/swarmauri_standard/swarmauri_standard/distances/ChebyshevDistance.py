@@ -14,8 +14,10 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "ChebyshevDistance")
 class ChebyshevDistance(DistanceBase):
     """
-    Concrete implementation of the IDistanceSimiliarity interface using the Chebyshev distance metric.
-    Chebyshev distance is the maximum absolute distance between two vectors' elements.
+    Concrete implementation of the IDistanceSimiliarity interface using the
+    Chebyshev distance metric.
+    Chebyshev distance is the maximum absolute distance between two vectors'
+    elements.
     """
 
     type: Literal["ChebyshevDistance"] = "ChebyshevDistance"
@@ -29,7 +31,8 @@ class ChebyshevDistance(DistanceBase):
             vector_b (Vector): The second vector in the comparison.
 
         Returns:
-            float: The computed Chebyshev distance between vector_a and vector_b.
+            float: The computed Chebyshev distance between vector_a and
+            vector_b.
         """
         max_distance = 0
         for a, b in zip(vector_a.value, vector_b.value):
@@ -38,7 +41,8 @@ class ChebyshevDistance(DistanceBase):
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Computes the similarity between two vectors based on the Chebyshev distance.
+        Computes the similarity between two vectors based on the Chebyshev
+        distance.
 
         Args:
             vector_a (Vector): The first vector.

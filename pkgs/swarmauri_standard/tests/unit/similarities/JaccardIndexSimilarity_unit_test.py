@@ -117,7 +117,9 @@ def test_similarities(jaccard_similarity):
 
 @pytest.mark.unit
 def test_similarities_type_error(jaccard_similarity):
-    """Test that TypeError is raised when inputs to similarities are not sets."""
+    """
+    Test that TypeError is raised when inputs to similarities are not sets.
+    """
     with pytest.raises(TypeError):
         jaccard_similarity.similarities("not a set", [set([1, 2, 3])])
 
@@ -173,7 +175,8 @@ def test_check_symmetry(jaccard_similarity):
 
 @pytest.mark.unit
 def test_check_symmetry_type_error(jaccard_similarity):
-    """Test that TypeError is raised when inputs to check_symmetry are not sets."""
+    """Test that TypeError is raised when inputs to check_symmetry are not
+    sets."""
     with pytest.raises(TypeError):
         jaccard_similarity.check_symmetry("not a set", set([1, 2, 3]))
 

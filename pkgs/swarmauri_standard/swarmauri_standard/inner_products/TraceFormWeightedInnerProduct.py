@@ -18,11 +18,14 @@ Matrix = TypeVar("Matrix", bound=np.ndarray)
 @ComponentBase.register_type(InnerProductBase, "TraceFormWeightedInnerProduct")
 class TraceFormWeightedInnerProduct(InnerProductBase):
     """
-    Matrix-based inner product where trace is modulated by an external weight matrix.
+    Matrix-based inner product where trace is modulated by an external weight
+    matrix.
 
-    This class implements an inner product calculation between matrices where the
+    This class implements an inner product calculation between matrices where
+    the
     inner product is defined as trace(A^T * W * B), where W is a weight matrix.
-    The weight matrix modulates the importance of different elements in the matrices.
+    The weight matrix modulates the importance of different elements in the
+    matrices.
 
     Attributes
     ----------
@@ -45,7 +48,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
     def __init__(self, weight_matrix: Optional[np.ndarray] = None, **kwargs):
         """
-        Initialize the TraceFormWeightedInnerProduct with an optional weight matrix.
+        Initialize the TraceFormWeightedInnerProduct with an optional weight
+        matrix.
 
         Parameters
         ----------
@@ -61,7 +65,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             # Ensure the weight matrix is a numpy array
             weight_matrix = np.array(weight_matrix)
             logger.info(
-                f"Initialized with weight matrix of shape {weight_matrix.shape}"
+                (
+                    f"Initialized with weight matrix of shape "
+                    f"{weight_matrix.shape}"
+                )
             )
         kwargs["weight_matrix"] = weight_matrix
         super().__init__(**kwargs)
@@ -74,8 +81,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         """
         Compute the weighted trace inner product between two matrices.
 
-        The inner product is defined as trace(A^T * W * B), where W is the weight matrix.
-        For complex matrices, we use the conjugate transpose A^H instead of transpose A^T.
+        The inner product is defined as trace(A^T * W * B), where W is the
+        weight matrix.
+        For complex matrices, we use the conjugate transpose A^H instead of
+        transpose A^T.
 
         Parameters
         ----------
@@ -92,10 +101,14 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         Raises
         ------
         ValueError
-            If the input objects are not matrices or have incompatible dimensions
+            If the input objects are not matrices or have incompatible
+            dimensions
         """
         logger.debug(
-            f"Computing weighted trace inner product between {type(a)} and {type(b)}"
+            (
+                f"Computing weighted trace inner product between {type(a)} "
+                f"and {type(b)}"
+            )
         )
 
         # Convert inputs to numpy arrays if they aren't already
@@ -109,9 +122,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             a.shape[0] != self.weight_matrix.shape[0]
             or b.shape[0] != self.weight_matrix.shape[1]
         ):
-            error_msg = (
-                f"Incompatible dimensions: a.shape={a.shape}, "
-                f"weight_matrix.shape={self.weight_matrix.shape}, b.shape={b.shape}"
+            error_msg = f"Incompatible dimensions: a.shape={a.shape}, "(
+                f"weight_matrix.shape={self.weight_matrix.shape}, "
+                f"b.shape={b.shape}"
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
@@ -151,7 +164,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         Check if the inner product satisfies the conjugate symmetry property:
         <a, b> = <b, a>* (complex conjugate).
 
-        For the weighted trace inner product, this property holds if the weight matrix is Hermitian
+        For the weighted trace inner product, this property holds if the weight
+        matrix is Hermitian
         (equal to its own conjugate transpose).
 
         Parameters
@@ -180,7 +194,11 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
         if not is_hermitian:
             logger.debug(
-                "Weight matrix is not Hermitian, conjugate symmetry does not hold"
+                (
+                    "Weight matrix is not Hermitian, conjugate symmetry does "
+                    "not "
+                    "hold"
+                )
             )
             return False
 
@@ -196,7 +214,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             result = np.isclose(ip_ab, ip_ba_conj, rtol=1e-4, atol=1e-6)
 
             logger.debug(
-                f"Conjugate symmetry values: <a,b>={ip_ab}, <b,a>*={ip_ba_conj}, diff={abs(ip_ab - ip_ba_conj)}"
+                (
+                    f"Conjugate symmetry values: <a,b>={ip_ab}, "
+                    f"<b,a>*={ip_ba_conj}, diff={abs(ip_ab - ip_ba_conj)}"
+                )
             )
             return bool(result)
         except Exception as e:
@@ -234,7 +255,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         try:
@@ -249,7 +273,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             # Check if dimensions are compatible
             if a1.shape != a2.shape:
                 logger.error(
-                    f"Incompatible dimensions: a1.shape={a1.shape}, a2.shape={a2.shape}"
+                    (
+                        f"Incompatible dimensions: a1.shape={a1.shape}, "
+                        f"a2.shape={a2.shape}"
+                    )
                 )
                 return False
 
@@ -272,7 +299,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
         Check if the inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
 
-        For the weighted trace inner product, this property holds if the weight matrix is positive semi-definite.
+        For the weighted trace inner product, this property holds if the weight
+        matrix is positive semi-definite.
 
         Parameters
         ----------
@@ -296,7 +324,11 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
             if not is_psd:
                 logger.debug(
-                    "Weight matrix is not positive semi-definite, positivity does not hold"
+                    (
+                        "Weight matrix is not positive semi-definite, "
+                        "positivity does "
+                        "not hold"
+                    )
                 )
                 return False
 

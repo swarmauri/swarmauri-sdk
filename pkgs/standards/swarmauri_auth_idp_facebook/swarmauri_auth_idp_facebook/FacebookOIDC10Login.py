@@ -152,7 +152,7 @@ class FacebookOIDC10Login(OIDC10LoginBase):
                 response = await client.get_retry(
                     metadata["userinfo_endpoint"],
                     headers={
-                        "Authorization": f"Bearer {tokens.get('access_token', '')}",
+                        "Authorization": f"Bearer {tokens.get('access_token', '')}",  # noqa: E501
                         "Accept": "application/json",
                     },
                 )

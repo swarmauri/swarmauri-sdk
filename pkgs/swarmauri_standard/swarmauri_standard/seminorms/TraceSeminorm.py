@@ -19,7 +19,8 @@ class TraceSeminorm(SeminormBase):
 
     This seminorm uses the trace of a matrix in its computation without
     guaranteeing positive-definiteness. It calculates the sum of singular
-    values of a matrix, which is equal to the trace of the square root of A*A^T.
+    values of a matrix, which is equal to the trace of the square root of
+    A*A^T.
 
     Attributes
     ----------
@@ -78,10 +79,12 @@ class TraceSeminorm(SeminormBase):
                     return float(np.sum(singular_values))
                 except Exception as e:
                     logger.error(
-                        f"Error computing trace seminorm for numpy array: {str(e)}"
+                        f"Error computing trace seminorm for numpy array: "
+                        f"{str(e)}"
                     )
                     raise ValueError(
-                        f"Failed to compute trace seminorm for numpy array: {str(e)}"
+                        f"Failed to compute trace seminorm for numpy array: "
+                        f"{str(e)}"
                     )
             else:
                 raise TypeError(
@@ -109,7 +112,11 @@ class TraceSeminorm(SeminormBase):
                 f"Unsupported input type for trace seminorm: {type(x)}"
             )
             raise TypeError(
-                f"Trace seminorm requires a matrix or matrix-like input, got {type(x)}"
+                (
+                    f"Trace seminorm requires a matrix or matrix-like input, "
+                    f"got "
+                    f"{type(x)}"
+                )
             )
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -139,7 +146,10 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
 
         # Ensure we can add the inputs
@@ -151,7 +161,10 @@ class TraceSeminorm(SeminormBase):
             # Check if shapes are compatible for addition
             if x_data.shape != y_data.shape:
                 logger.warning(
-                    f"Incompatible shapes for triangle inequality check: {x_data.shape} vs {y_data.shape}"
+                    (
+                        f"Incompatible shapes for triangle inequality check: "
+                        f"{x_data.shape} vs {y_data.shape}"
+                    )
                 )
                 return False
 
@@ -174,7 +187,8 @@ class TraceSeminorm(SeminormBase):
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity for trace norm states that:
         ||αx|| = |α|·||x||
@@ -199,7 +213,10 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
 
         try:

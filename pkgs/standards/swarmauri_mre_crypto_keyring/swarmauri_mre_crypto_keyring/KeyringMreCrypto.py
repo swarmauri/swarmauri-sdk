@@ -57,12 +57,15 @@ class KeyringClient(Protocol):
     async def wrap_cek(
         self, cek: bytes, *, context: Mapping[str, bytes]
     ) -> bytes:
-        """Return an opaque header which lets this keyring later release the same CEK."""
+        """Return an opaque header which lets this keyring later release the
+        same CEK."""
 
     async def unwrap_cek(
         self, header: bytes, *, context: Mapping[str, bytes]
     ) -> bytes:
-        """Return the CEK if the caller is authorized and policy is satisfied."""
+        """
+        Return the CEK if the caller is authorized and policy is satisfied.
+        """
 
 
 class _AEAD:
@@ -72,7 +75,10 @@ class _AEAD:
     ) -> Tuple[bytes, bytes]:
         if not _CRYPTO_OK:
             raise RuntimeError(
-                "KeyringMreCrypto requires 'cryptography' package. Install with: pip install cryptography"
+                (
+                    "KeyringMreCrypto requires 'cryptography' package. Install "  # noqa: E501
+                    "with: pip install cryptography"
+                )
             )
         if alg == "AES-256-GCM":
             if len(cek) not in (16, 24, 32):
@@ -102,7 +108,10 @@ class _AEAD:
     ) -> bytes:
         if not _CRYPTO_OK:
             raise RuntimeError(
-                "KeyringMreCrypto requires 'cryptography' package. Install with: pip install cryptography"
+                (
+                    "KeyringMreCrypto requires 'cryptography' package. Install "  # noqa: E501
+                    "with: pip install cryptography"
+                )
             )
 
         if alg == "AES-256-GCM":
@@ -126,7 +135,10 @@ class KeyringMreCrypto(MreCryptoBase):
     def __init__(self, **data: Any) -> None:
         if not _CRYPTO_OK:
             raise RuntimeError(
-                "KeyringMreCrypto requires 'cryptography' package. Install with: pip install cryptography"
+                (
+                    "KeyringMreCrypto requires 'cryptography' package. Install "  # noqa: E501
+                    "with: pip install cryptography"
+                )
             )
         super().__init__(**data)
 
@@ -310,7 +322,10 @@ class KeyringMreCrypto(MreCryptoBase):
             identities = (opts or {}).get("identities", None)
             if not isinstance(identities, (list, tuple)) or not identities:
                 raise ValueError(
-                    "rewrap with removal/rotation requires opts['identities']: Sequence[KeyRef] able to meet quorum."
+                    (
+                        "rewrap with removal/rotation requires opts['identities']: "  # noqa: E501
+                        "Sequence[KeyRef] able to meet quorum."
+                    )
                 )
             cek = await self._recover_cek_for_env(env, identities, shared)
         else:
@@ -403,7 +418,10 @@ class KeyringMreCrypto(MreCryptoBase):
                     continue
 
         raise PermissionError(
-            f"Unable to satisfy CEK quorum (required {quorum_k}) for CEK recovery."
+            (
+                f"Unable to satisfy CEK quorum (required {quorum_k}) for CEK "
+                f"recovery."
+            )
         )
 
     def _assert_env_shape(self, env: Mapping[str, Any]) -> None:
@@ -440,7 +458,10 @@ class KeyringMreCrypto(MreCryptoBase):
             ):
                 return client, dict(context)
         raise TypeError(
-            "KeyRef must be {'kind':'keyring_client','client':KeyringClient,'context'?:{str:bytes}}."
+            (
+                "KeyRef must be "
+                "{'kind':'keyring_client','client':KeyringClient,'context'?:{str:bytes}}."
+            )
         )
 
     def _stable_id(self, client: KeyringClient) -> str:

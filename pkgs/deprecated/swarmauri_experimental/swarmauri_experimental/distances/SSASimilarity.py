@@ -11,16 +11,20 @@ class SSASimilarity(ISimilarity):
 
     def similarity(self, vector_a: IVector, vector_b: IVector) -> float:
         """
-        Calculate the SSA similarity between two documents by comparing their metadata,
+        Calculate the SSA similarity between two documents by comparing their
+        metadata,
         assumed to represent states as sets of variables.
 
         Args:
         - vector_a (IDocument): The first document.
-        - vector_b (IDocument): The second document to compare with the first document.
+        - vector_b (IDocument): The second document to compare with the first
+          document.
 
         Returns:
-        - float: The SSA similarity measure between vector_a and vector_b, ranging from 0 to 1
-                 where 0 represents no similarity and 1 represents identical states.
+        - float: The SSA similarity measure between vector_a and vector_b,
+          ranging from 0 to 1
+                 where 0 represents no similarity and 1 represents identical
+                 states.
         """
         state_a = set(vector_a.metadata.keys())
         state_b = set(vector_b.metadata.keys())
@@ -37,7 +41,8 @@ class SSASimilarity(ISimilarity):
         - state_b (Set[str]): A set of variables representing state B.
 
         Returns:6
-        - float: The SSA similarity measure, ranging from 0 (no similarity) to 1 (identical states).
+        - float: The SSA similarity measure, ranging from 0 (no similarity) to
+          1 (identical states).
         """
         # Calculate the intersection (shared variables) between the two states
         shared_variables = state_a.intersection(state_b)

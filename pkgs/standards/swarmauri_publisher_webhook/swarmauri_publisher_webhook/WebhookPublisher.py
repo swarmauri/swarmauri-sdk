@@ -34,7 +34,8 @@ class WebhookPublisher(PublishBase):
             payload: JSON-serialisable dictionary to send.
 
         Raises:
-            RuntimeError: If the HTTP request fails or returns a non-2xx status code.
+            RuntimeError: If the HTTP request fails or returns a non-2xx status
+            code.
         """
         json_body = {"channel": channel, "payload": payload}
         try:
@@ -42,7 +43,10 @@ class WebhookPublisher(PublishBase):
             resp.raise_for_status()
         except httpx.HTTPStatusError as exc:
             raise RuntimeError(
-                f"Webhook returned {exc.response.status_code} for {self.url}: {exc.response.text.strip()}"
+                (
+                    f"Webhook returned {exc.response.status_code} for "
+                    f"{self.url}: {exc.response.text.strip()}"
+                )
             ) from exc
         except httpx.HTTPError as exc:
             raise RuntimeError(f"Failed to POST to {self.url}: {exc}") from exc

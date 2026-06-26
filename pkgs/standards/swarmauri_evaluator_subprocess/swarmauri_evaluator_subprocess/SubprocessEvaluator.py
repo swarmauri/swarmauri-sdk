@@ -20,11 +20,15 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_model()
 class SubprocessEvaluator(EvaluatorBase):
     """
-    Evaluator that runs programs in isolated subprocesses and measures their performance.
+    Evaluator that runs programs in isolated subprocesses and measures their
+    performance.
 
-    This evaluator executes programs in sandboxed subprocesses, capturing stdout, stderr,
-    exit code, and runtime metrics. It provides security through resource limits and
-    timeout constraints to prevent malicious or poorly written code from affecting
+    This evaluator executes programs in sandboxed subprocesses, capturing
+    stdout, stderr,
+    exit code, and runtime metrics. It provides security through resource
+    limits and
+    timeout constraints to prevent malicious or poorly written code from
+    affecting
     the host system.
     """
 
@@ -66,7 +70,8 @@ class SubprocessEvaluator(EvaluatorBase):
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Execute the program in a subprocess and compute a score based on its performance.
+        Execute the program in a subprocess and compute a score based on its
+        performance.
 
         Args:
             program: The program to evaluate
@@ -78,8 +83,10 @@ class SubprocessEvaluator(EvaluatorBase):
 
         Returns:
             A tuple containing:
-                - float: A scalar fitness score (1.0 for success, lower for failures)
-                - Dict[str, Any]: Metadata about the execution including stdout, stderr,
+                - float: A scalar fitness score (1.0 for success, lower for
+                  failures)
+                - Dict[str, Any]: Metadata about the execution including
+                  stdout, stderr,
                   exit code, and runtime information
         """
         # Extract additional parameters
@@ -202,7 +209,8 @@ class SubprocessEvaluator(EvaluatorBase):
             working_dir: Working directory for the subprocess
 
         Returns:
-            Dictionary containing execution results including stdout, stderr, and exit code
+            Dictionary containing execution results including stdout, stderr,
+            and exit code
         """
 
         # Set resource limits in a preexec function
@@ -273,7 +281,8 @@ class SubprocessEvaluator(EvaluatorBase):
                 # Kill the process and all its children
                 try:
                     process.kill()
-                    # Attempt to collect any output that was produced before timeout
+                    # Attempt to collect any output that was produced before
+                    # timeout
                     stdout_data, stderr_data = process.communicate()
                 except Exception as e:
                     logger.warning(
@@ -359,11 +368,13 @@ class SubprocessEvaluator(EvaluatorBase):
         """
         Aggregate multiple evaluation scores and their metadata.
 
-        This implementation extends the base aggregation with subprocess-specific metrics.
+        This implementation extends the base aggregation with
+        subprocess-specific metrics.
 
         Args:
             scores: List of individual scores to aggregate
-            metadata_list: List of metadata dictionaries corresponding to each score
+            metadata_list: List of metadata dictionaries corresponding to each
+            score
 
         Returns:
             A tuple containing:

@@ -23,7 +23,8 @@ def mock_pika_connection(mock_pika_channel):
     """Fixture to mock pika.BlockingConnection."""
     mock_conn = MagicMock(spec=pika.BlockingConnection)
     mock_conn.channel.return_value = mock_pika_channel
-    # Mock the params.uri for reconnection logic if needed, though it's complex for unit test
+    # Mock the params.uri for reconnection logic if needed, though it's complex
+    # for unit test
     mock_conn.params = MagicMock()
     mock_conn.params.uri = "amqp://mockuser:mockpass@mockhost:5672/"
     return mock_conn
@@ -38,7 +39,9 @@ def publisher(
     mock_pika_connection,
     mock_pika_channel,
 ):
-    """Fixture to create a RabbitMQPublisher instance with mocked Pika client."""
+    """
+    Fixture to create a RabbitMQPublisher instance with mocked Pika client.
+    """
     mock_blocking_connection_constructor.return_value = mock_pika_connection
     mock_pika_connection.channel.return_value = mock_pika_channel
 
@@ -52,7 +55,7 @@ def publisher(
     # Allow access to the mocks for assertions in tests
     pub._mocks = {
         "url_params": mock_url_params,
-        "blocking_connection_constructor": mock_blocking_connection_constructor,
+        "blocking_connection_constructor": mock_blocking_connection_constructor,  # noqa: E501
         "connection": mock_pika_connection,
         "channel": mock_pika_channel,
     }
@@ -68,7 +71,8 @@ def publisher_with_uri(
     mock_pika_connection,
     mock_pika_channel,
 ):
-    """Fixture to create a RabbitMQPublisher instance using a URI with mocked Pika client."""
+    """Fixture to create a RabbitMQPublisher instance using a URI with mocked
+    Pika client."""
     mock_blocking_connection_constructor.return_value = mock_pika_connection
     mock_pika_connection.channel.return_value = mock_pika_channel
 
@@ -76,7 +80,7 @@ def publisher_with_uri(
     pub = RabbitMQPublisher(uri=test_uri, exchange="uri_exchange")
     pub._mocks = {
         "url_params": mock_url_params,
-        "blocking_connection_constructor": mock_blocking_connection_constructor,
+        "blocking_connection_constructor": mock_blocking_connection_constructor,  # noqa: E501
         "connection": mock_pika_connection,
         "channel": mock_pika_channel,
     }
@@ -169,7 +173,10 @@ def test_initialization_missing_args():
             RabbitMQPublisher(host="localhost", exchange="test_exchange")
     except ValueError:
         pytest.fail(
-            "Initialization should succeed if host and exchange are provided, port has default"
+            (
+                "Initialization should succeed if host and exchange are "
+                "provided, port has default"
+            )
         )
 
 
@@ -177,7 +184,10 @@ def test_initialization_missing_args():
 def test_initialization_mixed_args():
     with pytest.raises(
         ValueError,
-        match="Cannot specify both `uri` and individual host/port/username/password.",
+        match=(
+            "Cannot specify both `uri` and individual "
+            "host/port/username/password."
+        ),
     ):
         RabbitMQPublisher(
             uri="amqp://localhost", host="otherhost", exchange="test_exchange"
@@ -187,9 +197,14 @@ def test_initialization_mixed_args():
 @pytest.mark.unit
 def test_serialization(publisher_with_uri):
     logging.info(
-        f"Testing serialization and deserialization of RabbitMQPublisher with URI = {publisher_with_uri.uri}, Exchange = {publisher_with_uri.exchange}"
+        (
+            f"Testing serialization and deserialization of "
+            f"RabbitMQPublisher with URI = {publisher_with_uri.uri}, "
+            f"Exchange = {publisher_with_uri.exchange}"
+        )
     )
-    # To make this test pass, the mocked pika objects need to be setup during model_validate_json
+    # To make this test pass, the mocked pika objects need to be setup during
+    # model_validate_json
     # This is complex. A simpler check is that the config fields are preserved.
     original_dump = publisher_with_uri.model_dump()
 

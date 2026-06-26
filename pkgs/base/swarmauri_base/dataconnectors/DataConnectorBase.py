@@ -5,7 +5,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 class DataConnectorBase(IDataConnector, ComponentBase):
     """
     Base implementation of IDataConnector that raises NotImplementedError
-    for all abstract methods, ensuring explicit implementation in child classes.
+    for all abstract methods, ensuring explicit implementation in child
+    classes.
     """
 
     def authenticate(self, **kwargs):
@@ -13,7 +14,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
         Raises NotImplementedError to enforce implementation in child classes.
 
         :param kwargs: Authentication parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Authenticate method must be implemented by child classes."
@@ -25,7 +27,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
 
         :param query: Query string or parameters
         :param kwargs: Additional parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Fetch data method must be implemented by child classes."
@@ -37,7 +40,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
 
         :param data: Data to be inserted
         :param kwargs: Additional parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Insert data method must be implemented by child classes."
@@ -50,7 +54,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
         :param identifier: Unique identifier of the data to update
         :param data: Updated data
         :param kwargs: Additional parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Update data method must be implemented by child classes."
@@ -62,7 +67,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
 
         :param identifier: Unique identifier of the data to delete
         :param kwargs: Additional parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Delete data method must be implemented by child classes."
@@ -73,7 +79,8 @@ class DataConnectorBase(IDataConnector, ComponentBase):
         Raises NotImplementedError to enforce implementation in child classes.
 
         :param kwargs: Connection parameters
-        :raises NotImplementedError: Always raised to require specific implementation
+        :raises NotImplementedError: Always raised to require specific
+            implementation
         """
         raise NotImplementedError(
             "Test connection method must be implemented by child classes."

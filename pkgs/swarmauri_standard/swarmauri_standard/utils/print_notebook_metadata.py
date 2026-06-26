@@ -38,14 +38,18 @@ def get_version_from_pyproject():
         _cached_version = version
         return version
     except Exception:
-        _cached_version = "Swarmauri version information is unavailable. Ensure it is installed properly."
+        _cached_version = (
+            "Swarmauri version information is unavailable. Ensure it is "
+            "installed properly."
+        )
         return _cached_version
 
 
 def get_notebook_name():
     """
     Returns the name of the current Jupyter notebook file when running.
-    Returns None if not running in a notebook or if the name cannot be determined.
+    Returns None if not running in a notebook or if the name cannot be
+    determined.
     """
     try:
         ipython = get_ipython()

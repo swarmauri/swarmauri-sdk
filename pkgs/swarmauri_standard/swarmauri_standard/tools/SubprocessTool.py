@@ -1,7 +1,8 @@
 """
 SubprocessTool.py
 
-Provides a tool for executing shell commands via Python's ``subprocess`` module.
+Provides a tool for executing shell commands via Python's ``subprocess``
+module.
 It captures the command's output and exit status and returns them in a
 structured dictionary.
 """

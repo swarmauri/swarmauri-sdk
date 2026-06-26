@@ -3,7 +3,8 @@ from abc import ABC, abstractmethod
 
 class ICloudVectorStore(ABC):
     """
-    Interface for a cloud-based vector store responsible for storing, indexing, and retrieving documents.
+    Interface for a cloud-based vector store responsible for storing, indexing,
+    and retrieving documents.
     """
 
     @abstractmethod

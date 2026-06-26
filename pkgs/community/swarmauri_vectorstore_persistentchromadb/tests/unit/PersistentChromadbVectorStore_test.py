@@ -1,7 +1,7 @@
 import os
 import pytest
 from swarmauri_standard.documents.Document import Document
-from swarmauri_vectorstore_persistentchromadb.PersistentChromaDBVectorStore import (
+from swarmauri_vectorstore_persistentchromadb.PersistentChromaDBVectorStore import (  # noqa: E501
     PersistentChromaDBVectorStore,
 )
 

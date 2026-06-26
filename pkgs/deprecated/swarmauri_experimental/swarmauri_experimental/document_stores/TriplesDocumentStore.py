@@ -108,7 +108,8 @@ class TriplesDocumentStore(IDocumentStore, IRetriever):
         self.documents.extend(documents)
         self._train_model()
 
-    # Implementation for get_document, get_all_documents, delete_document, update_document remains same as before
+    # Implementation for get_document, get_all_documents, delete_document,
+    # update_document remains same as before
 
     def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         """

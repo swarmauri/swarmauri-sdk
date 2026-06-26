@@ -61,7 +61,9 @@ class IMiddleware(ABC):
 
     @abstractmethod
     async def on_send(self, scope: Scope, message: Message) -> Message:
-        """Hook executed before messages are forwarded to the downstream send."""
+        """
+        Hook executed before messages are forwarded to the downstream send.
+        """
 
     @abstractmethod
     async def __call__(

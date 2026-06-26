@@ -52,7 +52,9 @@ class CipherSuiteBase(ICipherSuite, ComponentBase):
         raise NotImplementedError
 
     def policy(self) -> Mapping[str, Any]:
-        """Return policy metadata describing enforcement rules for the suite."""
+        """
+        Return policy metadata describing enforcement rules for the suite.
+        """
 
         return {}
 

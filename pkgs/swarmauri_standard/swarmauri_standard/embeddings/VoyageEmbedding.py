@@ -37,7 +37,7 @@ class VoyageEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
 
         self._headers = {
@@ -93,7 +93,8 @@ class VoyageEmbedding(EmbeddingBase):
             data (str): Single text data to transform.
 
         Returns:
-            List[Vector]: A vector representing the transformed single data point.
+            List[Vector]: A vector representing the transformed single data
+            point.
         """
         return self.transform([data])
 

@@ -67,7 +67,9 @@ class ProductsPricesMixin(IProductsPrices, BaseModel):
     def _create_product(
         self, product_spec: ProductSpecProto, *, idempotency_key: str
     ) -> ProductRefProto | Mapping[str, Any]:
-        """Return a provider-specific representation for the created product."""
+        """
+        Return a provider-specific representation for the created product.
+        """
 
     @abstractmethod
     def _create_price(

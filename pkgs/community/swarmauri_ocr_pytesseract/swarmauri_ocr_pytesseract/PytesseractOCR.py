@@ -12,7 +12,8 @@ from swarmauri_base.ocrs.OCRBase import OCRBase
 @ComponentBase.register_type(OCRBase, "PytesseractOCR")
 class PytesseractOCR(OCRBase):
     """
-    A model for performing OCR (Optical Character Recognition) using Pytesseract.
+    A model for performing OCR (Optical Character Recognition) using
+    Pytesseract.
     It can process both local images and image bytes, returning extracted text.
     Requires Tesseract-OCR to be installed on the system.
     """
@@ -142,13 +143,15 @@ class PytesseractOCR(OCRBase):
 
     def get_supported_languages(self) -> List[str]:
         """
-        Returns a list of supported languages by executing 'tesseract --list-langs' command.
+        Returns a list of supported languages by executing 'tesseract
+        --list-langs' command.
 
         Returns:
             List[str]: List of available language codes (e.g., ['eng', 'osd'])
 
         Raises:
-            Exception: If the command execution fails or returns unexpected output
+            Exception: If the command execution fails or returns unexpected
+            output
         """
         try:
             # Execute tesseract command to list languages

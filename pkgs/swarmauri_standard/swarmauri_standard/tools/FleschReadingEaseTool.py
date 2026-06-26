@@ -14,14 +14,20 @@ class FleschReadingEaseTool(ToolBase):
             Parameter(
                 name="text",
                 input_type="string",
-                description="The text for which to calculate the Flesch Reading Ease score.",
+                description=(
+                    "The text for which to calculate the Flesch Reading Ease "
+                    "score."
+                ),
                 required=True,
             )
         ]
     )
 
     name: str = "FleschReadingEaseTool"
-    description: str = "Calculates the readability of text using the Flesch Reading Ease formula."
+    description: str = (
+        "Calculates the readability of text using the Flesch Reading "
+        "Ease formula."
+    )
     type: Literal["FleschReadingEaseTool"] = "FleschReadingEaseTool"
 
     def __call__(self, text: str) -> Dict[str, float]:

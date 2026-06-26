@@ -15,7 +15,8 @@ from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 @ComponentBase.register_type(OAuth21AppClientBase, "CognitoOAuth21AppClient")
 class CognitoOAuth21AppClient(OAuth21AppClientBase):
-    """Request OAuth 2.1 access tokens using either client secrets or JWT assertions."""
+    """Request OAuth 2.1 access tokens using either client secrets or JWT
+    assertions."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -69,7 +70,9 @@ class CognitoOAuth21AppClient(OAuth21AppClientBase):
             payload, key=key, algorithm=algorithm, headers=headers or None
         )
         return {
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "client_assertion_type": (
+                "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+            ),
             "client_assertion": assertion,
         }
 

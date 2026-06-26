@@ -45,7 +45,11 @@ class GzipCompressionMiddleware(MiddlewareBase):
             and "text/" not in content_type
         ):
             _logger.debug(
-                f"Content type {content_type} is not compressible, skipping compression"
+                (
+                    f"Content type {content_type} is not compressible, "
+                    f"skipping "
+                    f"compression"
+                )
             )
             return response
 

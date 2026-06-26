@@ -14,8 +14,10 @@ class RotatingFileLoggingHandler(HandlerBase):
     """
     A handler that rotates log files when they reach a specified size.
 
-    This handler extends the base HandlerBase to provide log file rotation functionality.
-    When the log file reaches the specified maxBytes, it is rotated and a new file is created.
+    This handler extends the base HandlerBase to provide log file rotation
+    functionality.
+    When the log file reaches the specified maxBytes, it is rotated and a new
+    file is created.
     The handler keeps a specified number of backup files.
 
     Attributes
@@ -35,7 +37,8 @@ class RotatingFileLoggingHandler(HandlerBase):
     encoding : Optional[str]
         The encoding to use for the log file.
     delay : bool
-        If True, the file opening is deferred until the first log record is emitted.
+        If True, the file opening is deferred until the first log record is
+        emitted.
     """
 
     type: Literal["RotatingFileLoggingHandler"] = "RotatingFileLoggingHandler"
@@ -49,10 +52,13 @@ class RotatingFileLoggingHandler(HandlerBase):
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a rotating file logging handler using the specified parameters.
+        Compiles a rotating file logging handler using the specified
+        parameters.
 
-        This method creates a RotatingFileHandler with the specified filename, maximum bytes,
-        backup count, and other parameters. It also sets the logging level and formatter.
+        This method creates a RotatingFileHandler with the specified filename,
+        maximum bytes,
+        backup count, and other parameters. It also sets the logging level and
+        formatter.
 
         Returns
         -------

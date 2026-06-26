@@ -1,8 +1,9 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of toolkit names (file names without the ".py" extension) and corresponding class names
+# # List of toolkit names (file names without the ".py" extension) and
+# corresponding class names
 # toolkit_files = [
-#     ("swarmauri_standard.toolkits.AccessibilityToolkit", "AccessibilityToolkit"),
+#     ("swarmauri_standard.toolkits.AccessibilityToolkit", "AccessibilityToolkit"),  # noqa: E501
 #     ("swarmauri_standard.toolkits.Toolkit", "Toolkit"),
 # ]
 

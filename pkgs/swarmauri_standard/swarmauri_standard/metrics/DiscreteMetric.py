@@ -17,7 +17,8 @@ class DiscreteMetric(MetricBase):
     """
     Discrete metric implementation.
 
-    This metric returns 1 if two points are different and 0 if they are the same.
+    This metric returns 1 if two points are different and 0 if they are the
+    same.
     It works with any hashable types and satisfies all metric axioms:
     - Non-negativity
     - Identity of indiscernibles

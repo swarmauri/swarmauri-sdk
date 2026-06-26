@@ -64,5 +64,5 @@ def test_call(text, expected_score):
     assert result.get("flesch_reading_ease") == pytest.approx(
         expected_score, rel=1e-2
     ), (
-        f"Expected Flesch score {pytest.approx(expected_score, rel=1e-2)}, but got {result.get('flesch_reading_ease')}"
+        f"Expected Flesch score {pytest.approx(expected_score, rel=1e-2)}, but got {result.get('flesch_reading_ease')}"  # noqa: E501
     )

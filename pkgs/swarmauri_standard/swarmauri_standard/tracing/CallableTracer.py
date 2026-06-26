@@ -8,12 +8,14 @@ tracer = SimpleTracer()
 
 def CallableTracer(func):
     """
-    A decorator to trace function or method calls, capturing inputs, outputs, and the caller.
+    A decorator to trace function or method calls, capturing inputs, outputs,
+    and the caller.
     """
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        # Trying to automatically identify the caller details; practical implementations
+        # Trying to automatically identify the caller details; practical
+        # implementations
         # might need to adjust based on specific requirements or environment.
         caller_info = f"{func.__module__}.{func.__name__}"
 
@@ -31,7 +33,8 @@ def CallableTracer(func):
         except Exception as e:
             # Optionally annotate the trace with the exception details
             tracer.annotate_trace(key="exception", value=str(e))
-            raise  # Re-raise the exception to not interfere with the program's flow
+            # Re-raise the exception to not interfere with the program's flow
+            raise
         finally:
             # End the trace after the function call is complete
             tracer.end_trace()

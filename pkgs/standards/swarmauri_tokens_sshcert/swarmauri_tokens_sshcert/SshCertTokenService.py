@@ -120,7 +120,7 @@ def _format_validity_v_spec(
         fb = time.gmtime(int(valid_before))
 
         def fmt(tm: time.struct_time) -> str:
-            return f"{tm.tm_year:04d}{tm.tm_mon:02d}{tm.tm_mday:02d}:{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"
+            return f"{tm.tm_year:04d}{tm.tm_mon:02d}{tm.tm_mday:02d}:{tm.tm_hour:02d}{tm.tm_min:02d}{tm.tm_sec:02d}"  # noqa: E501
 
         return f"{fmt(fa)}-{fmt(fb)}"
     return "+1h"
@@ -261,7 +261,10 @@ class SshCertTokenService(TokenServiceBase):
         )
         if not ca_ref.material:
             raise RuntimeError(
-                "CA private key material is not exportable under current policy"
+                (
+                    "CA private key material is not exportable under current "
+                    "policy"
+                )
             )
         ca_priv_path = _write_temp(ca_ref.material, mode=0o600, suffix=".pem")
 
@@ -370,7 +373,10 @@ class SshCertTokenService(TokenServiceBase):
         except subprocess.CalledProcessError as e:
             _del(cert_path)
             raise ValueError(
-                f"Invalid SSH certificate (ssh-keygen -Lf failed): {e.output.strip()}"
+                (
+                    f"Invalid SSH certificate (ssh-keygen -Lf failed): "
+                    f"{e.output.strip()}"
+                )
             ) from e
 
         info = _parse_cert_listing(out)

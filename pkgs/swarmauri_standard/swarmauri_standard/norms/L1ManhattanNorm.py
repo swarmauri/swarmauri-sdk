@@ -72,7 +72,10 @@ class L1ManhattanNorm(NormBase):
                 return float(sum(abs(float(val)) for val in x))
             except (ValueError, TypeError) as e:
                 logger.error(
-                    f"Cannot compute L1 norm for sequence with non-numeric elements: {e}"
+                    (
+                        f"Cannot compute L1 norm for sequence with non-numeric "  # noqa: E501
+                        f"elements: {e}"
+                    )
                 )
                 raise TypeError(
                     f"L1 norm requires numeric elements in sequence: {e}"
@@ -101,7 +104,8 @@ class L1ManhattanNorm(NormBase):
         """
         Check if the L1 norm satisfies the non-negativity property.
 
-        The L1 norm is always non-negative by definition (sum of absolute values).
+        The L1 norm is always non-negative by definition (sum of absolute
+        values).
 
         Parameters
         ----------
@@ -129,7 +133,8 @@ class L1ManhattanNorm(NormBase):
         """
         Check if the L1 norm satisfies the definiteness property.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        The definiteness property states that the norm of x is 0 if and only if
+        x is 0.
 
         Parameters
         ----------
@@ -188,7 +193,11 @@ class L1ManhattanNorm(NormBase):
             if not self._are_compatible(x, y):
                 logger.error("Inputs are not compatible for addition")
                 raise TypeError(
-                    "Inputs must be of the same type and dimension for triangle inequality check"
+                    (
+                        "Inputs must be of the same type and dimension for "
+                        "triangle "
+                        "inequality check"
+                    )
                 )
 
             # Compute the sum of x and y
@@ -200,7 +209,10 @@ class L1ManhattanNorm(NormBase):
             norm_x_plus_y = self.compute(x_plus_y)
 
             logger.debug(
-                f"Triangle inequality check: norm(x+y)={norm_x_plus_y}, norm(x)+norm(y)={norm_x + norm_y}"
+                (
+                    f"Triangle inequality check: norm(x+y)={norm_x_plus_y}, "
+                    f"norm(x)+norm(y)={norm_x + norm_y}"
+                )
             )
 
             # Check triangle inequality
@@ -216,7 +228,8 @@ class L1ManhattanNorm(NormBase):
         """
         Check if the L1 norm satisfies the absolute homogeneity property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
@@ -245,10 +258,15 @@ class L1ManhattanNorm(NormBase):
             expected_norm = abs(scalar) * norm_x
 
             logger.debug(
-                f"Absolute homogeneity check: norm({scalar}*x)={norm_scaled_x}, |{scalar}|*norm(x)={expected_norm}"
+                (
+                    f"Absolute homogeneity check: "
+                    f"norm({scalar}*x)={norm_scaled_x}, "
+                    f"|{scalar}|*norm(x)={expected_norm}"
+                )
             )
 
-            # Check absolute homogeneity with a small tolerance for floating-point errors
+            # Check absolute homogeneity with a small tolerance for
+            # floating-point errors
             return abs(norm_scaled_x - expected_norm) < 1e-10
         except (TypeError, ValueError) as e:
             logger.error(f"Error checking absolute homogeneity: {e}")
@@ -289,7 +307,11 @@ class L1ManhattanNorm(NormBase):
                 return all(float(val) == 0 for val in x)
             except (ValueError, TypeError):
                 raise TypeError(
-                    "Cannot check if sequence elements are zero: non-numeric elements"
+                    (
+                        "Cannot check if sequence elements are zero: "
+                        "non-numeric "
+                        "elements"
+                    )
                 )
 
         # Handle numpy arrays

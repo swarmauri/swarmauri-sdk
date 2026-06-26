@@ -10,8 +10,10 @@ from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 @ComponentBase.register_type(ChainContextBase, "ContextChain")
 class ContextChain(IChain, ChainContextBase):
     """
-    Enhanced to support ChainSteps with return parameters, storing return values as instance state variables.
-    Implements the IChain interface including get_schema_info and remove_step methods.
+    Enhanced to support ChainSteps with return parameters, storing return
+    values as instance state variables.
+    Implements the IChain interface including get_schema_info and remove_step
+    methods.
     """
 
     type: Literal["ContextChain"] = "ContextChain"
@@ -24,7 +26,8 @@ class ContextChain(IChain, ChainContextBase):
         kwargs: Dict[str, Any] = {},
         ref: Optional[str] = None,
     ):
-        # Directly store args, kwargs, and optionally a return_key without resolving them
+        # Directly store args, kwargs, and optionally a return_key without
+        # resolving them
         step = ChainStep(
             key=key, method=method, args=args, kwargs=kwargs, ref=ref
         )

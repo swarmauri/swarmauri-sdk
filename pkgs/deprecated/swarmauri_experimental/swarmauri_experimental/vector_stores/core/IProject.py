@@ -16,7 +16,8 @@ class IProject(ABC):
 
         Args:
             vector_a (List[float]): The vector to be projected.
-            vector_b (List[float]): The vector onto which vector_a is projected.
+            vector_b (List[float]): The vector onto which vector_a is
+            projected.
 
         Returns:
             List[float]: The projection of vector_a onto vector_b.

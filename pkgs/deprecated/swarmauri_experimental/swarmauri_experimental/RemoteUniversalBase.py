@@ -32,7 +32,10 @@ def remote_local_transport(cls):
             response = requests.post(url, json=data)
             if not response.ok:
                 raise Exception(
-                    f"Failed to initialize remote {cls.__name__}: {response.text}"
+                    (
+                        f"Failed to initialize remote {cls.__name__}: "
+                        f"{response.text}"
+                    )
                 )
         else:
             original_init(
@@ -104,7 +107,7 @@ class BaseComponent(metaclass=RemoteLocalMeta):
         # self.is_remote = bool(self.host)
         self.members = members
         self.resource = resource if resource else self.__class__.__name__
-        self.path = f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"
+        self.path = f"{self.host if self.host else ''}/{self.owner}/{self.resource}/{self.id}"  # noqa: E501
 
     @property
     def is_remote(self):
@@ -126,7 +129,8 @@ class BaseComponent(metaclass=RemoteLocalMeta):
     @classmethod
     def is_method_registered(cls, method_name):
         """
-        Checks if a public method with the given name is registered on the class.
+        Checks if a public method with the given name is registered on the
+        class.
         Args:
             method_name (str): The name of the method to check.
         Returns:
@@ -137,13 +141,16 @@ class BaseComponent(metaclass=RemoteLocalMeta):
     @classmethod
     def method_with_signature(cls, input_signature):
         """
-        Checks if there is a method with the given signature available in the class.
+        Checks if there is a method with the given signature available in the
+        class.
 
         Args:
-            input_signature (str): The string representation of the method signature to check.
+            input_signature (str): The string representation of the method
+            signature to check.
 
         Returns:
-            bool: True if a method with the input signature exists, False otherwise.
+            bool: True if a method with the input signature exists, False
+            otherwise.
         """
         for method_name in cls.public_interfaces():
             method = getattr(cls, method_name)

@@ -6,7 +6,9 @@ import os
 
 
 def resolve_secret_ref(secret_ref: str) -> str:
-    """Resolve ``secret_ref`` using installed plugins or environment variables."""
+    """
+    Resolve ``secret_ref`` using installed plugins or environment variables.
+    """
     provider, _, name = secret_ref.partition(":")
     # Try dynamic import of peagen's plugin manager; ignore if unavailable
     try:

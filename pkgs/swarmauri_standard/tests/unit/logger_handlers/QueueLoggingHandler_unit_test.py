@@ -17,7 +17,8 @@ def queue_handler() -> QueueLoggingHandler:
     Fixture that provides a basic QueueLoggingHandler instance.
 
     Returns:
-        QueueLoggingHandler: An instance of QueueLoggingHandler with default settings.
+        QueueLoggingHandler: An instance of QueueLoggingHandler with default
+        settings.
     """
     return QueueLoggingHandler()
 
@@ -36,7 +37,8 @@ def custom_queue() -> Any:
 @pytest.mark.unit
 def test_init_default_queue():
     """
-    Test that a QueueLoggingHandler creates a default queue when none is provided.
+    Test that a QueueLoggingHandler creates a default queue when none is
+    provided.
     """
     handler = QueueLoggingHandler()
     assert isinstance(handler.queue, queue.Queue)
@@ -150,7 +152,8 @@ def test_compile_handler_respect_handler_level():
 @pytest.mark.unit
 def test_logging_with_handler():
     """
-    Test that log records are properly enqueued when logging through the handler.
+    Test that log records are properly enqueued when logging through the
+    handler.
     """
     test_queue = queue.Queue()
     handler = QueueLoggingHandler(queue=test_queue)
@@ -188,7 +191,8 @@ def test_model_serialization():
     # Serialize to JSON
     json_data = original.model_dump_json()
 
-    # Deserialize (we need to handle the queue separately as it's not serializable)
+    # Deserialize (we need to handle the queue separately as it's not
+    # serializable)
     with patch("queue.Queue"):
         deserialized = QueueLoggingHandler.model_validate_json(json_data)
 

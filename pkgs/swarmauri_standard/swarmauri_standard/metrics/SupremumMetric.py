@@ -18,12 +18,15 @@ class SupremumMetric(MetricBase):
     """
     L∞-based metric measuring largest component difference.
 
-    This metric computes the distance between two points as the maximum absolute
+    This metric computes the distance between two points as the maximum
+    absolute
     difference between their corresponding components. It is also known as the
     Chebyshev distance or the L∞ metric.
 
-    The metric is particularly useful in bounded vector spaces where the maximum
-    deviation between components is more important than the overall sum of differences.
+    The metric is particularly useful in bounded vector spaces where the
+    maximum
+    deviation between components is more important than the overall sum of
+    differences.
 
     Attributes
     ----------
@@ -73,7 +76,8 @@ class SupremumMetric(MetricBase):
                 # For sequence types
                 if len(x) != len(y):
                     raise ValueError(
-                        f"Inputs have different dimensions: {len(x)} vs {len(y)}"
+                        f"Inputs have different dimensions: {len(x)} vs "
+                        f"{len(y)}"
                     )
                 return self._calculate_supremum(x, y)
 
@@ -188,10 +192,12 @@ class SupremumMetric(MetricBase):
 
                 # Both are single points
                 else:
-                    # Compute distance between corresponding points if lists have same length
+                    # Compute distance between corresponding points if lists
+                    # have same length
                     if len(x) != len(y):
                         raise ValueError(
-                            f"Collections have different lengths: {len(x)} vs {len(y)}"
+                            f"Collections have different lengths: {len(x)} vs "
+                            f"{len(y)}"
                         )
                     return [self.distance(xi, yi) for xi, yi in zip(x, y)]
             # Case 2: x is a single point, y is a collection
@@ -244,7 +250,8 @@ class SupremumMetric(MetricBase):
         """
         Check if the metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
 
-        The supremum metric always satisfies this axiom as it's based on absolute differences.
+        The supremum metric always satisfies this axiom as it's based on
+        absolute differences.
 
         Parameters
         ----------
@@ -324,7 +331,8 @@ class SupremumMetric(MetricBase):
         """
         Check if the metric satisfies the symmetry axiom: d(x,y) = d(y,x).
 
-        The supremum metric always satisfies this axiom as absolute differences are symmetric.
+        The supremum metric always satisfies this axiom as absolute differences
+        are symmetric.
 
         Parameters
         ----------
@@ -345,7 +353,8 @@ class SupremumMetric(MetricBase):
             dist_xy = self.distance(x, y)
             dist_yx = self.distance(y, x)
 
-            # Check if the distances are equal (within a small epsilon for floating-point comparison)
+            # Check if the distances are equal (within a small epsilon for
+            # floating-point comparison)
             epsilon = 1e-10
             return abs(dist_xy - dist_yx) < epsilon
         except Exception as e:

@@ -14,19 +14,30 @@ class GithubRepoTool(ToolBase):
             Parameter(
                 name="action",
                 input_type="string",
-                description="The action to perform on the GitHub API, e.g., 'create_repo', 'delete_repo', 'update_repo', and 'get_repo'",
+                description=(
+                    "The action to perform on the GitHub API, e.g., "(
+                        "'create_repo', 'delete_repo', 'update_repo', and "
+                        "'get_repo'"
+                    )
+                ),
                 required=True,
             ),
             Parameter(
                 name="repo_name",
                 input_type="string",
-                description="The full name of the repository to interact with, e.g. 'owner/repository'.",
+                description=(
+                    "The full name of the repository to interact with, e.g. "
+                    "'owner/repository'."
+                ),
                 required=False,
             ),
             Parameter(
                 name="file_path",
                 input_type="string",
-                description="The path to the file in the repository, e.g. 'path/to/file.txt'.",
+                description=(
+                    "The path to the file in the repository, e.g. "
+                    "'path/to/file.txt'."
+                ),
                 required=False,
             ),
         ]
@@ -83,7 +94,7 @@ class GithubRepoTool(ToolBase):
     def get_repo(self, repo_name: str) -> str:
         try:
             repo = self._github.get_repo(repo_name)
-            repo_info = f"Repository: {repo.full_name}\nDescription: {repo.description}\nClone URL: {repo.clone_url}"
+            repo_info = f"Repository: {repo.full_name}\nDescription: {repo.description}\nClone URL: {repo.clone_url}"  # noqa: E501
             return repo_info
         except GithubException as e:
             return f"Error retrieving repository info: {e}"

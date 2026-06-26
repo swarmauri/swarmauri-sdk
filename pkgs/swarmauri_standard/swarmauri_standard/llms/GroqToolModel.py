@@ -27,9 +27,13 @@ from swarmauri_standard.schema_converters.GroqSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing GroqToolModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
-    "GroqToolModel' or 'from swarmauri.tool_llms import GroqToolModel' instead.",
+    "Importing GroqToolModel from swarmauri.llms is deprecated and will be "(
+        "removed in a future version. Please use 'from "
+        "swarmauri_standard.tool_llms import "
+    )(
+        "GroqToolModel' or 'from swarmauri.tool_llms import "
+        "GroqToolModel' instead."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )
@@ -38,10 +42,13 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "GroqToolModel")
 class GroqToolModel(LLMBase):
     """
-    GroqToolModel provides an interface to interact with Groq's large language models for tool usage.
+    GroqToolModel provides an interface to interact with Groq's large language
+    models for tool usage.
 
-    This class supports synchronous and asynchronous predictions, streaming of responses,
-    and batch processing. It communicates with the Groq API to manage conversations, format messages,
+    This class supports synchronous and asynchronous predictions, streaming of
+    responses,
+    and batch processing. It communicates with the Groq API to manage
+    conversations, format messages,
     and handle tool-related functions.
 
     Attributes:
@@ -81,7 +88,8 @@ class GroqToolModel(LLMBase):
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data (Any): Arbitrary keyword arguments containing initialization data.
+            **data (Any): Arbitrary keyword arguments containing initialization
+            data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -123,17 +131,24 @@ class GroqToolModel(LLMBase):
         messages: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (List[Dict[str, Any]]): A list of dictionaries representing tool calls. Each dictionary should contain
-                               a "function" key with a nested dictionary that includes the "name" and "arguments"
-                               of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (Any): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (List[Dict[str, Any]]): A list of message dictionaries to which the results of the tool calls will be appended.
+            tool_calls (List[Dict[str, Any]]): A list of dictionaries
+            representing tool calls. Each dictionary should contain
+                               a "function" key with a nested dictionary that
+                               includes the "name" and "arguments"
+                               of the function to be called, and an "id" key
+                               for the tool call identifier.
+            toolkit (Any): An object that provides access to tools via the
+            `get_tool_by_name` method.
+            messages (List[Dict[str, Any]]): A list of message dictionaries to
+            which the results of the tool calls will be appended.
 
         Returns:
-            List[Dict[str, Any]]: The updated list of messages with the results of the tool calls appended.
+            List[Dict[str, Any]]: The updated list of messages with the results
+            of the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -160,7 +175,8 @@ class GroqToolModel(LLMBase):
         Formats messages for API compatibility.
 
         Parameters:
-            messages (List[Type[MessageBase]]): List of message instances to format.
+            messages (List[Type[MessageBase]]): List of message instances to
+            format.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -191,14 +207,17 @@ class GroqToolModel(LLMBase):
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            Conversation: Updated conversation with agent responses and tool calls.
+            Conversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -259,14 +278,17 @@ class GroqToolModel(LLMBase):
         Makes an asynchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            Conversation: Updated conversation with agent responses and tool calls.
+            Conversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -327,9 +349,11 @@ class GroqToolModel(LLMBase):
         Streams response from Groq model in real-time.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -401,9 +425,11 @@ class GroqToolModel(LLMBase):
         Asynchronously streams response from Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -469,17 +495,21 @@ class GroqToolModel(LLMBase):
         max_tokens: int = 1024,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations and generates responses for each
+        sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         if toolkit and not tool_choice:
             tool_choice = "auto"
@@ -508,15 +538,18 @@ class GroqToolModel(LLMBase):
         Async method for processing a batch of conversations concurrently.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Optional[Any]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         if toolkit and not tool_choice:
             tool_choice = "auto"
@@ -538,7 +571,8 @@ class GroqToolModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

@@ -11,7 +11,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "RatioOfSumsMeasurement")
 class RatioOfSumsMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """
-    A measurement class to calculate the ratio of the sum of two columns in a DataFrame.
+    A measurement class to calculate the ratio of the sum of two columns in a
+    DataFrame.
     """
 
     unit: str = "percentage"
@@ -36,7 +37,7 @@ class RatioOfSumsMeasurement(MeasurementBase, MeasurementCalculateMixin):
 
         if sum_b == 0:
             raise ValueError(
-                f"The sum of column '{column_b}' is zero, cannot divide by zero."
+                f"The sum of column '{column_b}' is zero, cannot divide by zero."  # noqa: E501
             )
 
         return sum_a / sum_b

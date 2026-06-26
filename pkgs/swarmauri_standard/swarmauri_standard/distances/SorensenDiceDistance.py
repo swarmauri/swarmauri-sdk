@@ -15,8 +15,10 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "SorensenDiceDistance")
 class SorensenDiceDistance(DistanceBase):
     """
-    Implementing a concrete Vector Store class for calculating Sörensen-Dice Index Distance.
-    The Sörensen-Dice Index, or Dice's coefficient, is a measure of the similarity between two sets.
+    Implementing a concrete Vector Store class for calculating Sörensen-Dice
+    Index Distance.
+    The Sörensen-Dice Index, or Dice's coefficient, is a measure of the
+    similarity between two sets.
     """
 
     type: Literal["SorensenDiceDistance"] = "SorensenDiceDistance"
@@ -30,7 +32,8 @@ class SorensenDiceDistance(DistanceBase):
             vector_b (List[float]): The second vector in the comparison.
 
         Returns:
-            float: The computed Sörensen-Dice distance between vector_a and vector_b.
+            float: The computed Sörensen-Dice distance between vector_a and
+            vector_b.
         """
         # Convert vectors to binary sets
         set_a = set([i for i, val in enumerate(vector_a) if val])
@@ -64,12 +67,18 @@ class SorensenDiceDistance(DistanceBase):
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            "Similarity calculation is not implemented for SorensenDiceDistance."
+            (
+                "Similarity calculation is not implemented for "
+                "SorensenDiceDistance."
+            )
         )
 
     def similarities(
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            "Similarity calculation is not implemented for SorensenDiceDistance."
+            (
+                "Similarity calculation is not implemented for "
+                "SorensenDiceDistance."
+            )
         )

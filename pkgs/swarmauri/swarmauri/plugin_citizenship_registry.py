@@ -3,7 +3,8 @@
 """
 plugin_citizenship_registry.py
 
-Defines the PluginCitizenshipRegistry class responsible for managing plugin registrations across
+Defines the PluginCitizenshipRegistry class responsible for managing plugin
+registrations across
 first, second, and third-class citizens within the swarmauri framework.
 """
 
@@ -19,7 +20,8 @@ class PluginCitizenshipRegistry:
     """
     PluginCitizenshipRegistry
 
-    A centralized class to manage the registration and retrieval of plugins categorized
+    A centralized class to manage the registration and retrieval of plugins
+    categorized
     as first, second, or third-class citizens within the swarmauri framework.
 
     Citizenship Classification:
@@ -29,7 +31,8 @@ class PluginCitizenshipRegistry:
             - Must implement required interfaces.
         - **Second-Class Plugins**:
             - Community-contributed.
-            - Not pre-registered but share the same namespace as first-class plugins.
+            - Not pre-registered but share the same namespace as first-class
+              plugins.
             - Must implement required interfaces.
         - **Third-Class Plugins**:
             - Generic plugins not tied to specific resource kinds.
@@ -37,126 +40,305 @@ class PluginCitizenshipRegistry:
             - Do not require interface validation.
 
     Mappings:
-        - **Resource Path to Module Path**: Each plugin is identified by a unique resource path (e.g.,
-          `'swarmauri.llms.OpenAIModel'`), which maps to its corresponding external module path (e.g.,
-          `'external_repo.OpenAIModel'`). This mapping facilitates dynamic loading and validation
+        - **Resource Path to Module Path**: Each plugin is identified by a
+          unique resource path (e.g.,
+          `'swarmauri.llms.OpenAIModel'`), which maps to its corresponding
+          external module path (e.g.,
+          `'external_repo.OpenAIModel'`). This mapping facilitates dynamic
+          loading and validation
           of plugins based on their classification and interface requirements.
     """
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: Dict[str, str] = {
-        "swarmauri.skills.DummyFileSystemSkill": "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill",
-        "swarmauri.skills.DummyLocalSkill": "swarmauri_skill_dummy_local.DummyLocalSkill",
-        "swarmauri.skills.FileSystemSkill": "swarmauri_skill_filesystem.FileSystemSkill",
+        "swarmauri.skills.DummyFileSystemSkill": (
+            "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill"
+        ),
+        "swarmauri.skills.DummyLocalSkill": (
+            "swarmauri_skill_dummy_local.DummyLocalSkill"
+        ),
+        "swarmauri.skills.FileSystemSkill": (
+            "swarmauri_skill_filesystem.FileSystemSkill"
+        ),
         "swarmauri.skills.LocalSkill": "swarmauri_skill_local.LocalSkill",
-        "swarmauri.signings.Ed25519EnvelopeSigner": "swarmauri_signing_ed25519.Ed25519EnvelopeSigner",
-        "swarmauri.signings.PgpEnvelopeSigner": "swarmauri_signing_pgp.PgpEnvelopeSigner",
-        "swarmauri.signings.Secp256k1EnvelopeSigner": "swarmauri_signing_secp256k1.Secp256k1EnvelopeSigner",
-        "swarmauri.signings.HmacEnvelopeSigner": "swarmauri_signing_hmac.HmacEnvelopeSigner",
-        "swarmauri.signings.EcdsaEnvelopeSigner": "swarmauri_signing_ecdsa.EcdsaEnvelopeSigner",
-        "swarmauri.signings.RSAEnvelopeSigner": "swarmauri_signing_rsa.RSAEnvelopeSigner",
-        "swarmauri.signings.SshEnvelopeSigner": "swarmauri_signing_ssh.SshEnvelopeSigner",
-        "swarmauri.signings.JwsSignerVerifier": "swarmauri_signing_jws.JwsSignerVerifier",
-        "swarmauri.cipher_suites.JwaCipherSuite": "swarmauri_cipher_suite_jwa.JwaCipherSuite",
-        "swarmauri.cipher_suites.CoseCipherSuite": "swarmauri_cipher_suite_cose.CoseCipherSuite",
-        "swarmauri.cipher_suites.FipsCipherSuite": "swarmauri_cipher_suite_fips1403.FipsCipherSuite",
-        "swarmauri.cipher_suites.Tls13CipherSuite": "swarmauri_cipher_suite_tls13.Tls13CipherSuite",
-        "swarmauri.cipher_suites.WebAuthnCipherSuite": "swarmauri_cipher_suite_webauthn.WebAuthnCipherSuite",
-        "swarmauri.cipher_suites.SigstoreCipherSuite": "swarmauri_cipher_suite_sigstore.SigstoreCipherSuite",
-        "swarmauri.cipher_suites.SshCipherSuite": "swarmauri_cipher_suite_ssh.SshCipherSuite",
-        "swarmauri.cipher_suites.IpsecCipherSuite": "swarmauri_cipher_suite_ipsec.IpsecCipherSuite",
-        "swarmauri.cipher_suites.CadesCipherSuite": "swarmauri_cipher_suite_cades.CadesCipherSuite",
-        "swarmauri.cipher_suites.XadesCipherSuite": "swarmauri_cipher_suite_xades.XadesCipherSuite",
-        "swarmauri.cipher_suites.PadesCipherSuite": "swarmauri_cipher_suite_pades.PadesCipherSuite",
-        "swarmauri.cipher_suites.Cnsa20CipherSuite": "swarmauri_cipher_suite_cnsa20.Cnsa20CipherSuite",
-        "swarmauri.tokens.JWTTokenService": "swarmauri_tokens_jwt.JWTTokenService",
-        "swarmauri.tokens.SshSigTokenService": "swarmauri_tokens_sshsig.SshSigTokenService",
-        "swarmauri.tokens.SshCertTokenService": "swarmauri_tokens_sshcert.SshCertTokenService",
-        "swarmauri.tokens.IntrospectionTokenService": "swarmauri_tokens_introspection.IntrospectionTokenService",
-        "swarmauri.tokens.PasetoV4TokenService": "swarmauri_tokens_paseto_v4.PasetoV4TokenService",
-        "swarmauri.tokens.CompositeTokenService": "swarmauri_tokens_composite.CompositeTokenService",
-        "swarmauri.tokens.RemoteOIDCTokenService": "swarmauri_tokens_remoteoidc.RemoteOIDCTokenService",
-        "swarmauri.tokens.DPoPBoundJWTTokenService": "swarmauri_tokens_dpopboundjwt.DPoPBoundJWTTokenService",
-        "swarmauri.tokens.RotatingJWTTokenService": "swarmauri_tokens_rotatingjwt.RotatingJWTTokenService",
-        "swarmauri.tokens.TlsBoundJWTTokenService": "swarmauri_tokens_tlsboundjwt.TlsBoundJWTTokenService",
-        "swarmauri.auth_idp.AppleOAuth20Login": "swarmauri_auth_idp_apple.AppleOAuth20Login",
-        "swarmauri.auth_idp.AppleOAuth21Login": "swarmauri_auth_idp_apple.AppleOAuth21Login",
-        "swarmauri.auth_idp.AppleOIDC10Login": "swarmauri_auth_idp_apple.AppleOIDC10Login",
-        "swarmauri.auth_idp.AppleOAuth20AppClient": "swarmauri_auth_idp_apple.AppleOAuth20AppClient",
-        "swarmauri.auth_idp.AppleOAuth21AppClient": "swarmauri_auth_idp_apple.AppleOAuth21AppClient",
-        "swarmauri.auth_idp.AppleOIDC10AppClient": "swarmauri_auth_idp_apple.AppleOIDC10AppClient",
-        "swarmauri.auth_idp.AwsOAuth20Login": "swarmauri_auth_idp_aws.AwsOAuth20Login",
-        "swarmauri.auth_idp.AwsOAuth21Login": "swarmauri_auth_idp_aws.AwsOAuth21Login",
+        "swarmauri.signings.Ed25519EnvelopeSigner": (
+            "swarmauri_signing_ed25519.Ed25519EnvelopeSigner"
+        ),
+        "swarmauri.signings.PgpEnvelopeSigner": (
+            "swarmauri_signing_pgp.PgpEnvelopeSigner"
+        ),
+        "swarmauri.signings.Secp256k1EnvelopeSigner": (
+            "swarmauri_signing_secp256k1.Secp256k1EnvelopeSigner"
+        ),
+        "swarmauri.signings.HmacEnvelopeSigner": (
+            "swarmauri_signing_hmac.HmacEnvelopeSigner"
+        ),
+        "swarmauri.signings.EcdsaEnvelopeSigner": (
+            "swarmauri_signing_ecdsa.EcdsaEnvelopeSigner"
+        ),
+        "swarmauri.signings.RSAEnvelopeSigner": (
+            "swarmauri_signing_rsa.RSAEnvelopeSigner"
+        ),
+        "swarmauri.signings.SshEnvelopeSigner": (
+            "swarmauri_signing_ssh.SshEnvelopeSigner"
+        ),
+        "swarmauri.signings.JwsSignerVerifier": (
+            "swarmauri_signing_jws.JwsSignerVerifier"
+        ),
+        "swarmauri.cipher_suites.JwaCipherSuite": (
+            "swarmauri_cipher_suite_jwa.JwaCipherSuite"
+        ),
+        "swarmauri.cipher_suites.CoseCipherSuite": (
+            "swarmauri_cipher_suite_cose.CoseCipherSuite"
+        ),
+        "swarmauri.cipher_suites.FipsCipherSuite": (
+            "swarmauri_cipher_suite_fips1403.FipsCipherSuite"
+        ),
+        "swarmauri.cipher_suites.Tls13CipherSuite": (
+            "swarmauri_cipher_suite_tls13.Tls13CipherSuite"
+        ),
+        "swarmauri.cipher_suites.WebAuthnCipherSuite": (
+            "swarmauri_cipher_suite_webauthn.WebAuthnCipherSuite"
+        ),
+        "swarmauri.cipher_suites.SigstoreCipherSuite": (
+            "swarmauri_cipher_suite_sigstore.SigstoreCipherSuite"
+        ),
+        "swarmauri.cipher_suites.SshCipherSuite": (
+            "swarmauri_cipher_suite_ssh.SshCipherSuite"
+        ),
+        "swarmauri.cipher_suites.IpsecCipherSuite": (
+            "swarmauri_cipher_suite_ipsec.IpsecCipherSuite"
+        ),
+        "swarmauri.cipher_suites.CadesCipherSuite": (
+            "swarmauri_cipher_suite_cades.CadesCipherSuite"
+        ),
+        "swarmauri.cipher_suites.XadesCipherSuite": (
+            "swarmauri_cipher_suite_xades.XadesCipherSuite"
+        ),
+        "swarmauri.cipher_suites.PadesCipherSuite": (
+            "swarmauri_cipher_suite_pades.PadesCipherSuite"
+        ),
+        "swarmauri.cipher_suites.Cnsa20CipherSuite": (
+            "swarmauri_cipher_suite_cnsa20.Cnsa20CipherSuite"
+        ),
+        "swarmauri.tokens.JWTTokenService": (
+            "swarmauri_tokens_jwt.JWTTokenService"
+        ),
+        "swarmauri.tokens.SshSigTokenService": (
+            "swarmauri_tokens_sshsig.SshSigTokenService"
+        ),
+        "swarmauri.tokens.SshCertTokenService": (
+            "swarmauri_tokens_sshcert.SshCertTokenService"
+        ),
+        "swarmauri.tokens.IntrospectionTokenService": (
+            "swarmauri_tokens_introspection.IntrospectionTokenService"
+        ),
+        "swarmauri.tokens.PasetoV4TokenService": (
+            "swarmauri_tokens_paseto_v4.PasetoV4TokenService"
+        ),
+        "swarmauri.tokens.CompositeTokenService": (
+            "swarmauri_tokens_composite.CompositeTokenService"
+        ),
+        "swarmauri.tokens.RemoteOIDCTokenService": (
+            "swarmauri_tokens_remoteoidc.RemoteOIDCTokenService"
+        ),
+        "swarmauri.tokens.DPoPBoundJWTTokenService": (
+            "swarmauri_tokens_dpopboundjwt.DPoPBoundJWTTokenService"
+        ),
+        "swarmauri.tokens.RotatingJWTTokenService": (
+            "swarmauri_tokens_rotatingjwt.RotatingJWTTokenService"
+        ),
+        "swarmauri.tokens.TlsBoundJWTTokenService": (
+            "swarmauri_tokens_tlsboundjwt.TlsBoundJWTTokenService"
+        ),
+        "swarmauri.auth_idp.AppleOAuth20Login": (
+            "swarmauri_auth_idp_apple.AppleOAuth20Login"
+        ),
+        "swarmauri.auth_idp.AppleOAuth21Login": (
+            "swarmauri_auth_idp_apple.AppleOAuth21Login"
+        ),
+        "swarmauri.auth_idp.AppleOIDC10Login": (
+            "swarmauri_auth_idp_apple.AppleOIDC10Login"
+        ),
+        "swarmauri.auth_idp.AppleOAuth20AppClient": (
+            "swarmauri_auth_idp_apple.AppleOAuth20AppClient"
+        ),
+        "swarmauri.auth_idp.AppleOAuth21AppClient": (
+            "swarmauri_auth_idp_apple.AppleOAuth21AppClient"
+        ),
+        "swarmauri.auth_idp.AppleOIDC10AppClient": (
+            "swarmauri_auth_idp_apple.AppleOIDC10AppClient"
+        ),
+        "swarmauri.auth_idp.AwsOAuth20Login": (
+            "swarmauri_auth_idp_aws.AwsOAuth20Login"
+        ),
+        "swarmauri.auth_idp.AwsOAuth21Login": (
+            "swarmauri_auth_idp_aws.AwsOAuth21Login"
+        ),
         ###
         # key providers
         ###
-        "swarmauri.key_providers.InMemoryKeyProvider": "swarmauri_standard.key_providers.InMemoryKeyProvider",
-        "swarmauri.storage_adapters.MemoryStorageAdapter": "swarmauri_storage_memory.MemoryStorageAdapter",
-        "swarmauri.storage_adapters.S3OverSftpStorageAdapter": "swarmauri_storage_s3_over_sftp.S3OverSftpStorageAdapter",
-        "swarmauri.storage_adapters.S3FSStorageAdapter": "swarmauri_storage_s3fs.S3FSStorageAdapter",
-        "swarmauri.storage_adapters.S3StorageAdapter": "swarmauri_storage_s3.S3StorageAdapter",
+        "swarmauri.key_providers.InMemoryKeyProvider": (
+            "swarmauri_standard.key_providers.InMemoryKeyProvider"
+        ),
+        "swarmauri.storage_adapters.MemoryStorageAdapter": (
+            "swarmauri_storage_memory.MemoryStorageAdapter"
+        ),
+        "swarmauri.storage_adapters.S3OverSftpStorageAdapter": (
+            "swarmauri_storage_s3_over_sftp.S3OverSftpStorageAdapter"
+        ),
+        "swarmauri.storage_adapters.S3FSStorageAdapter": (
+            "swarmauri_storage_s3fs.S3FSStorageAdapter"
+        ),
+        "swarmauri.storage_adapters.S3StorageAdapter": (
+            "swarmauri_storage_s3.S3StorageAdapter"
+        ),
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
         "swarmauri.agents.SkillAgent": "swarmauri_agent_skill.SkillAgent",
-        "swarmauri.agents.SimpleConversationAgent": "swarmauri_standard.agents.SimpleConversationAgent",
+        "swarmauri.agents.SimpleConversationAgent": (
+            "swarmauri_standard.agents.SimpleConversationAgent"
+        ),
         "swarmauri.agents.ToolAgent": "swarmauri_standard.agents.ToolAgent",
-        "swarmauri.chains.CallableChain": "swarmauri_standard.chains.CallableChain",
+        "swarmauri.chains.CallableChain": (
+            "swarmauri_standard.chains.CallableChain"
+        ),
         "swarmauri.chains.ChainStep": "swarmauri_standard.chains.ChainStep",
-        "swarmauri.chains.ContextChain": "swarmauri_standard.chains.ContextChain",
-        "swarmauri.chains.PromptContextChain": "swarmauri_standard.chains.PromptContextChain",
-        "swarmauri.chunkers.DelimiterBasedChunker": "swarmauri_standard.chunkers.DelimiterBasedChunker",
-        "swarmauri.chunkers.FixedLengthChunker": "swarmauri_standard.chunkers.FixedLengthChunker",
-        "swarmauri.chunkers.MdSnippetChunker": "swarmauri_standard.chunkers.MdSnippetChunker",
-        "swarmauri.chunkers.SentenceChunker": "swarmauri_standard.chunkers.SentenceChunker",
-        "swarmauri.chunkers.SlidingWindowChunker": "swarmauri_standard.chunkers.SlidingWindowChunker",
-        "swarmauri.conversations.Conversation": "swarmauri_standard.conversations.Conversation",
-        "swarmauri.conversations.MaxSizeConversation": "swarmauri_standard.conversations.MaxSizeConversation",
-        "swarmauri.conversations.MaxSystemContextConversation": "swarmauri_standard.conversations.MaxSystemContextConversation",
-        "swarmauri.conversations.SessionCacheConversation": "swarmauri_standard.conversations.SessionCacheConversation",
-        "swarmauri.dataconnectors.GoogleDriveDataConnector": "swarmauri_standard.dataconnectors.GoogleDriveDataConnector",
+        "swarmauri.chains.ContextChain": (
+            "swarmauri_standard.chains.ContextChain"
+        ),
+        "swarmauri.chains.PromptContextChain": (
+            "swarmauri_standard.chains.PromptContextChain"
+        ),
+        "swarmauri.chunkers.DelimiterBasedChunker": (
+            "swarmauri_standard.chunkers.DelimiterBasedChunker"
+        ),
+        "swarmauri.chunkers.FixedLengthChunker": (
+            "swarmauri_standard.chunkers.FixedLengthChunker"
+        ),
+        "swarmauri.chunkers.MdSnippetChunker": (
+            "swarmauri_standard.chunkers.MdSnippetChunker"
+        ),
+        "swarmauri.chunkers.SentenceChunker": (
+            "swarmauri_standard.chunkers.SentenceChunker"
+        ),
+        "swarmauri.chunkers.SlidingWindowChunker": (
+            "swarmauri_standard.chunkers.SlidingWindowChunker"
+        ),
+        "swarmauri.conversations.Conversation": (
+            "swarmauri_standard.conversations.Conversation"
+        ),
+        "swarmauri.conversations.MaxSizeConversation": (
+            "swarmauri_standard.conversations.MaxSizeConversation"
+        ),
+        "swarmauri.conversations.MaxSystemContextConversation": (
+            "swarmauri_standard.conversations.MaxSystemContextConversation"
+        ),
+        "swarmauri.conversations.SessionCacheConversation": (
+            "swarmauri_standard.conversations.SessionCacheConversation"
+        ),
+        "swarmauri.dataconnectors.GoogleDriveDataConnector": (
+            "swarmauri_standard.dataconnectors.GoogleDriveDataConnector"
+        ),
         # Deprecated compatibility aliases scheduled for removal in v0.12.0.
-        "swarmauri.distances.CanberraDistance": "swarmauri_standard.distances.CanberraDistance",
-        "swarmauri.distances.ChebyshevDistance": "swarmauri_standard.distances.ChebyshevDistance",
-        "swarmauri.distances.ChiSquaredDistance": "swarmauri_standard.distances.ChiSquaredDistance",
-        "swarmauri.distances.CosineDistance": "swarmauri_standard.distances.CosineDistance",
-        "swarmauri.distances.EuclideanDistance": "swarmauri_standard.distances.EuclideanDistance",
-        "swarmauri.distances.HaversineDistance": "swarmauri_standard.distances.HaversineDistance",
-        "swarmauri.distances.JaccardIndexDistance": "swarmauri_standard.distances.JaccardIndexDistance",
-        "swarmauri.distances.LevenshteinDistance": "swarmauri_standard.distances.LevenshteinDistance",
-        "swarmauri.distances.ManhattanDistance": "swarmauri_standard.distances.ManhattanDistance",
-        # "swarmauri.distances.MinkowskiDistance": "swarmauri_standard.distances.MinkowskiDistance",
-        "swarmauri.distances.SorensenDiceDistance": "swarmauri_standard.distances.SorensenDiceDistance",
-        "swarmauri.distances.SquaredEuclideanDistance": "swarmauri_standard.distances.SquaredEuclideanDistance",
+        "swarmauri.distances.CanberraDistance": (
+            "swarmauri_standard.distances.CanberraDistance"
+        ),
+        "swarmauri.distances.ChebyshevDistance": (
+            "swarmauri_standard.distances.ChebyshevDistance"
+        ),
+        "swarmauri.distances.ChiSquaredDistance": (
+            "swarmauri_standard.distances.ChiSquaredDistance"
+        ),
+        "swarmauri.distances.CosineDistance": (
+            "swarmauri_standard.distances.CosineDistance"
+        ),
+        "swarmauri.distances.EuclideanDistance": (
+            "swarmauri_standard.distances.EuclideanDistance"
+        ),
+        "swarmauri.distances.HaversineDistance": (
+            "swarmauri_standard.distances.HaversineDistance"
+        ),
+        "swarmauri.distances.JaccardIndexDistance": (
+            "swarmauri_standard.distances.JaccardIndexDistance"
+        ),
+        "swarmauri.distances.LevenshteinDistance": (
+            "swarmauri_standard.distances.LevenshteinDistance"
+        ),
+        "swarmauri.distances.ManhattanDistance": (
+            "swarmauri_standard.distances.ManhattanDistance"
+        ),
+        # "swarmauri.distances.MinkowskiDistance":
+        # "swarmauri_standard.distances.MinkowskiDistance",
+        "swarmauri.distances.SorensenDiceDistance": (
+            "swarmauri_standard.distances.SorensenDiceDistance"
+        ),
+        "swarmauri.distances.SquaredEuclideanDistance": (
+            "swarmauri_standard.distances.SquaredEuclideanDistance"
+        ),
         ###
         # decorators
         ###
         "swarmauri.decorators.maybe_async": "swarmauri.decorators.maybe_async",
-        "swarmauri.decorators.tool_decorator": "swarmauri.decorators.tool_decorator",
-        "swarmauri.decorators.retry_on_status_codes": "swarmauri.decorators.retry_on_status_codes",
+        "swarmauri.decorators.tool_decorator": (
+            "swarmauri.decorators.tool_decorator"
+        ),
+        "swarmauri.decorators.retry_on_status_codes": (
+            "swarmauri.decorators.retry_on_status_codes"
+        ),
         "swarmauri.decorators.deprecate": "swarmauri.decorators.deprecate",
         ###
         # documents
         ###
-        "swarmauri.documents.Document": "swarmauri_standard.documents.Document",
+        "swarmauri.documents.Document": (
+            "swarmauri_standard.documents.Document"
+        ),
         ###
         # embeddings
         ###
-        "swarmauri.embeddings.CohereEmbedding": "swarmauri_standard.embeddings.CohereEmbedding",
-        "swarmauri.embeddings.GeminiEmbedding": "swarmauri_standard.embeddings.GeminiEmbedding",
-        "swarmauri.embeddings.MistralEmbedding": "swarmauri_standard.embeddings.MistralEmbedding",
-        # "swarmauri.embeddings.NmfEmbedding": "swarmauri_standard.embeddings.NmfEmbedding",
-        "swarmauri.embeddings.OpenAIEmbedding": "swarmauri_standard.embeddings.OpenAIEmbedding",
-        "swarmauri.embeddings.TfidfEmbedding": "swarmauri_standard.embeddings.TfidfEmbedding",
-        "swarmauri.embeddings.VoyageEmbedding": "swarmauri_standard.embeddings.VoyageEmbedding",
-        "swarmauri.exceptions.IndexErrorWithContext": "swarmauri_standard.exceptions.IndexErrorWithContext",
-        "swarmauri.factories.AgentFactory": "swarmauri_standard.factories.AgentFactory",
+        "swarmauri.embeddings.CohereEmbedding": (
+            "swarmauri_standard.embeddings.CohereEmbedding"
+        ),
+        "swarmauri.embeddings.GeminiEmbedding": (
+            "swarmauri_standard.embeddings.GeminiEmbedding"
+        ),
+        "swarmauri.embeddings.MistralEmbedding": (
+            "swarmauri_standard.embeddings.MistralEmbedding"
+        ),
+        # "swarmauri.embeddings.NmfEmbedding":
+        # "swarmauri_standard.embeddings.NmfEmbedding",
+        "swarmauri.embeddings.OpenAIEmbedding": (
+            "swarmauri_standard.embeddings.OpenAIEmbedding"
+        ),
+        "swarmauri.embeddings.TfidfEmbedding": (
+            "swarmauri_standard.embeddings.TfidfEmbedding"
+        ),
+        "swarmauri.embeddings.VoyageEmbedding": (
+            "swarmauri_standard.embeddings.VoyageEmbedding"
+        ),
+        "swarmauri.exceptions.IndexErrorWithContext": (
+            "swarmauri_standard.exceptions.IndexErrorWithContext"
+        ),
+        "swarmauri.factories.AgentFactory": (
+            "swarmauri_standard.factories.AgentFactory"
+        ),
         "swarmauri.factories.Factory": "swarmauri_standard.factories.Factory",
-        "swarmauri.image_gens.BlackForestImgGenModel": "swarmauri_standard.image_gens.BlackForestImgGenModel",
-        "swarmauri.image_gens.DeepInfraImgGenModel": "swarmauri_standard.image_gens.DeepInfraImgGenModel",
-        "swarmauri.image_gens.FalAIImgGenModel": "swarmauri_standard.image_gens.FalAIImgGenModel",
-        "swarmauri.image_gens.HyperbolicImgGenModel": "swarmauri_standard.image_gens.HyperbolicImgGenModel",
-        "swarmauri.image_gens.OpenAIImgGenModel": "swarmauri_standard.image_gens.OpenAIImgGenModel",
+        "swarmauri.image_gens.BlackForestImgGenModel": (
+            "swarmauri_standard.image_gens.BlackForestImgGenModel"
+        ),
+        "swarmauri.image_gens.DeepInfraImgGenModel": (
+            "swarmauri_standard.image_gens.DeepInfraImgGenModel"
+        ),
+        "swarmauri.image_gens.FalAIImgGenModel": (
+            "swarmauri_standard.image_gens.FalAIImgGenModel"
+        ),
+        "swarmauri.image_gens.HyperbolicImgGenModel": (
+            "swarmauri_standard.image_gens.HyperbolicImgGenModel"
+        ),
+        "swarmauri.image_gens.OpenAIImgGenModel": (
+            "swarmauri_standard.image_gens.OpenAIImgGenModel"
+        ),
         ###
         # LLMS
         ##
@@ -164,7 +346,9 @@ class PluginCitizenshipRegistry:
         # Tool LLMS
         ###
         "swarmauri.tool_llms.ToolLLM": "swarmauri_standard.tool_llms.ToolLLM",
-        "swarmauri.stt.WhisperLargeSTT": "swarmauri_standard.stt.WhisperLargeSTT",
+        "swarmauri.stt.WhisperLargeSTT": (
+            "swarmauri_standard.stt.WhisperLargeSTT"
+        ),
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
@@ -172,188 +356,464 @@ class PluginCitizenshipRegistry:
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
         "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
-        "swarmauri.vlms.HyperbolicVLM": "swarmauri_standard.vlms.HyperbolicVLM",
-        "swarmauri.measurements.CompletenessMeasurement": "swarmauri_standard.measurements.CompletenessMeasurement",
-        "swarmauri.measurements.DistinctivenessMeasurement": "swarmauri_standard.measurements.DistinctivenessMeasurement",
-        "swarmauri.measurements.FirstImpressionMeasurement": "swarmauri_standard.measurements.FirstImpressionMeasurement",
-        "swarmauri.measurements.MeanMeasurement": "swarmauri_standard.measurements.MeanMeasurement",
-        "swarmauri.measurements.MiscMeasurement": "swarmauri_standard.measurements.MiscMeasurement",
-        "swarmauri.measurements.MissingnessMeasurement": "swarmauri_standard.measurements.MissingnessMeasurement",
-        "swarmauri.measurements.PatternMatchingMeasurement": "swarmauri_standard.measurements.PatternMatchingMeasurement",
-        "swarmauri.measurements.RatioOfSumsMeasurement": "swarmauri_standard.measurements.RatioOfSumsMeasurement",
-        "swarmauri.measurements.StaticMeasurement": "swarmauri_standard.measurements.StaticMeasurement",
-        "swarmauri.measurements.UniquenessMeasurement": "swarmauri_standard.measurements.UniquenessMeasurement",
-        "swarmauri.measurements.ZeroMeasurement": "swarmauri_standard.measurements.ZeroMeasurement",
-        "swarmauri.messages.AgentMessage": "swarmauri_standard.messages.AgentMessage",
-        "swarmauri.messages.FunctionMessage": "swarmauri_standard.messages.FunctionMessage",
-        "swarmauri.messages.HumanMessage": "swarmauri_standard.messages.HumanMessage",
-        "swarmauri.messages.SystemMessage": "swarmauri_standard.messages.SystemMessage",
-        # "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_standard.parsers.BeautifulSoupElementParser",
+        "swarmauri.vlms.HyperbolicVLM": (
+            "swarmauri_standard.vlms.HyperbolicVLM"
+        ),
+        "swarmauri.measurements.CompletenessMeasurement": (
+            "swarmauri_standard.measurements.CompletenessMeasurement"
+        ),
+        "swarmauri.measurements.DistinctivenessMeasurement": (
+            "swarmauri_standard.measurements.DistinctivenessMeasurement"
+        ),
+        "swarmauri.measurements.FirstImpressionMeasurement": (
+            "swarmauri_standard.measurements.FirstImpressionMeasurement"
+        ),
+        "swarmauri.measurements.MeanMeasurement": (
+            "swarmauri_standard.measurements.MeanMeasurement"
+        ),
+        "swarmauri.measurements.MiscMeasurement": (
+            "swarmauri_standard.measurements.MiscMeasurement"
+        ),
+        "swarmauri.measurements.MissingnessMeasurement": (
+            "swarmauri_standard.measurements.MissingnessMeasurement"
+        ),
+        "swarmauri.measurements.PatternMatchingMeasurement": (
+            "swarmauri_standard.measurements.PatternMatchingMeasurement"
+        ),
+        "swarmauri.measurements.RatioOfSumsMeasurement": (
+            "swarmauri_standard.measurements.RatioOfSumsMeasurement"
+        ),
+        "swarmauri.measurements.StaticMeasurement": (
+            "swarmauri_standard.measurements.StaticMeasurement"
+        ),
+        "swarmauri.measurements.UniquenessMeasurement": (
+            "swarmauri_standard.measurements.UniquenessMeasurement"
+        ),
+        "swarmauri.measurements.ZeroMeasurement": (
+            "swarmauri_standard.measurements.ZeroMeasurement"
+        ),
+        "swarmauri.messages.AgentMessage": (
+            "swarmauri_standard.messages.AgentMessage"
+        ),
+        "swarmauri.messages.FunctionMessage": (
+            "swarmauri_standard.messages.FunctionMessage"
+        ),
+        "swarmauri.messages.HumanMessage": (
+            "swarmauri_standard.messages.HumanMessage"
+        ),
+        "swarmauri.messages.SystemMessage": (
+            "swarmauri_standard.messages.SystemMessage"
+        ),
+        # "swarmauri.parsers.BeautifulSoupElementParser":
+        # "swarmauri_standard.parsers.BeautifulSoupElementParser",
         "swarmauri.parsers.CSVParser": "swarmauri_standard.parsers.CSVParser",
-        "swarmauri.parsers.HTMLTagStripParser": "swarmauri_standard.parsers.HTMLTagStripParser",
-        # "swarmauri.parsers.KeywordExtractorParser": "swarmauri_standard.parsers.KeywordExtractorParser",
-        "swarmauri.parsers.Md2HtmlParser": "swarmauri_standard.parsers.Md2HtmlParser",
-        "swarmauri.parsers.OpenAPISpecParser": "swarmauri_standard.parsers.OpenAPISpecParser",
-        "swarmauri.parsers.PhoneNumberExtractorParser": "swarmauri_standard.parsers.PhoneNumberExtractorParser",
-        "swarmauri.parsers.PythonParser": "swarmauri_standard.parsers.PythonParser",
-        "swarmauri.parsers.RegExParser": "swarmauri_standard.parsers.RegExParser",
-        "swarmauri.parsers.URLExtractorParser": "swarmauri_standard.parsers.URLExtractorParser",
+        "swarmauri.parsers.HTMLTagStripParser": (
+            "swarmauri_standard.parsers.HTMLTagStripParser"
+        ),
+        # "swarmauri.parsers.KeywordExtractorParser":
+        # "swarmauri_standard.parsers.KeywordExtractorParser",
+        "swarmauri.parsers.Md2HtmlParser": (
+            "swarmauri_standard.parsers.Md2HtmlParser"
+        ),
+        "swarmauri.parsers.OpenAPISpecParser": (
+            "swarmauri_standard.parsers.OpenAPISpecParser"
+        ),
+        "swarmauri.parsers.PhoneNumberExtractorParser": (
+            "swarmauri_standard.parsers.PhoneNumberExtractorParser"
+        ),
+        "swarmauri.parsers.PythonParser": (
+            "swarmauri_standard.parsers.PythonParser"
+        ),
+        "swarmauri.parsers.RegExParser": (
+            "swarmauri_standard.parsers.RegExParser"
+        ),
+        "swarmauri.parsers.URLExtractorParser": (
+            "swarmauri_standard.parsers.URLExtractorParser"
+        ),
         "swarmauri.parsers.XMLParser": "swarmauri_standard.parsers.XMLParser",
-        "swarmauri.pipelines.Pipeline": "swarmauri_standard.pipelines.Pipeline",
+        "swarmauri.pipelines.Pipeline": (
+            "swarmauri_standard.pipelines.Pipeline"
+        ),
         "swarmauri.prompts.Prompt": "swarmauri_standard.prompts.Prompt",
-        "swarmauri.prompts.PromptGenerator": "swarmauri_standard.prompts.PromptGenerator",
-        "swarmauri.prompts.PromptMatrix": "swarmauri_standard.prompts.PromptMatrix",
-        "swarmauri.prompt_templates.PromptTemplate": "swarmauri_standard.prompt_templates.PromptTemplate",
-        "swarmauri.schema_converters.AnthropicSchemaConverter": "swarmauri_standard.schema_converters.AnthropicSchemaConverter",
-        "swarmauri.schema_converters.CohereSchemaConverter": "swarmauri_standard.schema_converters.CohereSchemaConverter",
-        "swarmauri.schema_converters.GeminiSchemaConverter": "swarmauri_standard.schema_converters.GeminiSchemaConverter",
-        "swarmauri.schema_converters.GroqSchemaConverter": "swarmauri_standard.schema_converters.GroqSchemaConverter",
-        "swarmauri.schema_converters.MistralSchemaConverter": "swarmauri_standard.schema_converters.MistralSchemaConverter",
-        "swarmauri.schema_converters.OpenAISchemaConverter": "swarmauri_standard.schema_converters.OpenAISchemaConverter",
-        "swarmauri.schema_converters.ShuttleAISchemaConverter": "swarmauri_standard.schema_converters.ShuttleAISchemaConverter",
-        "swarmauri.service_registries.ServiceRegistry": "swarmauri_standard.service_registries.ServiceRegistry",
+        "swarmauri.prompts.PromptGenerator": (
+            "swarmauri_standard.prompts.PromptGenerator"
+        ),
+        "swarmauri.prompts.PromptMatrix": (
+            "swarmauri_standard.prompts.PromptMatrix"
+        ),
+        "swarmauri.prompt_templates.PromptTemplate": (
+            "swarmauri_standard.prompt_templates.PromptTemplate"
+        ),
+        "swarmauri.schema_converters.AnthropicSchemaConverter": (
+            "swarmauri_standard.schema_converters.AnthropicSchemaConverter"
+        ),
+        "swarmauri.schema_converters.CohereSchemaConverter": (
+            "swarmauri_standard.schema_converters.CohereSchemaConverter"
+        ),
+        "swarmauri.schema_converters.GeminiSchemaConverter": (
+            "swarmauri_standard.schema_converters.GeminiSchemaConverter"
+        ),
+        "swarmauri.schema_converters.GroqSchemaConverter": (
+            "swarmauri_standard.schema_converters.GroqSchemaConverter"
+        ),
+        "swarmauri.schema_converters.MistralSchemaConverter": (
+            "swarmauri_standard.schema_converters.MistralSchemaConverter"
+        ),
+        "swarmauri.schema_converters.OpenAISchemaConverter": (
+            "swarmauri_standard.schema_converters.OpenAISchemaConverter"
+        ),
+        "swarmauri.schema_converters.ShuttleAISchemaConverter": (
+            "swarmauri_standard.schema_converters.ShuttleAISchemaConverter"
+        ),
+        "swarmauri.service_registries.ServiceRegistry": (
+            "swarmauri_standard.service_registries.ServiceRegistry"
+        ),
         "swarmauri.state.DictState": "swarmauri_standard.state.DictState",
         "swarmauri.swarms.Swarm": "swarmauri_standard.swarms.Swarm",
-        "swarmauri.task_mgmt_strategies.RoundRobinStrategy": "swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy",
-        "swarmauri.toolkits.AccessibilityToolkit": "swarmauri_standard.toolkits.AccessibilityToolkit",
+        "swarmauri.task_mgmt_strategies.RoundRobinStrategy": (
+            "swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy"
+        ),
+        "swarmauri.toolkits.AccessibilityToolkit": (
+            "swarmauri_standard.toolkits.AccessibilityToolkit"
+        ),
         "swarmauri.toolkits.Toolkit": "swarmauri_standard.toolkits.Toolkit",
-        "swarmauri.tools.AdditionTool": "swarmauri_standard.tools.AdditionTool",
-        "swarmauri.tools.AutomatedReadabilityIndexTool": "swarmauri_standard.tools.AutomatedReadabilityIndexTool",
-        "swarmauri.tools.CalculatorTool": "swarmauri_standard.tools.CalculatorTool",
-        "swarmauri.tools.CodeExtractorTool": "swarmauri_standard.tools.CodeExtractorTool",
-        "swarmauri.tools.CodeInterpreterTool": "swarmauri_standard.tools.CodeInterpreterTool",
-        "swarmauri.tools.ColemanLiauIndexTool": "swarmauri_standard.tools.ColemanLiauIndexTool",
-        "swarmauri.tools.FleschKincaidTool": "swarmauri_standard.tools.FleschKincaidTool",
-        "swarmauri.tools.FleschReadingEaseTool": "swarmauri_standard.tools.FleschReadingEaseTool",
-        "swarmauri.tools.GunningFogTool": "swarmauri_standard.tools.GunningFogTool",
-        "swarmauri.tools.ImportMemoryModuleTool": "swarmauri_standard.tools.ImportMemoryModuleTool",
-        "swarmauri.tools.JSONRequestsTool": "swarmauri_standard.tools.JSONRequestsTool",
-        # "swarmauri.tools.MatplotlibCsvTool": "swarmauri_standard.tools.MatplotlibCsvTool",
-        # "swarmauri.tools.MatplotlibTool": "swarmauri_standard.tools.MatplotlibTool",
+        "swarmauri.tools.AdditionTool": (
+            "swarmauri_standard.tools.AdditionTool"
+        ),
+        "swarmauri.tools.AutomatedReadabilityIndexTool": (
+            "swarmauri_standard.tools.AutomatedReadabilityIndexTool"
+        ),
+        "swarmauri.tools.CalculatorTool": (
+            "swarmauri_standard.tools.CalculatorTool"
+        ),
+        "swarmauri.tools.CodeExtractorTool": (
+            "swarmauri_standard.tools.CodeExtractorTool"
+        ),
+        "swarmauri.tools.CodeInterpreterTool": (
+            "swarmauri_standard.tools.CodeInterpreterTool"
+        ),
+        "swarmauri.tools.ColemanLiauIndexTool": (
+            "swarmauri_standard.tools.ColemanLiauIndexTool"
+        ),
+        "swarmauri.tools.FleschKincaidTool": (
+            "swarmauri_standard.tools.FleschKincaidTool"
+        ),
+        "swarmauri.tools.FleschReadingEaseTool": (
+            "swarmauri_standard.tools.FleschReadingEaseTool"
+        ),
+        "swarmauri.tools.GunningFogTool": (
+            "swarmauri_standard.tools.GunningFogTool"
+        ),
+        "swarmauri.tools.ImportMemoryModuleTool": (
+            "swarmauri_standard.tools.ImportMemoryModuleTool"
+        ),
+        "swarmauri.tools.JSONRequestsTool": (
+            "swarmauri_standard.tools.JSONRequestsTool"
+        ),
+        # "swarmauri.tools.MatplotlibCsvTool":
+        # "swarmauri_standard.tools.MatplotlibCsvTool",
+        # "swarmauri.tools.MatplotlibTool":
+        # "swarmauri_standard.tools.MatplotlibTool",
         "swarmauri.tools.Parameter": "swarmauri_standard.tools.Parameter",
-        "swarmauri.tools.RequestsTool": "swarmauri_standard.tools.RequestsTool",
-        "swarmauri.tools.SentenceComplexityTool": "swarmauri_standard.tools.SentenceComplexityTool",
-        "swarmauri.tools.TemperatureConverterTool": "swarmauri_standard.tools.TemperatureConverterTool",
+        "swarmauri.tools.RequestsTool": (
+            "swarmauri_standard.tools.RequestsTool"
+        ),
+        "swarmauri.tools.SentenceComplexityTool": (
+            "swarmauri_standard.tools.SentenceComplexityTool"
+        ),
+        "swarmauri.tools.TemperatureConverterTool": (
+            "swarmauri_standard.tools.TemperatureConverterTool"
+        ),
         "swarmauri.tools.TestTool": "swarmauri_standard.tools.TestTool",
         "swarmauri.tools.WeatherTool": "swarmauri_standard.tools.WeatherTool",
-        "swarmauri.tracing.CallableTracer": "swarmauri_standard.tracing.CallableTracer",
-        "swarmauri.tracing.ChainTracer": "swarmauri_standard.tracing.ChainTracer",
-        "swarmauri.tracing.SimpleTraceContext": "swarmauri_standard.tracing.SimpleTraceContext",
-        "swarmauri.tracing.SimpleTracer": "swarmauri_standard.tracing.SimpleTracer",
-        "swarmauri.tracing.TracedVariable": "swarmauri_standard.tracing.TracedVariable",
-        "swarmauri.tracing.VariableTracer": "swarmauri_standard.tracing.VariableTracer",
-        "swarmauri.transports.HttpsUnicastTransport": "swarmauri_transport_https_unicast.HttpsUnicastTransport",
-        "swarmauri.transports.PubSubTransport": "swarmauri_standard.transports.PubSubTransport",
+        "swarmauri.tracing.CallableTracer": (
+            "swarmauri_standard.tracing.CallableTracer"
+        ),
+        "swarmauri.tracing.ChainTracer": (
+            "swarmauri_standard.tracing.ChainTracer"
+        ),
+        "swarmauri.tracing.SimpleTraceContext": (
+            "swarmauri_standard.tracing.SimpleTraceContext"
+        ),
+        "swarmauri.tracing.SimpleTracer": (
+            "swarmauri_standard.tracing.SimpleTracer"
+        ),
+        "swarmauri.tracing.TracedVariable": (
+            "swarmauri_standard.tracing.TracedVariable"
+        ),
+        "swarmauri.tracing.VariableTracer": (
+            "swarmauri_standard.tracing.VariableTracer"
+        ),
+        "swarmauri.transports.HttpsUnicastTransport": (
+            "swarmauri_transport_https_unicast.HttpsUnicastTransport"
+        ),
+        "swarmauri.transports.PubSubTransport": (
+            "swarmauri_standard.transports.PubSubTransport"
+        ),
         ###
         # Utils
         ##
         "swarmauri.utils.LazyLoader": "swarmauri_standard.utils.LazyLoader",
-        "swarmauri.utils._get_subclasses": "swarmauri_standard.utils._get_subclasses",
-        "swarmauri.utils._lazy_import": "swarmauri_standard.utils._lazy_import",
-        "swarmauri.utils.apply_metaclass": "swarmauri_standard.utils.apply_metaclass",
-        "swarmauri.utils.base64_encoder": "swarmauri_standard.utils.base64_encoder",
-        "swarmauri.utils.base64_to_file_path": "swarmauri_standard.utils.base64_to_file_path",
-        "swarmauri.utils.base64_to_img_url": "swarmauri_standard.utils.base64_to_img_url",
-        "swarmauri.utils.base64_to_in_memory_img": "swarmauri_standard.utils.base64_to_in_memory_img",
+        "swarmauri.utils._get_subclasses": (
+            "swarmauri_standard.utils._get_subclasses"
+        ),
+        "swarmauri.utils._lazy_import": (
+            "swarmauri_standard.utils._lazy_import"
+        ),
+        "swarmauri.utils.apply_metaclass": (
+            "swarmauri_standard.utils.apply_metaclass"
+        ),
+        "swarmauri.utils.base64_encoder": (
+            "swarmauri_standard.utils.base64_encoder"
+        ),
+        "swarmauri.utils.base64_to_file_path": (
+            "swarmauri_standard.utils.base64_to_file_path"
+        ),
+        "swarmauri.utils.base64_to_img_url": (
+            "swarmauri_standard.utils.base64_to_img_url"
+        ),
+        "swarmauri.utils.base64_to_in_memory_img": (
+            "swarmauri_standard.utils.base64_to_in_memory_img"
+        ),
         "swarmauri.utils.decorate": "swarmauri_standard.utils.decorate",
-        "swarmauri.utils.duration_manager": "swarmauri_standard.utils.duration_manager",
-        "swarmauri.utils.file_path_to_base64": "swarmauri_standard.utils.file_path_to_base64",
-        "swarmauri.utils.file_path_to_img_url": "swarmauri_standard.utils.file_path_to_img_url",
-        "swarmauri.utils.file_path_to_in_memory_img": "swarmauri_standard.utils.file_path_to_in_memory_img",
-        "swarmauri.utils.get_class_hash": "swarmauri_standard.utils.get_class_hash",
-        "swarmauri.utils.img_url_to_base64": "swarmauri_standard.utils.img_url_to_base64",
-        "swarmauri.utils.img_url_to_file_path": "swarmauri_standard.utils.img_url_to_file_path",
-        "swarmauri.utils.img_url_to_in_memory_img": "swarmauri_standard.utils.img_url_to_in_memory_img",
-        "swarmauri.utils.in_memory_img_to_base64": "swarmauri_standard.utils.in_memory_img_to_base64",
-        "swarmauri.utils.in_memory_img_to_file_path": "swarmauri_standard.utils.in_memory_img_to_file_path",
-        "swarmauri.utils.in_memory_img_to_img_url": "swarmauri_standard.utils.in_memory_img_to_img_url",
-        "swarmauri.utils.json_validator": "swarmauri_standard.utils.json_validator",
-        "swarmauri.utils.load_documents_from_folder": "swarmauri_standard.utils.load_documents_from_folder",
-        "swarmauri.utils.load_documents_from_json": "swarmauri_standard.utils.load_documents_from_json",
+        "swarmauri.utils.duration_manager": (
+            "swarmauri_standard.utils.duration_manager"
+        ),
+        "swarmauri.utils.file_path_to_base64": (
+            "swarmauri_standard.utils.file_path_to_base64"
+        ),
+        "swarmauri.utils.file_path_to_img_url": (
+            "swarmauri_standard.utils.file_path_to_img_url"
+        ),
+        "swarmauri.utils.file_path_to_in_memory_img": (
+            "swarmauri_standard.utils.file_path_to_in_memory_img"
+        ),
+        "swarmauri.utils.get_class_hash": (
+            "swarmauri_standard.utils.get_class_hash"
+        ),
+        "swarmauri.utils.img_url_to_base64": (
+            "swarmauri_standard.utils.img_url_to_base64"
+        ),
+        "swarmauri.utils.img_url_to_file_path": (
+            "swarmauri_standard.utils.img_url_to_file_path"
+        ),
+        "swarmauri.utils.img_url_to_in_memory_img": (
+            "swarmauri_standard.utils.img_url_to_in_memory_img"
+        ),
+        "swarmauri.utils.in_memory_img_to_base64": (
+            "swarmauri_standard.utils.in_memory_img_to_base64"
+        ),
+        "swarmauri.utils.in_memory_img_to_file_path": (
+            "swarmauri_standard.utils.in_memory_img_to_file_path"
+        ),
+        "swarmauri.utils.in_memory_img_to_img_url": (
+            "swarmauri_standard.utils.in_memory_img_to_img_url"
+        ),
+        "swarmauri.utils.json_validator": (
+            "swarmauri_standard.utils.json_validator"
+        ),
+        "swarmauri.utils.load_documents_from_folder": (
+            "swarmauri_standard.utils.load_documents_from_folder"
+        ),
+        "swarmauri.utils.load_documents_from_json": (
+            "swarmauri_standard.utils.load_documents_from_json"
+        ),
         "swarmauri.utils.memoize": "swarmauri_standard.utils.memoize",
-        "swarmauri.utils.method_signature_extractor_decorator": "swarmauri_standard.utils.method_signature_extractor_decorator",
-        "swarmauri.utils.print_notebook_metadata": "swarmauri_standard.utils.print_notebook_metadata",
-        "swarmauri.utils.retry_decorator": "swarmauri_standard.utils.retry_decorator",
+        "swarmauri.utils.method_signature_extractor_decorator": (
+            "swarmauri_standard.utils.method_signature_extractor_decorator"
+        ),
+        "swarmauri.utils.print_notebook_metadata": (
+            "swarmauri_standard.utils.print_notebook_metadata"
+        ),
+        "swarmauri.utils.retry_decorator": (
+            "swarmauri_standard.utils.retry_decorator"
+        ),
         "swarmauri.utils.sql_log": "swarmauri_standard.utils.sql_log",
-        "swarmauri.utils.timeout_wrapper": "swarmauri_standard.utils.timeout_wrapper",
+        "swarmauri.utils.timeout_wrapper": (
+            "swarmauri_standard.utils.timeout_wrapper"
+        ),
         ###
         # Vector Stores
         ###
-        "swarmauri.vector_stores.SqliteVectorStore": "swarmauri_standard.vector_stores.SqliteVectorStore",
-        "swarmauri.vector_stores.TfidfVectorStore": "swarmauri_standard.vector_stores.TfidfVectorStore",
+        "swarmauri.vector_stores.SqliteVectorStore": (
+            "swarmauri_standard.vector_stores.SqliteVectorStore"
+        ),
+        "swarmauri.vector_stores.TfidfVectorStore": (
+            "swarmauri_standard.vector_stores.TfidfVectorStore"
+        ),
         "swarmauri.vectors.Vector": "swarmauri_standard.vectors.Vector",
         # extra
-        "swarmauri.vector_stores.Doc2vecVectorStore": "swarmauri_vectorstore_doc2vec.Doc2vecVectorStore",
-        "swarmauri.embeddings.Doc2VecEmbedding": "swarmauri_embedding_doc2vec.Doc2VecEmbedding",
-        "swarmauri.tools.MatplotlibCsvTool": "swarmauri_tool_matplotlib.MatplotlibCsvTool",
-        "swarmauri.tools.MatplotlibTool": "swarmauri_tool_matplotlib.MatplotlibTool",
-        "swarmauri.tools.SkillExecutionTool": "swarmauri_tool_skill_execution.SkillExecutionTool",
-        "swarmauri.parsers.KeywordExtractorParser": "swarmauri_parser_keywordextractor.KeywordExtractorParser",
-        "swarmauri.embeddings.NmfEmbedding": "swarmauri_embedding_nmf.NmfEmbedding",
-        "swarmauri.parsers.BeautifulSoupElementParser": "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser",
-        "swarmauri.distances.MinkowskiDistance": "swarmauri_distance_minkowski.MinkowskiDistance",
+        "swarmauri.vector_stores.Doc2vecVectorStore": (
+            "swarmauri_vectorstore_doc2vec.Doc2vecVectorStore"
+        ),
+        "swarmauri.embeddings.Doc2VecEmbedding": (
+            "swarmauri_embedding_doc2vec.Doc2VecEmbedding"
+        ),
+        "swarmauri.tools.MatplotlibCsvTool": (
+            "swarmauri_tool_matplotlib.MatplotlibCsvTool"
+        ),
+        "swarmauri.tools.MatplotlibTool": (
+            "swarmauri_tool_matplotlib.MatplotlibTool"
+        ),
+        "swarmauri.tools.SkillExecutionTool": (
+            "swarmauri_tool_skill_execution.SkillExecutionTool"
+        ),
+        "swarmauri.parsers.KeywordExtractorParser": (
+            "swarmauri_parser_keywordextractor.KeywordExtractorParser"
+        ),
+        "swarmauri.embeddings.NmfEmbedding": (
+            "swarmauri_embedding_nmf.NmfEmbedding"
+        ),
+        "swarmauri.parsers.BeautifulSoupElementParser": (
+            "swarmauri_parser_beautifulsoupelement.BeautifulSoupElementParser"
+        ),
+        "swarmauri.distances.MinkowskiDistance": (
+            "swarmauri_distance_minkowski.MinkowskiDistance"
+        ),
         "swarmauri.loggers.Logger": "swarmauri_standard.loggers.Logger",
-        "swarmauri.logger_handlers.StreamHandler": "swarmauri_standard.logger_handlers.StreamHandler",
-        "swarmauri.logger_formatters.LoggerFormatter": "swarmauri_standard.logger_formatters.LoggerFormatter",
-        "swarmauri.middlewares.AuthMiddleware": "swarmauri_middleware_auth.AuthMiddleware",
-        "swarmauri.middlewares.BulkheadMiddleware": "swarmauri_middleware_bulkhead.BulkheadMiddleware",
-        "swarmauri.middlewares.CacheControlMiddleware": "swarmauri_middleware_cachecontrol.CacheControlMiddleware",
-        "swarmauri.middlewares.CustomCORSMiddleware": "swarmauri_middleware_cors.CustomCORSMiddleware",
-        "swarmauri.middlewares.ExceptionHandlingMiddleware": "swarmauri_middleware_exceptionhadling.ExceptionHandlingMiddleware",
-        "swarmauri.middlewares.GzipCompressionMiddleware": "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware",
-        "swarmauri.middlewares.LlamaGuardMiddleware": "swarmauri_middleware_llamaguard.LlamaGuardMiddleware",
-        "swarmauri.middlewares.LoggingMiddleware": "swarmauri_middleware_logging.LoggingMiddleware",
-        "swarmauri.middlewares.RateLimitMiddleware": "swarmauri_middleware_ratelimit.RateLimitMiddleware",
-        "swarmauri.middlewares.SecurityHeadersMiddleware": "swarmauri_middleware_sercurityheaders.SecurityHeadersMiddleware",
-        "swarmauri.middlewares.SessionMiddleware": "swarmauri_middleware_session.SessionMiddleware",
-        "swarmauri.middlewares.TimerMiddleware": "swarmauri_middleware_time.TimerMiddleware",
-        "swarmauri.rate_limits.TokenBucketRateLimit": "swarmauri_standard.rate_limits.TokenBucketRateLimit",
-        "swarmauri.crypto.ParamikoCrypto": "swarmauri_crypto_paramiko.ParamikoCrypto",
+        "swarmauri.logger_handlers.StreamHandler": (
+            "swarmauri_standard.logger_handlers.StreamHandler"
+        ),
+        "swarmauri.logger_formatters.LoggerFormatter": (
+            "swarmauri_standard.logger_formatters.LoggerFormatter"
+        ),
+        "swarmauri.middlewares.AuthMiddleware": (
+            "swarmauri_middleware_auth.AuthMiddleware"
+        ),
+        "swarmauri.middlewares.BulkheadMiddleware": (
+            "swarmauri_middleware_bulkhead.BulkheadMiddleware"
+        ),
+        "swarmauri.middlewares.CacheControlMiddleware": (
+            "swarmauri_middleware_cachecontrol.CacheControlMiddleware"
+        ),
+        "swarmauri.middlewares.CustomCORSMiddleware": (
+            "swarmauri_middleware_cors.CustomCORSMiddleware"
+        ),
+        "swarmauri.middlewares.ExceptionHandlingMiddleware": (
+            "swarmauri_middleware_exceptionhadling.ExceptionHandlingMiddleware"
+        ),
+        "swarmauri.middlewares.GzipCompressionMiddleware": (
+            "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware"
+        ),
+        "swarmauri.middlewares.LlamaGuardMiddleware": (
+            "swarmauri_middleware_llamaguard.LlamaGuardMiddleware"
+        ),
+        "swarmauri.middlewares.LoggingMiddleware": (
+            "swarmauri_middleware_logging.LoggingMiddleware"
+        ),
+        "swarmauri.middlewares.RateLimitMiddleware": (
+            "swarmauri_middleware_ratelimit.RateLimitMiddleware"
+        ),
+        "swarmauri.middlewares.SecurityHeadersMiddleware": (
+            "swarmauri_middleware_sercurityheaders.SecurityHeadersMiddleware"
+        ),
+        "swarmauri.middlewares.SessionMiddleware": (
+            "swarmauri_middleware_session.SessionMiddleware"
+        ),
+        "swarmauri.middlewares.TimerMiddleware": (
+            "swarmauri_middleware_time.TimerMiddleware"
+        ),
+        "swarmauri.rate_limits.TokenBucketRateLimit": (
+            "swarmauri_standard.rate_limits.TokenBucketRateLimit"
+        ),
+        "swarmauri.crypto.ParamikoCrypto": (
+            "swarmauri_crypto_paramiko.ParamikoCrypto"
+        ),
         "swarmauri.crypto.PGPCrypto": "swarmauri_crypto_pgp.PGPCrypto",
-        "swarmauri.mre_cryptos.ShamirMreCrypto": "swarmauri_mre_crypto_shamir.ShamirMreCrypto",
-        "swarmauri.mre_crypto.KeyringMreCrypto": "swarmauri_mre_crypto_keyring.KeyringMreCrypto",
-        "swarmauri.mre_crypto.AgeMreCrypto": "swarmauri_mre_crypto_age.AgeMreCrypto",
-        "swarmauri.mre_crypto.PGPSealMreCrypto": "swarmauri_mre_crypto_pgp.PGPSealMreCrypto",
-        "swarmauri.secret.AutoGpgSecretDrive": "swarmauri_secret_autogpg.AutoGpgSecretDrive",
+        "swarmauri.mre_cryptos.ShamirMreCrypto": (
+            "swarmauri_mre_crypto_shamir.ShamirMreCrypto"
+        ),
+        "swarmauri.mre_crypto.KeyringMreCrypto": (
+            "swarmauri_mre_crypto_keyring.KeyringMreCrypto"
+        ),
+        "swarmauri.mre_crypto.AgeMreCrypto": (
+            "swarmauri_mre_crypto_age.AgeMreCrypto"
+        ),
+        "swarmauri.mre_crypto.PGPSealMreCrypto": (
+            "swarmauri_mre_crypto_pgp.PGPSealMreCrypto"
+        ),
+        "swarmauri.secret.AutoGpgSecretDrive": (
+            "swarmauri_secret_autogpg.AutoGpgSecretDrive"
+        ),
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {
-        "swarmauri.image_gens.LeptonAIImgGenModel": "swarmauri_llm_leptonai.LeptonAIImgGenModel",
+        "swarmauri.image_gens.LeptonAIImgGenModel": (
+            "swarmauri_llm_leptonai.LeptonAIImgGenModel"
+        ),
         "swarmauri.llms.AI21StudioModel": "swarmauri_llm_ai21.AI21StudioModel",
-        "swarmauri.llms.AnthropicModel": "swarmauri_llm_anthropic.AnthropicModel",
-        "swarmauri.llms.AnthropicToolModel": "swarmauri_llm_anthropic.AnthropicToolModel",
+        "swarmauri.llms.AnthropicModel": (
+            "swarmauri_llm_anthropic.AnthropicModel"
+        ),
+        "swarmauri.llms.AnthropicToolModel": (
+            "swarmauri_llm_anthropic.AnthropicToolModel"
+        ),
         "swarmauri.llms.CerebrasModel": "swarmauri_llm_cerebras.CerebrasModel",
         "swarmauri.llms.CohereModel": "swarmauri_llm_cohere.CohereModel",
-        "swarmauri.llms.CohereToolModel": "swarmauri_llm_cohere.CohereToolModel",
-        "swarmauri.llms.DeepInfraModel": "swarmauri_llm_deepinfra.DeepInfraModel",
+        "swarmauri.llms.CohereToolModel": (
+            "swarmauri_llm_cohere.CohereToolModel"
+        ),
+        "swarmauri.llms.DeepInfraModel": (
+            "swarmauri_llm_deepinfra.DeepInfraModel"
+        ),
         "swarmauri.llms.DeepSeekModel": "swarmauri_llm_deepseek.DeepSeekModel",
-        "swarmauri.llms.FalAIVisionModel": "swarmauri_llm_falai.FalAIVisionModel",
+        "swarmauri.llms.FalAIVisionModel": (
+            "swarmauri_llm_falai.FalAIVisionModel"
+        ),
         "swarmauri.llms.GeminiProModel": "swarmauri_llm_gemini.GeminiProModel",
-        "swarmauri.llms.GeminiToolModel": "swarmauri_llm_gemini.GeminiToolModel",
+        "swarmauri.llms.GeminiToolModel": (
+            "swarmauri_llm_gemini.GeminiToolModel"
+        ),
         "swarmauri.llms.GroqAIAudio": "swarmauri_llm_groq.GroqAIAudio",
         "swarmauri.llms.GroqModel": "swarmauri_llm_groq.GroqModel",
         "swarmauri.llms.GroqToolModel": "swarmauri_llm_groq.GroqToolModel",
         "swarmauri.llms.GroqVisionModel": "swarmauri_llm_groq.GroqVisionModel",
-        "swarmauri.llms.HyperbolicAudioTTS": "swarmauri_llm_hyperbolic.HyperbolicAudioTTS",
-        "swarmauri.llms.HyperbolicModel": "swarmauri_llm_hyperbolic.HyperbolicModel",
-        "swarmauri.llms.HyperbolicVisionModel": "swarmauri_llm_hyperbolic.HyperbolicVisionModel",
+        "swarmauri.llms.HyperbolicAudioTTS": (
+            "swarmauri_llm_hyperbolic.HyperbolicAudioTTS"
+        ),
+        "swarmauri.llms.HyperbolicModel": (
+            "swarmauri_llm_hyperbolic.HyperbolicModel"
+        ),
+        "swarmauri.llms.HyperbolicVisionModel": (
+            "swarmauri_llm_hyperbolic.HyperbolicVisionModel"
+        ),
         "swarmauri.llms.LeptonAIModel": "swarmauri_llm_leptonai.LeptonAIModel",
         "swarmauri.llms.LlamaCppModel": "swarmauri_llm_llamacpp.LlamaCppModel",
         "swarmauri.llms.MistralModel": "swarmauri_llm_mistral.MistralModel",
-        "swarmauri.llms.MistralToolModel": "swarmauri_llm_mistral.MistralToolModel",
+        "swarmauri.llms.MistralToolModel": (
+            "swarmauri_llm_mistral.MistralToolModel"
+        ),
         "swarmauri.llms.OpenAIAudio": "swarmauri_llm_openai.OpenAIAudio",
         "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
         "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
-        "swarmauri.llms.OpenAIToolModel": "swarmauri_llm_openai.OpenAIToolModel",
-        "swarmauri.llms.PerplexityModel": "swarmauri_llm_perplexity.PerplexityModel",
+        "swarmauri.llms.OpenAIToolModel": (
+            "swarmauri_llm_openai.OpenAIToolModel"
+        ),
+        "swarmauri.llms.PerplexityModel": (
+            "swarmauri_llm_perplexity.PerplexityModel"
+        ),
         "swarmauri.llms.PlayHTModel": "swarmauri_llm_playht.PlayHTModel",
-        "swarmauri.llms.WhisperLargeModel": "swarmauri_llm_whisper.WhisperLargeModel",
-        "swarmauri.tool_llms.OpenAIToolModel": "swarmauri_llm_openai.OpenAIToolModel",
-        "swarmauri.tool_llms.AnthropicToolModel": "swarmauri_llm_anthropic.AnthropicToolModel",
-        "swarmauri.tool_llms.CohereToolModel": "swarmauri_llm_cohere.CohereToolModel",
-        "swarmauri.tool_llms.GeminiToolModel": "swarmauri_llm_gemini.GeminiToolModel",
-        "swarmauri.tool_llms.GroqToolModel": "swarmauri_llm_groq.GroqToolModel",
-        "swarmauri.tool_llms.MistralToolModel": "swarmauri_llm_mistral.MistralToolModel",
+        "swarmauri.llms.WhisperLargeModel": (
+            "swarmauri_llm_whisper.WhisperLargeModel"
+        ),
+        "swarmauri.tool_llms.OpenAIToolModel": (
+            "swarmauri_llm_openai.OpenAIToolModel"
+        ),
+        "swarmauri.tool_llms.AnthropicToolModel": (
+            "swarmauri_llm_anthropic.AnthropicToolModel"
+        ),
+        "swarmauri.tool_llms.CohereToolModel": (
+            "swarmauri_llm_cohere.CohereToolModel"
+        ),
+        "swarmauri.tool_llms.GeminiToolModel": (
+            "swarmauri_llm_gemini.GeminiToolModel"
+        ),
+        "swarmauri.tool_llms.GroqToolModel": (
+            "swarmauri_llm_groq.GroqToolModel"
+        ),
+        "swarmauri.tool_llms.MistralToolModel": (
+            "swarmauri_llm_mistral.MistralToolModel"
+        ),
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 
@@ -362,10 +822,13 @@ class PluginCitizenshipRegistry:
         """
         Property: total_registry
 
-        Aggregates all plugin registrations from first, second, and third-class registries.
-        Provides a comprehensive mapping of resource paths to their corresponding external module paths.
+        Aggregates all plugin registrations from first, second, and third-class
+        registries.
+        Provides a comprehensive mapping of resource paths to their
+        corresponding external module paths.
 
-        :return: A dictionary containing all registered plugins across all classifications.
+        :return: A dictionary containing all registered plugins across all
+            classifications.
         """
         aggregated_registry = {
             **cls.FIRST_CLASS_REGISTRY,
@@ -383,8 +846,10 @@ class PluginCitizenshipRegistry:
         Add an entry to the appropriate registry.
 
         :param class_type: Type of the plugin ('first', 'second', 'third').
-        :param resource_path: The resource path (e.g., 'swarmauri.llms.OpenAIModel').
-        :param module_path: The external module path it maps to (e.g., 'external_repo.OpenAIModel').
+        :param resource_path: The resource path (e.g.,
+            'swarmauri.llms.OpenAIModel').
+        :param module_path: The external module path it maps to (e.g.,
+            'external_repo.OpenAIModel').
         :raises ValueError: If class_type is invalid.
         """
         registry_map = {
@@ -395,17 +860,17 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
 
         registry = registry_map[class_type]
 
         if resource_path in registry:
             logger.debug(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."
+                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."  # noqa: E501
             )
             return
 
@@ -413,7 +878,10 @@ class PluginCitizenshipRegistry:
         registry[resource_path] = module_path
         cls._KNOWN_GROUPS_CACHE = None
         logger.info(
-            f"Added to {class_type}-class registry: {resource_path} -> {module_path}"
+            (
+                f"Added to {class_type}-class registry: {resource_path} -> "
+                f"{module_path}"
+            )
         )
 
     @classmethod
@@ -424,7 +892,8 @@ class PluginCitizenshipRegistry:
         :param class_type: Type of the plugin ('first', 'second', 'third').
         :param resource_path: The resource path to remove.
         :raises ValueError: If class_type is invalid.
-        :raises KeyError: If resource_path does not exist in the specified registry.
+        :raises KeyError: If resource_path does not exist in the specified
+            registry.
         """
         registry_map = {
             "first": cls.FIRST_CLASS_REGISTRY,
@@ -434,20 +903,20 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
             )
 
         # Remove from the specific registry
@@ -462,7 +931,8 @@ class PluginCitizenshipRegistry:
         """
         List all entries in a specific registry or the total registry.
 
-        :param class_type: Type of the registry to list ('first', 'second', 'third').
+        :param class_type: Type of the registry to list ('first', 'second',
+            'third').
                            If None, lists the total registry.
         :return: A dictionary of resource_path to module_path.
         :raises ValueError: If class_type is invalid.
@@ -479,10 +949,10 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
 
         logger.debug(f"Listing {class_type}-class registry.")
@@ -493,13 +963,14 @@ class PluginCitizenshipRegistry:
         """
         Get the external module path for a given resource path.
 
-        :param resource_path: Full resource path (e.g., 'swarmauri.llms.OpenAIModel').
+        :param resource_path: Full resource path (e.g.,
+            'swarmauri.llms.OpenAIModel').
         :return: External module path or None if not found.
         """
         module_path = cls.total_registry().get(resource_path)
         if module_path:
             logger.debug(
-                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."
+                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."  # noqa: E501
             )
         else:
             logger.debug(
@@ -536,9 +1007,11 @@ class PluginCitizenshipRegistry:
 
         :param class_type: Type of the plugin ('first', 'second', 'third').
         :param resource_path: The resource path to update.
-        :param new_module_path: The new external module path to associate with the resource path.
+        :param new_module_path: The new external module path to associate with
+            the resource path.
         :raises ValueError: If class_type is invalid.
-        :raises KeyError: If resource_path does not exist in the specified registry.
+        :raises KeyError: If resource_path does not exist in the specified
+            registry.
         """
         registry_map = {
             "first": cls.FIRST_CLASS_REGISTRY,
@@ -548,26 +1021,29 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
             )
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
         logger.info(
-            f"Updated {class_type}-class registry entry: {resource_path} -> {new_module_path} (was: {old_module_path})"
+            (
+                f"Updated {class_type}-class registry entry: {resource_path} "
+                f"-> {new_module_path} (was: {old_module_path})"
+            )
         )
 
     @classmethod
@@ -578,7 +1054,8 @@ class PluginCitizenshipRegistry:
         :param class_type: Type of the plugin ('first', 'second', 'third').
         :param resource_path: The resource path to delete.
         :raises ValueError: If class_type is invalid.
-        :raises KeyError: If resource_path does not exist in the specified registry.
+        :raises KeyError: If resource_path does not exist in the specified
+            registry.
         """
         cls.remove_from_registry(class_type, resource_path)
 
@@ -608,7 +1085,7 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_first = resource_path in cls.FIRST_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."
+            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."  # noqa: E501
         )
         return is_first
 
@@ -623,7 +1100,7 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_second = resource_path in cls.SECOND_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."
+            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."  # noqa: E501
         )
         return is_second
 

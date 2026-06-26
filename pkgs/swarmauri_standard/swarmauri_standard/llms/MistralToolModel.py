@@ -27,9 +27,16 @@ from swarmauri_standard.schema_converters.MistralSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing MistralToolModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
-    "MistralToolModel' or 'from swarmauri.tool_llms import MistralToolModel' instead.",
+    (
+        "Importing MistralToolModel from swarmauri.llms is "
+        "deprecated and will be "
+    )(
+        "removed in a future version. Please use 'from "
+        "swarmauri_standard.tool_llms import "
+    )(
+        "MistralToolModel' or 'from swarmauri.tool_llms import "
+        "MistralToolModel' instead."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )
@@ -38,14 +45,19 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "MistralToolModel")
 class MistralToolModel(LLMBase):
     """
-    A model class for interacting with the Mistral API for tool-assisted conversation and prediction.
+    A model class for interacting with the Mistral API for tool-assisted
+    conversation and prediction.
 
-    This class provides methods for synchronous and asynchronous communication with the Mistral API.
-    It supports processing single and batch conversations, as well as streaming responses.
+    This class provides methods for synchronous and asynchronous communication
+    with the Mistral API.
+    It supports processing single and batch conversations, as well as streaming
+    responses.
 
     Attributes:
-        api_key (SecretStr): The API key for authenticating requests with the Mistral API.
-        allowed_models (List[str]): A list of supported model names for the Mistral API.
+        api_key (SecretStr): The API key for authenticating requests with the
+        Mistral API.
+        allowed_models (List[str]): A list of supported model names for the
+        Mistral API.
         name (str): The default model name to use for predictions.
         type (Literal["MistralToolModel"]): The type identifier for the model.
         timeout (float): Maximum time to wait for API responses in seconds.
@@ -84,7 +96,8 @@ class MistralToolModel(LLMBase):
 
     def __init__(self, **data: Any) -> None:
         """
-        Initializes the MistralToolModel instance, setting up headers for API requests.
+        Initializes the MistralToolModel instance, setting up headers for API
+        requests.
 
         Parameters:
             **data (Any): Arbitrary keyword arguments for initialization.
@@ -109,7 +122,8 @@ class MistralToolModel(LLMBase):
         self, tools: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """
-        Convert a dictionary of tools to the schema format required by Mistral API.
+        Convert a dictionary of tools to the schema format required by Mistral
+        API.
 
         Args:
             tools (Dict[str, Any]): A dictionary of tool objects.
@@ -128,7 +142,8 @@ class MistralToolModel(LLMBase):
         Format conversation history messages for the Mistral API.
 
         Args:
-            messages (List[Type[MessageBase]]): List of message objects from the conversation history.
+            messages (List[Type[MessageBase]]): List of message objects from
+            the conversation history.
 
         Returns:
             List[Dict[str, str]]: A list of formatted message dictionaries.
@@ -178,7 +193,8 @@ class MistralToolModel(LLMBase):
         Args:
             conversation (Conversation): The conversation object.
             toolkit (Optional[Any]): The toolkit for tool assistance.
-            tool_choice (Optional[str]): The tool choice strategy (default is "auto").
+            tool_choice (Optional[str]): The tool choice strategy (default is
+            "auto").
             temperature (float): The temperature for response variability.
             max_tokens (int): The maximum number of tokens for the response.
             safe_prompt (bool): Whether to use a safer prompt.
@@ -340,19 +356,27 @@ class MistralToolModel(LLMBase):
         """
         Stream a response from the Mistral API.
 
-        This method sends a conversation and optional toolkit information to the Mistral API
+        This method sends a conversation and optional toolkit information to
+        the Mistral API
         and returns a generator that yields response content as it is received.
 
         Args:
-            conversation (Conversation): The conversation object containing the message history.
-            toolkit (Optional[Any]): The toolkit for tool assistance, providing external tools to be invoked.
-            tool_choice (Optional[str]): The tool choice strategy, such as "auto" or "manual".
-            temperature (float): The sampling temperature for response variability.
-            max_tokens (int): The maximum number of tokens to generate in the response.
-            safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
+            conversation (Conversation): The conversation object containing the
+            message history.
+            toolkit (Optional[Any]): The toolkit for tool assistance, providing
+            external tools to be invoked.
+            tool_choice (Optional[str]): The tool choice strategy, such as
+            "auto" or "manual".
+            temperature (float): The sampling temperature for response
+            variability.
+            max_tokens (int): The maximum number of tokens to generate in the
+            response.
+            safe_prompt (bool): Whether to use a safer prompt, reducing
+            potential harmful content.
 
         Yields:
-            Iterator[str]: A streaming generator that yields the response content as text.
+            Iterator[str]: A streaming generator that yields the response
+            content as text.
 
         Example:
             for response_text in model.stream(conversation):
@@ -443,19 +467,28 @@ class MistralToolModel(LLMBase):
         """
         Asynchronously stream a response from the Mistral API.
 
-        This method sends a conversation and optional toolkit information to the Mistral API
-        and returns an asynchronous generator that yields response content as it is received.
+        This method sends a conversation and optional toolkit information to
+        the Mistral API
+        and returns an asynchronous generator that yields response content as
+        it is received.
 
         Args:
-            conversation (Conversation): The conversation object containing the message history.
-            toolkit (Optional[Any]): The toolkit for tool assistance, providing external tools to be invoked.
-            tool_choice (Optional[str]): The tool choice strategy, such as "auto" or "manual".
-            temperature (float): The sampling temperature for response variability.
-            max_tokens (int): The maximum number of tokens to generate in the response.
-            safe_prompt (bool): Whether to use a safer prompt, reducing potential harmful content.
+            conversation (Conversation): The conversation object containing the
+            message history.
+            toolkit (Optional[Any]): The toolkit for tool assistance, providing
+            external tools to be invoked.
+            tool_choice (Optional[str]): The tool choice strategy, such as
+            "auto" or "manual".
+            temperature (float): The sampling temperature for response
+            variability.
+            max_tokens (int): The maximum number of tokens to generate in the
+            response.
+            safe_prompt (bool): Whether to use a safer prompt, reducing
+            potential harmful content.
 
         Yields:
-            AsyncIterator[str]: An asynchronous streaming generator that yields the response content as text.
+            AsyncIterator[str]: An asynchronous streaming generator that yields
+            the response content as text.
 
         Example:
             async for response_text in model.astream(conversation):
@@ -543,10 +576,12 @@ class MistralToolModel(LLMBase):
         safe_prompt: bool = False,
     ) -> List[Conversation]:
         """
-        Synchronously processes multiple conversations and generates responses for each.
+        Synchronously processes multiple conversations and generates responses
+        for each.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Optional[Any]): The toolkit for tool assistance.
             tool_choice (Optional[str]): The tool choice strategy.
             temperature (float): Sampling temperature for response generation.
@@ -554,7 +589,8 @@ class MistralToolModel(LLMBase):
             safe_prompt (bool): If True, enables safe prompting.
 
         Returns:
-            List[Conversation]: List of updated conversations with generated responses.
+            List[Conversation]: List of updated conversations with generated
+            responses.
         """
         return [
             self.predict(
@@ -579,10 +615,12 @@ class MistralToolModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Asynchronously processes multiple conversations with controlled concurrency.
+        Asynchronously processes multiple conversations with controlled
+        concurrency.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Optional[Any]): The toolkit for tool assistance.
             tool_choice (Optional[str]): The tool choice strategy.
             temperature (float): Sampling temperature for response generation.
@@ -591,7 +629,8 @@ class MistralToolModel(LLMBase):
             max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with generated responses.
+            List[Conversation]: List of updated conversations with generated
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

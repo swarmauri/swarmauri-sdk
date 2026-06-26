@@ -1,8 +1,11 @@
 """
-Module containing unit tests for the swarmauri_tool_jupyterdisplay package initialization.
+Module containing unit tests for the swarmauri_tool_jupyterdisplay package
+initialization.
 
-The tests in this file ensure that all modules, classes, and attributes are correctly
-exposed at the package level, including verifying the presence of JupyterDisplayTool and
+The tests in this file ensure that all modules, classes, and attributes are
+correctly
+exposed at the package level, including verifying the presence of
+JupyterDisplayTool and
 the package's version string.
 """
 
@@ -10,7 +13,9 @@ from swarmauri_tool_jupyterdisplay import JupyterDisplayTool, __version__
 
 
 class TestPackageInit:
-    """Test suite for the swarmauri_tool_jupyterdisplay package initialization."""
+    """
+    Test suite for the swarmauri_tool_jupyterdisplay package initialization.
+    """
 
     def test_jupyter_display_tool_exposed(self) -> None:
         """

@@ -81,7 +81,7 @@ def test_call(method, url, kwargs, tool):
         )
         if kwargs.get("json"):
             assert result["json"] == kwargs["json"], (
-                f"Expected JSON payload {kwargs['json']}, but got {result['json']}"
+                f"Expected JSON payload {kwargs['json']}, but got {result['json']}"  # noqa: E501
             )
 
     assert result["url"] == url, f"Expected URL {url}, but got {result['url']}"

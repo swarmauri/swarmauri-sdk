@@ -74,16 +74,19 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
     ) -> Any:
         """Dispatches the request after JWT authentication.
 
-        This method extracts and validates JWT tokens from the Authorization header.
+        This method extracts and validates JWT tokens from the Authorization
+        header.
         It checks for proper format, signature, expiration, and other claims
         as configured.
 
         Args:
             request: The incoming request object to be processed.
-            call_next: A callable that invokes the next middleware in the chain.
+            call_next: A callable that invokes the next middleware in the
+            chain.
 
         Returns:
-            The response object after all middlewares have processed the request.
+            The response object after all middlewares have processed the
+            request.
 
         Raises:
             HTTPException: If authentication fails for any reason.
@@ -117,11 +120,12 @@ class AuthMiddleware(MiddlewareBase, ComponentBase):
         try:
             payload = await self._validate_jwt_token(token)
 
-            # Add the decoded payload to request state for use in downstream handlers
+            # Add the decoded payload to request state for use in downstream
+            # handlers
             request.state.user = payload
 
             logger.info(
-                f"Authentication successful for user: {payload.get('sub', 'unknown')}"
+                f"Authentication successful for user: {payload.get('sub', 'unknown')}"  # noqa: E501
             )
             return await call_next(request)
 

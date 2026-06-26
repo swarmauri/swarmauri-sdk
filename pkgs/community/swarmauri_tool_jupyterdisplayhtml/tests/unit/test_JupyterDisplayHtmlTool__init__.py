@@ -21,13 +21,15 @@ class TestInit(object):
 
     def test_jupyterdisplayhtmltool_in_all(self) -> None:
         """
-        Ensures 'JupyterDisplayHtmlTool' is exposed in the package's __all__ list.
+        Ensures 'JupyterDisplayHtmlTool' is exposed in the package's __all__
+        list.
 
         This test checks if the package initialization correctly includes
         JupyterDisplayHtmlTool in the __all__ attribute.
         """
         assert "JupyterDisplayHtmlTool" in __all__, (
-            "Expected 'JupyterDisplayHtmlTool' to be in __all__, but it was not found."
+            "Expected 'JupyterDisplayHtmlTool' to be in __all__, but it "
+            "was not found."
         )
 
     def test_version_is_string(self) -> None:
@@ -56,7 +58,11 @@ class TestInit(object):
             tool = JupyterDisplayHtmlTool()
         except Exception as exc:
             pytest.fail(
-                f"Instantiating JupyterDisplayHtmlTool raised an exception: {exc}"
+                (
+                    f"Instantiating JupyterDisplayHtmlTool raised an "
+                    f"exception: "
+                    f"{exc}"
+                )
             )
         assert tool is not None, (
             "Failed to instantiate JupyterDisplayHtmlTool."

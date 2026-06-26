@@ -12,7 +12,8 @@ class IChainDependencyResolver(ABC):
 
         Args:
             matrix (List[List[str]]): The prompt matrix.
-            sequence_index (int): The index of the sequence to build dependencies for.
+            sequence_index (int): The index of the sequence to build
+            dependencies for.
 
         Returns:
             Tuple containing indegrees and graph dicts.

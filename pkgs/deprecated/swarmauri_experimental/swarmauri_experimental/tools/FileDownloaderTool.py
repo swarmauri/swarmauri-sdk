@@ -33,7 +33,8 @@ class FileDownloaderTool(ToolBase):
         """
         try:
             response = requests.get(url)
-            response.raise_for_status()  # Raises an HTTPError if the request resulted in an error
+            # Raises an HTTPError if the request resulted in an error
+            response.raise_for_status()
             return {"file_content": response.content}
         except requests.RequestException as e:
             raise RuntimeError(

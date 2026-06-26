@@ -78,7 +78,8 @@ class SMOGIndexTool(ToolBase):
 
     def count_polysyllables(self, text: str) -> int:
         """
-        Count the number of polysyllabic words (words with three or more syllables) in the text.
+        Count the number of polysyllabic words (words with three or more
+        syllables) in the text.
 
         Parameters:
             text (str): The text to analyze.

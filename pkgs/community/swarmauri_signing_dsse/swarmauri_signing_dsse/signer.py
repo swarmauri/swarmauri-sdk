@@ -69,9 +69,12 @@ class DSSESigner(SigningBase):
 
         super().__init__(inner=inner, codec=codec or DSSEJsonCodec(), **data)
 
-    # --------------------------- Capability surface ---------------------------
+    # --------------------------- Capability surface
+    # ---------------------------
     def supports(self) -> Mapping[str, Iterable[str]]:
-        """Return the merged capability matrix from the inner signer and DSSE."""
+        """
+        Return the merged capability matrix from the inner signer and DSSE.
+        """
 
         inner = self.inner.supports()
         return {
@@ -91,7 +94,8 @@ class DSSESigner(SigningBase):
             ),
         }
 
-    # --------------------------- Bytes / Digest / Stream ---------------------------
+    # --------------------------- Bytes / Digest / Stream
+    # ---------------------------
     async def sign_bytes(
         self,
         key: KeyRef,
@@ -198,7 +202,8 @@ class DSSESigner(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> Sequence[Signature]:
-        """Sign a DSSE envelope by delegating to the wrapped signer over the PAE."""
+        """Sign a DSSE envelope by delegating to the wrapped signer over the
+        PAE."""
 
         pae = await self.canonicalize_envelope(
             env, canon=canon or "dsse-pae", opts=opts
@@ -214,7 +219,8 @@ class DSSESigner(SigningBase):
         require: Optional[Mapping[str, object]] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool:
-        """Verify a DSSE envelope by delegating to the wrapped signer over the PAE."""
+        """Verify a DSSE envelope by delegating to the wrapped signer over the
+        PAE."""
 
         pae = await self.canonicalize_envelope(
             env, canon=canon or "dsse-pae", opts=opts
@@ -223,7 +229,8 @@ class DSSESigner(SigningBase):
             pae, signatures, require=require, opts=opts
         )
 
-    # --------------------------- Helpers for (de)serialization ---------------------------
+    # --------------------------- Helpers for (de)serialization
+    # ---------------------------
     def encode_envelope(
         self, envelope: DSSEEnvelope | Mapping[str, object]
     ) -> bytes:

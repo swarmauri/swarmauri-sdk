@@ -11,7 +11,8 @@ class DummyGetIPython:
 
 def test_tool_initialization():
     """
-    Test the initialization of JupyterExecuteCellTool, verifying its default attributes.
+    Test the initialization of JupyterExecuteCellTool, verifying its default
+    attributes.
     """
     tool = JupyterExecuteCellTool()
     assert tool.name == "JupyterExecuteCellTool", "Tool name should match."
@@ -41,7 +42,8 @@ def test_tool_parameters():
 
 def test_tool_call_basic_execution():
     """
-    Test that the tool can execute a simple print statement and capture its output.
+    Test that the tool can execute a simple print statement and capture its
+    output.
     """
     tool = JupyterExecuteCellTool()
     result = tool("print('Hello, world!')")
@@ -72,10 +74,12 @@ def test_tool_call_syntax_error():
 
 def test_tool_call_timeout():
     """
-    Test that the tool handles code execution timeouts and returns an appropriate error message.
+    Test that the tool handles code execution timeouts and returns an
+    appropriate error message.
     """
     tool = JupyterExecuteCellTool()
-    # This code sleeps for 3 seconds, but we enforce a 1-second timeout to trigger a timeout error.
+    # This code sleeps for 3 seconds, but we enforce a 1-second timeout to
+    # trigger a timeout error.
     result = tool("import time; time.sleep(3)", timeout=1)
     assert "Execution timed out after 1 seconds." in result["error"], (
         "Expected timeout error message."
@@ -89,7 +93,8 @@ def test_tool_call_no_active_kernel(monkeypatch):
     """
     Test that the tool reports an error when there is no active IPython kernel.
     """
-    # Patch the module-level get_ipython in the JupyterExecuteCellTool module so that it returns None.
+    # Patch the module-level get_ipython in the JupyterExecuteCellTool module
+    # so that it returns None.
     monkeypatch.setattr(
         JupyterExecuteCellTool, "get_ipython", DummyGetIPython()
     )
@@ -111,7 +116,8 @@ def test_tool_call_no_active_kernel(monkeypatch):
 
 def test_tool_call_exception_during_execution(monkeypatch):
     """
-    Test that the tool captures and logs exceptions raised during code execution.
+    Test that the tool captures and logs exceptions raised during code
+    execution.
     """
 
     # Define a dummy shell whose run_cell method always raises an exception.
@@ -119,7 +125,8 @@ def test_tool_call_exception_during_execution(monkeypatch):
         def run_cell(self, code, **kwargs):
             raise RuntimeError("Mocked runtime error")
 
-    # Patch the module-level get_ipython in the JupyterExecuteCellTool module to return our dummy shell.
+    # Patch the module-level get_ipython in the JupyterExecuteCellTool module
+    # to return our dummy shell.
     monkeypatch.setattr(
         ject, "get_ipython", lambda *args, **kwargs: DummyShellThatRaises()
     )

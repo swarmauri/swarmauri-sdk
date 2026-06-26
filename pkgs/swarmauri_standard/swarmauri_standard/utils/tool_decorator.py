@@ -9,7 +9,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 def tool(func):
     """
-    Decorator that creates a dynamic ToolBase subclass from the decorated function.
+    Decorator that creates a dynamic ToolBase subclass from the decorated
+    function.
 
     The generated tool will:
     - Use the function name as the `name` and `type` of the tool.
@@ -27,7 +28,8 @@ def tool(func):
     # Build the list of Parameter objects from the function signature
     parameters_list: List[Parameter] = []
     for param_name, param in signature.parameters.items():
-        # If the parameter has a type annotation, grab it; otherwise use "string" as default
+        # If the parameter has a type annotation, grab it; otherwise use
+        # "string" as default
         annotated_type = type_hints.get(param_name, str)
         origin = get_origin(annotated_type)
         if origin is Annotated:
@@ -40,7 +42,8 @@ def tool(func):
         # Derive a required flag by checking if the parameter has a default
         required = param.default == inspect.Parameter.empty
 
-        # Use the parameter's name, the string version of the annotated type, etc.
+        # Use the parameter's name, the string version of the annotated type,
+        # etc.
         parameters_list.append(
             Parameter(
                 name=param_name,

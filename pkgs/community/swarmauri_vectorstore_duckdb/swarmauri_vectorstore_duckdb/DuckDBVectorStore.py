@@ -136,7 +136,8 @@ class DuckDBVectorStore(
         # Ensure the document is properly prepared before insertion
         data = self._prepare_document(document)
         query = f"""
-            INSERT OR REPLACE INTO {self.table_name} (id, content, embedding, metadata)
+            INSERT OR REPLACE INTO {self.table_name}
+                (id, content, embedding, metadata)
             VALUES (?, ?, ?, ?)
         """
         if self.database_name == ":memory:":
@@ -176,7 +177,8 @@ class DuckDBVectorStore(
         data_list = list(zip(ids, contents, embeddings, metadatas))
 
         query = f"""
-            INSERT OR REPLACE INTO {self.table_name} (id, content, embedding, metadata) 
+            INSERT OR REPLACE INTO {self.table_name}
+                (id, content, embedding, metadata)
             VALUES (?, ?, ?, ?)
         """
 
@@ -308,6 +310,7 @@ class DuckDBVectorStore(
         )
 
     def model_dump_json(self, *args, **kwargs) -> str:
-        """Override model_dump_json to ensure connection is closed before serialization."""
+        """Override model_dump_json to ensure connection is closed before
+        serialization."""
         self.disconnect()
         return super().model_dump_json(*args, **kwargs)

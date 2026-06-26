@@ -77,5 +77,5 @@ def test_call(input_text, expected_cli_score):
     assert result.get("coleman_liau_index") == pytest.approx(
         expected_cli_score_calculated, 0.01
     ), (
-        f"Expected CLI score {pytest.approx(expected_cli_score_calculated, 0.01)}, but got {result.get('coleman_liau_index')}"
+        f"Expected CLI score {pytest.approx(expected_cli_score_calculated, 0.01)}, but got {result.get('coleman_liau_index')}"  # noqa: E501
     )

@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of schema_converters names (file names without the ".py" extension) and corresponding class names
+# # List of schema_converters names (file names without the ".py" extension)
+# and corresponding class names
 # schema_converters_files = [
 #     (
 #         "swarmauri_standard.schema_converters.AnthropicSchemaConverter",
@@ -14,7 +15,8 @@
 #         "swarmauri_standard.schema_converters.GeminiSchemaConverter",
 #         "GeminiSchemaConverter",
 #     ),
-#     ("swarmauri_standard.schema_converters.GroqSchemaConverter", "GroqSchemaConverter"),
+# ("swarmauri_standard.schema_converters.GroqSchemaConverter",
+# "GroqSchemaConverter"),
 #     (
 #         "swarmauri_standard.schema_converters.MistralSchemaConverter",
 #         "MistralSchemaConverter",

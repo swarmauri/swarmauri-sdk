@@ -34,13 +34,15 @@ class TwitterPostTool(ToolBase):
             status (str): The status message to post.
 
         Returns:
-            Dict[str, str]: A dictionary containing the response from the Twitter API.
+            Dict[str, str]: A dictionary containing the response from the
+            Twitter API.
         """
         try:
             # Using Tweepy to send a tweet
             response = self.client.create_tweet(text=status)
             tweet_id = response.data["id"]
-            # Constructing URL to the tweet - Adjust the URL to match Twitter API v2 structure if needed
+            # Constructing URL to the tweet - Adjust the URL to match Twitter
+            # API v2 structure if needed
             tweet_url = f"https://twitter.com/user/status/{tweet_id}"
             return {
                 "message": "Tweet posted successfully!",

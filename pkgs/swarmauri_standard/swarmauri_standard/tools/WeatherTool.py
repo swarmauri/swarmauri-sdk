@@ -13,13 +13,15 @@ class WeatherTool(ToolBase):
             Parameter(
                 name="location",
                 input_type="string",
-                description="The location for which to fetch weather information",
+                description=(
+                    "The location for which to fetch weather information"
+                ),
                 required=True,
             ),
             Parameter(
                 name="unit",
                 input_type="string",
-                description="The unit for temperature ('fahrenheit' or 'celsius')",
+                description="The unit for temperature ('fahrenheit' or 'celsius')",  # noqa: E501
                 required=True,
                 enum=["fahrenheit", "celsius"],
             ),
@@ -31,6 +33,7 @@ class WeatherTool(ToolBase):
 
     def __call__(self, location, unit="fahrenheit") -> Dict[str, str]:
         weather_info = (location, unit)
-        # Here you would implement the actual logic for fetching the weather information.
+        # Here you would implement the actual logic for fetching the weather
+        # information.
         # For demonstration, let's just return the parameters as a string.
         return {"weather_info": str(weather_info)}

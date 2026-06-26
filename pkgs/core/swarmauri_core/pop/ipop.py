@@ -51,7 +51,8 @@ class PoPVerificationError(PoPError):
 
 
 class IPoPVerifier(ABC):
-    """Scheme-specific verifier for request-bound proof-of-possession artefacts."""
+    """Scheme-specific verifier for request-bound proof-of-possession
+    artefacts."""
 
     @property
     @abstractmethod

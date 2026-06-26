@@ -15,7 +15,8 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "CanberraDistance")
 class CanberraDistance(DistanceBase):
     """
-    Concrete implementation of the IDistanceSimiliarity interface using the Canberra distance metric.
+    Concrete implementation of the IDistanceSimiliarity interface using the
+    Canberra distance metric.
     This class now processes Vector instances instead of raw lists.
     """
 
@@ -44,25 +45,31 @@ class CanberraDistance(DistanceBase):
         distance = np.sum(
             np.abs(data_a - data_b) / (np.abs(data_a) + np.abs(data_b))
         )
-        # Handling the case where both vectors have a zero value for the same dimension
+        # Handling the case where both vectors have a zero value for the same
+        # dimension
         distance = np.nan_to_num(distance)
         return distance
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Compute similarity using the Canberra distance. Since this distance metric isn't
-        directly interpretable as a similarity, a transformation is applied to map the distance
+        Compute similarity using the Canberra distance. Since this distance
+        metric isn't
+        directly interpretable as a similarity, a transformation is applied to
+        map the distance
         to a similarity score.
 
         Args:
             vector_a (Vector): The first vector in the comparison.
-            vector_b (Vector): The second vector to compare with the first vector.
+            vector_b (Vector): The second vector to compare with the first
+            vector.
 
         Returns:
             float: A similarity score between vector_a and vector_b.
         """
-        # One way to derive a similarity from distance is through inversion or transformation.
-        # Here we use an exponential decay based on the computed distance. This is a placeholder
+        # One way to derive a similarity from distance is through inversion or
+        # transformation.
+        # Here we use an exponential decay based on the computed distance. This
+        # is a placeholder
         # that assumes closer vectors (smaller distance) are more similar.
         distance = self.distance(vector_a, vector_b)
 

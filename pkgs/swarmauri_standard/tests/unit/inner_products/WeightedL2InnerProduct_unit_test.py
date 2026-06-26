@@ -142,7 +142,9 @@ def test_compute_with_arrays(weighted_l2_constant, a, b, expected):
 
 @pytest.mark.unit
 def test_compute_with_arrays_dimension_mismatch(weighted_l2_constant):
-    """Test inner product computation raises error with mismatched dimensions."""
+    """
+    Test inner product computation raises error with mismatched dimensions.
+    """
     a = np.array([1, 2, 3])
     b = np.array([4, 5])
 
@@ -160,7 +162,8 @@ def test_compute_with_callables(weighted_l2_constant):
     def func_b(x):
         return np.sin(x)
 
-    # This is a simplified test - the actual result depends on the integration method
+    # This is a simplified test - the actual result depends on the integration
+    # method
     result = weighted_l2_constant.compute(func_a, func_b)
     assert isinstance(result, complex)
 
@@ -248,7 +251,8 @@ def test_compute_with_complex_arrays(weighted_l2_constant):
 
 @pytest.mark.unit
 def test_invalid_weight_function():
-    """Test inner product with a weight function that returns zero or negative values."""
+    """Test inner product with a weight function that returns zero or negative
+    values."""
 
     def invalid_weight_func(x):
         return np.zeros_like(x) if isinstance(x, np.ndarray) else 0

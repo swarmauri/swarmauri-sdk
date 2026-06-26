@@ -1,6 +1,6 @@
 import pytest
 from fastapi import Response
-from swarmauri_middleware_exceptionhandling.ExceptionHandlingMiddleware import (
+from swarmauri_middleware_exceptionhandling.ExceptionHandlingMiddleware import (  # noqa: E501
     ExceptionHandlingMiddleware,
 )
 

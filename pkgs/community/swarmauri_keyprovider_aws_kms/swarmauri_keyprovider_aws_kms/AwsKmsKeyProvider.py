@@ -45,14 +45,18 @@ class AwsKmsKeyProvider(KeyProviderBase):
     - Creates new KMS CMKs per (kid, version); maintains stable alias:
         alias/<alias_prefix>/<kid>          -> latest version
         alias/<alias_prefix>/<kid>/v<ver>   -> specific version
-    - Rotation = create new KMS key (same alg/usage), bump /vN alias, repoint "latest".
-    - get_key(include_secret=...) never returns private material (KMS non-exportable).
+    - Rotation = create new KMS key (same alg/usage), bump /vN alias, repoint
+      "latest".
+    - get_key(include_secret=...) never returns private material (KMS
+      non-exportable).
     - get_public_jwk() parses GetPublicKey DER to RFC 7517 JWK.
-    - jwks() publishes latest per 'kid' (resolved via stable alias) with kid.version.
+    - jwks() publishes latest per 'kid' (resolved via stable alias) with
+      kid.version.
 
     IAM needed (minimum):
       kms:CreateKey, kms:CreateAlias, kms:UpdateAlias, kms:ListAliases,
-      kms:DescribeKey, kms:ListResourceTags, kms:GetPublicKey, kms:ScheduleKeyDeletion
+      kms:DescribeKey, kms:ListResourceTags, kms:GetPublicKey,
+      kms:ScheduleKeyDeletion
     """
 
     type: Literal["AwsKmsKeyProvider"] = "AwsKmsKeyProvider"
@@ -66,9 +70,12 @@ class AwsKmsKeyProvider(KeyProviderBase):
     ):
         """
         region: AWS region name (e.g., "us-east-1")
-        alias_prefix: alias namespace (no 'alias/' prefix here). Final aliases look like:
-                      'alias/<alias_prefix>/<kid>' and 'alias/<alias_prefix>/<kid>/v<ver>'
-        key_policy: optional explicit key policy JSON; if None, KMS uses account default.
+        alias_prefix: alias namespace (no 'alias/' prefix here). Final aliases
+        look like:
+                      'alias/<alias_prefix>/<kid>' and
+                      'alias/<alias_prefix>/<kid>/v<ver>'
+        key_policy: optional explicit key policy JSON; if None, KMS uses
+        account default.
         """
         super().__init__()
         self._region = region
@@ -266,7 +273,10 @@ class AwsKmsKeyProvider(KeyProviderBase):
         self, spec: KeySpec, material: bytes, *, public: Optional[bytes] = None
     ) -> KeyRef:
         raise NotImplementedError(
-            "AWS KMS does not support importing private keys via this provider; use create_key()."
+            (
+                "AWS KMS does not support importing private keys via this "
+                "provider; use create_key()."
+            )
         )
 
     async def rotate_key(

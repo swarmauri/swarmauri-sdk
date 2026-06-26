@@ -15,7 +15,9 @@ class WebScrapingTool(ToolBase):
             Parameter(
                 name="url",
                 input_type="string",
-                description="URL of the link, website, webpage, etc... to scrape",
+                description=(
+                    "URL of the link, website, webpage, etc... to scrape"
+                ),
                 required=True,
             ),
             Parameter(
@@ -28,23 +30,31 @@ class WebScrapingTool(ToolBase):
     )
 
     name: str = "WebScrapingTool"
-    description: str = "This is a web scraping tool that uses python's requests and BeautifulSoup libraries to parse a URL using a CSS selector to target specific elements."
+    description: str = (
+        "This is a web scraping tool that uses python's requests and "
+        "BeautifulSoup libraries to parse a URL using a CSS selector "
+        "to target specific elements."
+    )
     type: Literal["WebScrapingTool"] = "WebScrapingTool"
 
     def __call__(self, url: str, selector: str) -> Dict[str, str]:
         """
-        Fetches content from the specified URL and extracts elements based on the provided CSS selector.
+        Fetches content from the specified URL and extracts elements based on
+        the provided CSS selector.
 
         Args:
             url (str): The URL of the webpage to scrape.
-            selector (str): CSS selector to target specific elements in the webpage.
+            selector (str): CSS selector to target specific elements in the
+            webpage.
 
         Returns:
-            Dict: A dictionary containing the extracted text or an error message.
+            Dict: A dictionary containing the extracted text or an error
+            message.
         """
         try:
             response = requests.get(url)
-            response.raise_for_status()  # Raises HTTPError for bad requests (4xx or 5xx)
+            # Raises HTTPError for bad requests (4xx or 5xx)
+            response.raise_for_status()
 
             html_content = response.content
             soup = BeautifulSoup(html_content, "html.parser")

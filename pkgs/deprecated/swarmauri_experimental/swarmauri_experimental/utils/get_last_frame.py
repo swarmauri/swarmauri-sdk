@@ -12,7 +12,10 @@ def child_function(arg):
     arg_name = args[0]
     arg_value = values[arg_name]
     print(
-        f"Caller Name: {caller_name}, Argument Name: {arg_name}, Argument Value: {arg_value}"
+        (
+            f"Caller Name: {caller_name}, Argument Name: {arg_name}, "
+            f"Argument Value: {arg_value}"
+        )
     )
 
 

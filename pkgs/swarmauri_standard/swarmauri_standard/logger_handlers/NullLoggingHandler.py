@@ -10,7 +10,8 @@ class NullLoggingHandler(HandlerBase):
     """
     A no-op handler that silently ignores all logging records.
 
-    This handler is useful for disabling logging in libraries or specific components
+    This handler is useful for disabling logging in libraries or specific
+    components
     of an application. It uses Python's built-in NullHandler to discard all log
     messages without any processing.
 
@@ -21,7 +22,8 @@ class NullLoggingHandler(HandlerBase):
     level : int
         The logging level threshold (inherited from HandlerBase).
     formatter : Optional[Union[str, FullUnion[FormatterBase]]]
-        The formatter to use (inherited from HandlerBase, but not used in this handler).
+        The formatter to use (inherited from HandlerBase, but not used in this
+        handler).
     """
 
     type: Literal["NullLoggingHandler"] = "NullLoggingHandler"

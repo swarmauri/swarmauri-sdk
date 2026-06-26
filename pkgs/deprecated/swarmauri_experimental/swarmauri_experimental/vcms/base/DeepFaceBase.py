@@ -92,7 +92,7 @@ class DeepFaceBase(ComponentBase, BaseModel):
         name = values.get("name", cls.DEFAULT_MODEL_NAME)
         if name not in cls.allowed_models:
             raise ValueError(
-                f"Invalid model name '{name}'. Expected one of {cls.allowed_models}"
+                f"Invalid model name '{name}'. Expected one of {cls.allowed_models}"  # noqa: E501
             )
         return values
 
@@ -104,7 +104,7 @@ class DeepFaceBase(ComponentBase, BaseModel):
         )
         if detector_backend not in cls.allowed_detector_backends:
             raise ValueError(
-                f"Invalid detector backend '{detector_backend}'. Expected one of {cls.allowed_detector_backends}"
+                f"Invalid detector backend '{detector_backend}'. Expected one of {cls.allowed_detector_backends}"  # noqa: E501
             )
         return values
 
@@ -114,6 +114,6 @@ class DeepFaceBase(ComponentBase, BaseModel):
         normalization = values.get("normalization", cls.DEFAULT_NORMALIZATION)
         if normalization not in cls.allowed_normalizations:
             raise ValueError(
-                f"Invalid normalization '{normalization}'. Expected one of {cls.allowed_normalizations}"
+                f"Invalid normalization '{normalization}'. Expected one of {cls.allowed_normalizations}"  # noqa: E501
             )
         return values

@@ -295,7 +295,9 @@ def test_prune_failed_package_docs_removes_directories_and_nav(tmp_path):
                     {
                         "Base": [
                             {
-                                "Signing": "api/base/swarmauri_base/signing/SigningBase.md"
+                                "Signing": (
+                                    "api/base/swarmauri_base/signing/SigningBase.md"
+                                )
                             }
                         ]
                     },

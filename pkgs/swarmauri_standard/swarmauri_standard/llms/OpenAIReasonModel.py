@@ -17,15 +17,20 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "OpenAIReasonModel")
 class OpenAIReasonModel(LLMBase):
     """
-    OpenAIReasonModel class for interacting with the OpenAI Reasoning Model language models API. This class
-    provides synchronous and asynchronous methods to send conversation data to the
+    OpenAIReasonModel class for interacting with the OpenAI Reasoning Model
+    language models API. This class
+    provides synchronous and asynchronous methods to send conversation data to
+    the
     model, receive predictions, and stream responses.
 
     Attributes:
-        api_key (SecretStr): API key for authenticating requests to the Groq API.
-        allowed_models (List[str]): List of allowed model names that can be used.
+        api_key (SecretStr): API key for authenticating requests to the Groq
+        API.
+        allowed_models (List[str]): List of allowed model names that can be
+        used.
         name (str): The default model name to use for predictions.
-        type (Literal["OpenAIReasonModel"]): The type identifier for this class.
+        type (Literal["OpenAIReasonModel"]): The type identifier for this
+        class.
         timeout (float): Timeout duration for API requests.
         _BASE_URL (str): Base URL for the OpenAI API.
         _headers (Dict[str, str]): Headers for API requests.
@@ -63,7 +68,8 @@ class OpenAIReasonModel(LLMBase):
         Initialize the OpenAIModel class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -79,7 +85,8 @@ class OpenAIReasonModel(LLMBase):
         Formats conversation messages into the structure expected by the API.
 
         Args:
-            messages (List[Type[MessageBase]]): List of message objects from the conversation history.
+            messages (List[Type[MessageBase]]): List of message objects from
+            the conversation history.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -92,7 +99,10 @@ class OpenAIReasonModel(LLMBase):
             )
             if message.role == "system" and self.name != "o1":
                 raise ValueError(
-                    "System messages are not allowed for models other than 'o1'."
+                    (
+                        "System messages are not allowed for models other than "  # noqa: E501
+                        "'o1'."
+                    )
                 )
 
             if isinstance(formatted_message["content"], list):
@@ -162,10 +172,13 @@ class OpenAIReasonModel(LLMBase):
         Generates a response from the model based on the given conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversation (Conversation): Conversation object with message
+            history.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -212,13 +225,17 @@ class OpenAIReasonModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
-        Async method to generate a response from the model based on the given conversation.
+        Async method to generate a response from the model based on the given
+        conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversation (Conversation): Conversation object with message
+            history.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -257,7 +274,8 @@ class OpenAIReasonModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.
@@ -275,10 +293,13 @@ class OpenAIReasonModel(LLMBase):
         Not implemented.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversation (Conversation): Conversation object with message
+            history.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Raises:
             NotImplementedError: This method is not implemented.
@@ -296,10 +317,13 @@ class OpenAIReasonModel(LLMBase):
         Not implemented.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversation (Conversation): Conversation object with message
+            history.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Raises:
             NotImplementedError: This method is not implemented.
@@ -317,10 +341,13 @@ class OpenAIReasonModel(LLMBase):
         Not implemented.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversations (List[Conversation]): List of conversations to
+            process.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Raises:
             NotImplementedError: This method is not implemented.
@@ -338,10 +365,13 @@ class OpenAIReasonModel(LLMBase):
         Not implemented.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            max_completion_tokens (int): Maximum tokens for the model's response.
+            conversations (List[Conversation]): List of conversations to
+            process.
+            max_completion_tokens (int): Maximum tokens for the model's
+            response.
             enable_json (bool): Whether to format the response as JSON.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Raises:
             NotImplementedError: This method is not implemented.

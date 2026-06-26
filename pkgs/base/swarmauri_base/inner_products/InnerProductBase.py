@@ -18,9 +18,11 @@ Matrix = TypeVar("Matrix", bound=np.ndarray)
 @ComponentBase.register_model()
 class InnerProductBase(IInnerProduct, ComponentBase):
     """
-    Abstract base class implementing partial methods for inner product calculations.
+    Abstract base class implementing partial methods for inner product
+    calculations.
 
-    This class provides a base implementation of all abstract methods defined in
+    This class provides a base implementation of all abstract methods defined
+    in
     the IInnerProduct interface. It serves as a foundation for specific inner
     product implementations, offering common functionality and ensuring
     adherence to the interface contract.
@@ -60,7 +62,10 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            f"Attempting to compute inner product between {type(a)} and {type(b)}"
+            (
+                f"Attempting to compute inner product between {type(a)} and "
+                f"{type(b)}"
+            )
         )
         raise NotImplementedError(
             "Method 'compute' must be implemented by subclasses"
@@ -93,10 +98,16 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            f"Attempting to check conjugate symmetry for {type(a)} and {type(b)}"
+            (
+                f"Attempting to check conjugate symmetry for {type(a)} and "
+                f"{type(b)}"
+            )
         )
         raise NotImplementedError(
-            "Method 'check_conjugate_symmetry' must be implemented by subclasses"
+            (
+                "Method 'check_conjugate_symmetry' must be implemented by "
+                "subclasses"
+            )
         )
 
     def check_linearity_first_argument(
@@ -135,10 +146,16 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            f"Attempting to check linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Attempting to check linearity in first argument with "
+                f"alpha={alpha}, beta={beta}"
+            )
         )
         raise NotImplementedError(
-            "Method 'check_linearity_first_argument' must be implemented by subclasses"
+            (
+                "Method 'check_linearity_first_argument' must be implemented "
+                "by subclasses"
+            )
         )
 
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:

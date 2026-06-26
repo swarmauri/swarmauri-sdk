@@ -145,7 +145,8 @@ def test_html_logging_formatter_with_exception(
     html_formatter, log_record_with_exception
 ):
     """
-    Test that HTMLLoggingFormatter correctly formats a log record with exception info.
+    Test that HTMLLoggingFormatter correctly formats a log record with
+    exception info.
     """
     formatter = HTMLLoggingFormatter(html_formatter)
     result = formatter.format(log_record_with_exception)
@@ -237,7 +238,8 @@ def test_html_logging_formatter_level_styling(
     level, expected_class, expected_color
 ):
     """
-    Test that HTMLLoggingFormatter applies correct styling for different log levels.
+    Test that HTMLLoggingFormatter applies correct styling for different log
+    levels.
     """
     formatter_config = HTMLFormatter()
     formatter = HTMLLoggingFormatter(formatter_config)

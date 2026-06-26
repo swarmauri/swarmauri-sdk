@@ -32,18 +32,20 @@ class QrCodeGeneratorTool(ToolBase):
 
     def __call__(self, data: str):
         """
-        Generate a QR code from the provided data and return the QR code image as a base64-encoded string.
+        Generate a QR code from the provided data and return the QR code image
+        as a base64-encoded string.
 
         Parameters:
             data (str): The data to encode in the QR code.
 
         Returns:
-            Dict[str, str]: A dictionary containing the base64-encoded QR code image, with the key 'image_b64'.
+            Dict[str, str]: A dictionary containing the base64-encoded QR code
+            image, with the key 'image_b64'.
 
         Example:
             >>> tool = QrCodeGeneratorTool()
             >>> result = tool("Hello, world!")
-            >>> print(result['image_b64'])  # Prints the base64 string of the QR code image
+        >>> print(result['image_b64'])  # Prints the QR code image payload
         """
         # Generate QR Code
         qr = qrcode.QRCode(

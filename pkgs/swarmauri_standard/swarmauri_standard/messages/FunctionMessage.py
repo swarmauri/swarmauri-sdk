@@ -12,5 +12,7 @@ class FunctionMessage(MessageBase):
     name: str
     type: Literal["FunctionMessage"] = "FunctionMessage"
     usage: Optional[Any] = (
-        None  # 🚧 Placeholder for CompletionUsage(input_tokens, output_tokens, completion time, etc)
+        # 🚧 Placeholder for CompletionUsage(input_tokens, output_tokens,
+        # completion time, etc)
+        None
     )

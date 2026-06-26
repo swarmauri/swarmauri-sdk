@@ -45,7 +45,8 @@ class ZeroPseudometric(PseudometricBase):
         y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
     ) -> float:
         """
-        Calculate the pseudometric distance between two objects, always returning 0.
+        Calculate the pseudometric distance between two objects, always
+        returning 0.
 
         Parameters
         ----------
@@ -60,7 +61,10 @@ class ZeroPseudometric(PseudometricBase):
             Always returns 0.0
         """
         logger.debug(
-            f"Computing ZeroPseudometric distance between objects of types {type(x)} and {type(y)}"
+            (
+                f"Computing ZeroPseudometric distance between objects of "
+                f"types {type(x)} and {type(y)}"
+            )
         )
         return 0.0
 
@@ -81,9 +85,11 @@ class ZeroPseudometric(PseudometricBase):
 
         Parameters
         ----------
-        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The first collection of objects
-        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The second collection of objects
 
         Returns
@@ -92,7 +98,10 @@ class ZeroPseudometric(PseudometricBase):
             A matrix of zeros with dimensions len(xs) × len(ys)
         """
         logger.debug(
-            f"Computing pairwise ZeroPseudometric distances between {len(xs)} and {len(ys)} objects"
+            (
+                f"Computing pairwise ZeroPseudometric distances between "
+                f"{len(xs)} and {len(ys)} objects"
+            )
         )
         # Create a matrix of zeros with dimensions len(xs) × len(ys)
         return [[0.0 for _ in range(len(ys))] for _ in range(len(xs))]
@@ -120,7 +129,10 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            f"Checking non-negativity for ZeroPseudometric with objects of types {type(x)} and {type(y)}"
+            (
+                f"Checking non-negativity for ZeroPseudometric with objects "
+                f"of types {type(x)} and {type(y)}"
+            )
         )
         # Non-negativity is always satisfied since 0 ≥ 0
         return True
@@ -143,7 +155,8 @@ class ZeroPseudometric(PseudometricBase):
         y : Union[VectorType, MatrixType, Sequence[T], str, Callable]
             The second object (not used in calculation)
         tolerance : float, optional
-            The tolerance for floating-point comparisons, by default 1e-10 (not used)
+            The tolerance for floating-point comparisons, by default 1e-10 (not
+            used)
 
         Returns
         -------
@@ -151,7 +164,10 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            f"Checking symmetry for ZeroPseudometric with objects of types {type(x)} and {type(y)}"
+            (
+                f"Checking symmetry for ZeroPseudometric with objects of "
+                f"types {type(x)} and {type(y)}"
+            )
         )
         # Symmetry is always satisfied since d(x,y) = 0 = d(y,x)
         return True
@@ -178,7 +194,8 @@ class ZeroPseudometric(PseudometricBase):
         z : Union[VectorType, MatrixType, Sequence[T], str, Callable]
             The third object (not used in calculation)
         tolerance : float, optional
-            The tolerance for floating-point comparisons, by default 1e-10 (not used)
+            The tolerance for floating-point comparisons, by default 1e-10 (not
+            used)
 
         Returns
         -------
@@ -186,9 +203,13 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            f"Checking triangle inequality for ZeroPseudometric with objects of types {type(x)}, {type(y)}, and {type(z)}"
+            (
+                f"Checking triangle inequality for ZeroPseudometric with "
+                f"objects of types {type(x)}, {type(y)}, and {type(z)}"
+            )
         )
-        # Triangle inequality is always satisfied since d(x,z) = 0 ≤ d(x,y) + d(y,z) = 0 + 0 = 0
+        # Triangle inequality is always satisfied since d(x,z) = 0 ≤ d(x,y) +
+        # d(y,z) = 0 + 0 = 0
         return True
 
     def check_weak_identity(
@@ -199,8 +220,10 @@ class ZeroPseudometric(PseudometricBase):
         """
         Check if the distance function satisfies the weak identity property.
 
-        For ZeroPseudometric, this is always true since d(x,y) = 0 for all x and y,
-        which is consistent with the definition of a pseudometric (allowing d(x,y) = 0 when x ≠ y).
+        For ZeroPseudometric, this is always true since d(x,y) = 0 for all x
+        and y,
+        which is consistent with the definition of a pseudometric (allowing
+        d(x,y) = 0 when x ≠ y).
 
         Parameters
         ----------
@@ -215,7 +238,10 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            f"Checking weak identity for ZeroPseudometric with objects of types {type(x)} and {type(y)}"
+            (
+                f"Checking weak identity for ZeroPseudometric with objects "
+                f"of types {type(x)} and {type(y)}"
+            )
         )
         # Weak identity is always satisfied since d(x,y) = 0 for all x and y
         return True
@@ -229,7 +255,10 @@ class ZeroPseudometric(PseudometricBase):
         str
             A string describing this pseudometric
         """
-        return "ZeroPseudometric (trivial pseudometric that returns 0 for all inputs)"
+        return (
+            "ZeroPseudometric (trivial pseudometric that returns 0 for "
+            "all inputs)"
+        )
 
     def __repr__(self) -> str:
         """

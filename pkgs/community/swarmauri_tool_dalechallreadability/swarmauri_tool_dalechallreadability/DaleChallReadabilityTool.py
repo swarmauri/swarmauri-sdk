@@ -8,7 +8,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ToolBase, "DaleChallReadabilityTool")
 class DaleChallReadabilityTool(ToolBase):
     """
-    A tool for calculating the Dale-Chall Readability Score using the textstat library.
+    A tool for calculating the Dale-Chall Readability Score using the textstat
+    library.
 
     Attributes:
         version (str): The version of the tool.
@@ -20,25 +21,33 @@ class DaleChallReadabilityTool(ToolBase):
     version: str = "0.1.dev1"
     name: str = "DaleChallReadabilityTool"
     type: Literal["DaleChallReadabilityTool"] = "DaleChallReadabilityTool"
-    description: str = "Calculates the Dale-Chall Readability Score for a given text using textstat."
+    description: str = (
+        "Calculates the Dale-Chall Readability Score for a given text "
+        "using textstat."
+    )
     parameters: List[Parameter] = [
         Parameter(
             name="input_text",
             input_type="string",
-            description="The input text for which to calculate the Dale-Chall Readability Score.",
+            description=(
+                "The input text for which to calculate the Dale-Chall "
+                "Readability Score."
+            ),
             required=True,
         )
     ]
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, float]:
         """
-        Executes the Dale-Chall Readability tool and returns the readability score using textstat.
+        Executes the Dale-Chall Readability tool and returns the readability
+        score using textstat.
 
         Parameters:
             data (Dict[str, Any]): The input data containing "input_text".
 
         Returns:
-            Dict[str, float]: A dictionary containing the Dale-Chall Readability Score
+            Dict[str, float]: A dictionary containing the Dale-Chall
+            Readability Score
 
         Raises:
             ValueError: If the input data is invalid.

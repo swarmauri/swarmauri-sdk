@@ -10,10 +10,11 @@ from swarmauri_base.tools.ToolBase import ToolBase
 """
 test_JupyterDisplayHtmlTool.py
 
-This module contains pytest-based test cases for the JupyterDisplayHtmlTool to verify
-the functionality and correctness of the class. Each test focuses on different aspects
-of the tool's behavior, including instantiation, attribute values, and the handling of
-HTML display operations within a Jupyter notebook environment.
+This module contains pytest-based test cases for the JupyterDisplayHtmlTool
+to verify the functionality and correctness of the class. Each test focuses
+on different aspects of the tool's behavior, including instantiation,
+attribute values, and the handling of HTML display operations within a
+Jupyter notebook environment.
 """
 
 

@@ -17,11 +17,14 @@ class LevenshteinMetric(MetricBase):
     """
     Implementation of Levenshtein distance metric.
 
-    Levenshtein distance is a string metric for measuring the difference between two sequences.
-    It represents the minimum number of single-character edits (insertions, deletions, or
+    Levenshtein distance is a string metric for measuring the difference
+    between two sequences.
+    It represents the minimum number of single-character edits (insertions,
+    deletions, or
     substitutions) required to change one string into another.
 
-    This metric is widely used in natural language processing and bioinformatics for
+    This metric is widely used in natural language processing and
+    bioinformatics for
     measuring the similarity between strings.
     """
 
@@ -60,7 +63,8 @@ class LevenshteinMetric(MetricBase):
             f"Calculating Levenshtein distance between '{x}' and '{y}'"
         )
 
-        # If either string is empty, the distance is the length of the other string
+        # If either string is empty, the distance is the length of the other
+        # string
         if len(x) == 0:
             return len(y)
         if len(y) == 0:
@@ -132,29 +136,51 @@ class LevenshteinMetric(MetricBase):
         # Validate input types
         if not isinstance(x, list) or not isinstance(y, list):
             logger.error(
-                f"Inputs must be lists or numpy arrays, got {type(x)} and {type(y)}"
+                (
+                    f"Inputs must be lists or numpy arrays, got {type(x)} and "
+                    f"{type(y)}"
+                )
             )
             raise TypeError(
-                f"Inputs must be lists or numpy arrays, got {type(x)} and {type(y)}"
+                (
+                    f"Inputs must be lists or numpy arrays, got {type(x)} and "
+                    f"{type(y)}"
+                )
             )
 
         # Validate that all elements are strings
         for i, item in enumerate(x):
             if not isinstance(item, str):
                 logger.error(
-                    f"All elements must be strings, found {type(item)} at index {i} in x"
+                    (
+                        f"All elements must be strings, found {type(item)} at "
+                        f"index "
+                        f"{i} in x"
+                    )
                 )
                 raise TypeError(
-                    f"All elements must be strings, found {type(item)} at index {i} in x"
+                    (
+                        f"All elements must be strings, found {type(item)} at "
+                        f"index "
+                        f"{i} in x"
+                    )
                 )
 
         for i, item in enumerate(y):
             if not isinstance(item, str):
                 logger.error(
-                    f"All elements must be strings, found {type(item)} at index {i} in y"
+                    (
+                        f"All elements must be strings, found {type(item)} at "
+                        f"index "
+                        f"{i} in y"
+                    )
                 )
                 raise TypeError(
-                    f"All elements must be strings, found {type(item)} at index {i} in y"
+                    (
+                        f"All elements must be strings, found {type(item)} at "
+                        f"index "
+                        f"{i} in y"
+                    )
                 )
 
         # Create a matrix of distances
@@ -168,7 +194,8 @@ class LevenshteinMetric(MetricBase):
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Levenshtein metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the Levenshtein metric satisfies the non-negativity axiom:
+        d(x,y) ≥ 0.
 
         Levenshtein distance is always non-negative by definition.
 
@@ -186,7 +213,8 @@ class LevenshteinMetric(MetricBase):
         """
         logger.debug(f"Checking non-negativity axiom for '{x}' and '{y}'")
 
-        # Levenshtein distance is always non-negative as it counts the number of operations
+        # Levenshtein distance is always non-negative as it counts the number
+        # of operations
         # which cannot be negative
         return True
 
@@ -194,7 +222,8 @@ class LevenshteinMetric(MetricBase):
         self, x: MetricInput, y: MetricInput
     ) -> bool:
         """
-        Check if the Levenshtein metric satisfies the identity of indiscernibles axiom:
+        Check if the Levenshtein metric satisfies the identity of
+        indiscernibles axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
@@ -218,7 +247,8 @@ class LevenshteinMetric(MetricBase):
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Levenshtein metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Levenshtein metric satisfies the symmetry axiom: d(x,y) =
+        d(y,x).
 
         Parameters
         ----------
@@ -244,7 +274,8 @@ class LevenshteinMetric(MetricBase):
         self, x: MetricInput, y: MetricInput, z: MetricInput
     ) -> bool:
         """
-        Check if the Levenshtein metric satisfies the triangle inequality axiom:
+        Check if the Levenshtein metric satisfies the triangle inequality
+        axiom:
         d(x,z) ≤ d(x,y) + d(y,z).
 
         Parameters

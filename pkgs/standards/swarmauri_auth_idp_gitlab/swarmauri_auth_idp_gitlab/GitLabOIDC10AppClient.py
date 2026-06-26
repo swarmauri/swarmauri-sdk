@@ -14,7 +14,8 @@ from swarmauri_base.auth_idp.http import RetryingAsyncClient
 
 @ComponentBase.register_type(OIDC10AppClientBase, "GitLabOIDC10AppClient")
 class GitLabOIDC10AppClient(OIDC10AppClientBase):
-    """Request client credentials tokens using GitLab's OIDC discovery metadata."""
+    """Request client credentials tokens using GitLab's OIDC discovery
+    metadata."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

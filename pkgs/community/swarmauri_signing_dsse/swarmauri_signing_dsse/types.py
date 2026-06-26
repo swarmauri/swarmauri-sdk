@@ -37,7 +37,10 @@ class DSSESignatureRecord:
         cert_value = data.get("cert")
         if cert_value is not None and not isinstance(cert_value, str):
             raise TypeError(
-                "DSSE signature field 'cert' must be a PEM string when provided"
+                (
+                    "DSSE signature field 'cert' must be a PEM string when "
+                    "provided"
+                )
             )
 
         return cls(sig=sig_value, keyid=keyid_value, cert=cert_value)
@@ -89,7 +92,9 @@ class DSSEEnvelope:
         )
 
     def to_mapping(self) -> MutableMapping[str, object]:
-        """Return the JSON-serializable mapping representation of the envelope."""
+        """
+        Return the JSON-serializable mapping representation of the envelope.
+        """
 
         return {
             "payloadType": self.payload_type,

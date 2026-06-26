@@ -102,7 +102,8 @@ class _MultilineFormatterImpl(logging.Formatter):
             style: Style of the format string (%, {, or $)
             prefix_subsequent_lines: Whether to prefix lines after the first
             subsequent_line_prefix: Custom prefix for lines after the first
-            indent_subsequent_lines: Number of spaces to indent subsequent lines
+            indent_subsequent_lines: Number of spaces to indent subsequent
+            lines
         """
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
         self.prefix_subsequent_lines = prefix_subsequent_lines

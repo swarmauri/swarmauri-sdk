@@ -51,7 +51,8 @@ class PersistentChromaDBVectorStore(
         Establish a connection to ChromaDB and get or create the collection.
         """
         # settings = Settings(
-        #     chroma_api_impl="chromadb.api.fastapi.FastAPI",  # Use FastAPI if LocalAPI is not supported
+        # chroma_api_impl="chromadb.api.fastapi.FastAPI",  # Use FastAPI if
+        # LocalAPI is not supported
         #     chroma_server_host="localhost",  # Server host
         #     chroma_server_http_port=8000,  # Server port
         # )
@@ -65,7 +66,10 @@ class PersistentChromaDBVectorStore(
             name=self.collection_name
         )
         logging.info(
-            f"Connected to ChromaDB at {self.path}, collection: {self.collection_name}"
+            (
+                f"Connected to ChromaDB at {self.path}, collection: "
+                f"{self.collection_name}"
+            )
         )
 
     def disconnect(self) -> None:

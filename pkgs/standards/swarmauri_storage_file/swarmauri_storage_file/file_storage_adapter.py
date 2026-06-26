@@ -42,7 +42,8 @@ class FileStorageAdapter(StorageAdapterBase):
 
     # ---------------------------------------------------------------- upload
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Copy *data* to ``${root_dir}/${key}`` atomically and return the artifact URI."""
+        """Copy *data* to ``${root_dir}/${key}`` atomically and return the
+        artifact URI."""
         normalized_key = self.normalize_key(key)
         dest = self._full_key(key, allow_empty=False)
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -57,7 +58,8 @@ class FileStorageAdapter(StorageAdapterBase):
 
     # ---------------------------------------------------------------- download
     def download(self, key: str) -> BinaryIO:
-        """Return a :class:`BytesIO` with the contents of ``${root_dir}/${key}``."""
+        """Return a :class:`BytesIO` with the contents of
+        ``${root_dir}/${key}``."""
         path = self._full_key(key, allow_empty=False)
         if not path.exists():
             raise FileNotFoundError(path)
@@ -66,7 +68,8 @@ class FileStorageAdapter(StorageAdapterBase):
         buffer.seek(0)
         return buffer
 
-    # ---------------------------------------------------------------- upload_dir
+    # ----------------------------------------------------------------
+    # upload_dir
     def upload_dir(self, src: str | os.PathLike, *, prefix: str = "") -> None:
         """Recursively upload files from *src* under ``prefix``."""
         base = Path(src)
@@ -77,7 +80,8 @@ class FileStorageAdapter(StorageAdapterBase):
                 with path.open("rb") as fh:
                     self.upload(key, fh)
 
-    # ---------------------------------------------------------------- iter_prefix
+    # ----------------------------------------------------------------
+    # iter_prefix
     def iter_prefix(self, prefix: str):
         """Yield stored keys beginning with ``prefix``."""
         base = self._full_key(prefix)
@@ -88,7 +92,8 @@ class FileStorageAdapter(StorageAdapterBase):
                 rel = path.relative_to(self._root)
                 yield rel.as_posix()
 
-    # ---------------------------------------------------------------- download_dir
+    # ----------------------------------------------------------------
+    # download_dir
     def download_dir(self, prefix: str, dest_dir: str | os.PathLike) -> None:
         """Copy all files under ``prefix`` into ``dest_dir``."""
         src_root = self._full_key(prefix)

@@ -28,10 +28,13 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "OpenAIToolModel")
 class OpenAIToolModel(ToolLLMBase):
     """
-    OpenAIToolModel provides an interface to interact with OpenAI's models for tool usage.
+    OpenAIToolModel provides an interface to interact with OpenAI's models for
+    tool usage.
 
-    This class supports synchronous and asynchronous predictions, streaming of responses,
-    and batch processing. It communicates with the OpenAI API to manage conversations, format messages,
+    This class supports synchronous and asynchronous predictions, streaming of
+    responses,
+    and batch processing. It communicates with the OpenAI API to manage
+    conversations, format messages,
     and handle tool-related functions.
 
     Attributes:
@@ -84,7 +87,8 @@ class OpenAIToolModel(ToolLLMBase):
         Initialize the OpenAIToolModel class with the provided data.
 
         Args:
-            **data dict[str, Any]: Arbitrary keyword arguments containing initialization data.
+            **data dict[str, Any]: Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._headers = {
@@ -109,10 +113,12 @@ class OpenAIToolModel(ToolLLMBase):
         self, tools: Dict[str, SubclassUnion[ToolBase]]
     ) -> List[Dict[str, Any]]:
         """
-        Convert a dictionary of tools to the schema format required by OpenAI API.
+        Convert a dictionary of tools to the schema format required by OpenAI
+        API.
 
         Args:
-            tools (Dict[str, SubclassUnion[ToolBase]]): A dictionary of tool objects.
+            tools (Dict[str, SubclassUnion[ToolBase]]): A dictionary of tool
+            objects.
 
         Returns:
             List[Dict[str, Any]]: A list of converted tool schemas.
@@ -127,7 +133,8 @@ class OpenAIToolModel(ToolLLMBase):
         Format conversation history messages for the OpenAI API.
 
         Args:
-            messages (List[Type[MessageBase]]): List of message objects from the conversation history.
+            messages (List[Type[MessageBase]]): List of message objects from
+            the conversation history.
 
         Returns:
             List[Dict[str, str]]: A list of formatted message dictionaries.
@@ -152,17 +159,24 @@ class OpenAIToolModel(ToolLLMBase):
         messages: List[Type[MessageBase]],
     ) -> List[Dict]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (list): A list of dictionaries representing tool calls. Each dictionary should contain
-                               a "function" key with a nested dictionary that includes the "name" and "arguments"
-                               of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (Toolkit): Toolkit that provides access to tools via the `get_tool_by_name` method.
-            messages (list): A list of message dictionaries to which the results of the tool calls will be appended.
+            tool_calls (list): A list of dictionaries representing tool calls.
+            Each dictionary should contain
+                               a "function" key with a nested dictionary that
+                               includes the "name" and "arguments"
+                               of the function to be called, and an "id" key
+                               for the tool call identifier.
+            toolkit (Toolkit): Toolkit that provides access to tools via the
+            `get_tool_by_name` method.
+            messages (list): A list of message dictionaries to which the
+            results of the tool calls will be appended.
 
         Returns:
-            List[Dict]: The updated list of messages with the results of the tool calls appended.
+            List[Dict]: The updated list of messages with the results of the
+            tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -196,15 +210,18 @@ class OpenAIToolModel(ToolLLMBase):
         Makes a synchronous prediction using the OpenAI model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         logging.info(f"Formatted messages: {formatted_messages}")
@@ -283,15 +300,18 @@ class OpenAIToolModel(ToolLLMBase):
         Makes an asynchronous prediction using the OpenAI model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (dict[str, Any]): Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -367,7 +387,8 @@ class OpenAIToolModel(ToolLLMBase):
         Streams response from OpenAI model in real-time.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -474,7 +495,8 @@ class OpenAIToolModel(ToolLLMBase):
         Asynchronously streams response from OpenAI model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -572,17 +594,20 @@ class OpenAIToolModel(ToolLLMBase):
         max_tokens: int = 1024,
     ) -> List[IConversation]:
         """
-        Synchronously processes multiple conversations and generates responses for each.
+        Synchronously processes multiple conversations and generates responses
+        for each.
 
         Args:
-            conversations (List[IConversation]): List of conversations to process.
+            conversations (List[IConversation]): List of conversations to
+            process.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
 
         Returns:
-            List[IConversation]: List of updated conversations with generated responses.
+            List[IConversation]: List of updated conversations with generated
+            responses.
         """
         results = []
         for conv in conversations:
@@ -606,10 +631,12 @@ class OpenAIToolModel(ToolLLMBase):
         max_concurrent: int = 5,
     ) -> List[IConversation]:
         """
-        Asynchronously processes multiple conversations with controlled concurrency.
+        Asynchronously processes multiple conversations with controlled
+        concurrency.
 
         Args:
-            conversations (List[IConversation]): List of conversations to process.
+            conversations (List[IConversation]): List of conversations to
+            process.
             toolkit: Optional toolkit for tool conversion.
             tool_choice: Tool selection strategy.
             temperature (float): Sampling temperature for response diversity.
@@ -617,7 +644,8 @@ class OpenAIToolModel(ToolLLMBase):
             max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
-            List[IConversation]: List of updated conversations with generated responses.
+            List[IConversation]: List of updated conversations with generated
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

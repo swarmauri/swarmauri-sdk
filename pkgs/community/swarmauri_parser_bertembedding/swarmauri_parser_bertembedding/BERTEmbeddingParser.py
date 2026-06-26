@@ -15,7 +15,8 @@ class BERTEmbeddingParser(ParserBase):
     """
     A parser that transforms input text into document embeddings using BERT.
 
-    This parser tokenizes the input text, passes it through a pre-trained BERT model,
+    This parser tokenizes the input text, passes it through a pre-trained BERT
+    model,
     and uses the resulting embeddings as the document content.
     """
 
@@ -41,10 +42,12 @@ class BERTEmbeddingParser(ParserBase):
         Tokenizes input data and generates embeddings using a BERT model.
 
         Parameters:
-        - data (Union[str, Any]): Input data, expected to be a single string or batch of strings.
+        - data (Union[str, Any]): Input data, expected to be a single string or
+          batch of strings.
 
         Returns:
-        - List[IDocument]: A list containing a single IDocument instance with BERT embeddings as content.
+        - List[IDocument]: A list containing a single IDocument instance with
+          BERT embeddings as content.
         """
 
         # Tokenization
@@ -60,19 +63,22 @@ class BERTEmbeddingParser(ParserBase):
         with torch.no_grad():
             outputs = self._model(**inputs)
 
-        # Use the last hidden state as document embeddings (batch_size, sequence_length, hidden_size)
+        # Use the last hidden state as document embeddings (batch_size,
+        # sequence_length, hidden_size)
         embeddings = outputs.last_hidden_state
 
         # Convert to list of numpy arrays
         embeddings = embeddings.detach().cpu().numpy()
 
-        # For simplicity, let's consider the mean of embeddings across tokens to represent the document
+        # For simplicity, let's consider the mean of embeddings across tokens
+        # to represent the document
         doc_embeddings = embeddings.mean(axis=1)
 
         # Creating document object(s)
         documents = []
         for i, emb in enumerate(doc_embeddings):
-            # Store the original input text as content and embeddings in metadata
+            # Store the original input text as content and embeddings in
+            # metadata
             input_text = data[i] if isinstance(data, list) else data
             doc = Document(content=input_text)
             # Add the embedding and source to metadata

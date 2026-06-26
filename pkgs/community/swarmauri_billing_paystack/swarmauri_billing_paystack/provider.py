@@ -80,7 +80,8 @@ class PaystackBillingProvider(
                 Refund,
             )
 
-    # ---------------------------------------------------------------- Products & Prices
+    # ---------------------------------------------------------------- Products
+    # & Prices
     def _create_product(
         self, product_spec: ProductSpec, *, idempotency_key: str
     ) -> ProductRef:
@@ -137,7 +138,8 @@ class PaystackBillingProvider(
         )
         return ref
 
-    # ---------------------------------------------------------------- Hosted Checkout
+    # ---------------------------------------------------------------- Hosted
+    # Checkout
     def _create_checkout(
         self, price: PriceRef, request: CheckoutRequest
     ) -> CheckoutIntentRef:
@@ -164,7 +166,8 @@ class PaystackBillingProvider(
         )
         return intent
 
-    # ---------------------------------------------------------------- Online Payments
+    # ---------------------------------------------------------------- Online
+    # Payments
     def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
         self._ensure()
         metadata = dict(req.metadata or {})
@@ -211,7 +214,8 @@ class PaystackBillingProvider(
         )
         return ref
 
-    # ---------------------------------------------------------------- Subscriptions
+    # ----------------------------------------------------------------
+    # Subscriptions
     def _create_subscription(
         self, spec: SubscriptionSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -255,7 +259,8 @@ class PaystackBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Invoicing
+    # ----------------------------------------------------------------
+    # Invoicing
     def _create_invoice(
         self, spec: InvoiceSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -323,7 +328,8 @@ class PaystackBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Marketplace
+    # ----------------------------------------------------------------
+    # Marketplace
     def _create_split(
         self, spec: SplitSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:

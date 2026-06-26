@@ -33,11 +33,14 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "DeepInfraToolModel")
 class DeepInfraToolModel(ToolLLMBase):
     """
-    DeepInfraToolModel provides an interface to interact with DeepInfra's LLM service
+    DeepInfraToolModel provides an interface to interact with DeepInfra's LLM
+    service
     using the OpenAI-compatible API for tool usage.
 
-    This class supports synchronous and asynchronous predictions, streaming of responses,
-    and batch processing. It communicates with the DeepInfra API to manage conversations,
+    This class supports synchronous and asynchronous predictions, streaming of
+    responses,
+    and batch processing. It communicates with the DeepInfra API to manage
+    conversations,
     format messages, and handle tool-related functions.
 
     Attributes:
@@ -99,7 +102,8 @@ class DeepInfraToolModel(ToolLLMBase):
         self, messages: List[MessageBase]
     ) -> List[Dict[str, str]]:
         """
-        Formats a list of messages to a schema that matches the DeepInfra API's expectations.
+        Formats a list of messages to a schema that matches the DeepInfra API's
+        expectations.
 
         Args:
             messages (List[MessageBase]): The conversation history.
@@ -127,15 +131,19 @@ class DeepInfraToolModel(ToolLLMBase):
         messages: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (List[Dict[str, Any]]): Tool calls from the LLM response.
+            tool_calls (List[Dict[str, Any]]): Tool calls from the LLM
+            response.
             toolkit (Toolkit): Toolkit containing tools to be called.
-            messages (List[Dict[str, Any]]): Message list to append tool responses to.
+            messages (List[Dict[str, Any]]): Message list to append tool
+            responses to.
 
         Returns:
-            List[Dict[str, Any]]: Updated list of messages with tool responses added.
+            List[Dict[str, Any]]: Updated list of messages with tool responses
+            added.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -168,15 +176,19 @@ class DeepInfraToolModel(ToolLLMBase):
         Makes a synchronous prediction using the DeepInfra model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with additional LLM call.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
+            multiturn (bool): Whether to follow up a tool call with additional
+            LLM call.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -258,15 +270,19 @@ class DeepInfraToolModel(ToolLLMBase):
         Makes an asynchronous prediction using the DeepInfra model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with additional LLM call.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
+            multiturn (bool): Whether to follow up a tool call with additional
+            LLM call.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
         payload = {
@@ -347,9 +363,11 @@ class DeepInfraToolModel(ToolLLMBase):
         Streams response from DeepInfra model in real-time.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -444,9 +462,11 @@ class DeepInfraToolModel(ToolLLMBase):
         Asynchronously streams response from DeepInfra model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -538,9 +558,11 @@ class DeepInfraToolModel(ToolLLMBase):
         Processes a batch of conversations sequentially.
 
         Args:
-            conversations (List[IConversation]): List of conversations to process.
+            conversations (List[IConversation]): List of conversations to
+            process.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
@@ -569,12 +591,15 @@ class DeepInfraToolModel(ToolLLMBase):
         max_concurrent: int = 5,
     ) -> List[IConversation]:
         """
-        Processes a batch of conversations concurrently with limited concurrency.
+        Processes a batch of conversations concurrently with limited
+        concurrency.
 
         Args:
-            conversations (List[IConversation]): List of conversations to process.
+            conversations (List[IConversation]): List of conversations to
+            process.
             toolkit (Optional[Toolkit]): Optional toolkit for tool conversion.
-            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection strategy.
+            tool_choice (Optional[Union[str, Dict[str, Any]]]): Tool selection
+            strategy.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
             max_concurrent (int): Maximum number of concurrent requests.
@@ -599,7 +624,8 @@ class DeepInfraToolModel(ToolLLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

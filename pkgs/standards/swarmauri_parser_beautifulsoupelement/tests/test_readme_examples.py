@@ -27,7 +27,8 @@ def test_usage_example_from_readme():
         "The README example should define a 'documents' variable."
     )
 
-    # Validate that the parser extracted <p> elements with accompanying metadata.
+    # Validate that the parser extracted <p> elements with accompanying
+    # metadata.
     contents = [doc.content for doc in documents]
     metadata = [doc.metadata for doc in documents]
 

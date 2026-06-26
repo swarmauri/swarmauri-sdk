@@ -96,7 +96,11 @@ class ConsensusBuildingConversation(IConversation):
                 # A consensus has been reached
                 return (
                     True,
-                    f"Consensus reached on proposal: {proposal} with {votes} votes.",
+                    (
+                        f"Consensus reached on proposal: {proposal} with "
+                        f"{votes} "
+                        f"votes."
+                    ),
                 )
 
         # If no consensus is reached

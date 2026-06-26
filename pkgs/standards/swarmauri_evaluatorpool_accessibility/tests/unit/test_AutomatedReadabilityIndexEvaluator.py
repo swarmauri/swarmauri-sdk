@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from swarmauri_core.programs.IProgram import IProgram
-from swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator import (
+from swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator import (  # noqa: E501
     AutomatedReadabilityIndexEvaluator,
 )
 

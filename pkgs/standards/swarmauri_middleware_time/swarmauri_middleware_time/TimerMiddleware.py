@@ -25,7 +25,9 @@ class TimerMiddleware(MiddlewareBase, ComponentBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain while tracking time.
+        """
+        Dispatches the request to the next middleware in the chain while
+        tracking time.
 
         This method measures the time taken for processing the request
         from start to finish. It logs the start time, processes the
@@ -47,7 +49,10 @@ class TimerMiddleware(MiddlewareBase, ComponentBase):
         # Record the start time of the request
         start_time = time.time()
         _LOGGER.info(
-            f"Request {request.method} {request.url.path} started at {start_time}"
+            (
+                f"Request {request.method} {request.url.path} started at "
+                f"{start_time}"
+            )
         )
 
         try:
@@ -56,14 +61,20 @@ class TimerMiddleware(MiddlewareBase, ComponentBase):
         except Exception as e:
             # Log any exceptions that occur during processing
             _LOGGER.error(
-                f"Error processing request {request.method} {request.url.path}: {str(e)}"
+                (
+                    f"Error processing request {request.method} "
+                    f"{request.url.path}: {str(e)}"
+                )
             )
             raise HTTPException(status_code=500, detail=str(e))
 
         # Calculate the total time taken
         total_time = time.time() - start_time
         _LOGGER.info(
-            f"Request {request.method} {request.url.path} completed in {total_time:.4f} seconds"
+            (
+                f"Request {request.method} {request.url.path} completed in "
+                f"{total_time:.4f} seconds"
+            )
         )
 
         # Fix: Add timing headers to the response

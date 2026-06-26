@@ -68,7 +68,8 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         self, directory_path: str, chunk_size: int = 10485760
     ) -> None:
         """
-        Splits the file into parts if it's too large and saves those parts individually.
+        Splits the file into parts if it's too large and saves those parts
+        individually.
         """
         file_number = 1
         model_path = os.path.join(directory_path, "embedding_model")
@@ -141,7 +142,8 @@ class VectorStoreSaveLoadMixin(IVectorStoreSaveLoad, BaseModel):
         self, directory_path: str, file_pattern: str = "*.part*"
     ) -> None:
         """
-        Combines file parts from a directory back into a single file and loads it.
+        Combines file parts from a directory back into a single file and loads
+        it.
         """
         model_path = os.path.join(directory_path, "embedding_model")
         parts_directory = os.path.join(directory_path, "parts")

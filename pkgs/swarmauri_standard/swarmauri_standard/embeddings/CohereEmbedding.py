@@ -13,15 +13,19 @@ class CohereEmbedding(EmbeddingBase):
     """
     A class for generating embeddings using the Cohere REST API.
 
-    This class provides an interface to generate embeddings for text and image data using various
-    Cohere embedding models. It supports different task types, embedding types, and
+    This class provides an interface to generate embeddings for text and image
+    data using various
+    Cohere embedding models. It supports different task types, embedding types,
+    and
     truncation options.
 
     Attributes:
-        type (Literal["CohereEmbedding"]): The type identifier for this embedding class.
+        type (Literal["CohereEmbedding"]): The type identifier for this
+        embedding class.
         model (str): The Cohere embedding model to use.
         api_key (SecretStr): The API key for accessing the Cohere API.
-        allowed_task_types (List[str]): List of supported task types for embeddings
+        allowed_task_types (List[str]): List of supported task types for
+        embeddings
 
     Link to Allowed Models: https://docs.cohere.com/reference/embed
     Linke to API KEY: https://dashboard.cohere.com/api-keys
@@ -80,20 +84,20 @@ class CohereEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
+                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"  # noqa: E501
             )
         if self.embedding_types not in self._allowed_embedding_types:
             raise ValueError(
-                f"Invalid embedding_types '{self.embedding_types}'. Allowed embedding types are: {', '.join(self._allowed_embedding_types)}"
+                f"Invalid embedding_types '{self.embedding_types}'. Allowed embedding types are: {', '.join(self._allowed_embedding_types)}"  # noqa: E501
             )
         if self.truncate not in ["END", "START", "NONE"]:
             raise ValueError(
-                f"Invalid truncate '{self.truncate}'. Allowed truncate are: END, START, NONE"
+                f"Invalid truncate '{self.truncate}'. Allowed truncate are: END, START, NONE"  # noqa: E501
             )
         self._client = httpx.Client()
 
@@ -129,13 +133,16 @@ class CohereEmbedding(EmbeddingBase):
         Generate embeddings for the given list of texts or images.
 
         Args:
-            data (Union[List[str], List[str]]): A list of texts or base64-encoded images.
+            data (Union[List[str], List[str]]): A list of texts or
+            base64-encoded images.
 
         Returns:
-            List[Vector]: A list of Vector objects containing the generated embeddings.
+            List[Vector]: A list of Vector objects containing the generated
+            embeddings.
 
         Raises:
-            RuntimeError: If an error occurs during the embedding generation process.
+            RuntimeError: If an error occurs during the embedding generation
+            process.
         """
         try:
             # Prepare the payload based on input type

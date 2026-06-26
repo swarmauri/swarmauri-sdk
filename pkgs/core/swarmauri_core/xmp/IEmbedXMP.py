@@ -11,7 +11,8 @@ class IEmbedXMP(abc.ABC):
 
     @abc.abstractmethod
     def supports(self, header: bytes, path: str) -> bool:
-        """Return ``True`` when the handler can operate on the supplied payload."""
+        """Return ``True`` when the handler can operate on the supplied
+        payload."""
 
     @abc.abstractmethod
     def read_xmp(self, data: bytes) -> Optional[str]:

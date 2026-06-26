@@ -42,7 +42,7 @@ class ShuttleAIImgGenModel(LLMBase):
             os.environ["SHUTTLE_API_KEY"] = self.api_key
         if self.model_name not in self.allowed_models:
             raise ValueError(
-                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
         self._headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -53,7 +53,7 @@ class ShuttleAIImgGenModel(LLMBase):
         """Send a request to Shuttle AI's API for image generation."""
         if model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model name. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
             )
 
         url = f"{self.base_url}/images/generations"
@@ -62,7 +62,10 @@ class ShuttleAIImgGenModel(LLMBase):
         response = requests.post(url, json=payload, headers=self._headers)
         if response.status_code != 200:
             raise Exception(
-                f"API request failed with status {response.status_code}: {response.text}"
+                (
+                    f"API request failed with status {response.status_code}: "
+                    f"{response.text}"
+                )
             )
 
         return response.json()
@@ -78,7 +81,8 @@ class ShuttleAIImgGenModel(LLMBase):
     async def agenerate_image(
         self, prompt: str, model: str = None, **kwargs
     ) -> str:
-        """Asynchronously generates an image based on the prompt and returns the image URL."""
+        """Asynchronously generates an image based on the prompt and returns
+        the image URL."""
         model = model or self.model_name
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(

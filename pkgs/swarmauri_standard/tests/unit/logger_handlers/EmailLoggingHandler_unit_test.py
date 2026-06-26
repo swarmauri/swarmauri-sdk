@@ -85,7 +85,8 @@ class TestEmailLoggingHandler:
     @pytest.mark.unit
     def test_from_address_with_display_name(self) -> None:
         """
-        Test that the from address is formatted correctly when display name is provided.
+        Test that the from address is formatted correctly when display name is
+        provided.
         """
         handler = EmailLoggingHandler(
             toaddrs=["recipient@example.com"],
@@ -200,7 +201,8 @@ class TestEmailLoggingHandler:
         self, basic_handler: EmailLoggingHandler
     ) -> None:
         """
-        Test that get_configuration returns the correct configuration dictionary.
+        Test that get_configuration returns the correct configuration
+        dictionary.
 
         Args:
             basic_handler: The fixture providing a basic handler instance.
@@ -244,7 +246,8 @@ class TestEmailLoggingHandler:
         self, secure_param, expected_result
     ) -> None:
         """
-        Test that the secure parameter is handled correctly in the configuration.
+        Test that the secure parameter is handled correctly in the
+        configuration.
 
         Args:
             secure_param: The value to set for the secure parameter.

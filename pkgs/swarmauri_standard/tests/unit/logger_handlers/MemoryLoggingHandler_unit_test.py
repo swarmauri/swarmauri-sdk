@@ -77,7 +77,9 @@ def test_init_with_custom_values():
 
 @pytest.mark.unit
 def test_compile_handler_no_target():
-    """Test that compile_handler raises ValueError when no target is specified."""
+    """
+    Test that compile_handler raises ValueError when no target is specified.
+    """
     handler = MemoryLoggingHandler()
     with pytest.raises(ValueError, match="requires a target handler"):
         handler.compile_handler()
@@ -93,7 +95,9 @@ def test_compile_handler_with_string_target():
 
 @pytest.mark.unit
 def test_compile_handler(target_handler):
-    """Test that compile_handler creates a properly configured memory handler."""
+    """
+    Test that compile_handler creates a properly configured memory handler.
+    """
     handler = MemoryLoggingHandler(
         capacity=10,
         flushLevel=logging.WARNING,
@@ -210,7 +214,8 @@ def test_flush(memory_handler):
 
 @pytest.mark.unit
 def test_close(memory_handler):
-    """Test that close calls close on both the memory handler and target handler."""
+    """Test that close calls close on both the memory handler and target
+    handler."""
     mock_memory_handler = MagicMock()
     mock_target_handler = MagicMock()
 

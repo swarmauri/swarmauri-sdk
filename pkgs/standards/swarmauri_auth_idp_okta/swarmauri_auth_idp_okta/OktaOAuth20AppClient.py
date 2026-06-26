@@ -13,7 +13,8 @@ from swarmauri_base.auth_idp import OAuth20AppClientBase, RetryingAsyncClient
 
 @ComponentBase.register_type(OAuth20AppClientBase, "OktaOAuth20AppClient")
 class OktaOAuth20AppClient(OAuth20AppClientBase):
-    """Request machine-to-machine access tokens from an Okta authorization server."""
+    """Request machine-to-machine access tokens from an Okta authorization
+    server."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

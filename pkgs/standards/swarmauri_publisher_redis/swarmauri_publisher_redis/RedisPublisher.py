@@ -24,7 +24,8 @@ class RedisPublisher(PublishBase):
     def __init__(self, **data: Any):
         """
         Initializes the RedisPublisher.
-        Pydantic V2 first populates the defined model fields (e.g., self.uri, self.host)
+        Pydantic V2 first populates the defined model fields (e.g., self.uri,
+        self.host)
         from `data` and then calls this __init__ method.
         """
         super().__init__(**data)
@@ -43,7 +44,10 @@ class RedisPublisher(PublishBase):
         # Validate configuration: cannot mix URI with individual components.
         if self.uri and individual_opts_present:
             raise ValueError(
-                "Cannot specify both `uri` and individual host/port/db/password/username."
+                (
+                    "Cannot specify both `uri` and individual "
+                    "host/port/db/password/username."
+                )
             )
 
         actual_redis_uri: str
@@ -68,9 +72,14 @@ class RedisPublisher(PublishBase):
                 f"redis://{auth_segment}{self.host}:{self.port}/{self.db}"
             )
         else:
-            # If neither a full URI nor the complete set of host, port, and db are provided.
+            # If neither a full URI nor the complete set of host, port, and db
+            # are provided.
             raise ValueError(
-                "Redis connection configuration is incomplete: provide `uri`, or all of (`host`, `port`, `db`)."
+                (
+                    "Redis connection configuration is incomplete: provide "
+                    "`uri`, "
+                    "or all of (`host`, `port`, `db`)."
+                )
             )
 
         # Initialize the Redis client.

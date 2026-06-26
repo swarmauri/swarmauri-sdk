@@ -98,7 +98,10 @@ def _load_private_from_keyref(key: KeyRef):
                 data = data.encode("utf-8")
             if not isinstance(data, (bytes, bytearray)):
                 raise TypeError(
-                    "CASigner: KeyRef 'pem' expects 'priv' or 'data' bytes/str."
+                    (
+                        "CASigner: KeyRef 'pem' expects 'priv' or 'data' "
+                        "bytes/str."
+                    )
                 )
             password = key.get("password")
             if isinstance(password, str):
@@ -118,7 +121,10 @@ def _load_private_from_keyref(key: KeyRef):
     material = getattr(key, "material", None)
     if not isinstance(material, (bytes, bytearray)):
         raise ValueError(
-            "CASigner: KeyRef.material must contain PEM-encoded private key bytes or tags['crypto_obj']."
+            (
+                "CASigner: KeyRef.material must contain PEM-encoded private "
+                "key bytes or tags['crypto_obj']."
+            )
         )
 
     return serialization.load_pem_private_key(
@@ -330,7 +336,11 @@ class CASigner(SigningBase):
                     pubs.append(pk)  # type: ignore[arg-type]
                 else:
                     raise TypeError(
-                        "CASigner.verify_bytes: unsupported public key entry in opts['pubkeys']."
+                        (
+                            "CASigner.verify_bytes: unsupported public key "
+                            "entry in "
+                            "opts['pubkeys']."
+                        )
                     )
 
         min_signers = int(require.get("min_signers", 1)) if require else 1

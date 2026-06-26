@@ -156,7 +156,9 @@ def test_runtime_rejects_registration_without_declared_parameters():
             {
                 "type": "RuntimeAdditionTool",
                 "name": "RuntimeAdditionTool",
-                "description": "Adds two integers during the active agent session.",
+                "description": (
+                    "Adds two integers during the active agent session."
+                ),
                 "__call__": '{"sum": str(x + y)}',
             }
         )

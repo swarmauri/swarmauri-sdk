@@ -178,7 +178,10 @@ class SelfSignedCertificate(CertServiceBase):
     ) -> bytes:
         if key.material is None:
             raise ValueError(
-                "Self-signed issuance requires a private key in KeyRef.material (PEM)."
+                (
+                    "Self-signed issuance requires a private key in "
+                    "KeyRef.material (PEM)."
+                )
             )
 
         pwd = password if password is not None else self.password

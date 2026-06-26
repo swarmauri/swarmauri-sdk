@@ -14,7 +14,10 @@ from ._tool_factory import build_tool_from_spec
 class ReplaceRuntimeTool(ToolBase):
     version: str = "0.1.0"
     name: str = "ReplaceRuntimeTool"
-    description: str = "Replace an existing non-reserved tool in the active toolkit with a new serialized tool spec."
+    description: str = (
+        "Replace an existing non-reserved tool in the active toolkit "
+        "with a new serialized tool spec."
+    )
     type: Literal["ReplaceRuntimeTool"] = "ReplaceRuntimeTool"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     protected_tool_names: set[str] = Field(
@@ -31,7 +34,10 @@ class ReplaceRuntimeTool(ToolBase):
             Parameter(
                 name="tool_spec",
                 input_type="object",
-                description="Serialized replacement tool payload with 'type', 'parameters', and '__call__' fields.",
+                description=(
+                    "Serialized replacement tool payload with 'type', "
+                    "'parameters', and '__call__' fields."
+                ),
                 required=True,
             ),
         ]

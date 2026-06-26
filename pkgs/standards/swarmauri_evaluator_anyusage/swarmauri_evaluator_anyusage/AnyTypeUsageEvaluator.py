@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(EvaluatorBase, "AnyTypeUsageEvaluator")
 class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
     """
-    Evaluator that detects and penalizes usage of the `Any` type in Python code.
+    Evaluator that detects and penalizes usage of the `Any` type in Python
+    code.
 
     This evaluator parses Python source files to identify imports and usages of
     the `typing.Any` type. It counts occurrences and generates a penalty score
@@ -34,7 +35,8 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
         self, program: Program, **kwargs
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Compute a score based on the usage of `Any` type in the program's files.
+        Compute a score based on the usage of `Any` type in the program's
+        files.
 
         Args:
             program: The program to evaluate
@@ -42,8 +44,10 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
 
         Returns:
             A tuple containing:
-                - float: A scalar fitness score (1.0 = no Any usage, lower scores indicate Any usage)
-                - Dict[str, Any]: Metadata about the evaluation, including file paths and line numbers
+                - float: A scalar fitness score (1.0 = no Any usage, lower
+                  scores indicate Any usage)
+                - Dict[str, Any]: Metadata about the evaluation, including file
+                  paths and line numbers
                   where Any is used
         """
         logger.info(f"Evaluating Any type usage in program: {program.name}")
@@ -79,7 +83,10 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
         }
 
         logger.info(
-            f"Found {total_occurrences} Any type usages across {len(any_occurrences)} files"
+            (
+                f"Found {total_occurrences} Any type usages across "
+                f"{len(any_occurrences)} files"
+            )
         )
         return score, metadata
 
@@ -102,7 +109,10 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
             # Fallback to current directory if path is not available
             root_dir = os.getcwd()
             logger.warning(
-                f"Program path not available, using current directory: {root_dir}"
+                (
+                    f"Program path not available, using current directory: "
+                    f"{root_dir}"
+                )
             )
 
         # Walk through the directory and collect Python files
@@ -125,7 +135,8 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
             file_path: Path to the Python file to analyze
 
         Returns:
-            A list of dictionaries containing line numbers and context for each Any occurrence
+            A list of dictionaries containing line numbers and context for each
+            Any occurrence
         """
         occurrences = []
 
@@ -149,12 +160,14 @@ class AnyTypeUsageEvaluator(EvaluatorBase, ComponentBase):
                 lines = content.split("\n")
                 for i, line in enumerate(lines):
                     # Look for Any that's not part of a word (like "Anything")
-                    # This regex looks for Any as a standalone word or in type annotations
+                    # This regex looks for Any as a standalone word or in type
+                    # annotations
                     matches = re.finditer(
                         r"\bAny\b|\[Any\]|: Any|-> Any", line
                     )
                     for match in matches:
-                        # Check if this line is already recorded from AST parsing
+                        # Check if this line is already recorded from AST
+                        # parsing
                         if not any(
                             occ["line"] == i + 1 for occ in occurrences
                         ):
@@ -242,7 +255,8 @@ class AnyTypeVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Subscript(self, node):
-        """Visit subscripts to find Any in complex type annotations like List[Any]."""
+        """Visit subscripts to find Any in complex type annotations like
+        List[Any]."""
         # Check for Any in subscripts like List[Any]
         if (
             isinstance(node.value, ast.Name)

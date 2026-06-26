@@ -16,7 +16,8 @@ class IReflect(ABC):
 
         Parameters:
         - vector (List[float]): The vector to be reflected.
-        - normal (List[float]): The normal vector of the plane across which the vector will be reflected.
+        - normal (List[float]): The normal vector of the plane across which the
+          vector will be reflected.
 
         Returns:
         - List[float]: The reflected vector.

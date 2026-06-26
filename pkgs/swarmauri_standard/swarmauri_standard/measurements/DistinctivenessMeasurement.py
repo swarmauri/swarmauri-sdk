@@ -7,12 +7,15 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "DistinctivenessMeasurement")
 class DistinctivenessMeasurement(MeasurementBase):
     """
-    Measurement for evaluating the distinctiveness of a dataset or collection of values.
-    Distinctiveness is calculated as the percentage of unique non-null values relative to
+    Measurement for evaluating the distinctiveness of a dataset or collection
+    of values.
+    Distinctiveness is calculated as the percentage of unique non-null values
+    relative to
     the total number of non-null values in the dataset.
 
     Attributes:
-        type (Literal['DistinctivenessMeasurement']): Type identifier for the measurement
+        type (Literal['DistinctivenessMeasurement']): Type identifier for the
+        measurement
         unit (str): Unit of measurement (percentage)
         value (float): Stores the calculated distinctiveness score
     """
@@ -27,7 +30,8 @@ class DistinctivenessMeasurement(MeasurementBase):
         Calculates the distinctiveness score for different data types.
 
         Args:
-            data: Input data which can be a pandas DataFrame, List, or Dictionary
+            data: Input data which can be a pandas DataFrame, List, or
+            Dictionary
 
         Returns:
             float: Distinctiveness score as a percentage (0-100)
@@ -61,7 +65,10 @@ class DistinctivenessMeasurement(MeasurementBase):
 
         else:
             raise ValueError(
-                "Unsupported data type. Please provide DataFrame, List, or Dict."
+                (
+                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
+                    "Dict."
+                )
             )
 
     def call(
@@ -90,7 +97,8 @@ class DistinctivenessMeasurement(MeasurementBase):
             df: Input DataFrame
 
         Returns:
-            Dict[str, float]: Dictionary mapping column names to their distinctiveness scores
+            Dict[str, float]: Dictionary mapping column names to their
+            distinctiveness scores
         """
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")

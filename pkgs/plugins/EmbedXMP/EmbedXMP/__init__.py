@@ -19,7 +19,10 @@ def _resolve_path(path: str | None, hint: str | None) -> str | None:
     if path is None or path == hint:
         return hint
     raise ValueError(
-        "conflicting path and hint values supplied; they must match if both are provided"
+        (
+            "conflicting path and hint values supplied; they must match "
+            "if both are provided"
+        )
     )
 
 

@@ -47,12 +47,14 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         self, equivalence_relation: Callable[[Any, Any], bool], **kwargs
     ):
         """
-        Initialize the EquivalenceRelationPseudometric with an equivalence relation.
+        Initialize the EquivalenceRelationPseudometric with an equivalence
+        relation.
 
         Parameters
         ----------
         equivalence_relation : Callable[[Any, Any], bool]
-            A function that takes two arguments and returns True if they are equivalent,
+            A function that takes two arguments and returns True if they are
+            equivalent,
             False otherwise.
         kwargs : Any
             Additional keyword arguments for the base class.
@@ -82,7 +84,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             0.0 if x and y are equivalent, 1.0 otherwise
         """
         try:
-            # Apply the equivalence relation to determine if x and y are equivalent
+            # Apply the equivalence relation to determine if x and y are
+            # equivalent
             if self.equivalence_relation(x, y):
                 return 0.0
             else:
@@ -105,15 +108,18 @@ class EquivalenceRelationPseudometric(PseudometricBase):
 
         Parameters
         ----------
-        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The first collection of objects
-        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The second collection of objects
 
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the distance between
+            xs[i] and ys[j]
         """
         try:
             result = []
@@ -135,7 +141,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         """
         Check if the distance function satisfies the non-negativity property.
 
-        For an equivalence relation pseudometric, this is always true as the distance
+        For an equivalence relation pseudometric, this is always true as the
+        distance
         is either 0 or 1, both of which are non-negative.
 
         Parameters
@@ -162,7 +169,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         """
         Check if the distance function satisfies the symmetry property.
 
-        This checks if the equivalence relation is symmetric, i.e., if x ~ y then y ~ x.
+        This checks if the equivalence relation is symmetric, i.e., if x ~ y
+        then y ~ x.
 
         Parameters
         ----------
@@ -200,7 +208,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         For an equivalence relation pseudometric, this is always true:
         - If x ~ z, then d(x,z) = 0 ≤ d(x,y) + d(y,z) for any y
         - If x !~ z, then d(x,z) = 1, and there are two cases:
-          * If x ~ y and y ~ z, transitivity of the equivalence relation would imply x ~ z,
+          * If x ~ y and y ~ z, transitivity of the equivalence relation would
+            imply x ~ z,
             contradicting our assumption. So this case is impossible.
           * If x !~ y or y !~ z, then d(x,y) + d(y,z) ≥ 1 = d(x,z)
 
@@ -240,7 +249,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Check if the distance function satisfies the weak identity property.
 
         In a pseudometric, d(x,y) = 0 is allowed even when x ≠ y.
-        For an equivalence relation pseudometric, d(x,y) = 0 exactly when x ~ y.
+        For an equivalence relation pseudometric, d(x,y) = 0 exactly when x ~
+        y.
 
         Parameters
         ----------
@@ -252,15 +262,18 @@ class EquivalenceRelationPseudometric(PseudometricBase):
         Returns
         -------
         bool
-            True if the pseudometric properly handles the weak identity property
+            True if the pseudometric properly handles the weak identity
+            property
         """
         try:
             # For this pseudometric, d(x,y) = 0 if and only if x ~ y
-            # So we check if the equivalence relation and distance are consistent
+            # So we check if the equivalence relation and distance are
+            # consistent
             are_equivalent = self.equivalence_relation(x, y)
             d_xy = self.distance(x, y)
 
-            # If they're equivalent, distance should be 0; if not, distance should be 1
+            # If they're equivalent, distance should be 0; if not, distance
+            # should be 1
             return (are_equivalent and d_xy == 0.0) or (
                 not are_equivalent and d_xy == 1.0
             )

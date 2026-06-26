@@ -103,10 +103,13 @@ def iter_python_files(root_pkg_dir: str, package_name: str):
 
 def is_valid_package_path(package_root: str, module_file: str) -> bool:
     """Return True if every directory from package root to the module file
-    contains an __init__.py, ensuring it's importable as a regular package path.
+    contains an __init__.py, ensuring it's importable as a regular package
+    path.
     """
-    # e.g., package_root=/repo/pkgs/base, module_file=/repo/pkgs/base/swarmauri_base/foo/bar.py
-    # We need to check /repo/pkgs/base/swarmauri_base[/foo]... all dirs to bar.py have __init__.py
+    # e.g., package_root=/repo/pkgs/base,
+    # module_file=/repo/pkgs/base/swarmauri_base/foo/bar.py
+    # We need to check /repo/pkgs/base/swarmauri_base[/foo]... all dirs to
+    # bar.py have __init__.py
     rel = os.path.relpath(module_file, package_root)
     parts = rel.split(os.sep)
     # drop filename
@@ -171,7 +174,8 @@ def write_class_page(out_path: str, module: str, cls: str) -> None:
 def build_nav_structure(
     top_label: str, api_rel_dir: str, module_classes: Dict[str, List[str]]
 ):
-    # Organize classes by category inferred from module path after the package name
+    # Organize classes by category inferred from module path after the package
+    # name
     # e.g., swarmauri_standard.agents.foo -> category "Agents"
     by_category: Dict[str, List[Dict[str, str]]] = {}
     for module, classes in module_classes.items():
@@ -319,7 +323,11 @@ def process_target(
                 continue
             if not is_valid_package_path(package_root, fpath):
                 print(
-                    f"Skipping non-package module (missing __init__.py in path): {module}"
+                    (
+                        f"Skipping non-package module (missing __init__.py in "
+                        f"path): "
+                        f"{module}"
+                    )
                 )
                 continue
             ckey = os.path.relpath(fpath, docs_root)

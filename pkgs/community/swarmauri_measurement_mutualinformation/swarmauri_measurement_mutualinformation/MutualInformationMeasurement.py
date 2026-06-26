@@ -11,10 +11,13 @@ from swarmauri_base.measurements.MeasurementCalculateMixin import (
 @ComponentBase.register_type(MeasurementBase, "MutualInformationMeasurement")
 class MutualInformationMeasurement(MeasurementBase, MeasurementCalculateMixin):
     """
-    A Measurement class to calculate mutual information between features and a target column in a given dataset.
+    A Measurement class to calculate mutual information between features and a
+    target column in a given dataset.
 
-    This class computes the mutual information between each feature in a DataFrame (excluding the target column)
-    and the target column itself, and returns the average mutual information score.
+    This class computes the mutual information between each feature in a
+    DataFrame (excluding the target column)
+    and the target column itself, and returns the average mutual information
+    score.
     """
 
     type: Literal["MutualInformationMeasurement"] = (
@@ -24,10 +27,12 @@ class MutualInformationMeasurement(MeasurementBase, MeasurementCalculateMixin):
 
     def calculate(self, data: pd.DataFrame, target_column: str) -> float:
         """
-        Calculate the average mutual information between the features and the target column.
+        Calculate the average mutual information between the features and the
+        target column.
 
         Parameters:
-        - data (pd.DataFrame): A DataFrame containing both the features and the target column.
+        - data (pd.DataFrame): A DataFrame containing both the features and the
+          target column.
 
         - target_column (str) The name of the target column in the DataFrame.
 

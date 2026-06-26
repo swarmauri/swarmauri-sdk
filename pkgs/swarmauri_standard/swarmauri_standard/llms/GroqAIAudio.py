@@ -12,7 +12,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing GroqAIAudio from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "
+    "removed in a future version. Please use 'from swarmauri_standard.stt import "  # noqa: E501
     "GroqSTT' or 'from swarmauri.stt import GroqSTT' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -22,8 +22,10 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "GroqAIAudio")
 class GroqAIAudio(LLMBase):
     """
-    GroqAIAudio is a class that provides transcription and translation capabilities
-    using Groq's audio models. It supports both synchronous and asynchronous methods
+    GroqAIAudio is a class that provides transcription and translation
+    capabilities
+    using Groq's audio models. It supports both synchronous and asynchronous
+    methods
     for processing audio files.
 
     Attributes:
@@ -80,11 +82,13 @@ class GroqAIAudio(LLMBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform synchronous transcription or translation on the provided audio file.
+        Perform synchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -129,11 +133,13 @@ class GroqAIAudio(LLMBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform asynchronous transcription or translation on the provided audio file.
+        Perform asynchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -179,10 +185,12 @@ class GroqAIAudio(LLMBase):
         path_task_dict: Dict[str, Literal["transcription", "translation"]],
     ) -> List:
         """
-        Synchronously process multiple audio files for transcription or translation.
+        Synchronously process multiple audio files for transcription or
+        translation.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
 
         Returns:
@@ -199,13 +207,16 @@ class GroqAIAudio(LLMBase):
         max_concurrent=5,
     ) -> List:
         """
-        Asynchronously process multiple audio files for transcription or translation
+        Asynchronously process multiple audio files for transcription or
+        translation
         with controlled concurrency.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
-            max_concurrent (int): Maximum number of concurrent tasks. Defaults to 5.
+            max_concurrent (int): Maximum number of concurrent tasks. Defaults
+            to 5.
 
         Returns:
             List: A list of resulting texts from each audio file.

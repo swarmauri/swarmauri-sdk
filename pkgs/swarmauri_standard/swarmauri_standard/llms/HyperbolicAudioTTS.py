@@ -10,8 +10,9 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 
 warnings.warn(
-    "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will "
+    "be "
+    "removed in a future version. Please use 'from swarmauri_standard.tts import "  # noqa: E501
     "HyperbolicTTS' or 'from swarmauri.tts import HyperbolicTTS' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -21,7 +22,8 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "HyperbolicAudioTTS")
 class HyperbolicAudioTTS(LLMBase):
     """
-    A class to interact with Hyperbolic's Text-to-Speech API, allowing for synchronous
+    A class to interact with Hyperbolic's Text-to-Speech API, allowing for
+    synchronous
     and asynchronous text-to-speech synthesis.
 
     Attributes:

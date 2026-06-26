@@ -19,14 +19,19 @@ class LexicalDensityTool(ToolBase):
             Parameter(
                 name="text",
                 input_type="string",
-                description="The text for which to calculate the Lexical Density.",
+                description=(
+                    "The text for which to calculate the Lexical Density."
+                ),
                 required=True,
             )
         ]
     )
 
     name: str = "LexicalDensityTool"
-    description: str = "Calculates the lexical density of a text, indicating the proportion of lexical words."
+    description: str = (
+        "Calculates the lexical density of a text, indicating the "
+        "proportion of lexical words."
+    )
     type: Literal["LexicalDensityTool"] = "LexicalDensityTool"
 
     def __call__(self, text: str) -> Dict[str, float]:
@@ -66,7 +71,8 @@ class LexicalDensityTool(ToolBase):
 
     def count_lexical_words(self, text: str) -> int:
         """
-        Counts the number of lexical words (nouns, verbs, adjectives, adverbs) in the text.
+        Counts the number of lexical words (nouns, verbs, adjectives, adverbs)
+        in the text.
 
         Args:
             text (str): The text to analyze.

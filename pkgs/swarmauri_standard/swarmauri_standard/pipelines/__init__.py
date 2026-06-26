@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of pipeline names (file names without the ".py" extension) and corresponding class names
+# # List of pipeline names (file names without the ".py" extension) and
+# corresponding class names
 # pipeline_files = [
 #     ("swarmauri_standard.pipelines.Pipeline", "Pipeline"),
 # ]

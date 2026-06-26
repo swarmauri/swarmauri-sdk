@@ -333,7 +333,8 @@ def test_scalar_homogeneity(lp_seminorm_default):
 @pytest.mark.unit
 @pytest.mark.parametrize("p", [1.0, 2.0, 3.0])
 def test_special_case_optimization(p, test_data):
-    """Test that special case optimizations for p=1 and p=2 give correct results."""
+    """Test that special case optimizations for p=1 and p=2 give correct
+    results."""
     lp_special = LpSeminorm(p=p)
 
     # Calculate using the general formula for comparison

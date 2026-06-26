@@ -28,26 +28,34 @@ class ImportMemoryModuleTool(ToolBase):
             Parameter(
                 name="package_path",
                 input_type="string",
-                description="Dot-separated package path where the new module should be inserted.",
+                description=(
+                    "Dot-separated package path where the new module should be "  # noqa: E501
+                    "inserted."
+                ),
                 required=True,
             ),
         ]
     )
 
     name: str = "ImportMemoryModuleTool"
-    description: str = "Dynamically imports a module from memory into a specified package path."
+    description: str = (
+        "Dynamically imports a module from memory into a specified "
+        "package path."
+    )
     type: Literal["ImportMemoryModuleTool"] = "ImportMemoryModuleTool"
 
     def __call__(
         self, name: str, code: str, package_path: str
     ) -> Dict[str, str]:
         """
-        Dynamically creates a module from a code snippet and inserts it into the specified package path.
+        Dynamically creates a module from a code snippet and inserts it into
+        the specified package path.
 
         Args:
             name (str): Name of the new module.
             code (str): Python code snippet to include in the module.
-            package_path (str): Dot-separated package path where the new module should be inserted.
+            package_path (str): Dot-separated package path where the new module
+            should be inserted.
         """
         # Implementation adapted from the provided snippet
         # Ensure the package structure exists
@@ -63,7 +71,9 @@ class ImportMemoryModuleTool(ToolBase):
         setattr(current_package, name, module)
         sys.modules[package_path + "." + name] = module
         return {
-            "message": f"{name} has been successfully imported into {package_path}"
+            "message": (
+                f"{name} has been successfully imported into {package_path}"
+            )
         }
 
     @staticmethod
@@ -80,11 +90,13 @@ class ImportMemoryModuleTool(ToolBase):
 
             if module_path not in sys.modules:
                 try:
-                    # Try importing the module; if it exists, this will add it to sys.modules
+                    # Try importing the module; if it exists, this will add it
+                    # to sys.modules
                     imported_module = importlib.import_module(module_path)
                     sys.modules[module_path] = imported_module
                 except ImportError:
-                    # If the module doesn't exist, create a new placeholder module
+                    # If the module doesn't exist, create a new placeholder
+                    # module
                     new_module = types.ModuleType(part)
                     if current_module:
                         setattr(current_module, part, new_module)

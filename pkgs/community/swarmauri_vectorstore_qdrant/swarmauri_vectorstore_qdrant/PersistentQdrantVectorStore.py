@@ -35,8 +35,10 @@ class PersistentQdrantVectorStore(
     VectorStoreBase,
 ):
     """
-    PersistentQdrantVectorStore is a concrete implementation that integrates functionality
-    for saving, loading, storing, and retrieving vector documents, leveraging a locally
+    PersistentQdrantVectorStore is a concrete implementation that integrates
+    functionality
+    for saving, loading, storing, and retrieving vector documents, leveraging a
+    locally
     hosted Qdrant instance as the backend.
     """
 
@@ -122,7 +124,8 @@ class PersistentQdrantVectorStore(
         Add multiple documents to the document store in a batch operation.
 
         Parameters:
-            documents (List[Document]): A list of documents to be added to the store.
+            documents (List[Document]): A list of documents to be added to the
+            store.
         """
         points = [
             PointStruct(
@@ -145,7 +148,8 @@ class PersistentQdrantVectorStore(
             id (str): The unique identifier of the document to retrieve.
 
         Returns:
-            Union[Document, None]: The requested document if found; otherwise, None.
+            Union[Document, None]: The requested document if found; otherwise,
+            None.
         """
         response = self.client.retrieve(
             collection_name=self.collection_name,

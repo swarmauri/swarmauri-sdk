@@ -76,7 +76,8 @@ class RazorpayBillingProvider(
             )
         return value
 
-    # ---------------------------------------------------------------- Products & Prices
+    # ---------------------------------------------------------------- Products
+    # & Prices
     def _create_product(
         self, product_spec: ProductSpec, *, idempotency_key: str
     ) -> ProductRef:
@@ -135,7 +136,8 @@ class RazorpayBillingProvider(
         )
         return ref
 
-    # ---------------------------------------------------------------- Hosted Checkout
+    # ---------------------------------------------------------------- Hosted
+    # Checkout
     def _create_checkout(
         self, price: PriceRef, request: CheckoutRequest
     ) -> CheckoutIntentRef:
@@ -161,7 +163,8 @@ class RazorpayBillingProvider(
         )
         return intent
 
-    # ---------------------------------------------------------------- Online Payments
+    # ---------------------------------------------------------------- Online
+    # Payments
     def _create_payment_intent(self, req: PaymentIntentRequest) -> PaymentRef:
         client = self._rz()
         amount = int(self._require(req, "amount_minor"))
@@ -233,7 +236,8 @@ class RazorpayBillingProvider(
         )
         return ref
 
-    # ---------------------------------------------------------------- Subscriptions
+    # ----------------------------------------------------------------
+    # Subscriptions
     def _create_subscription(
         self, spec: SubscriptionSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -274,7 +278,8 @@ class RazorpayBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Invoicing
+    # ----------------------------------------------------------------
+    # Invoicing
     def _create_invoice(
         self, spec: InvoiceSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -338,7 +343,8 @@ class RazorpayBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Marketplace
+    # ----------------------------------------------------------------
+    # Marketplace
     def _create_split(
         self, spec: SplitSpec, *, idempotency_key: str
     ) -> Mapping[str, Any]:

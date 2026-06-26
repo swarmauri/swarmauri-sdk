@@ -93,7 +93,10 @@ def _jwk_thumbprint_sha256(jwk: Mapping[str, Any]) -> str:
 def _ensure_crypto() -> None:
     if not _CRYPTO_OK:
         raise RuntimeError(
-            "RSAEnvelopeSigner requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "RSAEnvelopeSigner requires 'cryptography'. Install with: pip "
+                "install cryptography"
+            )
         )
 
 
@@ -220,7 +223,10 @@ def _keyref_to_public(key: Any) -> rsa.RSAPublicKey:
             return _load_public_from_pem(data)
         except Exception as e:  # pragma: no cover - invalid format
             raise TypeError(
-                "bytes/str given to _keyref_to_public is not a valid PEM public key."
+                (
+                    "bytes/str given to _keyref_to_public is not a valid PEM "
+                    "public key."
+                )
             ) from e
     raise TypeError("Unsupported verification key format for RSA.")
 
@@ -297,7 +303,10 @@ class RSAEnvelopeSigner(SigningBase):
             sig = sk.sign(payload, padding.PKCS1v15(), hashes.SHA256())
         else:
             raise ValueError(
-                "Unsupported alg for RSAEnvelopeSigner. Use 'RSA-PSS-SHA256' or 'RS256'."
+                (
+                    "Unsupported alg for RSAEnvelopeSigner. Use 'RSA-PSS-SHA256' "  # noqa: E501
+                    "or 'RS256'."
+                )
             )
 
         jwk_hint = (
@@ -330,7 +339,10 @@ class RSAEnvelopeSigner(SigningBase):
                 pubs.append(_keyref_to_public(entry))
         else:
             raise ValueError(
-                "RSAEnvelopeSigner.verify_bytes requires opts['pubkeys'] with one or more RSA public keys."
+                (
+                    "RSAEnvelopeSigner.verify_bytes requires opts['pubkeys'] with "  # noqa: E501
+                    "one or more RSA public keys."
+                )
             )
 
         accepted = 0

@@ -18,7 +18,9 @@ ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
 @ComponentBase.register_type(OAuth21AppClientBase, "KeycloakOAuth21AppClient")
 class KeycloakOAuth21AppClient(OAuth21AppClientBase):
-    """Request OAuth 2.1 tokens from Keycloak using secrets or private key JWT."""
+    """
+    Request OAuth 2.1 tokens from Keycloak using secrets or private key JWT.
+    """
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

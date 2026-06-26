@@ -93,8 +93,10 @@ class SpatialDocEmbedding(EmbeddingBase):
         return all_embeddings
 
     def fit(self, data):
-        # Although this vectorizer might not need to be fitted in the traditional sense,
-        # this method placeholder allows integration into pipelines that expect a fit method.
+        # Although this vectorizer might not need to be fitted in the
+        # traditional sense,
+        # this method placeholder allows integration into pipelines that expect
+        # a fit method.
         pass
 
     def transform(self, data):

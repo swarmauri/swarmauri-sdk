@@ -123,7 +123,8 @@ def test_compute_with_lists(euclidean_inner_product):
 )
 def test_compute_invalid_inputs(euclidean_inner_product, a, b):
     """
-    Test the compute method with invalid inputs to ensure proper error handling.
+    Test the compute method with invalid inputs to ensure proper error
+    handling.
 
     Parameters
     ----------

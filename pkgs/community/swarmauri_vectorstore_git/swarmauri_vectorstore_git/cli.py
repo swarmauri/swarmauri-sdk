@@ -35,7 +35,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--ref",
         default="all",
-        help="Git ref to index. Use 'all' for all refs or 'HEAD' for the current branch.",
+        help=(
+            "Git ref to index. Use 'all' for all refs or 'HEAD' for the "
+            "current branch."
+        ),
     )
     parser.add_argument(
         "--document-kind",

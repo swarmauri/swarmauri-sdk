@@ -13,10 +13,13 @@ logger = logging.getLogger(__name__)
 
 class Program(ProgramBase):
     """
-    Concrete implementation of ProgramBase providing an immutable program object.
+    Concrete implementation of ProgramBase providing an immutable program
+    object.
 
-    This class implements the abstract methods defined in ProgramBase and provides
-    functionality for serialization, diffing, and validation of program objects.
+    This class implements the abstract methods defined in ProgramBase and
+    provides
+    functionality for serialization, diffing, and validation of program
+    objects.
 
     Attributes:
         type: The literal type identifier for this program class
@@ -41,7 +44,8 @@ class Program(ProgramBase):
         Initialize a new Program instance.
 
         Args:
-            id: Unique identifier for the program, auto-generated if not provided
+            id: Unique identifier for the program, auto-generated if not
+            provided
             version: Version information, defaults to "1.0.0" if not provided
             metadata: Additional metadata for the program
             content: The actual program content
@@ -164,7 +168,8 @@ class Program(ProgramBase):
         """
         Validate that this program is well-formed and executable.
 
-        This implementation performs basic validation checks on the program structure.
+        This implementation performs basic validation checks on the program
+        structure.
 
         Returns:
             True if the program is valid, False otherwise
@@ -188,8 +193,10 @@ class Program(ProgramBase):
             logger.error("Program version mismatch or missing in metadata")
             return False
 
-        # Additional validation could be implemented here based on specific requirements
-        # For example, validating the structure of the content, checking for required fields, etc.
+        # Additional validation could be implemented here based on specific
+        # requirements
+        # For example, validating the structure of the content, checking for
+        # required fields, etc.
 
         logger.info(f"Program {self.id} validation successful")
         return True

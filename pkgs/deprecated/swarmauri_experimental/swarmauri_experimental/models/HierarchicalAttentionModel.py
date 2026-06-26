@@ -22,7 +22,8 @@ class HierarchicalAttentionModel(IModel):
         """
         Here, we define and compile the TensorFlow model described earlier.
         """
-        # The following code is adapted from the attention model example provided earlier
+        # The following code is adapted from the attention model example
+        # provided earlier
         vocab_size = 10000  # Size of the vocabulary
         embedding_dim = 256  # Dimension of the embedding layer
         sentence_length = 100  # Max length of a sentence
@@ -90,7 +91,8 @@ class HierarchicalAttentionModel(IModel):
         """
         Predict method to use the loaded model for making predictions.
 
-        This example assumes `input_data` is preprocessed appropriately for the model's expected input.
+        This example assumes `input_data` is preprocessed appropriately for the
+        model's expected input.
         """
         if self._model is None:
             raise ValueError(
@@ -100,6 +102,7 @@ class HierarchicalAttentionModel(IModel):
         # Predicting with the model
         predictions, attention_weights = self._model.predict(input_data)
 
-        # Additional logic to handle and package the predictions and attention weights could be added here
+        # Additional logic to handle and package the predictions and attention
+        # weights could be added here
 
         return predictions, attention_weights

@@ -28,7 +28,8 @@ class ParserBase(IParser, ComponentBase):
     @abstractmethod
     def parse(self, data: Union[str, Any]) -> List[T]:
         """
-        Public method to parse input data (either a str or a Message) into a list of Document instances.
+        Public method to parse input data (either a str or a Message) into a
+        list of Document instances.
 
         This method leverages the abstract _parse_data method which must be
         implemented by subclasses to define specific parsing logic.

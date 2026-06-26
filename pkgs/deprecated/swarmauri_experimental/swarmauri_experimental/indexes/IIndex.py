@@ -13,14 +13,16 @@ class IIndex(ABC):
     - Bulk/Batch operations: batch_insert, batch_delete
     - Persistence: save, load
     - Optimization/Maintenance: optimize, rebuild
-    - Distance Function Management: set_distance_function, get_distance_function
+    - Distance Function Management: set_distance_function,
+      get_distance_function
     - Metadata: info, stats
     - Iteration over items: items
     - Concurrency (locks)
     - Sharding: split, merge
     - Advanced queries: knn_within_radius, mip_search (maximum inner product)
     - Advanced Persistence/Recovery & System Optimization:
-          saveDatabase, loadDatabase, saveIndex, loadIndex, checkpoint, snapshot,
+          saveDatabase, loadDatabase, saveIndex, loadIndex, checkpoint,
+          snapshot,
           write ahead logging, LSM Trees, atomic writes, buffer pools, caching
     """
 
@@ -29,7 +31,8 @@ class IIndex(ABC):
     @abstractmethod
     def build_index(self, data: Iterable[Any]) -> None:
         """
-        Build the index from an iterable of data items (documents, vectors, etc.).
+        Build the index from an iterable of data items (documents, vectors,
+        etc.).
         Some structures may do a batch build for efficiency.
 
         :param data: An iterable of items to index.
@@ -52,7 +55,8 @@ class IIndex(ABC):
         Remove an existing item from the index. May require merging nodes
         or reducing coverage in hierarchical structures.
 
-        :param item: The item to be removed. Matching criteria (reference vs. content)
+        :param item: The item to be removed. Matching criteria (reference vs.
+            content)
                      depends on the implementation.
         """
         pass
@@ -103,7 +107,8 @@ class IIndex(ABC):
     @abstractmethod
     def nearest_neighbor(self, query: Any) -> Tuple[Any, float]:
         """
-        Find the single closest item to the query in the metric or vector space.
+        Find the single closest item to the query in the metric or vector
+        space.
 
         :param query: Query item (e.g., vector, document).
         :return: (closest_item, distance)
@@ -173,7 +178,8 @@ class IIndex(ABC):
         Not all index structures can adapt to a new distance function
         without a full rebuild, so the implementation may vary.
 
-        :param distance_fn: A callable accepting (item1, item2) -> distance float.
+        :param distance_fn: A callable accepting (item1, item2) -> distance
+            float.
         """
         pass
 
@@ -200,8 +206,10 @@ class IIndex(ABC):
     @abstractmethod
     def save(self, filepath: str) -> None:
         """
-        Persist the index and its data structures to disk at the specified path.
-        For large indexes, this may involve writing multiple files or a specialized format.
+        Persist the index and its data structures to disk at the specified
+        path.
+        For large indexes, this may involve writing multiple files or a
+        specialized format.
 
         :param filepath: Where to save the index (e.g., local file path).
         """
@@ -244,7 +252,8 @@ class IIndex(ABC):
     def stats(self) -> Dict[str, Any]:
         """
         Return a dictionary of runtime statistics or performance counters,
-        like average query time, number of expansions, concurrency metrics, etc.
+        like average query time, number of expansions, concurrency metrics,
+        etc.
         """
         pass
 
@@ -294,8 +303,10 @@ class IIndex(ABC):
         Each shard is returned as a separate index instance containing
         a subset of items.
 
-        :param shard_key: A function mapping an item to a shard ID (e.g. hash-based).
-        :return: A list of new index instances, each containing a partition of the data.
+        :param shard_key: A function mapping an item to a shard ID (e.g.
+            hash-based).
+        :return: A list of new index instances, each containing a partition of
+            the data.
         """
         pass
 
@@ -310,12 +321,14 @@ class IIndex(ABC):
         """
         pass
 
-    # --------------------- ADVANCED PERSISTENCE & SYSTEM OPTIMIZATION ---------------------
+    # --------------------- ADVANCED PERSISTENCE & SYSTEM OPTIMIZATION
+    # ---------------------
 
     @abstractmethod
     def save_database(self, filepath: str) -> None:
         """
-        Persist the entire database—including all indexes and configurations—to disk.
+        Persist the entire database—including all indexes and configurations—to
+        disk.
 
         :param filepath: Destination path for the database snapshot.
         """
@@ -324,7 +337,8 @@ class IIndex(ABC):
     @abstractmethod
     def load_database(self, filepath: str) -> None:
         """
-        Load an entire database from disk, restoring all indexes and configurations.
+        Load an entire database from disk, restoring all indexes and
+        configurations.
 
         :param filepath: Source path of the database snapshot.
         """
@@ -389,14 +403,16 @@ class IIndex(ABC):
     @abstractmethod
     def enable_lsm_tree(self) -> None:
         """
-        Enable Log-Structured Merge Tree (LSM Tree) support to optimize write-intensive workloads.
+        Enable Log-Structured Merge Tree (LSM Tree) support to optimize
+        write-intensive workloads.
         """
         pass
 
     @abstractmethod
     def disable_lsm_tree(self) -> None:
         """
-        Disable Log-Structured Merge Tree (LSM Tree) support if it is currently enabled.
+        Disable Log-Structured Merge Tree (LSM Tree) support if it is currently
+        enabled.
         """
         pass
 
@@ -412,17 +428,20 @@ class IIndex(ABC):
     @abstractmethod
     def atomic_write(self, write_operation: Callable[[], None]) -> None:
         """
-        Execute the provided write operation atomically. This ensures that the operation either
+        Execute the provided write operation atomically. This ensures that the
+        operation either
         completes fully or has no effect, even in the presence of failures.
 
-        :param write_operation: A callable that encapsulates the write operations.
+        :param write_operation: A callable that encapsulates the write
+            operations.
         """
         pass
 
     @abstractmethod
     def get_buffer_pool(self) -> Any:
         """
-        Retrieve the current buffer pool used by the index for caching and I/O operations.
+        Retrieve the current buffer pool used by the index for caching and I/O
+        operations.
 
         :return: The buffer pool object.
         """
@@ -440,7 +459,8 @@ class IIndex(ABC):
     @abstractmethod
     def cache_item(self, key: Any, value: Any) -> None:
         """
-        Cache an item in the index's caching system to improve read performance.
+        Cache an item in the index's caching system to improve read
+        performance.
 
         :param key: Identifier for the cached item.
         :param value: The item to be cached.

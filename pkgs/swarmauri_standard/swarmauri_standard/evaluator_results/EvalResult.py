@@ -113,10 +113,17 @@ class EvalResult(EvalResultBase):
         ]
         if non_string_keys:
             logger.error(
-                f"Metadata validation failed: All metadata keys must be strings. Found non-string keys: {non_string_keys}"
+                (
+                    f"Metadata validation failed: All metadata keys must be "
+                    f"strings. Found non-string keys: {non_string_keys}"
+                )
             )
             raise TypeError(
-                f"All metadata keys must be strings. Found non-string keys: {non_string_keys}"
+                (
+                    f"All metadata keys must be strings. Found non-string "
+                    f"keys: "
+                    f"{non_string_keys}"
+                )
             )
 
         # Additional validation logic would go here

@@ -223,7 +223,10 @@ class CfsslCertService(CertServiceBase):
         opts: Optional[Dict[str, Any]] = None,
     ) -> CsrBytes:
         raise NotImplementedError(
-            "CfsslCertService does not build CSRs; use X509CertService for CSR creation."
+            (
+                "CfsslCertService does not build CSRs; use X509CertService "
+                "for CSR creation."
+            )
         )
 
     async def create_self_signed(  # type: ignore[override]
@@ -240,7 +243,10 @@ class CfsslCertService(CertServiceBase):
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
         raise NotImplementedError(
-            "CfsslCertService does not issue self-signed certs; use X509CertService instead."
+            (
+                "CfsslCertService does not issue self-signed certs; use "
+                "X509CertService instead."
+            )
         )
 
     async def sign_cert(  # type: ignore[override]

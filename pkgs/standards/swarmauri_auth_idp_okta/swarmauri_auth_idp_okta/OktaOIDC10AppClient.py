@@ -13,7 +13,9 @@ from swarmauri_base.auth_idp import OIDC10AppClientBase, RetryingAsyncClient
 
 @ComponentBase.register_type(OIDC10AppClientBase, "OktaOIDC10AppClient")
 class OktaOIDC10AppClient(OIDC10AppClientBase):
-    """Request machine-to-machine tokens using Okta's OIDC discovery metadata."""
+    """
+    Request machine-to-machine tokens using Okta's OIDC discovery metadata.
+    """
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

@@ -1,13 +1,18 @@
 """
 JupyterStartKernelTool.py
 
-This module defines the JupyterStartKernelTool, a component that starts a Jupyter kernel instance.
-It leverages the ToolBase and ComponentBase classes from the swarmauri framework to integrate
+This module defines the JupyterStartKernelTool, a component that starts a
+Jupyter kernel instance.
+It leverages the ToolBase and ComponentBase classes from the swarmauri
+framework to integrate
 seamlessly with the system's tool architecture.
 
-The JupyterStartKernelTool supports initializing and configuring a new Jupyter kernel instance,
-logging kernel start events, handling startup errors gracefully, and returning the kernel ID for
-reference. It can also integrate with further tools that execute cells within the started kernel.
+The JupyterStartKernelTool supports initializing and configuring a new Jupyter
+kernel instance,
+logging kernel start events, handling startup errors gracefully, and returning
+the kernel ID for
+reference. It can also integrate with further tools that execute cells within
+the started kernel.
 """
 
 import logging
@@ -25,7 +30,8 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterStartKernelTool")
 class JupyterStartKernelTool(ToolBase):
     """
-    JupyterStartKernelTool is a tool that initializes and configures a Jupyter kernel instance.
+    JupyterStartKernelTool is a tool that initializes and configures a Jupyter
+    kernel instance.
     """
 
     version: str = "1.0.0"
@@ -34,14 +40,21 @@ class JupyterStartKernelTool(ToolBase):
             Parameter(
                 name="kernel_name",
                 input_type="string",
-                description="The name of the Jupyter kernel to start (e.g., 'python3').",
+                description=(
+                    "The name of the Jupyter kernel to start (e.g., "
+                    "'python3')."
+                ),
                 required=False,
                 default="python3",
             ),
             Parameter(
                 name="kernel_spec",
                 input_type="object",
-                description="Optional dictionary to configure kernel specifications (if supported).",
+                description=(
+                    "Optional dictionary to configure kernel specifications "
+                    "(if "
+                    "supported)."
+                ),
                 required=False,
                 default=None,
             ),
@@ -60,7 +73,8 @@ class JupyterStartKernelTool(ToolBase):
         kernel_spec: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, str]:
         """
-        Starts a new Jupyter kernel instance with the provided kernel name and optional specifications.
+        Starts a new Jupyter kernel instance with the provided kernel name and
+        optional specifications.
         """
         try:
             # Initialize the kernel manager using the class attribute
@@ -77,7 +91,7 @@ class JupyterStartKernelTool(ToolBase):
 
             # Log the successful start
             logger.info(
-                f"Started Jupyter kernel '{kernel_name}' with ID '{kernel_id}'."
+                f"Started Jupyter kernel '{kernel_name}' with ID '{kernel_id}'."  # noqa: E501
             )
             return {"kernel_name": kernel_name, "kernel_id": kernel_id}
 

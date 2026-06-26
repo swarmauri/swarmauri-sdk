@@ -20,8 +20,10 @@ class LpMetric(MetricBase):
     """
     Lp metric implementation for measuring distances between points.
 
-    This class implements the Lp metric (Minkowski distance) which is a generalization
-    of the Euclidean, Manhattan, and Chebyshev distances. The Lp distance between
+    This class implements the Lp metric (Minkowski distance) which is a
+    generalization
+    of the Euclidean, Manhattan, and Chebyshev distances. The Lp distance
+    between
     two points x and y is defined as (sum(|x_i - y_i|^p))^(1/p) for p > 1.
 
     Attributes
@@ -129,7 +131,11 @@ class LpMetric(MetricBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    f"Inputs must have the same shape. Got {x_array.shape} and {y_array.shape}"
+                    (
+                        f"Inputs must have the same shape. Got {x_array.shape} "  # noqa: E501
+                        f"and "
+                        f"{y_array.shape}"
+                    )
                 )
 
             # Calculate Lp distance: (sum(|x_i - y_i|^p))^(1/p)
@@ -202,7 +208,11 @@ class LpMetric(MetricBase):
 
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        f"Matrices must have the same shape. Got {x_array.shape} and {y_array.shape}"
+                        (
+                            f"Matrices must have the same shape. Got "
+                            f"{x_array.shape} and "
+                            f"{y_array.shape}"
+                        )
                     )
 
                 # Calculate element-wise distances
@@ -210,8 +220,10 @@ class LpMetric(MetricBase):
                     np.abs(x_array - y_array) ** self.p, axis=-1
                 ) ** (1 / self.p)
 
-                # Convert back to appropriate type (assuming matrix implementation has from_array method)
-                # This is a simplification - actual implementation depends on the IMatrix implementation
+                # Convert back to appropriate type (assuming matrix
+                # implementation has from_array method)
+                # This is a simplification - actual implementation depends on
+                # the IMatrix implementation
                 return distances_array.tolist()
 
             else:

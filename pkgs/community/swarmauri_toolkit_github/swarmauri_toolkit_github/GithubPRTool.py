@@ -14,13 +14,20 @@ class GithubPRTool(ToolBase):
             Parameter(
                 name="action",
                 input_type="string",
-                description="The action to perform on the GitHub API, e.g., 'create_pull', 'merge_pull', 'close_pull', 'get_pull', 'list_pulls' etc.",
+                description=(
+                    "The action to perform on the GitHub API, e.g., "
+                    "'create_pull', 'merge_pull', 'close_pull', 'get_pull', "
+                    "'list_pulls' etc."
+                ),
                 required=True,
             ),
             Parameter(
                 name="repo_name",
                 input_type="string",
-                description="The full name of the repository to interact with, e.g. 'owner/repository'.",
+                description=(
+                    "The full name of the repository to interact with, e.g. "
+                    "'owner/repository'."
+                ),
                 required=False,
             ),
             Parameter(
@@ -44,7 +51,10 @@ class GithubPRTool(ToolBase):
             Parameter(
                 name="base",
                 input_type="string",
-                description="The base branch you're merging into, typically 'main' or 'master'",
+                description=(
+                    "The base branch you're merging into, typically 'main' or "
+                    "'master'"
+                ),
                 required=False,
             ),
             Parameter(

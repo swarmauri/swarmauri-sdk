@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of tracing names (file names without the ".py" extension) and corresponding class names
+# # List of tracing names (file names without the ".py" extension) and
+# corresponding class names
 # tracing_files = [
 #     ("swarmauri_standard.tracing.CallableTracer", "CallableTracer"),
 #     ("swarmauri_standard.tracing.ChainTracer", "ChainTracer"),

@@ -8,7 +8,10 @@ from swarmauri_standard.distances.ChiSquaredDistance import (
 class ChiSquaredDistance(_StandardChiSquaredDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "ChiSquaredDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "ChiSquaredDistance is deprecated and will be removed from "
+                "the active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

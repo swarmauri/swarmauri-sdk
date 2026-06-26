@@ -55,7 +55,8 @@ class DynamicSchemaExampleEnvelope(ComponentBase):
 
 
 class ConfigHydratingFactory:
-    """Small test-local factory that hydrates specs through the dynamic envelope."""
+    """Small test-local factory that hydrates specs through the dynamic
+    envelope."""
 
     def create_from_spec(self, spec: dict) -> DynamicSchemaExampleBase:
         envelope = DynamicSchemaExampleEnvelope.model_validate(
@@ -108,7 +109,9 @@ def test_factory_hydrates_concrete_component_from_serialized_spec():
 
 @pytest.mark.unit
 def test_api_payload_validation_preserves_concrete_component_type():
-    """API envelopes keep the concrete component instead of returning a dict."""
+    """
+    API envelopes keep the concrete component instead of returning a dict.
+    """
 
     payload = {
         "type": "DynamicSchemaExampleEnvelope",

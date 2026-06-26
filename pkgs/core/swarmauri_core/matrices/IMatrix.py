@@ -29,8 +29,10 @@ class IMatrix(ABC):
     """
     Interface abstraction for matrix operations.
 
-    This interface defines the standard operations and properties that all matrix
-    implementations must support, providing a common API for linear operators and
+    This interface defines the standard operations and properties that all
+    matrix
+    implementations must support, providing a common API for linear operators
+    and
     2D structures.
     """
 

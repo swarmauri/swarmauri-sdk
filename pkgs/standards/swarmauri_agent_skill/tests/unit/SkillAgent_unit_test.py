@@ -57,7 +57,7 @@ class EchoSkillLLM(LLMBase):
         user_messages = [
             msg.content for msg in conversation.history if msg.role == "user"
         ]
-        return f"systems={len(system_messages)};users={len(user_messages)};last={user_messages[-1]}"
+        return f"systems={len(system_messages)};users={len(user_messages)};last={user_messages[-1]}"  # noqa: E501
 
 
 @ComponentBase.register_type(SkillBase, "AgentTestSkill")

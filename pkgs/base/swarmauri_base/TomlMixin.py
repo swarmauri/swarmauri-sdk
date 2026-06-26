@@ -33,7 +33,8 @@ class TomlMixin(BaseModel):
         # Load the JSON string into a Python dictionary
         json_data = json.loads(self.model_dump_json())
 
-        # Function to recursively remove specific keys and handle api_key placeholders
+        # Function to recursively remove specific keys and handle api_key
+        # placeholders
         def process_fields(data, fields_to_exclude):
             """Recursively filter fields and apply placeholders."""
             if isinstance(data, dict):

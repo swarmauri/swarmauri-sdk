@@ -20,8 +20,10 @@ class WeightedL2InnerProduct(InnerProductBase):
     """
     Weighted L2 inner product for real/complex functions.
 
-    This class implements a weighted L2 inner product, which defines an inner product
-    with position-dependent weights for weighted L2 spaces. The weight function must
+    This class implements a weighted L2 inner product, which defines an inner
+    product
+    with position-dependent weights for weighted L2 spaces. The weight function
+    must
     be strictly positive.
 
     Attributes
@@ -126,7 +128,10 @@ class WeightedL2InnerProduct(InnerProductBase):
             If the dimensions of inputs don't match
         """
         logger.debug(
-            f"Computing weighted L2 inner product between {type(a)} and {type(b)}"
+            (
+                f"Computing weighted L2 inner product between {type(a)} and "
+                f"{type(b)}"
+            )
         )
 
         # Handle callable functions (requires numerical integration)
@@ -139,7 +144,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             # In practice, replace with proper numerical integration
             try:
                 # Example: integrate over [0,1] with 1000 points
-                # This is a simplification; actual implementation would depend on the domain
+                # This is a simplification; actual implementation would depend
+                # on the domain
                 x = np.linspace(0, 1, 1000)
                 weights = self.weight_function(x)
 
@@ -164,7 +170,11 @@ class WeightedL2InnerProduct(InnerProductBase):
                 return complex(result)
             except Exception as e:
                 logger.error(
-                    f"Error computing inner product for callable functions: {str(e)}"
+                    (
+                        f"Error computing inner product for callable "
+                        f"functions: "
+                        f"{str(e)}"
+                    )
                 )
                 raise
 
@@ -180,12 +190,15 @@ class WeightedL2InnerProduct(InnerProductBase):
                     f"Dimension mismatch: {a_array.shape} vs {b_array.shape}"
                 )
                 raise ValueError(
-                    f"Dimensions must match: {a_array.shape} vs {b_array.shape}"
+                    f"Dimensions must match: {a_array.shape} vs "
+                    f"{b_array.shape}"
                 )
 
             # Get weights for each position
-            # For simplicity, we assume the arrays represent points where we evaluate the weight
-            # In practice, this might need to be adapted based on what the arrays represent
+            # For simplicity, we assume the arrays represent points where we
+            # evaluate the weight
+            # In practice, this might need to be adapted based on what the
+            # arrays represent
             weights = self.weight_function(
                 np.arange(len(a_array)) if a_array.ndim == 1 else None
             )
@@ -197,10 +210,14 @@ class WeightedL2InnerProduct(InnerProductBase):
                 weights_array = np.array(weights)
                 if weights_array.shape != a_array.shape:
                     logger.error(
-                        f"Weight shape {weights_array.shape} doesn't match input shape {a_array.shape}"
+                        f"Weight shape {weights_array.shape} doesn't match input shape {a_array.shape}"  # noqa: E501
                     )
                     raise ValueError(
-                        f"Weight shape must match input shape: {weights_array.shape} vs {a_array.shape}"
+                        (
+                            f"Weight shape must match input shape: "
+                            f"{weights_array.shape} "
+                            f"vs {a_array.shape}"
+                        )
                     )
 
             # Check positivity of weights
@@ -215,7 +232,10 @@ class WeightedL2InnerProduct(InnerProductBase):
         else:
             logger.error(f"Unsupported types: {type(a)} and {type(b)}")
             raise TypeError(
-                f"Unsupported types for WeightedL2InnerProduct: {type(a)} and {type(b)}"
+                (
+                    f"Unsupported types for WeightedL2InnerProduct: {type(a)} "
+                    f"and {type(b)}"
+                )
             )
 
     def check_conjugate_symmetry(
@@ -224,7 +244,8 @@ class WeightedL2InnerProduct(InnerProductBase):
         b: Union[Vector, Matrix, Callable],
     ) -> bool:
         """
-        Check if the weighted L2 inner product satisfies the conjugate symmetry property:
+        Check if the weighted L2 inner product satisfies the conjugate symmetry
+        property:
         <a, b> = <b, a>* (complex conjugate).
 
         Parameters
@@ -255,7 +276,10 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             if not is_symmetric:
                 logger.warning(
-                    f"Conjugate symmetry check failed: <a,b>={inner_ab}, <b,a>*={inner_ba_conj}"
+                    (
+                        f"Conjugate symmetry check failed: <a,b>={inner_ab}, "
+                        f"<b,a>*={inner_ba_conj}"
+                    )
                 )
 
             return is_symmetric
@@ -272,7 +296,8 @@ class WeightedL2InnerProduct(InnerProductBase):
         beta: float,
     ) -> bool:
         """
-        Check if the weighted L2 inner product satisfies linearity in the first argument:
+        Check if the weighted L2 inner product satisfies linearity in the first
+        argument:
         <alpha*a1 + beta*a2, b> = alpha*<a1, b> + beta*<a2, b>.
 
         Parameters
@@ -294,7 +319,10 @@ class WeightedL2InnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            f"Checking linearity in first argument with alpha={alpha}, beta={beta}"
+            (
+                f"Checking linearity in first argument with alpha={alpha}, "
+                f"beta={beta}"
+            )
         )
 
         try:
@@ -343,7 +371,8 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             if not is_linear:
                 logger.warning(
-                    f"Linearity check failed: <alpha*a1+beta*a2,b>={left_side}, "
+                    f"Linearity check failed: "
+                    f"<alpha*a1+beta*a2,b>={left_side}, "
                     f"alpha*<a1,b>+beta*<a2,b>={right_side}"
                 )
 
@@ -354,7 +383,8 @@ class WeightedL2InnerProduct(InnerProductBase):
 
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
         """
-        Check if the weighted L2 inner product satisfies the positivity property:
+        Check if the weighted L2 inner product satisfies the positivity
+        property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
 
         Parameters
@@ -376,7 +406,10 @@ class WeightedL2InnerProduct(InnerProductBase):
             # Check if it's real (should be for any inner product)
             if not np.isclose(inner_product.imag, 0):
                 logger.warning(
-                    f"Inner product <a,a> has non-zero imaginary part: {inner_product.imag}"
+                    (
+                        f"Inner product <a,a> has non-zero imaginary part: "
+                        f"{inner_product.imag}"
+                    )
                 )
                 return False
 
@@ -417,7 +450,8 @@ class WeightedL2InnerProduct(InnerProductBase):
         Raises
         ------
         ValueError
-            If the inner product is negative (which shouldn't happen for a valid inner product)
+            If the inner product is negative (which shouldn't happen for a
+            valid inner product)
         """
         logger.debug(f"Computing norm for {type(a)}")
 
@@ -428,7 +462,11 @@ class WeightedL2InnerProduct(InnerProductBase):
             if inner_product.imag != 0 or inner_product.real < 0:
                 logger.error(f"Invalid inner product value: {inner_product}")
                 raise ValueError(
-                    f"Inner product <a,a> must be real and non-negative, got {inner_product}"
+                    (
+                        f"Inner product <a,a> must be real and non-negative, "
+                        f"got "
+                        f"{inner_product}"
+                    )
                 )
 
             return np.sqrt(inner_product.real)

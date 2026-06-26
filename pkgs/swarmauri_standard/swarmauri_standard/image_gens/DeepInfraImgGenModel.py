@@ -13,14 +13,18 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ImageGenBase, "DeepInfraImgGenModel")
 class DeepInfraImgGenModel(ImageGenBase):
     """
-    A model class for generating images from text prompts using DeepInfra's image generation API.
+    A model class for generating images from text prompts using DeepInfra's
+    image generation API.
 
     Attributes:
         api_key (str): The API key for authenticating with the DeepInfra API.
-        allowed_models (List[str]): A list of available models for image generation.
-        asyncio (ClassVar): The asyncio module for handling asynchronous operations.
+        allowed_models (List[str]): A list of available models for image
+        generation.
+        asyncio (ClassVar): The asyncio module for handling asynchronous
+        operations.
         name (str): The name of the model to be used for image generation.
-        type (Literal["DeepInfraImgGenModel"]): The type identifier for the model class.
+        type (Literal["DeepInfraImgGenModel"]): The type identifier for the
+        model class.
 
     Link to Allowed Models: https://deepinfra.com/models/text-to-image/
     Link to API KEY: https://deepinfra.com/dash/api_keys
@@ -44,11 +48,13 @@ class DeepInfraImgGenModel(ImageGenBase):
         """
         Initializes the DeepInfraImgGenModel instance.
 
-        This constructor sets up HTTP clients for both synchronous and asynchronous
+        This constructor sets up HTTP clients for both synchronous and
+        asynchronous
         operations and configures request headers with the provided API key.
 
         Args:
-            **kwargs (Dict[str, Any]): Additional keyword arguments, which may includes api_key and allowed_models.
+            **kwargs (Dict[str, Any]): Additional keyword arguments, which may
+            includes api_key and allowed_models.
         """
         super().__init__(**kwargs)
         self._headers = {
@@ -107,7 +113,8 @@ class DeepInfraImgGenModel(ImageGenBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     async def _async_send_request(self, prompt: str) -> dict:
         """
-        Sends an asynchronous request to the DeepInfra API for image generation.
+        Sends an asynchronous request to the DeepInfra API for image
+        generation.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -126,7 +133,8 @@ class DeepInfraImgGenModel(ImageGenBase):
 
     def generate_image(self, prompt: str) -> str:
         """
-        Generates an image synchronously based on the provided prompt and returns it as a base64-encoded string.
+        Generates an image synchronously based on the provided prompt and
+        returns it as a base64-encoded string.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -140,7 +148,8 @@ class DeepInfraImgGenModel(ImageGenBase):
 
     async def agenerate_image(self, prompt: str) -> str:
         """
-        Generates an image asynchronously based on the provided prompt and returns it as a base64-encoded string.
+        Generates an image asynchronously based on the provided prompt and
+        returns it as a base64-encoded string.
 
         Args:
             prompt (str): The text prompt used for generating the image.
@@ -157,13 +166,15 @@ class DeepInfraImgGenModel(ImageGenBase):
 
     def batch_generate(self, prompts: List[str]) -> List[str]:
         """
-        Generates images for a batch of prompts synchronously and returns them as a list of base64-encoded strings.
+        Generates images for a batch of prompts synchronously and returns them
+        as a list of base64-encoded strings.
 
         Args:
             prompts (List[str]): A list of text prompts for image generation.
 
         Returns:
-            List[str]: A list of base64-encoded representations of the generated images.
+            List[str]: A list of base64-encoded representations of the
+            generated images.
         """
         return [self.generate_image(prompt) for prompt in prompts]
 
@@ -171,14 +182,16 @@ class DeepInfraImgGenModel(ImageGenBase):
         self, prompts: List[str], max_concurrent: int = 5
     ) -> List[str]:
         """
-        Generates images for a batch of prompts asynchronously and returns them as a list of base64-encoded strings.
+        Generates images for a batch of prompts asynchronously and returns them
+        as a list of base64-encoded strings.
 
         Args:
             prompts (List[str]): A list of text prompts for image generation.
             max_concurrent (int): The maximum number of concurrent tasks.
 
         Returns:
-            List[str]: A list of base64-encoded representations of the generated images.
+            List[str]: A list of base64-encoded representations of the
+            generated images.
         """
 
         try:

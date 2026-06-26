@@ -1,8 +1,10 @@
 """
 test_JupyterReadNotebookTool.py
 
-This module contains pytest-based unit tests for the JupyterReadNotebookTool class.
-It verifies the functionality of reading and validating Jupyter notebooks, as well
+This module contains pytest-based unit tests for the JupyterReadNotebookTool
+class.
+It verifies the functionality of reading and validating Jupyter notebooks, as
+well
 as handling various error conditions.
 """
 
@@ -18,7 +20,8 @@ def fake_nb_validation(*args, **kwargs):
     """
     Helper function to simulate a notebook validation error by raising
     NotebookValidationError with a dummy exception object that has the
-    required attributes: 'message', 'instance', 'validator', 'relative_schema_path',
+    required attributes: 'message', 'instance', 'validator',
+    'relative_schema_path',
     and 'relative_path'.
     """
     from types import SimpleNamespace
@@ -36,7 +39,8 @@ def fake_nb_validation(*args, **kwargs):
 @pytest.fixture
 def jupyter_read_notebook_tool() -> JupyterReadNotebookTool:
     """
-    A pytest fixture that returns an instance of JupyterReadNotebookTool for use in tests.
+    A pytest fixture that returns an instance of JupyterReadNotebookTool for
+    use in tests.
     """
     return JupyterReadNotebookTool()
 
@@ -103,7 +107,8 @@ def test_call_validation_error(
     jupyter_read_notebook_tool: JupyterReadNotebookTool,
 ) -> None:
     """
-    Test handling of a NotebookValidationError when the notebook structure is invalid.
+    Test handling of a NotebookValidationError when the notebook structure is
+    invalid.
     """
     result = jupyter_read_notebook_tool("invalid_notebook.ipynb", as_version=4)
     assert "error" in result
@@ -117,7 +122,8 @@ def test_call_unexpected_exception(
     mock_read: MagicMock, jupyter_read_notebook_tool: JupyterReadNotebookTool
 ) -> None:
     """
-    Test that an unexpected exception is handled gracefully with an appropriate error message.
+    Test that an unexpected exception is handled gracefully with an appropriate
+    error message.
     """
     result = jupyter_read_notebook_tool("any_path.ipynb", as_version=4)
     assert "error" in result

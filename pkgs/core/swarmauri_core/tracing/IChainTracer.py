@@ -17,7 +17,8 @@ class IChainTracer(ABC):
         Processes a sequence of operations defined in a chain.
 
         Args:
-            chain (List[Tuple[Any, Callable[..., Any], List[Any], Dict[str, Any]]]): A list where each tuple contains:
+            chain (List[Tuple[Any, Callable[..., Any], List[Any], Dict[str,
+            Any]]]): A list where each tuple contains:
                 - The trace context or reference required by the function.
                 - The function (method of IChainTracer) to execute.
                 - A list of positional arguments for the function.

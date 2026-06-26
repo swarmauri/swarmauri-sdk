@@ -28,11 +28,13 @@ class PseudometricBase(IPseudometric, ComponentBase):
     2. Symmetry: d(x,y) = d(y,x)
     3. Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
 
-    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, meaning it may not
+    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, meaning it may
+    not
     distinguish between distinct points.
 
     This base class provides skeleton implementations for all required methods
-    of the IPseudometric interface. Derived classes should override these methods
+    of the IPseudometric interface. Derived classes should override these
+    methods
     with actual implementations.
     """
 
@@ -86,15 +88,18 @@ class PseudometricBase(IPseudometric, ComponentBase):
 
         Parameters
         ----------
-        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The first collection of objects
-        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The second collection of objects
 
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the distance between
+            xs[i] and ys[j]
 
         Raises
         ------
@@ -137,7 +142,10 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_non_negativity method not implemented")
         raise NotImplementedError(
-            "The check_non_negativity method must be implemented by derived classes"
+            (
+                "The check_non_negativity method must be implemented by "
+                "derived classes"
+            )
         )
 
     def check_symmetry(
@@ -206,7 +214,10 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_triangle_inequality method not implemented")
         raise NotImplementedError(
-            "The check_triangle_inequality method must be implemented by derived classes"
+            (
+                "The check_triangle_inequality method must be implemented by "
+                "derived classes"
+            )
         )
 
     def check_weak_identity(
@@ -230,7 +241,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         Returns
         -------
         bool
-            True if the pseudometric properly handles the weak identity property
+            True if the pseudometric properly handles the weak identity
+            property
 
         Raises
         ------
@@ -239,5 +251,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_weak_identity method not implemented")
         raise NotImplementedError(
-            "The check_weak_identity method must be implemented by derived classes"
+            (
+                "The check_weak_identity method must be implemented by "
+                "derived classes"
+            )
         )

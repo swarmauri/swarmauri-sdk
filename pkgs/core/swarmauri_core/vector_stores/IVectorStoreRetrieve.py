@@ -7,8 +7,10 @@ class IVectorStoreRetrieve(ABC):
     """
     Abstract base class for document retrieval operations.
 
-    This class defines the interface for retrieving documents based on a query or other criteria.
-    Implementations may use various indexing or search technologies to fulfill these retrievals.
+    This class defines the interface for retrieving documents based on a query
+    or other criteria.
+    Implementations may use various indexing or search technologies to fulfill
+    these retrievals.
     """
 
     @abstractmethod

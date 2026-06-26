@@ -225,13 +225,15 @@ def test_check_triangle_inequality(x_axis_projection, sample_points):
 @pytest.mark.unit
 def test_check_weak_identity(x_axis_projection, y_axis_projection):
     """Test weak identity property check."""
-    # Points with same x but different y (should have distance 0 in x-projection)
+    # Points with same x but different y (should have distance 0 in
+    # x-projection)
     assert x_axis_projection.check_weak_identity((1, 2), (1, 5)) is True
 
     # Points with different x (should have distance > 0 in x-projection)
     assert x_axis_projection.check_weak_identity((1, 2), (3, 5)) is True
 
-    # Points with same y but different x (should have distance 0 in y-projection)
+    # Points with same y but different x (should have distance 0 in
+    # y-projection)
     assert y_axis_projection.check_weak_identity((2, 1), (5, 1)) is True
 
     # Points with different y (should have distance > 0 in y-projection)

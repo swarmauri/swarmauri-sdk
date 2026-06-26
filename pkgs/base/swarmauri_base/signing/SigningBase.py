@@ -19,7 +19,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 async def _stream_to_bytes(stream: ByteStream) -> bytes:
-    """Collect a synchronous or asynchronous byte stream into a single buffer."""
+    """
+    Collect a synchronous or asynchronous byte stream into a single buffer.
+    """
 
     if isinstance(stream, (bytes, bytearray)):
         return bytes(stream)

@@ -15,13 +15,17 @@ logger = logging.getLogger(__name__)
 )
 class BhattacharyyaCoefficientSimilarity(SimilarityBase):
     """
-    Bhattacharyya Coefficient Similarity metric for measuring overlap between probability distributions.
+    Bhattacharyya Coefficient Similarity metric for measuring overlap between
+    probability distributions.
 
-    This similarity measure calculates the Bhattacharyya coefficient, which quantifies the
-    amount of overlap between two probability distributions. It's commonly used for comparing
+    This similarity measure calculates the Bhattacharyya coefficient, which
+    quantifies the
+    amount of overlap between two probability distributions. It's commonly used
+    for comparing
     histograms or probability density functions.
 
-    The coefficient is defined as the sum of the square root of the product of corresponding
+    The coefficient is defined as the sum of the square root of the product of
+    corresponding
     probabilities from both distributions: BC(p,q) = ∑ √(p_i * q_i)
 
     Attributes
@@ -36,7 +40,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculate the Bhattacharyya coefficient between two probability distributions.
+        Calculate the Bhattacharyya coefficient between two probability
+        distributions.
 
         Parameters
         ----------
@@ -53,7 +58,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If the distributions have incompatible dimensions or are not normalized
+            If the distributions have incompatible dimensions or are not
+            normalized
         TypeError
             If the input types are not supported
         """
@@ -73,7 +79,11 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             # Check if distributions have the same dimensions
             if p.shape != q.shape:
                 raise ValueError(
-                    f"Distributions must have the same dimensions: {p.shape} != {q.shape}"
+                    (
+                        f"Distributions must have the same dimensions: "
+                        f"{p.shape} != "
+                        f"{q.shape}"
+                    )
                 )
 
             # Check for negative probabilities
@@ -106,14 +116,16 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         self, x: ComparableType, ys: Sequence[ComparableType]
     ) -> List[float]:
         """
-        Calculate Bhattacharyya coefficients between one distribution and multiple others.
+        Calculate Bhattacharyya coefficients between one distribution and
+        multiple others.
 
         Parameters
         ----------
         x : ComparableType
             Reference probability distribution
         ys : Sequence[ComparableType]
-            Sequence of probability distributions to compare against the reference
+            Sequence of probability distributions to compare against the
+            reference
 
         Returns
         -------
@@ -123,7 +135,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If any distributions have incompatible dimensions or are not normalized
+            If any distributions have incompatible dimensions or are not
+            normalized
         TypeError
             If any input types are not supported
         """
@@ -140,7 +153,10 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
                 # Check if reference distribution is normalized
                 if not np.isclose(np.sum(p_array), 1.0, rtol=1e-5):
                     raise ValueError(
-                        f"Reference distribution is not normalized: sum = {np.sum(p_array)}"
+                        (
+                            f"Reference distribution is not normalized: sum = "
+                            f"{np.sum(p_array)}"
+                        )
                     )
 
             results = []
@@ -150,19 +166,28 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
                         # Dictionary case - handle in similarity method
                         sim = self.similarity(p_dict, y)
                     elif p_array is not None:
-                        # Array case - optimize by reusing the converted reference
+                        # Array case - optimize by reusing the converted
+                        # reference
                         q = np.array(y, dtype=float)
 
                         # Check if distribution is normalized
                         if not np.isclose(np.sum(q), 1.0, rtol=1e-5):
                             raise ValueError(
-                                f"Distribution at index {i} is not normalized: sum = {np.sum(q)}"
+                                (
+                                    f"Distribution at index {i} is not "
+                                    f"normalized: sum = "
+                                    f"{np.sum(q)}"
+                                )
                             )
 
                         # Check dimensions
                         if p_array.shape != q.shape:
                             raise ValueError(
-                                f"Distribution at index {i} has incompatible dimensions: {p_array.shape} != {q.shape}"
+                                (
+                                    f"Distribution at index {i} has "
+                                    f"incompatible dimensions: "
+                                    f"{p_array.shape} != {q.shape}"
+                                )
                             )
 
                         # Calculate Bhattacharyya coefficient
@@ -186,10 +211,12 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
         """
-        Calculate the Bhattacharyya distance between two probability distributions.
+        Calculate the Bhattacharyya distance between two probability
+        distributions.
 
         The Bhattacharyya distance is defined as: -ln(BC(p,q))
-        For normalized probability distributions, this is equivalent to: 1 - BC(p,q)
+        For normalized probability distributions, this is equivalent to: 1 -
+        BC(p,q)
 
         Parameters
         ----------
@@ -206,7 +233,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
         Raises
         ------
         ValueError
-            If the distributions have incompatible dimensions or are not normalized
+            If the distributions have incompatible dimensions or are not
+            normalized
         TypeError
             If the input types are not supported
         """
@@ -215,7 +243,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             bc = self.similarity(x, y)
 
             # Convert to a dissimilarity measure in [0,1]
-            # For probability distributions, 1-BC is a valid dissimilarity measure
+            # For probability distributions, 1-BC is a valid dissimilarity
+            # measure
             return 1.0 - bc
 
         except Exception as e:

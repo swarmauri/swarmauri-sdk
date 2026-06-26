@@ -386,7 +386,8 @@ def test_aggregate_scores_empty(evaluator):
     """Test aggregation with empty inputs."""
     score, metadata = evaluator.aggregate_scores([], [])
 
-    # Should use the base implementation which typically returns 0 for empty input
+    # Should use the base implementation which typically returns 0 for empty
+    # input
     assert isinstance(score, float)
     assert isinstance(metadata, dict)
 

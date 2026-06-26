@@ -11,7 +11,8 @@ class CypherQueryTool(ToolBase):
         self.user = user
         self.password = password
 
-        # Define only the 'query' parameter since uri, user, and password are set at initialization
+        # Define only the 'query' parameter since uri, user, and password are
+        # set at initialization
         parameters = [
             Parameter(
                 name="query",

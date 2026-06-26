@@ -33,7 +33,8 @@ def test_jupyter_display_tool_call_text(
 ) -> None:
     """
     Tests calling the JupyterDisplayTool with plain text data_format.
-    Verifies that the response includes a success status and that the display function is called.
+    Verifies that the response includes a success status and that the display
+    function is called.
     """
     data = "Hello, world!"
     response = jupyter_display_tool(data, data_format="text")
@@ -49,7 +50,8 @@ def test_jupyter_display_tool_call_html(
 ) -> None:
     """
     Tests calling the JupyterDisplayTool with HTML data_format.
-    Verifies that the response includes a success status and that the display function is called.
+    Verifies that the response includes a success status and that the display
+    function is called.
     """
     data = "<b>Hello, HTML!</b>"
     response = jupyter_display_tool(data, data_format="html")
@@ -65,7 +67,8 @@ def test_jupyter_display_tool_call_latex(
 ) -> None:
     """
     Tests calling the JupyterDisplayTool with LaTeX data_format.
-    Verifies that the response includes a success status and that the display function is called.
+    Verifies that the response includes a success status and that the display
+    function is called.
     """
     data = r"\frac{1}{2} \text{ is a fraction.}"
     response = jupyter_display_tool(data, data_format="latex")
@@ -81,7 +84,8 @@ def test_jupyter_display_tool_call_image(
 ) -> None:
     """
     Tests calling the JupyterDisplayTool with image data_format.
-    Verifies that the response includes a success status and that the display function is called.
+    Verifies that the response includes a success status and that the display
+    function is called.
     """
     data = "test_image.png"
     response = jupyter_display_tool(data, data_format="image")
@@ -97,7 +101,8 @@ def test_jupyter_display_tool_call_auto(
 ) -> None:
     """
     Tests calling the JupyterDisplayTool with the default (auto) data_format.
-    In this scenario, it should treat the data as text and display it accordingly.
+    In this scenario, it should treat the data as text and display it
+    accordingly.
     """
     data = "Auto-detected text content."
     response = jupyter_display_tool(data)
@@ -112,7 +117,8 @@ def test_jupyter_display_tool_call_error(
     mock_display: MagicMock, jupyter_display_tool: JupyterDisplayTool
 ) -> None:
     """
-    Tests error handling in the JupyterDisplayTool by causing an exception to be raised
+    Tests error handling in the JupyterDisplayTool by causing an exception to
+    be raised
     during display. Verifies that an error response is returned.
     """
     mock_display.side_effect = Exception("Display function error")

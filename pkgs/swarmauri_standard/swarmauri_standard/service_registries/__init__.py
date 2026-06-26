@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of service_registry name (file names without the ".py" extension) and corresponding class names
+# # List of service_registry name (file names without the ".py" extension) and
+# corresponding class names
 # service_registry_files = [
 #     (
 #         "swarmauri_standard.service_registries.ServiceRegistry",

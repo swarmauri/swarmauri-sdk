@@ -9,7 +9,10 @@ from swarmauri_parser_keywordextractor import KeywordExtractorParser
 @pytest.mark.parametrize(
     "text",
     [
-        "Artificial intelligence and machine learning are transforming technology",
+        (
+            "Artificial intelligence and machine learning are "
+            "transforming technology"
+        ),
     ],
 )
 def test_readme_usage_example(text: str) -> None:

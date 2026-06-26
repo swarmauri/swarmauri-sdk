@@ -10,7 +10,7 @@ from swarmauri_tool_jupyterdisplay.JupyterDisplayTool import JupyterDisplayTool
 from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool import (
     JupyterDisplayHtmlTool,
 )
-from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import (
+from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import (  # noqa: E501
     JupyterExecuteAndConvertTool,
 )
 from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import (
@@ -19,7 +19,7 @@ from swarmauri_tool_jupyterexecutecell.JupyterExecuteCellTool import (
 from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
     JupyterExecuteNotebookTool,
 )
-from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (
+from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (  # noqa: E501
     JupyterExecuteNotebookWithParametersTool,
 )
 from swarmauri_tool_jupyterexporthtml.JupyterExportHtmlTool import (
@@ -53,7 +53,7 @@ from swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool import (
 from swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool import (
     JupyterStartKernelTool,
 )
-from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
+from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (  # noqa: E501
     JupyterValidateNotebookTool,
 )
 from swarmauri_tool_jupyterwritenotebook.JupyterWriteNotebookTool import (
@@ -70,7 +70,7 @@ class JupyterToolkit(ToolkitBase):
         "JupyterExecuteAndConvertTool": JupyterExecuteAndConvertTool(),
         "JupyterExecuteCellTool": JupyterExecuteCellTool(),
         "JupyterExecuteNotebookTool": JupyterExecuteNotebookTool(),
-        "JupyterExecuteNotebookWithParametersTool": JupyterExecuteNotebookWithParametersTool(),
+        "JupyterExecuteNotebookWithParametersTool": JupyterExecuteNotebookWithParametersTool(),  # noqa: E501
         "JupyterExportHtmlTool": JupyterExportHtmlTool(),
         "JupyterExportLatexTool": JupyterExportLatexTool(),
         "JupyterExportMarkdownTool": JupyterExportMarkdownTool(),

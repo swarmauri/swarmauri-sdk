@@ -15,7 +15,10 @@ class CaptchaGeneratorTool(ToolBase):
         "CaptchaGeneratorTool", description="Tool to generate CAPTCHA images."
     )
     description: str = Field(
-        "This tool generates CAPTCHA images from input text and saves them to a specified file.",
+        (
+            "This tool generates CAPTCHA images from input text and saves "
+            "them to a specified file."
+        ),
         description="Description of the CaptchaGeneratorTool",
     )
 

@@ -131,7 +131,8 @@ def test_similarity_with_different_shapes(
     bray_curtis_similarity: BrayCurtisSimilarity,
 ):
     """
-    Test that similarity method raises ValueError for inputs with different shapes.
+    Test that similarity method raises ValueError for inputs with different
+    shapes.
 
     Parameters
     ----------
@@ -149,7 +150,8 @@ def test_similarity_with_invalid_types(
     bray_curtis_similarity: BrayCurtisSimilarity,
 ):
     """
-    Test that similarity method raises TypeError for inputs that cannot be converted to numeric arrays.
+    Test that similarity method raises TypeError for inputs that cannot be
+    converted to numeric arrays.
 
     Parameters
     ----------

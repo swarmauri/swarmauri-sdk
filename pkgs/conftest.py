@@ -15,13 +15,16 @@ def _should_load_griffe_plugin() -> bool:
     try:
         cwd = Path.cwd().resolve()
     except FileNotFoundError:
-        # Fall back to loading the plugin if the current working directory was removed.
+        # Fall back to loading the plugin if the current working directory was
+        # removed.
         return True
     if plugin_root in {cwd, *cwd.parents}:
         return False
 
-    # Only enable the plugin when it is importable in the current environment.  The
-    # ``uv run --directory`` workflow used in CI constructs an isolated environment
+    # Only enable the plugin when it is importable in the current environment.
+    # The
+    # ``uv run --directory`` workflow used in CI constructs an isolated
+    # environment
     # that does not add the community packages to ``sys.path``.  Importing the
     # plugin in that situation raises ``ModuleNotFoundError`` during pytest's
     # bootstrap phase and prevents package-specific test suites from running.

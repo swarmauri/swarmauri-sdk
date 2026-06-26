@@ -9,7 +9,10 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 warnings.warn(
-    "DistanceBase is deprecated and will be removed from the active Swarmauri workspace by v0.12.0.",
+    (
+        "DistanceBase is deprecated and will be removed from the "
+        "active Swarmauri workspace by v0.12.0."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )

@@ -32,7 +32,8 @@ class AbsoluteValueMetric(MetricBase):
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
         """
-        Calculate the distance between two scalar values using absolute difference.
+        Calculate the distance between two scalar values using absolute
+        difference.
 
         Parameters
         ----------
@@ -185,7 +186,8 @@ class AbsoluteValueMetric(MetricBase):
         dist_xy = self.distance(x, y)
         dist_yx = self.distance(y, x)
 
-        # Check if distances are equal (allowing for small floating-point errors)
+        # Check if distances are equal (allowing for small floating-point
+        # errors)
         return abs(dist_xy - dist_yx) < 1e-10
 
     def check_triangle_inequality(
@@ -218,7 +220,8 @@ class AbsoluteValueMetric(MetricBase):
         dist_yz = self.distance(y, z)
         dist_xz = self.distance(x, z)
 
-        # Check triangle inequality (with small tolerance for floating-point errors)
+        # Check triangle inequality (with small tolerance for floating-point
+        # errors)
         return dist_xz <= dist_xy + dist_yz + 1e-10
 
     def _to_list(self, x: MetricInput) -> List[float]:

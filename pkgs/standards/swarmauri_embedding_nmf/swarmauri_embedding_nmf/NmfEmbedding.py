@@ -65,7 +65,8 @@ class NmfEmbedding(EmbeddingBase):
             data (Union[str, Any]): The text data to fit and transform.
 
         Returns:
-            List[IVector]: A list of vectors representing the fitted and transformed data.
+            List[IVector]: A list of vectors representing the fitted and
+            transformed data.
         """
         self.fit(data)
         return self.transform(data)
@@ -96,7 +97,8 @@ class NmfEmbedding(EmbeddingBase):
         Saves the NMF model and TF-IDF vectorizer using joblib.
         """
         # It might be necessary to save both tfidf_vectorizer and model
-        # Consider using a directory for 'path' or appended identifiers for each model file
+        # Consider using a directory for 'path' or appended identifiers for
+        # each model file
         joblib.dump(self._tfidf_vectorizer, f"{path}_tfidf.joblib")
         joblib.dump(self._model, f"{path}_nmf.joblib")
 
@@ -106,5 +108,6 @@ class NmfEmbedding(EmbeddingBase):
         """
         self._tfidf_vectorizer = joblib.load(f"{path}_tfidf.joblib")
         self._model = joblib.load(f"{path}_nmf.joblib")
-        # Dependending on your implementation, you might need to refresh the feature_names
+        # Dependending on your implementation, you might need to refresh the
+        # feature_names
         self.feature_names = self._tfidf_vectorizer.get_feature_names_out()

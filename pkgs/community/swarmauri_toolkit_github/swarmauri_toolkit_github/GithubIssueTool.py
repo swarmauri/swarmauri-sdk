@@ -14,13 +14,20 @@ class GithubIssueTool(ToolBase):
             Parameter(
                 name="action",
                 input_type="string",
-                description="The action to perform on the GitHub API, e.g., 'create_issue', 'delete_issue', 'close_issue', 'list_issues', 'get_issue'",
+                description=(
+                    "The action to perform on the GitHub API, e.g., "
+                    "'create_issue', 'delete_issue', 'close_issue', "
+                    "'list_issues', 'get_issue'"
+                ),
                 required=True,
             ),
             Parameter(
                 name="repo_name",
                 input_type="string",
-                description="The full name of the repository to interact with, e.g. 'owner/repository'.",
+                description=(
+                    "The full name of the repository to interact with, e.g. "
+                    "'owner/repository'."
+                ),
                 required=False,
             ),
             Parameter(

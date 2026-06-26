@@ -8,7 +8,10 @@ from swarmauri_standard.distances.CosineDistance import (
 class CosineDistance(_StandardCosineDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "CosineDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "CosineDistance is deprecated and will be removed from the "
+                "active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

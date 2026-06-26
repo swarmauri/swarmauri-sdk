@@ -10,10 +10,13 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ParserBase, "CSVParser")
 class CSVParser(ParserBase):
     """
-    Concrete implementation of IParser for parsing CSV formatted text into Document instances.
+    Concrete implementation of IParser for parsing CSV formatted text into
+    Document instances.
 
-    The parser can handle input as a CSV formatted string or from a file, with each row
-    represented as a separate Document. Assumes the first row is the header which will
+    The parser can handle input as a CSV formatted string or from a file, with
+    each row
+    represented as a separate Document. Assumes the first row is the header
+    which will
     be used as keys for document metadata.
     """
 
@@ -24,12 +27,14 @@ class CSVParser(ParserBase):
         Parses the given CSV data into a list of Document instances.
 
         Parameters:
-        - data (Union[str, Any]): The input data to parse, either as a CSV string or file path.
+        - data (Union[str, Any]): The input data to parse, either as a CSV
+          string or file path.
 
         Returns:
         - List[IDocument]: A list of documents parsed from the CSV data.
         """
-        # Prepare an in-memory string buffer if the data is provided as a string
+        # Prepare an in-memory string buffer if the data is provided as a
+        # string
         if isinstance(data, str):
             data_stream = StringIO(data)
         else:
@@ -41,7 +46,8 @@ class CSVParser(ParserBase):
         # Read CSV content row by row
         reader = csv.DictReader(data_stream)
         for row in reader:
-            # Each row represents a document, where the column headers are metadata fields
+            # Each row represents a document, where the column headers are
+            # metadata fields
             document = Document(
                 doc_id=row.get("id", None),
                 content=row.get("content", ""),

@@ -16,7 +16,10 @@ class MatplotlibCsvTool(ToolBase):
         description="Tool to generate plots from CSV data using Matplotlib.",
     )
     description: str = Field(
-        "This tool reads data from a CSV file and generates a plot using Matplotlib.",
+        (
+            "This tool reads data from a CSV file and generates a plot "
+            "using Matplotlib."
+        ),
         description="Description of the MatplotlibCsvTool",
     )
 
@@ -58,7 +61,11 @@ class MatplotlibCsvTool(ToolBase):
         # Check if columns exist in the DataFrame
         if x_column not in data.columns or y_column not in data.columns:
             raise ValueError(
-                f"Columns {x_column} and/or {y_column} not found in the CSV file."
+                (
+                    f"Columns {x_column} and/or {y_column} not found in the "
+                    f"CSV "
+                    f"file."
+                )
             )
 
         # Generate plot

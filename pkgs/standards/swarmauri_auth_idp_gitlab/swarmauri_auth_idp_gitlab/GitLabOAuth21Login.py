@@ -12,7 +12,8 @@ from .GitLabOIDCLoginMixin import GitLabOIDCLoginMixin
 
 @ComponentBase.register_type(OAuth21LoginBase, "GitLabOAuth21Login")
 class GitLabOAuth21Login(GitLabOIDCLoginMixin, OAuth21LoginBase):
-    """Implement the GitLab OAuth 2.1 Authorization Code flow via OIDC discovery."""
+    """Implement the GitLab OAuth 2.1 Authorization Code flow via OIDC
+    discovery."""
 
     async def auth_url(self) -> Mapping[str, str]:
         payload = await self._auth_payload()

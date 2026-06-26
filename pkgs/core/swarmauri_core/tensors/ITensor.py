@@ -29,7 +29,8 @@ class ITensor(ABC):
     """
     Core interface for tensorial algebra components.
 
-    This interface specifies required tensor operations and structural properties
+    This interface specifies required tensor operations and structural
+    properties
     that all tensor implementations must support, providing a common API for
     n-dimensional arrays and mathematical operations.
     """

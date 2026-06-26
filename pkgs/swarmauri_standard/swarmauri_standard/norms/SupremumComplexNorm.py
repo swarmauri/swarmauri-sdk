@@ -21,7 +21,8 @@ class SupremumComplexNorm(NormBase):
     """
     Supremum norm implementation for complex-valued functions.
 
-    This class computes the maximum absolute value in a complex interval [a, b].
+    This class computes the maximum absolute value in a complex interval [a,
+    b].
 
     Attributes
     ----------
@@ -46,7 +47,8 @@ class SupremumComplexNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input for which to compute the supremum norm.
 
         Returns
@@ -89,8 +91,10 @@ class SupremumComplexNorm(NormBase):
                 return self.compute(x.to_array())
 
             elif callable(x):
-                # For callable types, we would need a domain to evaluate the function
-                # This is a simplified implementation assuming a predefined domain
+                # For callable types, we would need a domain to evaluate the
+                # function
+                # This is a simplified implementation assuming a predefined
+                # domain
                 domain = np.linspace(-1, 1, 100)  # Example domain
                 values = [x(t) for t in domain]
                 return self.compute(values)
@@ -108,7 +112,7 @@ class SupremumComplexNorm(NormBase):
                             return self.compute(values)
                     except Exception:
                         raise ValueError(
-                            f"Cannot interpret string '{x}' as complex value(s)"
+                            f"Cannot interpret string '{x}' as complex value(s)"  # noqa: E501
                         )
 
             else:
@@ -130,11 +134,13 @@ class SupremumComplexNorm(NormBase):
         """
         Check if the norm satisfies the non-negativity property.
 
-        For complex norms, this checks if the absolute value of the norm is non-negative.
+        For complex norms, this checks if the absolute value of the norm is
+        non-negative.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -144,7 +150,8 @@ class SupremumComplexNorm(NormBase):
         """
         try:
             norm_value = self.compute(x)
-            # For complex numbers, we check if the absolute value is non-negative
+            # For complex numbers, we check if the absolute value is
+            # non-negative
             # (which is always true for a properly implemented complex norm)
             return abs(norm_value) >= 0
         except Exception as e:
@@ -164,7 +171,8 @@ class SupremumComplexNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -216,15 +224,18 @@ class SupremumComplexNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The first input.
-        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        y : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The second input.
 
         Returns
         -------
         bool
-            True if the norm satisfies the triangle inequality, False otherwise.
+            True if the norm satisfies the triangle inequality, False
+            otherwise.
         """
         try:
             # Handle different types of inputs for addition
@@ -292,11 +303,13 @@ class SupremumComplexNorm(NormBase):
         """
         Check if the norm satisfies the absolute homogeneity property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input.
         scalar : complex
             The scalar value.
@@ -304,7 +317,8 @@ class SupremumComplexNorm(NormBase):
         Returns
         -------
         bool
-            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            True if the norm satisfies the absolute homogeneity property, False
+            otherwise.
         """
         try:
             # Convert scalar to complex
@@ -324,7 +338,8 @@ class SupremumComplexNorm(NormBase):
                     scalar_complex * complex(val) for val in x_array
                 ]
             elif callable(x):
-                # For callable types, create a new callable that is the scaled function
+                # For callable types, create a new callable that is the scaled
+                # function
                 def scaled_function(t):
                     return scalar_complex * complex(x(t))
 

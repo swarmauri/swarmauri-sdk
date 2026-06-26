@@ -31,7 +31,10 @@ def test_serialization():
 def test_call():
     tool = Tool()
     input_data = {
-        "input_text": "This is a sample text. It contains several sentences. Each sentence has a few words."
+        "input_text": (
+            "This is a sample text. It contains several sentences. Each "
+            "sentence has a few words."
+        )
     }
 
     # Expected values
@@ -68,8 +71,8 @@ def test_call():
     )
 
     assert result.get("reading_ease") == expected_reading_ease, (
-        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"
+        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"  # noqa: E501
     )
     assert result.get("grade_level") == expected_grade_level, (
-        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"
+        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"  # noqa: E501
     )

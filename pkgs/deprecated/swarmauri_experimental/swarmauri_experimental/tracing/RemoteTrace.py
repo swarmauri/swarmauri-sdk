@@ -59,7 +59,10 @@ class RemoteAPITracer(ITracer):
         response = requests.post(self.api_endpoint, json=json_data)
         if not response.ok:
             raise Exception(
-                f"Failed to send trace data to {self.api_endpoint}. Status code: {response.status_code}"
+                (
+                    f"Failed to send trace data to {self.api_endpoint}. Status "  # noqa: E501
+                    f"code: {response.status_code}"
+                )
             )
 
     def annotate_trace(

@@ -8,7 +8,10 @@ from swarmauri_standard.distances.JaccardIndexDistance import (
 class JaccardIndexDistance(_StandardJaccardIndexDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "JaccardIndexDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "JaccardIndexDistance is deprecated and will be removed from "
+                "the active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

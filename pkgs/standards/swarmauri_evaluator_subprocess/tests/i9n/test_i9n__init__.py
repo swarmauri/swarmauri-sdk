@@ -25,7 +25,10 @@ def test_import_package():
         import swarmauri_evaluator_subprocess as package
 
         logger.info(
-            f"Successfully imported swarmauri_evaluator_subprocess package - {package.__version__}"
+            (
+                f"Successfully imported swarmauri_evaluator_subprocess "
+                f"package - {package.__version__}"
+            )
         )
         assert True
     except ImportError as e:
@@ -38,7 +41,8 @@ def test_version_attribute():
     """
     Test that the package has a __version__ attribute.
 
-    This test verifies that the __version__ attribute is properly defined in the
+    This test verifies that the __version__ attribute is properly defined in
+    the
     package's __init__.py file.
     """
     import swarmauri_evaluator_subprocess
@@ -73,7 +77,10 @@ def test_subprocess_evaluator_import():
         )
 
         logger.info(
-            f"Successfully imported SubprocessEvaluator from package - {evaluator}"
+            (
+                f"Successfully imported SubprocessEvaluator from package - "
+                f"{evaluator}"
+            )
         )
         assert True
     except ImportError as e:
@@ -86,7 +93,8 @@ def test_all_attribute():
     """
     Test that the package has an __all__ attribute with expected contents.
 
-    This test verifies that the __all__ list contains the expected exported classes.
+    This test verifies that the __all__ list contains the expected exported
+    classes.
     """
     import swarmauri_evaluator_subprocess
 
@@ -113,7 +121,8 @@ def reload_package():
     """
     Fixture to reload the package for testing.
 
-    This ensures a clean import of the package for each test that uses this fixture.
+    This ensures a clean import of the package for each test that uses this
+    fixture.
     """
     if "swarmauri_evaluator_subprocess" in sys.modules:
         importlib.reload(sys.modules["swarmauri_evaluator_subprocess"])
@@ -131,7 +140,8 @@ def test_package_reload(reload_package):
     Args:
         reload_package: The pytest fixture that reloads the package
     """
-    # The fixture already reloaded the package, so we just need to check it worked
+    # The fixture already reloaded the package, so we just need to check it
+    # worked
     assert hasattr(reload_package, "SubprocessEvaluator"), (
         "Reloaded package missing SubprocessEvaluator"
     )

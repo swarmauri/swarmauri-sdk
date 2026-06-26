@@ -1,8 +1,10 @@
 """
 test_JupyterExportLatexTool.py
 
-This module contains pytest-based test cases for verifying the functionality of the
-JupyterExportLatexTool class. It checks the correctness of the LaTeX conversion process
+This module contains pytest-based test cases for verifying the functionality of
+the
+JupyterExportLatexTool class. It checks the correctness of the LaTeX conversion
+process
 and optional PDF generation, as well as error handling for problematic inputs.
 """
 
@@ -59,7 +61,8 @@ def test_conversion_no_custom_template_no_pdf(
     sample_notebook_node: Any,
 ) -> None:
     """
-    Tests the LaTeX conversion process without a custom template and without PDF generation.
+    Tests the LaTeX conversion process without a custom template and without
+    PDF generation.
     Ensures that the returned dictionary contains LaTeX content and no errors.
     """
     tool = JupyterExportLatexTool()
@@ -81,7 +84,8 @@ def test_conversion_no_custom_template_with_pdf(
     sample_notebook_node: Any,
 ) -> None:
     """
-    Tests the LaTeX conversion process without a custom template and with PDF generation.
+    Tests the LaTeX conversion process without a custom template and with PDF
+    generation.
     Ensures that the returned dictionary includes a PDF path.
     """
     tool = JupyterExportLatexTool()
@@ -104,8 +108,10 @@ def test_conversion_with_custom_template(
     sample_notebook_node: Any, tmp_path
 ) -> None:
     """
-    Tests the LaTeX conversion process with a custom template. Verifies that the tool
-    accepts a template path and processes the notebook without raising an error.
+    Tests the LaTeX conversion process with a custom template. Verifies that
+    the tool
+    accepts a template path and processes the notebook without raising an
+    error.
 
     Args:
         sample_notebook_node (Any): A fixture providing a minimal NotebookNode.
@@ -123,7 +129,7 @@ def test_conversion_with_custom_template(
         to_pdf=False,
     )
     assert "error" not in result, (
-        f"Error returned unexpectedly with custom template: {result.get('error', '')}"
+        f"Error returned unexpectedly with custom template: {result.get('error', '')}"  # noqa: E501
     )
     assert "latex_content" in result, (
         "Expected 'latex_content' key in the result (custom template)."
@@ -132,7 +138,8 @@ def test_conversion_with_custom_template(
 
 def test_conversion_error_handling() -> None:
     """
-    Tests that the tool handles conversion errors gracefully and returns an error message
+    Tests that the tool handles conversion errors gracefully and returns an
+    error message
     when given invalid input instead of a NotebookNode.
     """
     tool = JupyterExportLatexTool()

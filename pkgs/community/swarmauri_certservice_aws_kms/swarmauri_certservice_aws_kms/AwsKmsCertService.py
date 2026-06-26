@@ -385,7 +385,10 @@ def _extract_kms_key_id_from_keyref(ca_key: KeyRef) -> str:
     if ca_key.kid:
         return str(ca_key.kid)
     raise ValueError(
-        "AwsKmsCertService: unable to resolve KMS KeyId from KeyRef (expected tags['aws_kms_key_id'] or kid)."
+        (
+            "AwsKmsCertService: unable to resolve KMS KeyId from KeyRef "
+            "(expected tags['aws_kms_key_id'] or kid)."
+        )
     )
 
 
@@ -456,7 +459,10 @@ class AwsKmsCertService(CertServiceBase):
     ) -> CsrBytes:
         if not key.material:
             raise NotImplementedError(
-                "create_csr requires exportable private key material in KeyRef.material"
+                (
+                    "create_csr requires exportable private key material in "
+                    "KeyRef.material"
+                )
             )
 
         priv = serialization.load_pem_private_key(key.material, password=None)

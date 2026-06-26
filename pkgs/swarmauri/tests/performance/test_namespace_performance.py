@@ -34,7 +34,10 @@ def test_class_registration_time():
     code = """
 import time
 import swarmauri  # noqa: F401
-from swarmauri.plugin_manager import invalidate_entry_point_cache, discover_and_register_plugins
+from swarmauri.plugin_manager import (
+    invalidate_entry_point_cache,
+    discover_and_register_plugins,
+)
 invalidate_entry_point_cache()
 start = time.perf_counter()
 discover_and_register_plugins()

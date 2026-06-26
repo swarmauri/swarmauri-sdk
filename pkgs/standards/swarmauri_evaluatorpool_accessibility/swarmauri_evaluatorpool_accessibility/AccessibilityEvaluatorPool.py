@@ -55,7 +55,8 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         self.evaluators = self._EvaluatorRegistry()
         self._allow_add = True
 
-        # The pool’s registry is a Dict[str, IEvaluate] coming from the base-class
+        # The pool’s registry is a Dict[str, IEvaluate] coming from the
+        # base-class
         self.weights: Dict[str, float] = weights or {}
 
         # ------------------------------------------------------------------ #
@@ -111,7 +112,10 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         """Legacy behavior: disallow runtime add after initialization."""
         if not self._allow_add:
             raise RuntimeError(
-                "AccessibilityEvaluatorPool manages evaluator registration internally"
+                (
+                    "AccessibilityEvaluatorPool manages evaluator registration "  # noqa: E501
+                    "internally"
+                )
             )
         if not isinstance(name, str) and name is not None:
             name = evaluator.__class__.__name__
@@ -233,7 +237,8 @@ class AccessibilityEvaluatorPool(EvaluatorPoolBase):
         better” and return a weighted mean.
 
         * FleschReadingEase already gives “higher == easier” → scale to 0-1.
-        * All other metrics are “grade-level” indices (lower == easier) → invert.
+        * All other metrics are “grade-level” indices (lower == easier) →
+          invert.
         """
         names = self.get_evaluator_names()
         if not names:

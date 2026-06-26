@@ -7,7 +7,8 @@ from swarmauri_core.measurements.IMeasurementAggregate import (
 
 class MeasurementAggregateMixin(IMeasurementAggregate, BaseModel):
     """
-    An abstract base class that implements the IMeasurement interface, providing common
+    An abstract base class that implements the IMeasurement interface,
+    providing common
     functionalities and properties for measurements within SwarmAURI.
     """
 

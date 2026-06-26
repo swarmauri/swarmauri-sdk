@@ -7,11 +7,14 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(MeasurementBase, "CompletenessMeasurement")
 class CompletenessMeasurement(MeasurementBase):
     """
-    Measurement for evaluating the completeness of a dataset or collection of values.
-    Completeness is calculated as the percentage of non-missing values in the dataset.
+    Measurement for evaluating the completeness of a dataset or collection of
+    values.
+    Completeness is calculated as the percentage of non-missing values in the
+    dataset.
 
     Attributes:
-        type (Literal['CompletenessMeasurement']): Type identifier for the measurement
+        type (Literal['CompletenessMeasurement']): Type identifier for the
+        measurement
         unit (str): Unit of measurement (percentage)
         value (float): Stores the calculated completeness score
     """
@@ -26,7 +29,8 @@ class CompletenessMeasurement(MeasurementBase):
         Calculates the completeness score for different data types.
 
         Args:
-            data: Input data which can be a pandas DataFrame, List, or Dictionary
+            data: Input data which can be a pandas DataFrame, List, or
+            Dictionary
 
         Returns:
             float: Completeness score as a percentage (0-100)
@@ -42,7 +46,10 @@ class CompletenessMeasurement(MeasurementBase):
             non_missing_values = sum(1 for v in data.values() if v is not None)
         else:
             raise ValueError(
-                "Unsupported data type. Please provide DataFrame, List, or Dict."
+                (
+                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
+                    "Dict."
+                )
             )
 
         if total_values == 0:
@@ -74,7 +81,8 @@ class CompletenessMeasurement(MeasurementBase):
             df: Input DataFrame
 
         Returns:
-            Dict[str, float]: Dictionary mapping column names to their completeness scores
+            Dict[str, float]: Dictionary mapping column names to their
+            completeness scores
         """
         if not isinstance(df, pd.DataFrame):
             raise ValueError("Input must be a pandas DataFrame")

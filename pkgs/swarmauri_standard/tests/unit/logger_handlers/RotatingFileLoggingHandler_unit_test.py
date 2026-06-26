@@ -34,7 +34,8 @@ def temp_log_file():
 @pytest.mark.unit
 def test_default_attributes():
     """
-    Tests that the default attributes of RotatingFileLoggingHandler are set correctly.
+    Tests that the default attributes of RotatingFileLoggingHandler are set
+    correctly.
     """
     handler = RotatingFileLoggingHandler()
 

@@ -56,7 +56,10 @@ class FrobeniusMetric(MetricBase):
             If inputs are not matrices
         """
         logger.debug(
-            f"Calculating Frobenius distance between matrices of types {type(x)} and {type(y)}"
+            (
+                f"Calculating Frobenius distance between matrices of types "
+                f"{type(x)} and {type(y)}"
+            )
         )
 
         # Convert inputs to numpy arrays for easier processing
@@ -80,7 +83,10 @@ class FrobeniusMetric(MetricBase):
 
         # Check if matrices have the same shape
         if x_array.shape != y_array.shape:
-            error_msg = f"Matrices must have the same shape. Got {x_array.shape} and {y_array.shape}"
+            error_msg = (
+                f"Matrices must have the same shape. Got {x_array.shape} and "
+                f"{y_array.shape}"
+            )
             logger.error(error_msg)
             raise ValueError(error_msg)
 
@@ -145,7 +151,8 @@ class FrobeniusMetric(MetricBase):
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Frobenius metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the Frobenius metric satisfies the non-negativity axiom:
+        d(x,y) ≥ 0.
 
         The Frobenius metric always satisfies this axiom by definition.
 
@@ -173,7 +180,8 @@ class FrobeniusMetric(MetricBase):
         self, x: MetricInput, y: MetricInput
     ) -> bool:
         """
-        Check if the Frobenius metric satisfies the identity of indiscernibles axiom:
+        Check if the Frobenius metric satisfies the identity of indiscernibles
+        axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
@@ -222,7 +230,8 @@ class FrobeniusMetric(MetricBase):
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Frobenius metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Frobenius metric satisfies the symmetry axiom: d(x,y) =
+        d(y,x).
 
         Parameters
         ----------

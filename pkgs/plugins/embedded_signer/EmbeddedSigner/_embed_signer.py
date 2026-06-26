@@ -108,7 +108,11 @@ class EmbedSigner:
             if self._default_provider_name is not None:
                 return self._instantiate_provider(self._default_provider_name)
             raise ValueError(
-                "No default key provider configured; include a provider name in the key reference."
+                (
+                    "No default key provider configured; include a provider "
+                    "name "
+                    "in the key reference."
+                )
             )
         if (
             name == self._default_provider_name
@@ -179,7 +183,10 @@ class EmbedSigner:
                 )
             return resolved
         raise TypeError(
-            "key must be a Mapping, KeyRef, or string reference understood by EmbedSigner"
+            (
+                "key must be a Mapping, KeyRef, or string reference "
+                "understood by EmbedSigner"
+            )
         )
 
     # ------------------------------------------------------------------
@@ -239,7 +246,9 @@ class EmbedSigner:
         write_back: bool = False,
         output: str | Path | None = None,
     ) -> bytes:
-        """Remove XMP metadata from a file, optionally persisting the result."""
+        """
+        Remove XMP metadata from a file, optionally persisting the result.
+        """
 
         file_path = Path(path)
         updated = self.remove_xmp(file_path.read_bytes(), path=file_path)
@@ -259,7 +268,9 @@ class EmbedSigner:
         alg: Optional[str] = None,
         signer_opts: Optional[Mapping[str, Any]] = None,
     ) -> Sequence[Signature]:
-        """Produce signatures for *payload* using the requested signer format."""
+        """
+        Produce signatures for *payload* using the requested signer format.
+        """
 
         resolved_key = await self._resolve_key(key)
         opts: dict[str, Any] = dict(signer_opts or {})
@@ -305,7 +316,9 @@ class EmbedSigner:
         signer_opts: Optional[Mapping[str, Any]] = None,
         write_back: bool = False,
     ) -> tuple[bytes, Sequence[Signature]]:
-        """Embed metadata into *path* and optionally persist the signed bytes."""
+        """
+        Embed metadata into *path* and optionally persist the signed bytes.
+        """
 
         file_path = Path(path)
         embedded, signatures = await self.embed_and_sign_bytes(
@@ -355,6 +368,7 @@ class EmbedSigner:
         )
 
     def supported_signers(self) -> Sequence[str]:
-        """Expose signer formats advertised by the underlying :class:`MediaSigner`."""
+        """Expose signer formats advertised by the underlying
+        :class:`MediaSigner`."""
 
         return tuple(self._signer.supported_formats())

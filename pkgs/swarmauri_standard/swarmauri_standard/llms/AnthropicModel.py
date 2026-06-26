@@ -17,11 +17,13 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "AnthropicModel")
 class AnthropicModel(LLMBase):
     """
-    A class representing an integration with the Anthropic API to interact with the Claude model series.
+    A class representing an integration with the Anthropic API to interact with
+    the Claude model series.
 
     Attributes:
         api_key (str): The API key for accessing the Anthropic API.
-        allowed_models (List[str]): List of models that can be used with this class.
+        allowed_models (List[str]): List of models that can be used with this
+        class.
         name (str): The default model name.
         type (Literal): Specifies the type of the model as "AnthropicModel".
 
@@ -68,13 +70,16 @@ class AnthropicModel(LLMBase):
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats a list of message objects into a format suitable for the Anthropic API.
+        Formats a list of message objects into a format suitable for the
+        Anthropic API.
 
         Args:
-            messages (List[Type[MessageBase]]): A list of message objects from a conversation.
+            messages (List[Type[MessageBase]]): A list of message objects from
+            a conversation.
 
         Returns:
-            List[Dict[str, str]]: A list of dictionaries containing the 'content' and 'role' of each message,
+            List[Dict[str, str]]: A list of dictionaries containing the
+            'content' and 'role' of each message,
                                   excluding system messages.
         """
         message_properties = ["content", "role"]
@@ -90,12 +95,15 @@ class AnthropicModel(LLMBase):
         Extracts the most recent system context from a list of messages.
 
         Args:
-            messages (List[Type[MessageBase]]): A list of message objects from a conversation.
+            messages (List[Type[MessageBase]]): A list of message objects from
+            a conversation.
 
         Returns:
-            str: The content of the most recent system context if present, otherwise None.
+            str: The content of the most recent system context if present,
+            otherwise None.
         """
-        # Iterate through messages in reverse to get the most recent system message
+        # Iterate through messages in reverse to get the most recent system
+        # message
         for message in reversed(messages):
             if message.role == "system":
                 return message.content
@@ -111,7 +119,8 @@ class AnthropicModel(LLMBase):
         Prepares usage data for logging and tracking API usage metrics.
 
         Args:
-            usage_data (Dict[str, int]): The raw usage data containing token counts.
+            usage_data (Dict[str, int]): The raw usage data containing token
+            counts.
             prompt_time (float): The duration of the prompt preparation phase.
             completion_time (float): The duration of the completion phase.
 
@@ -137,15 +146,20 @@ class AnthropicModel(LLMBase):
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Conversation:
         """
-        Sends a prediction request to the Anthropic API and processes the response.
+        Sends a prediction request to the Anthropic API and processes the
+        response.
 
         Args:
-            conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): The temperature setting for controlling response randomness.
-            max_tokens (int, optional): The maximum number of tokens for the generated response.
+            conversation (Conversation): The conversation object containing the
+            history of messages.
+            temperature (float, optional): The temperature setting for
+            controlling response randomness.
+            max_tokens (int, optional): The maximum number of tokens for the
+            generated response.
 
         Returns:
-            Conversation: The updated conversation object with the generated response added.
+            Conversation: The updated conversation object with the generated
+            response added.
         """
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
@@ -192,10 +206,12 @@ class AnthropicModel(LLMBase):
         Args:
             conversation (Conversation): The conversation history and context.
             temperature (float, optional): Sampling temperature for the model.
-            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_tokens (int, optional): Maximum number of tokens for the
+            response.
 
         Yields:
-            str: Incremental parts of the model's response as they are received.
+            str: Incremental parts of the model's response as they are
+            received.
         """
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
@@ -223,7 +239,8 @@ class AnthropicModel(LLMBase):
                     for line in response.iter_lines():
                         if line:
                             try:
-                                # Handle the case where line might be bytes or str
+                                # Handle the case where line might be bytes or
+                                # str
                                 line_text = (
                                     line
                                     if isinstance(line, str)
@@ -277,15 +294,18 @@ class AnthropicModel(LLMBase):
         self, conversation: Conversation, temperature=0.7, max_tokens=256
     ) -> Conversation:
         """
-        Asynchronously sends a request to the model for generating a prediction.
+        Asynchronously sends a request to the model for generating a
+        prediction.
 
         Args:
             conversation (Conversation): The conversation history and context.
             temperature (float, optional): Sampling temperature for the model.
-            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_tokens (int, optional): Maximum number of tokens for the
+            response.
 
         Returns:
-            Conversation: The updated conversation including the model's response.
+            Conversation: The updated conversation including the model's
+            response.
         """
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
@@ -332,10 +352,12 @@ class AnthropicModel(LLMBase):
         Args:
             conversation (Conversation): The conversation history and context.
             temperature (float, optional): Sampling temperature for the model.
-            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_tokens (int, optional): Maximum number of tokens for the
+            response.
 
         Yields:
-            str: Incremental parts of the model's response as they are received.
+            str: Incremental parts of the model's response as they are
+            received.
         """
         system_context = self._get_system_context(conversation.history)
         formatted_messages = self._format_messages(conversation.history)
@@ -363,7 +385,8 @@ class AnthropicModel(LLMBase):
                     async for line in response.aiter_lines():
                         if line:
                             try:
-                                # Handle the case where line might be bytes or str
+                                # Handle the case where line might be bytes or
+                                # str
                                 line_text = (
                                     line
                                     if isinstance(line, str)
@@ -424,10 +447,12 @@ class AnthropicModel(LLMBase):
         Args:
             conversations (List[Conversation]): List of conversation objects.
             temperature (float, optional): Sampling temperature for the model.
-            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_tokens (int, optional): Maximum number of tokens for the
+            response.
 
         Returns:
-            List[Conversation]: A list of updated conversations including the model's responses.
+            List[Conversation]: A list of updated conversations including the
+            model's responses.
         """
         return [
             self.predict(conv, temperature=temperature, max_tokens=max_tokens)
@@ -442,16 +467,19 @@ class AnthropicModel(LLMBase):
         max_concurrent=5,
     ) -> List:
         """
-        Processes multiple conversations asynchronously with controlled concurrency.
+        Processes multiple conversations asynchronously with controlled
+        concurrency.
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
             temperature (float, optional): Sampling temperature for the model.
-            max_tokens (int, optional): Maximum number of tokens for the response.
+            max_tokens (int, optional): Maximum number of tokens for the
+            response.
             max_concurrent (int, optional): Maximum number of concurrent tasks.
 
         Returns:
-            List[Conversation]: A list of updated conversations including the model's responses.
+            List[Conversation]: A list of updated conversations including the
+            model's responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

@@ -1,14 +1,16 @@
 """
 test_JupyterExecuteNotebookWithParametersTool.py
 
-This module contains the pytest test cases for the JupyterExecuteNotebookWithParametersTool class.
-It verifies that the tool behaves correctly, including attribute checks, parameter handling,
+This module contains the pytest test cases for the
+JupyterExecuteNotebookWithParametersTool class.
+It verifies that the tool behaves correctly, including attribute checks,
+parameter handling,
 file path validations, and error handling during notebook execution.
 """
 
 import pytest
 from unittest.mock import patch, MagicMock
-from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (
+from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (  # noqa: E501
     JupyterExecuteNotebookWithParametersTool,
 )
 
@@ -16,7 +18,8 @@ from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookW
 @pytest.fixture
 def tool_instance() -> JupyterExecuteNotebookWithParametersTool:
     """
-    Provides an instance of the JupyterExecuteNotebookWithParametersTool for testing.
+    Provides an instance of the JupyterExecuteNotebookWithParametersTool for
+    testing.
     """
     return JupyterExecuteNotebookWithParametersTool()
 
@@ -50,7 +53,8 @@ def test_call_incorrect_output_extension(
     tool_instance: JupyterExecuteNotebookWithParametersTool,
 ) -> None:
     """
-    Test that calling the tool with a non-ipynb output_notebook_path returns an error.
+    Test that calling the tool with a non-ipynb output_notebook_path returns an
+    error.
     """
     result = tool_instance(
         notebook_path="notebook.ipynb", output_notebook_path="out.txt"
@@ -67,7 +71,8 @@ def test_call_execution_success(
     tool_instance: JupyterExecuteNotebookWithParametersTool,
 ) -> None:
     """
-    Test that calling the tool with valid paths calls papermill.execute_notebook
+    Test that calling the tool with valid paths calls
+    papermill.execute_notebook
     and returns the path to the executed notebook.
     """
     mock_execute_notebook.return_value = None  # Simulate successful execution
@@ -93,7 +98,8 @@ def test_call_execution_failure(
     tool_instance: JupyterExecuteNotebookWithParametersTool,
 ) -> None:
     """
-    Test that an exception raised during papermill.execute_notebook is handled and
+    Test that an exception raised during papermill.execute_notebook is handled
+    and
     returns an 'error' in the result dictionary.
     """
     mock_execute_notebook.side_effect = Exception("Simulated execution error")

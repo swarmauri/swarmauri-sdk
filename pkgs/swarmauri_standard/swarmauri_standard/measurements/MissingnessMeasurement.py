@@ -17,7 +17,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
     and incompleteness in datasets.
 
     Attributes:
-        type (Literal['MissingnessMeasurement']): Type identifier for the metric
+        type (Literal['MissingnessMeasurement']): Type identifier for the
+        metric
         unit (str): Unit of measurement (percentage)
         value (float): Stores the calculated missingness score
         measurements (List[Optional[float]]): List of measurements to analyze
@@ -34,7 +35,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
         Calculates the missingness score for different data types.
 
         Args:
-            data: Input data which can be a pandas DataFrame, List, or Dictionary
+            data: Input data which can be a pandas DataFrame, List, or
+            Dictionary
 
         Returns:
             float: Missingness score as a percentage (0-100)
@@ -53,7 +55,10 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
             missing_values = sum(1 for v in data.values() if v is None)
         else:
             raise ValueError(
-                "Unsupported data type. Please provide DataFrame, List, or Dict."
+                (
+                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
+                    "Dict."
+                )
             )
 
         if total_values == 0:
@@ -85,7 +90,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
             df: Input DataFrame
 
         Returns:
-            Dict[str, float]: Dictionary mapping column names to their missingness scores
+            Dict[str, float]: Dictionary mapping column names to their
+            missingness scores
 
         Raises:
             ValueError: If input is not a pandas DataFrame
@@ -121,6 +127,7 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
         Adds a measurement to the internal list of measurements.
 
         Args:
-            measurement (Optional[float]): A numerical value or None to be added to the list of measurements.
+            measurement (Optional[float]): A numerical value or None to be
+            added to the list of measurements.
         """
         self.measurements.append(measurement)

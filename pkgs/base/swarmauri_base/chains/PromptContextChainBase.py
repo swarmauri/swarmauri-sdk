@@ -35,7 +35,8 @@ class PromptContextChainBase(
 
     def __init__(self, **data: Any):
         super().__init__(**data)
-        # Now that the instance is created, we can safely access `prompt_matrix.shape`
+        # Now that the instance is created, we can safely access
+        # `prompt_matrix.shape`
         self.response_matrix = PromptMatrixBase(
             matrix=[
                 [None for _ in range(self.prompt_matrix.shape[1])]
@@ -46,7 +47,8 @@ class PromptContextChainBase(
     def execute(self, build_dependencies=True) -> None:
         """
         Execute the chain of prompts based on the state of the prompt matrix.
-        Iterates through each sequence in the prompt matrix, resolves dependencies,
+        Iterates through each sequence in the prompt matrix, resolves
+        dependencies,
         and executes prompts in the resolved order.
         """
         if build_dependencies:
@@ -85,7 +87,8 @@ class PromptContextChainBase(
 
     def _execute_prompt(self, agent_index: int, prompt: str, ref: str):
         """
-        Executes a given prompt using the specified agent and updates the response.
+        Executes a given prompt using the specified agent and updates the
+        response.
         """
         formatted_prompt = prompt.format(
             **self.context
@@ -123,7 +126,8 @@ class PromptContextChainBase(
             return None
 
     def _extract_step_number(self, ref):
-        # This regex looks for the pattern '_Step_' followed by one or more digits.
+        # This regex looks for the pattern '_Step_' followed by one or more
+        # digits.
         match = re.search(r"_Step_(\d+)_", ref)
         if match:
             return int(
@@ -134,7 +138,8 @@ class PromptContextChainBase(
 
     def build_dependencies(self) -> List[ChainStepBase]:
         """
-        Build the chain steps in the correct order by resolving dependencies first.
+        Build the chain steps in the correct order by resolving dependencies
+        first.
         """
         steps = []
 
@@ -145,7 +150,8 @@ class PromptContextChainBase(
                 for j in execution_order:
                     prompt = sequence[j]
                     if prompt:
-                        ref = f"Agent_{j}_Step_{i}_response"  # Using a unique reference string
+                        # Using a unique reference string
+                        ref = f"Agent_{j}_Step_{i}_response"
                         step = ChainStepBase(
                             key=f"Agent_{j}_Step_{i}",
                             method=self._execute_prompt,
@@ -162,10 +168,12 @@ class PromptContextChainBase(
         Resolve dependencies within a specific sequence of the prompt matrix.
 
         Args:
-            sequence (List[Optional[str]]): The sequence of prompts to resolve dependencies for.
+            sequence (List[Optional[str]]): The sequence of prompts to resolve
+            dependencies for.
 
         Returns:
-            List[int]: The execution order of the agents for the given sequence.
+            List[int]: The execution order of the agents for the given
+            sequence.
         """
 
         return [x for x in range(0, len(sequence), 1)]

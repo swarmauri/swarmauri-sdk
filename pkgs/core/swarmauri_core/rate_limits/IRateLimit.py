@@ -6,7 +6,9 @@ class IRateLimit(ABC):
 
     @abstractmethod
     def allow(self, tokens: int = 1) -> bool:
-        """Attempt to consume tokens and return whether the request is allowed."""
+        """
+        Attempt to consume tokens and return whether the request is allowed.
+        """
 
     @abstractmethod
     def available_tokens(self) -> int:

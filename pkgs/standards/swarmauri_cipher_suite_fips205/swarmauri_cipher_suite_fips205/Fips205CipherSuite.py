@@ -71,7 +71,10 @@ class Fips205CipherSuite(CipherSuiteBase):
             "constraints": {"nistSecurityLevels": _SLH_DSA_LEVEL},
             "compliance": {"fips205": True, "pqc": True},
             "notes": [
-                "Implements the SPHINCS+ based SLH-DSA parameter sets from FIPS 205.",
+                (
+                    "Implements the SPHINCS+ based SLH-DSA parameter sets from "  # noqa: E501
+                    "FIPS 205."
+                ),
             ],
         }
 

@@ -218,7 +218,8 @@ def test_compute_with_vector_interface(trace_seminorm, sample_vectors):
 
 @pytest.mark.unit
 def test_compute_with_numpy_vector(trace_seminorm, sample_vectors):
-    """Test computing trace seminorm with numpy vectors (should raise TypeError)."""
+    """Test computing trace seminorm with numpy vectors (should raise
+    TypeError)."""
     # Direct vectors are not supported - they need to be wrapped in IVector
     with pytest.raises(TypeError):
         trace_seminorm.compute(sample_vectors["unit"])

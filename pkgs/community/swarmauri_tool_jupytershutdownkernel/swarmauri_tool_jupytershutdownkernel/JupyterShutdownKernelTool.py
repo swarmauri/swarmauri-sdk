@@ -1,8 +1,11 @@
 # JupyterShutdownKernelTool.py
 #
-# This module defines the JupyterShutdownKernelTool, a component responsible for gracefully
-# shutting down a running Jupyter kernel. It integrates with the system's tool architecture
-# and handles kernel resource release, logging, error handling, and configurable timeouts.
+# This module defines the JupyterShutdownKernelTool, a component responsible
+# for gracefully
+# shutting down a running Jupyter kernel. It integrates with the system's tool
+# architecture
+# and handles kernel resource release, logging, error handling, and
+# configurable timeouts.
 
 import logging
 import time
@@ -20,19 +23,25 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ToolBase, "JupyterShutdownKernelTool")
 class JupyterShutdownKernelTool(ToolBase):
     """
-    JupyterShutdownKernelTool is a tool that gracefully shuts down a running Jupyter kernel.
+    JupyterShutdownKernelTool is a tool that gracefully shuts down a running
+    Jupyter kernel.
 
-    This tool integrates with the swarmauri framework and extends the ToolBase class to handle
-    kernel shutdown logic. It releases all associated kernel resources, supports a configurable
-    timeout for the shutdown process, logs shutdown events, and returns a confirmation of success
+    This tool integrates with the swarmauri framework and extends the ToolBase
+    class to handle
+    kernel shutdown logic. It releases all associated kernel resources,
+    supports a configurable
+    timeout for the shutdown process, logs shutdown events, and returns a
+    confirmation of success
     or an error message upon failure.
 
     Attributes:
         version (str): The version of the JupyterShutdownKernelTool.
-        parameters (List[Parameter]): A list of parameters needed to perform the kernel shutdown.
+        parameters (List[Parameter]): A list of parameters needed to perform
+        the kernel shutdown.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterShutdownKernelTool"]): The type identifier for this tool.
+        type (Literal["JupyterShutdownKernelTool"]): The type identifier for
+        this tool.
     """
 
     version: str = "1.0.0"
@@ -41,20 +50,29 @@ class JupyterShutdownKernelTool(ToolBase):
             Parameter(
                 name="kernel_id",
                 input_type="string",
-                description="Unique identifier or name of the kernel to be shut down.",
+                description=(
+                    "Unique identifier or name of the kernel to be shut down."
+                ),
                 required=True,
             ),
             Parameter(
                 name="shutdown_timeout",
                 input_type="integer",
-                description="Maximum time in seconds to wait for the kernel to shut down cleanly.",
+                description=(
+                    "Maximum time in seconds to wait for the kernel to shut "
+                    "down "
+                    "cleanly."
+                ),
                 required=False,
                 default=5,
             ),
         ]
     )
     name: str = "JupyterShutdownKernelTool"
-    description: str = "Shuts down a running Jupyter kernel and releases associated resources."
+    description: str = (
+        "Shuts down a running Jupyter kernel and releases associated "
+        "resources."
+    )
     type: Literal["JupyterShutdownKernelTool"] = "JupyterShutdownKernelTool"
 
     def __call__(
@@ -65,17 +83,22 @@ class JupyterShutdownKernelTool(ToolBase):
 
         Args:
             kernel_id (str): The identifier of the kernel to be shut down.
-            shutdown_timeout (int): Time in seconds to wait for the kernel to shut down cleanly.
+            shutdown_timeout (int): Time in seconds to wait for the kernel to
+            shut down cleanly.
 
         Returns:
-            Dict[str, str]: A dictionary containing the status of the operation. If successful,
-                            it includes the kernel_id and a 'success' message. Otherwise,
-                            it returns an 'error' message describing the failure.
+            Dict[str, str]: A dictionary containing the status of the
+            operation. If successful,
+                            it includes the kernel_id and a 'success' message.
+                            Otherwise,
+                            it returns an 'error' message describing the
+                            failure.
 
         Example:
             >>> tool = JupyterShutdownKernelTool()
             >>> tool("my_kernel_id", 5)
-            {'kernel_id': 'my_kernel_id', 'status': 'success', 'message': 'Kernel shut down successfully.'}
+            {'kernel_id': 'my_kernel_id', 'status': 'success', 'message':
+            'Kernel shut down successfully.'}
 
         Raises:
             Exception: If an unexpected error occurs during kernel shutdown.
@@ -85,13 +108,17 @@ class JupyterShutdownKernelTool(ToolBase):
 
         try:
             manager = KernelManager(kernel_name=kernel_id)
-            # Attempt to load the connection file; if it doesn’t exist or is invalid, this may fail.
+            # Attempt to load the connection file; if it doesn’t exist or is
+            # invalid, this may fail.
             manager.load_connection_file()
 
             # Request a graceful shutdown.
             manager.shutdown_kernel(now=False)
             logger.debug(
-                "Shutdown request sent to kernel_id='%s'; waiting up to %s seconds.",
+                (
+                    "Shutdown request sent to kernel_id='%s'; waiting up to %s "  # noqa: E501
+                    "seconds."
+                ),
                 kernel_id,
                 shutdown_timeout,
             )
@@ -106,7 +133,10 @@ class JupyterShutdownKernelTool(ToolBase):
             # If kernel is still alive, attempt a forced shutdown.
             if manager.is_alive():
                 logger.warning(
-                    "Kernel did not shut down within %s seconds; forcing shutdown.",
+                    (
+                        "Kernel did not shut down within %s seconds; forcing "
+                        "shutdown."
+                    ),
                     shutdown_timeout,
                 )
                 manager.shutdown_kernel(now=True)
@@ -155,5 +185,7 @@ class JupyterShutdownKernelTool(ToolBase):
             return {
                 "kernel_id": kernel_id,
                 "status": "error",
-                "message": f"Kernel shutdown failed due to unexpected error: {str(e)}",
+                "message": (
+                    f"Kernel shutdown failed due to unexpected error: {str(e)}"
+                ),
             }

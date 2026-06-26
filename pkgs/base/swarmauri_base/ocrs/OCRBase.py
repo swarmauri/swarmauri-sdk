@@ -22,7 +22,10 @@ class OCRBase(IPredict, ComponentBase):
         allowed_models = values.allowed_models
         if name and name not in allowed_models:
             raise ValueError(
-                f"Model name {name} is not allowed. Choose from {allowed_models}"
+                (
+                    f"Model name {name} is not allowed. Choose from "
+                    f"{allowed_models}"
+                )
             )
         return values
 

@@ -11,8 +11,10 @@ from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 @ObserveBase.register_model()
 class StreamLoggingHandler(HandlerBase):
     """
-    A logging handler that writes log records to a stream (such as sys.stdout or sys.stderr).
-    This handler uses Python's built-in StreamHandler to output logs to the specified stream.
+    A logging handler that writes log records to a stream (such as sys.stdout
+    or sys.stderr).
+    This handler uses Python's built-in StreamHandler to output logs to the
+    specified stream.
 
     Attributes
     ----------
@@ -23,7 +25,8 @@ class StreamLoggingHandler(HandlerBase):
     formatter : Optional[Union[str, FullUnion[FormatterBase]]]
         The formatter to use for formatting log records.
     stream : Optional[TextIO]
-        The stream to which log records will be written. Defaults to sys.stderr.
+        The stream to which log records will be written. Defaults to
+        sys.stderr.
     """
 
     type: Literal["StreamLoggingHandler"] = "StreamLoggingHandler"
@@ -58,14 +61,16 @@ class StreamLoggingHandler(HandlerBase):
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles a logging.StreamHandler with the configured level, formatter, and stream.
+        Compiles a logging.StreamHandler with the configured level, formatter,
+        and stream.
 
         Returns
         -------
         logging.Handler
             A configured StreamHandler instance ready for use.
         """
-        # Create a StreamHandler with the specified stream or default to sys.stderr
+        # Create a StreamHandler with the specified stream or default to
+        # sys.stderr
         handler = logging.StreamHandler(
             self.stream if self.stream else sys.stderr
         )
@@ -76,7 +81,8 @@ class StreamLoggingHandler(HandlerBase):
         # Configure the formatter
         if self.formatter:
             if isinstance(self.formatter, str):
-                # If formatter is a string, create a Formatter with that format string
+                # If formatter is a string, create a Formatter with that format
+                # string
                 handler.setFormatter(logging.Formatter(self.formatter))
             else:
                 # If formatter is a FormatterBase instance, compile it

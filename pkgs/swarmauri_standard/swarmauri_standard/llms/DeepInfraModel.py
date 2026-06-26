@@ -18,14 +18,17 @@ class DeepInfraModel(LLMBase):
     """
     A class for interacting with DeepInfra's model API for text generation.
 
-    This implementation uses httpx for both synchronous and asynchronous HTTP requests,
-    providing support for predictions, streaming responses, and batch processing.
+    This implementation uses httpx for both synchronous and asynchronous HTTP
+    requests,
+    providing support for predictions, streaming responses, and batch
+    processing.
 
     Attributes:
         api_key (SecretStr): DeepInfra API key for authentication
             Can be obtained from: https://deepinfra.com/dash/api_keys
 
-        allowed_models (List[str]): List of supported model identifiers on DeepInfra
+        allowed_models (List[str]): List of supported model identifiers on
+        DeepInfra
             Full list available at: https://api.deepinfra.com/v1/openai/models
 
         name (str): The currently selected model name
@@ -86,7 +89,8 @@ class DeepInfraModel(LLMBase):
         and sets up httpx clients for both sync and async operations.
 
         Args:
-            **data (Dict[str, Any]): Keyword arguments for model initialization.
+            **data (Dict[str, Any]): Keyword arguments for model
+            initialization.
         """
         super().__init__(**data)
         headers = {
@@ -104,10 +108,12 @@ class DeepInfraModel(LLMBase):
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats conversation history into a list of dictionaries suitable for API requests.
+        Formats conversation history into a list of dictionaries suitable for
+        API requests.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): The conversation history.
+            messages (List[SubclassUnion[MessageBase]]): The conversation
+            history.
 
         Returns:
             List[Dict[str, str]]: Formatted message list.
@@ -131,7 +137,8 @@ class DeepInfraModel(LLMBase):
         Creates the payload for the API request.
 
         Args:
-            formatted_messages (List[Dict[str, str]]): Formatted messages for the conversation.
+            formatted_messages (List[Dict[str, str]]): Formatted messages for
+            the conversation.
             temperature (float): Sampling temperature for the response.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Whether to enable JSON response format.
@@ -173,11 +180,13 @@ class DeepInfraModel(LLMBase):
         Sends a synchronous request to generate a response from the model.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (Optional[List[str]], optional): Stop sequences for the response.
+            stop (Optional[List[str]], optional): Stop sequences for the
+            response.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -209,11 +218,13 @@ class DeepInfraModel(LLMBase):
         Sends an asynchronous request to generate a response from the model.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
-            stop (Optional[List[str]], optional): Stop sequences for the response.
+            stop (Optional[List[str]], optional): Stop sequences for the
+            response.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -246,10 +257,12 @@ class DeepInfraModel(LLMBase):
         Streams response content from the model synchronously.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            stop (Optional[List[str]], optional): Stop sequences for the response.
+            stop (Optional[List[str]], optional): Stop sequences for the
+            response.
 
         Yields:
             str: Chunks of content from the model's response.
@@ -299,10 +312,12 @@ class DeepInfraModel(LLMBase):
         Streams response content from the model asynchronously.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
-            stop (Optional[List[str]], optional): Stop sequences for the response.
+            stop (Optional[List[str]], optional): Stop sequences for the
+            response.
 
         Yields:
             str: Chunks of content from the model's response.
@@ -355,7 +370,8 @@ class DeepInfraModel(LLMBase):
             stop (Optional[List[str]], optional): Stop sequences for responses.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         return [
             self.predict(
@@ -378,7 +394,8 @@ class DeepInfraModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Processes multiple conversations asynchronously, with concurrency control.
+        Processes multiple conversations asynchronously, with concurrency
+        control.
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
@@ -389,7 +406,8 @@ class DeepInfraModel(LLMBase):
             max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

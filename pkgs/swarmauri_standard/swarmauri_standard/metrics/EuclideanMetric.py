@@ -19,8 +19,10 @@ class EuclideanMetric(MetricBase):
     Euclidean metric (L2 distance) implementation.
 
     This class implements the standard Euclidean distance metric, which is the
-    straight-line distance between two points in Euclidean space, computed as the
-    square root of the sum of the squared differences between corresponding coordinates.
+    straight-line distance between two points in Euclidean space, computed as
+    the
+    square root of the sum of the squared differences between corresponding
+    coordinates.
 
     The Euclidean distance satisfies all metric axioms:
     - Non-negativity: d(x,y) ≥ 0
@@ -68,7 +70,8 @@ class EuclideanMetric(MetricBase):
             # For vector objects
             if len(x) != len(y):
                 raise ValueError(
-                    f"Vectors must have the same dimension: {len(x)} != {len(y)}"
+                    f"Vectors must have the same dimension: {len(x)} != "
+                    f"{len(y)}"
                 )
 
             # Get numeric values from vectors
@@ -89,7 +92,8 @@ class EuclideanMetric(MetricBase):
             # For general sequences (lists, tuples, etc.)
             if len(x) != len(y):
                 raise ValueError(
-                    f"Sequences must have the same length: {len(x)} != {len(y)}"
+                    f"Sequences must have the same length: {len(x)} != "
+                    f"{len(y)}"
                 )
 
             try:
@@ -101,15 +105,25 @@ class EuclideanMetric(MetricBase):
                     f"Failed to compute Euclidean distance for sequences: {e}"
                 )
                 raise ValueError(
-                    f"Cannot compute Euclidean distance for sequences with non-numeric elements: {e}"
+                    (
+                        f"Cannot compute Euclidean distance for sequences with "  # noqa: E501
+                        f"non-numeric elements: {e}"
+                    )
                 )
 
         else:
             logger.error(
-                f"Unsupported input types for Euclidean distance: {type(x)} and {type(y)}"
+                (
+                    f"Unsupported input types for Euclidean distance: "
+                    f"{type(x)} "
+                    f"and {type(y)}"
+                )
             )
             raise TypeError(
-                f"Euclidean distance computation not supported for types {type(x)} and {type(y)}"
+                (
+                    f"Euclidean distance computation not supported for types "
+                    f"{type(x)} and {type(y)}"
+                )
             )
 
     def distances(
@@ -146,7 +160,10 @@ class EuclideanMetric(MetricBase):
             # For matrix objects - compute pairwise distances between rows
             if x.shape[1] != y.shape[1]:
                 raise ValueError(
-                    f"Points must have the same dimension: {x.shape[1]} != {y.shape[1]}"
+                    (
+                        f"Points must have the same dimension: {x.shape[1]} != "  # noqa: E501
+                        f"{y.shape[1]}"
+                    )
                 )
 
             # Create distance matrix
@@ -182,7 +199,8 @@ class EuclideanMetric(MetricBase):
             return [self.distance(x, y)]
 
         elif isinstance(x, list) and isinstance(y, list):
-            # If x and y are simple lists (not lists of lists), treat them as individual points
+            # If x and y are simple lists (not lists of lists), treat them as
+            # individual points
             if not any(isinstance(item, (list, tuple)) for item in x + y):
                 return [self.distance(x, y)]
             else:
@@ -194,12 +212,16 @@ class EuclideanMetric(MetricBase):
                 f"Unsupported collection types: {type(x)} and {type(y)}"
             )
             raise TypeError(
-                f"Euclidean distances computation not supported for types {type(x)} and {type(y)}"
+                (
+                    f"Euclidean distances computation not supported for types "
+                    f"{type(x)} and {type(y)}"
+                )
             )
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Euclidean metric satisfies the non-negativity axiom: d(x,y) ≥ 0.
+        Check if the Euclidean metric satisfies the non-negativity axiom:
+        d(x,y) ≥ 0.
 
         Parameters
         ----------
@@ -211,7 +233,8 @@ class EuclideanMetric(MetricBase):
         Returns
         -------
         bool
-            True if the axiom is satisfied, which is always the case for Euclidean distance
+            True if the axiom is satisfied, which is always the case for
+            Euclidean distance
         """
         try:
             dist = self.distance(x, y)
@@ -225,7 +248,8 @@ class EuclideanMetric(MetricBase):
         self, x: MetricInput, y: MetricInput
     ) -> bool:
         """
-        Check if the Euclidean metric satisfies the identity of indiscernibles axiom:
+        Check if the Euclidean metric satisfies the identity of indiscernibles
+        axiom:
         d(x,y) = 0 if and only if x = y.
 
         Parameters
@@ -261,7 +285,11 @@ class EuclideanMetric(MetricBase):
                 is_equal = x == y
 
             logger.debug(
-                f"Checking identity axiom: distance = {dist}, points equal: {is_equal}"
+                (
+                    f"Checking identity axiom: distance = {dist}, points "
+                    f"equal: "
+                    f"{is_equal}"
+                )
             )
 
             # Axiom is satisfied if distance is zero iff points are equal
@@ -275,7 +303,8 @@ class EuclideanMetric(MetricBase):
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
         """
-        Check if the Euclidean metric satisfies the symmetry axiom: d(x,y) = d(y,x).
+        Check if the Euclidean metric satisfies the symmetry axiom: d(x,y) =
+        d(y,x).
 
         Parameters
         ----------
@@ -293,11 +322,15 @@ class EuclideanMetric(MetricBase):
             dist_xy = self.distance(x, y)
             dist_yx = self.distance(y, x)
 
-            # Check if the distances are equal (within floating point precision)
+            # Check if the distances are equal (within floating point
+            # precision)
             is_symmetric = abs(dist_xy - dist_yx) < 1e-10
 
             logger.debug(
-                f"Checking symmetry axiom: d(x,y) = {dist_xy}, d(y,x) = {dist_yx}, symmetric: {is_symmetric}"
+                (
+                    f"Checking symmetry axiom: d(x,y) = {dist_xy}, d(y,x) = "
+                    f"{dist_yx}, symmetric: {is_symmetric}"
+                )
             )
             return is_symmetric
 
@@ -338,7 +371,11 @@ class EuclideanMetric(MetricBase):
             )  # Adding epsilon for floating point precision
 
             logger.debug(
-                f"Checking triangle inequality: d(x,z) = {dist_xz}, d(x,y) + d(y,z) = {dist_xy + dist_yz}, "
+                (
+                    f"Checking triangle inequality: d(x,z) = {dist_xz}, d(x,y) "  # noqa: E501
+                    f"+ "
+                    f"d(y,z) = {dist_xy + dist_yz}, "
+                )
                 + f"inequality satisfied: {satisfies_inequality}"
             )
 

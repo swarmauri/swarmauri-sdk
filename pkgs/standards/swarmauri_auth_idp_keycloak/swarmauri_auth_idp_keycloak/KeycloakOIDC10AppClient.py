@@ -13,7 +13,9 @@ from swarmauri_base.auth_idp import OIDC10AppClientBase, RetryingAsyncClient
 
 @ComponentBase.register_type(OIDC10AppClientBase, "KeycloakOIDC10AppClient")
 class KeycloakOIDC10AppClient(OIDC10AppClientBase):
-    """Discover Keycloak realm metadata and request machine-to-machine tokens."""
+    """
+    Discover Keycloak realm metadata and request machine-to-machine tokens.
+    """
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

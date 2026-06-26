@@ -63,7 +63,8 @@ class RichLoggingHandler(HandlerBase):
             self.console_kwargs.copy() if self.console_kwargs else {}
         )
 
-        # If a log file is specified, configure the console to write to that file
+        # If a log file is specified, configure the console to write to that
+        # file
         if self.log_file_path:
             # Ensure the directory exists
             log_dir = os.path.dirname(self.log_file_path)

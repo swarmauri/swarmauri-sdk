@@ -17,8 +17,10 @@ class PointEvaluationSeminorm(SeminormBase):
     """
     Seminorm that evaluates a function at a single point.
 
-    This seminorm assigns a value by evaluating a function at a fixed coordinate or input.
-    It's useful for measuring the behavior of functions at specific points of interest.
+    This seminorm assigns a value by evaluating a function at a fixed
+    coordinate or input.
+    It's useful for measuring the behavior of functions at specific points of
+    interest.
 
     Attributes
     ----------
@@ -43,14 +45,18 @@ class PointEvaluationSeminorm(SeminormBase):
         point : T
             The point at which to evaluate the function.
         absolute : bool, optional
-            Whether to take the absolute value of the function evaluation, by default True.
+            Whether to take the absolute value of the function evaluation, by
+            default True.
             Must be True for a valid seminorm (to ensure non-negativity).
         """
         super().__init__(**kwargs)
         self.point = point
         self.absolute = absolute
         logger.debug(
-            f"Initialized PointEvaluationSeminorm with point={point}, absolute={absolute}"
+            (
+                f"Initialized PointEvaluationSeminorm with point={point}, "
+                f"absolute={absolute}"
+            )
         )
 
     def compute(self, x: InputType) -> float:
@@ -91,21 +97,30 @@ class PointEvaluationSeminorm(SeminormBase):
                 result = x[self.point]
             else:
                 raise TypeError(
-                    f"Unsupported input type: {type(x)}. Must be callable or support item access."
+                    (
+                        f"Unsupported input type: {type(x)}. Must be callable "
+                        f"or "
+                        f"support item access."
+                    )
                 )
 
             # Convert result to float if possible
             try:
                 result_float = float(result)
             except (TypeError, ValueError):
-                # If result cannot be converted to float, use its magnitude/norm if available
+                # If result cannot be converted to float, use its
+                # magnitude/norm if available
                 if hasattr(result, "norm"):
                     result_float = result.norm()
                 elif hasattr(result, "__abs__"):
                     result_float = abs(result)
                 else:
                     raise TypeError(
-                        f"Cannot convert result {result} to a non-negative real number"
+                        (
+                            f"Cannot convert result {result} to a non-negative "  # noqa: E501
+                            f"real "
+                            f"number"
+                        )
                     )
 
             # Apply absolute value if required
@@ -151,7 +166,10 @@ class PointEvaluationSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            f"Checking triangle inequality for inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for inputs of types {type(x)} "
+                f"and {type(y)}"
+            )
         )
 
         try:
@@ -170,7 +188,11 @@ class PointEvaluationSeminorm(SeminormBase):
                 # For sequences, check if we can add them element-wise
                 if len(x) != len(y):
                     raise ValueError(
-                        "Sequences must have the same length for triangle inequality check"
+                        (
+                            "Sequences must have the same length for triangle "
+                            "inequality "
+                            "check"
+                        )
                     )
                 sum_seq = [x_i + y_i for x_i, y_i in zip(x, y)]
                 norm_sum = self.compute(sum_seq)
@@ -200,7 +222,8 @@ class PointEvaluationSeminorm(SeminormBase):
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||
@@ -225,7 +248,10 @@ class PointEvaluationSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            f"Checking scalar homogeneity for input of type {type(x)} with scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for input of type {type(x)} "
+                f"with scalar {alpha}"
+            )
         )
 
         try:
@@ -259,7 +285,8 @@ class PointEvaluationSeminorm(SeminormBase):
             # Compute the seminorm of the scaled input
             norm_scaled_x = self.compute(scaled_x)
 
-            # Check scalar homogeneity (with a small tolerance for floating-point errors)
+            # Check scalar homogeneity (with a small tolerance for
+            # floating-point errors)
             return abs(norm_scaled_x - abs(alpha) * norm_x) < 1e-10
 
         except Exception as e:

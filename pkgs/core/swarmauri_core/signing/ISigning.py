@@ -7,17 +7,20 @@ Design goals
   • Signing/verification of raw bytes.
   • Signing/verification of pre-hashed digests.
   • Signing/verification of stream-friendly iterables of bytes.
-  • Signing/verification of structured envelopes (AEAD or MRE) via canonicalization.
+  • Signing/verification of structured envelopes (AEAD or MRE) via
+  canonicalization.
 - No encryption here (kept in ICrypto/IMreCrypto).
 - Multi‑signer friendly: return one or more detached signatures; verification
   can accept N signatures and enforce policy (e.g., m‑of‑n) at the caller.
 
 Conventions
 -----------
-- "alg" describes the signature scheme (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
+- "alg" describes the signature scheme (e.g., "Ed25519", "RSA-PSS-SHA256",
+  "OpenPGP").
 - Canonicalization MUST be deterministic. Implementations should document which
   canonical form(s) they support (e.g., JSON‑canonical, CBOR‑canonical).
-- Key material is referenced via KeyRef (HSM handle, KMS id, in‑memory key, etc.).
+- Key material is referenced via KeyRef (HSM handle, KMS id, in‑memory key,
+  etc.).
 
 Typical flows
 -------------
@@ -58,8 +61,10 @@ from ..mre_crypto.types import (
 from .types import Signature
 
 
-# --------- Canonicalization tokens (stringly‑typed to avoid a hard dep) ---------
-# Examples: "json", "json-c14n", "cbor", "dag-json", "raw" (no canonicalization)
+# --------- Canonicalization tokens (stringly‑typed to avoid a hard dep)
+# ---------
+# Examples: "json", "json-c14n", "cbor", "dag-json", "raw" (no
+# canonicalization)
 Canon = str
 
 Envelope = Union[AEADCiphertext, MultiRecipientEnvelope, Mapping[str, object]]
@@ -75,25 +80,31 @@ class ISigning(ABC):
         Return capability information.
 
         Keys (omit if unsupported):
-          - "algs": iterable of signature algorithms (e.g., "Ed25519", "RSA-PSS-SHA256", "OpenPGP").
-          - "canons": iterable of canonicalization identifiers (e.g., "json", "cbor", "json-c14n").
-          - "signs": iterable describing supported signing surfaces. Expected tokens include
+          - "algs": iterable of signature algorithms (e.g., "Ed25519",
+            "RSA-PSS-SHA256", "OpenPGP").
+          - "canons": iterable of canonicalization identifiers (e.g., "json",
+            "cbor", "json-c14n").
+          - "signs": iterable describing supported signing surfaces. Expected
+            tokens include
                 • "bytes"    → :meth:`sign_bytes`
                 • "digest"   → :meth:`sign_digest`
                 • "envelope" → :meth:`sign_envelope`
                 • "stream"   → :meth:`sign_stream`
-          - "verifies": iterable describing supported verification surfaces using the
+          - "verifies": iterable describing supported verification surfaces
+            using the
             same tokens as "signs".
           - "envelopes": iterable describing supported envelope shapes (e.g.,
             "mapping", "aead_ciphertext", "multi_recipient").
           - "features": optional iterable of flags, e.g.:
                 • "multi"          → optimized for multi‑signature sets
                 • "detached_only"  → only detached signatures (default)
-                • "attest"         → can include attestation chains in Signature["chain"]
+                • "attest"         → can include attestation chains in
+                Signature["chain"]
         """
         ...
 
-    # ────────────────────────────────── Bytes ──────────────────────────────────
+    # ────────────────────────────────── Bytes
+    # ──────────────────────────────────
 
     @abstractmethod
     async def sign_bytes(
@@ -109,7 +120,8 @@ class ISigning(ABC):
 
         Returns:
           Sequence[Signature] (typically length 1). Multiple signatures MAY be
-          returned if the provider is configured to co‑sign (e.g., hardware + software).
+          returned if the provider is configured to co‑sign (e.g., hardware +
+          software).
         """
         ...
 
@@ -139,14 +151,16 @@ class ISigning(ABC):
 
         Parameters:
           signatures : sequence of Signature mappings.
-          require    : optional policy hints, e.g. {"min_signers": 1, "algs": ["Ed25519"]}
+          require    : optional policy hints, e.g. {"min_signers": 1, "algs":
+          ["Ed25519"]}
 
         Returns:
           True if the verification criteria are met, False otherwise.
         """
         ...
 
-    # ────────────────────────────────── Streams ──────────────────────────────────
+    # ────────────────────────────────── Streams
+    # ──────────────────────────────────
 
     @abstractmethod
     async def sign_stream(
@@ -174,7 +188,8 @@ class ISigning(ABC):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bool: ...
 
-    # ────────────────────────────────── Envelopes ──────────────────────────────────
+    # ────────────────────────────────── Envelopes
+    # ──────────────────────────────────
 
     @abstractmethod
     async def canonicalize_envelope(
@@ -185,10 +200,13 @@ class ISigning(ABC):
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
         """
-        Deterministically canonicalize an envelope to bytes prior to signing/verifying.
+        Deterministically canonicalize an envelope to bytes prior to
+        signing/verifying.
 
-        Implementations MUST document the exact canonicalization performed for each
-        'canon' token and ensure stable byte output for semantically identical envelopes.
+        Implementations MUST document the exact canonicalization performed for
+        each
+        'canon' token and ensure stable byte output for semantically identical
+        envelopes.
         """
         ...
 
@@ -221,11 +239,13 @@ class ISigning(ABC):
         Verify detached signatures against the canonicalized envelope.
 
         'require' can express policy such as:
-          {"min_signers": 2, "algs": ["Ed25519", "RSA-PSS-SHA256"], "kids": ["..."]}
+          {"min_signers": 2, "algs": ["Ed25519", "RSA-PSS-SHA256"], "kids":
+          ["..."]}
         """
         ...
 
-    # ────────────────────────────────── Digests ──────────────────────────────────
+    # ────────────────────────────────── Digests
+    # ──────────────────────────────────
 
     @abstractmethod
     async def verify_digest(

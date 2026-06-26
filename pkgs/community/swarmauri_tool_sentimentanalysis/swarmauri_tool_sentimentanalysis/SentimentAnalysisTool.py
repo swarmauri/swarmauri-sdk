@@ -12,7 +12,8 @@ hf_logging.set_verbosity_error()
 @ComponentBase.register_type(ToolBase, "SentimentAnalysisTool")
 class SentimentAnalysisTool(ToolBase):
     """
-    A tool for analyzing the sentiment of the given text using Hugging Face's transformers.
+    A tool for analyzing the sentiment of the given text using Hugging Face's
+    transformers.
     """
 
     version: str = "1.0.0"
@@ -39,8 +40,10 @@ class SentimentAnalysisTool(ToolBase):
             text (str): The text to analyze.
 
         Returns:
-            Dict[str, str]: A dictionary containing the sentiment analysis result.
-                The dictionary has a single key-value pair, where the key is "sentiment"
+            Dict[str, str]: A dictionary containing the sentiment analysis
+            result.
+                The dictionary has a single key-value pair, where the key is
+                "sentiment"
                 and the value is the sentiment label.
         Raises:
             RuntimeError: If sentiment analysis fails.

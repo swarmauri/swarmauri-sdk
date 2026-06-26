@@ -25,8 +25,9 @@ from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing HyperbolicVisionModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.vlms import "
+    "Importing HyperbolicVisionModel from swarmauri.llms is deprecated and "
+    "will be "
+    "removed in a future version. Please use 'from swarmauri_standard.vlms import "  # noqa: E501
     "HyperbolicVLM' or 'from swarmauri.vlms import HyperbolicVLM' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -36,15 +37,20 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "HyperbolicVisionModel")
 class HyperbolicVisionModel(LLMBase):
     """
-    HyperbolicVisionModel class for interacting with the Hyperbolic vision language models API. This class
-    provides synchronous and asynchronous methods to send conversation data to the
+    HyperbolicVisionModel class for interacting with the Hyperbolic vision
+    language models API. This class
+    provides synchronous and asynchronous methods to send conversation data to
+    the
     model, receive predictions, and stream responses.
 
     Attributes:
-        api_key (str): API key for authenticating requests to the Hyperbolic API.
-        allowed_models (List[str]): List of allowed model names that can be used.
+        api_key (str): API key for authenticating requests to the Hyperbolic
+        API.
+        allowed_models (List[str]): List of allowed model names that can be
+        used.
         name (str): The default model name to use for predictions.
-        type (Literal["HyperbolicVisionModel"]): The type identifier for this class.
+        type (Literal["HyperbolicVisionModel"]): The type identifier for this
+        class.
 
     Link to Allowed Models: https://app.hyperbolic.xyz/models
     Link to API KEYS: https://app.hyperbolic.xyz/settings
@@ -89,7 +95,8 @@ class HyperbolicVisionModel(LLMBase):
         Formats conversation messages into the structure expected by the API.
 
         Args:
-            messages (List[MessageBase]): List of message objects from the conversation history.
+            messages (List[MessageBase]): List of message objects from the
+            conversation history.
 
         Returns:
             List[Dict[str, Any]]: List of formatted message dictionaries.
@@ -110,7 +117,7 @@ class HyperbolicVisionModel(LLMBase):
                             {
                                 "type": "image_url",
                                 "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_img}"
+                                    "url": f"data:image/jpeg;base64,{base64_img}"  # noqa: E501
                                 },
                             }
                         )
@@ -166,11 +173,13 @@ class HyperbolicVisionModel(LLMBase):
         Generates a response from the model based on the given conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -209,14 +218,17 @@ class HyperbolicVisionModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> Conversation:
         """
-        Async method to generate a response from the model based on the given conversation.
+        Async method to generate a response from the model based on the given
+        conversation.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
             Conversation: Updated conversation with the model's response.
@@ -263,11 +275,13 @@ class HyperbolicVisionModel(LLMBase):
         Streams response text from the model in real-time.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Yields:
             str: Partial response content from the model.
@@ -314,11 +328,13 @@ class HyperbolicVisionModel(LLMBase):
         Async generator that streams response text from the model in real-time.
 
         Args:
-            conversation (Conversation): Conversation object with message history.
+            conversation (Conversation): Conversation object with message
+            history.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for the model's response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Yields:
             str: Partial response content from the model.
@@ -366,17 +382,21 @@ class HyperbolicVisionModel(LLMBase):
         stop: Optional[List[str]] = None,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations and generates responses for each sequentially.
+        Processes a batch of conversations and generates responses for each
+        sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         results = []
         for conversation in conversations:
@@ -403,15 +423,18 @@ class HyperbolicVisionModel(LLMBase):
         Async method for processing a batch of conversations concurrently.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             temperature (float): Sampling temperature for response diversity.
             max_tokens (int): Maximum tokens for each response.
             top_p (float): Cumulative probability for nucleus sampling.
-            stop (Optional[List[str]]): List of stop sequences for response termination.
+            stop (Optional[List[str]]): List of stop sequences for response
+            termination.
             max_concurrent (int): Maximum number of concurrent requests.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

@@ -52,7 +52,9 @@ def test_rich_handler_initialization():
     ],
 )
 def test_handler_with_different_levels(level):
-    """Test that the handler can be configured with different logging levels."""
+    """
+    Test that the handler can be configured with different logging levels.
+    """
     handler = RichLoggingHandler(level=level)
     assert handler.level == level
 

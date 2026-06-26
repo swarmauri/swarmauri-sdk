@@ -154,7 +154,9 @@ def test_distances_with_numpy_arrays(metric):
 
 @pytest.mark.unit
 def test_distances_invalid_input(metric):
-    """Test that distances method raises appropriate errors for invalid inputs."""
+    """
+    Test that distances method raises appropriate errors for invalid inputs.
+    """
     with pytest.raises(TypeError):
         metric.distances("a", [1, 2, 3])
 
@@ -301,7 +303,9 @@ def test_to_list(metric, input_val, expected):
 
 @pytest.mark.unit
 def test_to_list_invalid_input(metric):
-    """Test that _to_list method raises appropriate errors for invalid inputs."""
+    """
+    Test that _to_list method raises appropriate errors for invalid inputs.
+    """
     with pytest.raises(TypeError):
         metric._to_list("not a number")
 

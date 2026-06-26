@@ -37,7 +37,9 @@ def auth_middleware(secret_key):
 
 @pytest.fixture
 def auth_middleware_with_audience(secret_key):
-    """Fixture providing an AuthMiddleware instance with audience validation."""
+    """
+    Fixture providing an AuthMiddleware instance with audience validation.
+    """
     return AuthMiddleware(
         secret_key=secret_key,
         algorithm="HS256",

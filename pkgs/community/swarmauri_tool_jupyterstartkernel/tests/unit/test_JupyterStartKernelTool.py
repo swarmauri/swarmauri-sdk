@@ -1,9 +1,12 @@
 """
 test_JupyterStartKernelTool.py
 
-This module contains pytest-based test cases for the JupyterStartKernelTool class, which is
-responsible for creating and managing Jupyter kernel instances. These tests validate that
-the class behaves correctly under different conditions, including normal operation and
+This module contains pytest-based test cases for the JupyterStartKernelTool
+class, which is
+responsible for creating and managing Jupyter kernel instances. These tests
+validate that
+the class behaves correctly under different conditions, including normal
+operation and
 error scenarios.
 """
 
@@ -18,7 +21,8 @@ from swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool import (
 
 def test_tool_initialization() -> None:
     """
-    Tests that the JupyterStartKernelTool can be instantiated with default parameters.
+    Tests that the JupyterStartKernelTool can be instantiated with default
+    parameters.
     Ensures the tool's attributes are set as expected.
     """
     tool = JupyterStartKernelTool()
@@ -110,7 +114,8 @@ def test_call_failure(mock_kernel_manager_class: MagicMock) -> None:
 
 def test_get_kernel_manager_without_call() -> None:
     """
-    Tests that get_kernel_manager returns None if the __call__ method has not been invoked
+    Tests that get_kernel_manager returns None if the __call__ method has not
+    been invoked
     and no kernel has been started.
     """
     tool = JupyterStartKernelTool()
@@ -120,7 +125,8 @@ def test_get_kernel_manager_without_call() -> None:
 
 def test_tool_parameters() -> None:
     """
-    Tests that the parameters field of the tool can be customized and accessed properly.
+    Tests that the parameters field of the tool can be customized and accessed
+    properly.
     """
     custom_params = [
         {
@@ -157,20 +163,25 @@ def test_tool_parameters() -> None:
 
 def test_call_with_kernel_spec() -> None:
     """
-    Tests that calling the tool with a kernel specification does not raise an error
-    and returns the correct dictionary structure. This test does not mock the kernel
-    manager and is intended for demonstration; in real usage, a mock would be used.
+    Tests that calling the tool with a kernel specification does not raise an
+    error
+    and returns the correct dictionary structure. This test does not mock the
+    kernel
+    manager and is intended for demonstration; in real usage, a mock would be
+    used.
     """
     tool = JupyterStartKernelTool()
     result: Dict[str, Any] = tool(
         kernel_name="python3", kernel_spec={"env": {"KEY": "VALUE"}}
     )
 
-    # Since no actual kernel is started in many CI environments, this could fail in real scenarios,
+    # Since no actual kernel is started in many CI environments, this could
+    # fail in real scenarios,
     # but we include it here to demonstrate potential usage.
     if "error" in result:
         assert "error" in result, (
-            "If an error occurred due to environment constraints, the result should contain 'error'."
+            "If an error occurred due to environment constraints, the "
+            "result should contain 'error'."
         )
     else:
         assert "kernel_id" in result, (

@@ -25,7 +25,8 @@ class IPseudometric(ABC):
     2. Symmetry: d(x,y) = d(y,x)
     3. Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
 
-    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, meaning it may not
+    Unlike a metric, a pseudometric allows d(x,y) = 0 for x ≠ y, meaning it may
+    not
     distinguish between distinct points.
     """
 
@@ -74,15 +75,18 @@ class IPseudometric(ABC):
 
         Parameters
         ----------
-        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        xs : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The first collection of objects
-        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str, Callable]]
+        ys : Sequence[Union[VectorType, MatrixType, Sequence[T], str,
+        Callable]]
             The second collection of objects
 
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the distance between
+            xs[i] and ys[j]
 
         Raises
         ------
@@ -193,6 +197,7 @@ class IPseudometric(ABC):
         Returns
         -------
         bool
-            True if the pseudometric properly handles the weak identity property
+            True if the pseudometric properly handles the weak identity
+            property
         """
         pass

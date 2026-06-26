@@ -42,10 +42,17 @@ class RabbitMQPublisher(PublishBase):
 
         if self.uri and individual_opts_present:
             print(
-                f"RabbitMQPublisher: uri={self.uri}, host={self.host}, port={self.port}, username={self.username}, password={self.password}"
+                (
+                    f"RabbitMQPublisher: uri={self.uri}, host={self.host}, "
+                    f"port={self.port}, username={self.username}, "
+                    f"password={self.password}"
+                )
             )
             raise ValueError(
-                "Cannot specify both `uri` and individual host/port/username/password."
+                (
+                    "Cannot specify both `uri` and individual "
+                    "host/port/username/password."
+                )
             )
 
         actual_amqp_uri: str
@@ -73,7 +80,8 @@ class RabbitMQPublisher(PublishBase):
 
     def publish(self, channel: str, payload: Dict[str, Any]) -> None:
         """
-        Publish ``payload`` to the configured ``exchange`` with ``channel`` as routing_key.
+        Publish ``payload`` to the configured ``exchange`` with ``channel`` as
+        routing_key.
         """
         body = json.dumps(payload).encode()
         try:
@@ -82,7 +90,8 @@ class RabbitMQPublisher(PublishBase):
                 routing_key=channel,
                 body=body,
                 properties=pika.BasicProperties(
-                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE  # Make messages persistent
+                    # Make messages persistent
+                    delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
                 ),
             )
         except (

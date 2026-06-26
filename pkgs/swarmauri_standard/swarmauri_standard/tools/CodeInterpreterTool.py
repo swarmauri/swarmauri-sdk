@@ -16,8 +16,10 @@ class CodeInterpreterTool(ToolBase):
                 name="user_code",
                 input_type="string",
                 description=(
-                    "Executes the provided Python code snippet in a secure sandbox environment. "
-                    "This tool is designed to interpret the execution of the python code snippet."
+                    "Executes the provided Python code snippet in a secure "
+                    "sandbox environment. "
+                    "This tool is designed to interpret the execution of the "
+                    "python code snippet."
                     "Returns the output"
                 ),
                 required=True,

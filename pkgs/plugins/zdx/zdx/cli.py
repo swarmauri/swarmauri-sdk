@@ -383,7 +383,9 @@ def install_manifest_packages(
             workspace_result = _run_command(
                 cmd,
                 failure_mode=failure_mode,
-                description=f"uv pip install --directory {workspace_spec.root}",
+                description=(
+                    f"uv pip install --directory {workspace_spec.root}"
+                ),
             )
             if workspace_result.returncode == 0:
                 installed_members = {workspace_spec.root.resolve()}

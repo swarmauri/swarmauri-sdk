@@ -13,7 +13,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing FalAIVisionModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.vlms import "
+    "removed in a future version. Please use 'from swarmauri_standard.vlms import "  # noqa: E501
     "FalVLM' or 'from swarmauri.vlms import FalVLM' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -23,8 +23,10 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "FalAIVisionModel")
 class FalAIVisionModel(LLMBase):
     """
-    A model for processing images and answering questions using FalAI's vision models.
-    This model allows synchronous and asynchronous requests for image processing
+    A model for processing images and answering questions using FalAI's vision
+    models.
+    This model allows synchronous and asynchronous requests for image
+    processing
     and question answering based on an input image and text prompt.
 
     Attributes:
@@ -76,7 +78,8 @@ class FalAIVisionModel(LLMBase):
 
     def __init__(self, **data):
         """
-        Initialize the FalOCR with API key, HTTP clients, and model name validation.
+        Initialize the FalOCR with API key, HTTP clients, and model name
+        validation.
 
         Raises:
             ValueError: If the provided name is not in allowed_models.
@@ -91,7 +94,8 @@ class FalAIVisionModel(LLMBase):
     @retry_on_status_codes((429, 529), max_retries=1)
     def _send_request(self, image_url: str, prompt: str, **kwargs) -> Dict:
         """
-        Send a synchronous request to the vision model API for image processing.
+        Send a synchronous request to the vision model API for image
+        processing.
 
         Args:
             image_url (str): The URL of the image to process.
@@ -118,7 +122,8 @@ class FalAIVisionModel(LLMBase):
         self, image_url: str, prompt: str, **kwargs
     ) -> Dict:
         """
-        Send an asynchronous request to the vision model API for image processing.
+        Send an asynchronous request to the vision model API for image
+        processing.
 
         Args:
             image_url (str): The URL of the image to process.
@@ -234,7 +239,8 @@ class FalAIVisionModel(LLMBase):
 
     async def apredict(self, image_url: str, prompt: str, **kwargs) -> str:
         """
-        Asynchronously process an image and answer a question based on the prompt.
+        Asynchronously process an image and answer a question based on the
+        prompt.
 
         Args:
             image_url (str): The URL of the image to process.
@@ -253,7 +259,8 @@ class FalAIVisionModel(LLMBase):
         self, image_urls: List[str], prompts: List[str], **kwargs
     ) -> List[str]:
         """
-        Process a batch of images and answer questions for each image synchronously.
+        Process a batch of images and answer questions for each image
+        synchronously.
 
         Args:
             image_urls (List[str]): A list of image URLs to process.
@@ -272,7 +279,8 @@ class FalAIVisionModel(LLMBase):
         self, image_urls: List[str], prompts: List[str], **kwargs
     ) -> List[str]:
         """
-        Asynchronously process a batch of images and answer questions for each image.
+        Asynchronously process a batch of images and answer questions for each
+        image.
 
         Args:
             image_urls (List[str]): A list of image URLs to process.
@@ -283,7 +291,8 @@ class FalAIVisionModel(LLMBase):
             List[str]: A list of answers or results for each image.
 
         Raises:
-            TimeoutError: If one or more requests do not complete within the timeout period.
+            TimeoutError: If one or more requests do not complete within the
+            timeout period.
         """
         tasks = [
             self.apredict_vision(image_url, prompt, **kwargs)

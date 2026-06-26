@@ -147,7 +147,9 @@ Swarmauri SDK
 
 
 def describe_certificate_chain(signature: Signature) -> list[str]:
-    """Return human readable subject strings extracted from ``cert_chain_der``."""
+    """
+    Return human readable subject strings extracted from ``cert_chain_der``.
+    """
 
     subjects: list[str] = []
     for entry in signature.cert_chain_der or ():

@@ -27,10 +27,16 @@ def test_serialization():
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
-    "input_text, num_of_major_punctuations, num_of_words, num_of_three_plus_syllable_words, expected_score",
+    (
+        "input_text, num_of_major_punctuations, num_of_words, "
+        "num_of_three_plus_syllable_words, expected_score"
+    ),
     [
         (
-            "This is a sample sentence. It is used to test the Gunning-Fog tool.",
+            (
+                "This is a sample sentence. It is used to test the "
+                "Gunning-Fog tool."
+            ),
             2,
             13,
             1,
@@ -75,11 +81,11 @@ def test_call(
         f"Expected keys {expected_keys} but got {result.keys()}"
     )
     assert isinstance(result.get("gunning_fog_score"), float), (
-        f"Expected float, but got {type(result.get('gunning_fog_score')).__name__}"
+        f"Expected float, but got {type(result.get('gunning_fog_score')).__name__}"  # noqa: E501
     )
 
     assert result.get("gunning_fog_score") == pytest.approx(
         expected_score, rel=0.01
     ), (
-        f"Expected Gunning-Fog score {pytest.approx(expected_score, rel=0.01)}, but got {result.get('gunning_fog_score')}"
+        f"Expected Gunning-Fog score {pytest.approx(expected_score, rel=0.01)}, but got {result.get('gunning_fog_score')}"  # noqa: E501
     )

@@ -18,11 +18,14 @@ class LlamaCppModel(LLMBase):
     """
     A class for interacting with LlamaCpp's model API for text generation.
 
-    This implementation uses httpx for both synchronous and asynchronous HTTP requests,
-    providing support for predictions, streaming responses, and batch processing.
+    This implementation uses httpx for both synchronous and asynchronous HTTP
+    requests,
+    providing support for predictions, streaming responses, and batch
+    processing.
 
     Attributes:
-        api_key (Optional[SecretStr]): API key for authentication (optional for local LlamaCpp)
+        api_key (Optional[SecretStr]): API key for authentication (optional for
+        local LlamaCpp)
         allowed_models (List[str]): List of supported model identifiers
         name (str): The currently selected model name
         type (Literal["LlamaCppModel"]): Type identifier for the model class
@@ -39,7 +42,8 @@ class LlamaCppModel(LLMBase):
         for both sync and async operations.
 
         Args:
-            **data (Dict[str, Any]): Keyword arguments for model initialization.
+            **data (Dict[str, Any]): Keyword arguments for model
+            initialization.
         """
         super().__init__(**data)
         if self.api_key:
@@ -63,10 +67,12 @@ class LlamaCppModel(LLMBase):
         self, messages: List[SubclassUnion[MessageBase]]
     ) -> List[Dict[str, str]]:
         """
-        Formats conversation history into a list of dictionaries suitable for API requests.
+        Formats conversation history into a list of dictionaries suitable for
+        API requests.
 
         Args:
-            messages (List[SubclassUnion[MessageBase]]): The conversation history.
+            messages (List[SubclassUnion[MessageBase]]): The conversation
+            history.
 
         Returns:
             List[Dict[str, str]]: Formatted message list.
@@ -90,7 +96,8 @@ class LlamaCppModel(LLMBase):
         Creates the payload for the API request.
 
         Args:
-            formatted_messages (List[Dict[str, str]]): Formatted messages for the conversation.
+            formatted_messages (List[Dict[str, str]]): Formatted messages for
+            the conversation.
             temperature (float): Sampling temperature for the response.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Whether to enable JSON response format.
@@ -132,7 +139,8 @@ class LlamaCppModel(LLMBase):
         Sends a synchronous request to generate a response from the model.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
@@ -168,7 +176,8 @@ class LlamaCppModel(LLMBase):
         Sends an asynchronous request to generate a response from the model.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             enable_json (bool): Flag for enabling JSON response format.
@@ -205,7 +214,8 @@ class LlamaCppModel(LLMBase):
         Streams response content from the model synchronously.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             stop (Optional[List[str]]): Stop sequences for the response.
@@ -258,7 +268,8 @@ class LlamaCppModel(LLMBase):
         Streams response content from the model asynchronously.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
+            conversation (Conversation): The conversation object containing
+            message history.
             temperature (float): Sampling temperature for response generation.
             max_tokens (int): Maximum number of tokens to generate.
             stop (Optional[List[str]]): Stop sequences for the response.
@@ -314,7 +325,8 @@ class LlamaCppModel(LLMBase):
             stop (Optional[List[str]]): Stop sequences for responses.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         return [
             self.predict(
@@ -337,7 +349,8 @@ class LlamaCppModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Processes multiple conversations asynchronously, with concurrency control.
+        Processes multiple conversations asynchronously, with concurrency
+        control.
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
@@ -348,7 +361,8 @@ class LlamaCppModel(LLMBase):
             max_concurrent (int): Maximum number of concurrent tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

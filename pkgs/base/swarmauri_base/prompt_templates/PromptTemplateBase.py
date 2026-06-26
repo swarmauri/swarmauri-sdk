@@ -11,7 +11,8 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 class PromptTemplateBase(IPromptTemplate, ComponentBase):
     """
     A class for generating prompts based on a template and variables.
-    Implements the IPrompt for generating prompts and ITemplate for template manipulation.
+    Implements the IPrompt for generating prompts and ITemplate for template
+    manipulation.
     """
 
     template: str = ""
@@ -43,7 +44,8 @@ class PromptTemplateBase(IPromptTemplate, ComponentBase):
 
     def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
         """
-        Generates a prompt using the current template and provided keyword arguments for substitution.
+        Generates a prompt using the current template and provided keyword
+        arguments for substitution.
         """
         variables = variables if variables else self.variables
         return self.generate_prompt(variables)

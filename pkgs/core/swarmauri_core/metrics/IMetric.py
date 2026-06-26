@@ -29,11 +29,13 @@ class IMetric(ABC):
 
     This interface defines the contract enforcing the full metric axioms:
     - Non-negativity: d(x,y) ≥ 0
-    - Identity of indiscernibles (point separation): d(x,y) = 0 if and only if x = y
+    - Identity of indiscernibles (point separation): d(x,y) = 0 if and only if
+      x = y
     - Symmetry: d(x,y) = d(y,x)
     - Triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
 
-    Implementations must support various input types including vectors, matrices,
+    Implementations must support various input types including vectors,
+    matrices,
     sequences, strings, and callables.
     """
 

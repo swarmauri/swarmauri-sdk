@@ -14,9 +14,12 @@ class ISeminorm(ABC):
     """
     Interface for seminorm structure.
 
-    A seminorm is a function that assigns a non-negative length or size to all vectors
-    in a vector space. Unlike a norm, a seminorm can have a null space that is larger
-    than just the zero vector, meaning some non-zero vectors can have a seminorm of zero.
+    A seminorm is a function that assigns a non-negative length or size to all
+    vectors
+    in a vector space. Unlike a norm, a seminorm can have a null space that is
+    larger
+    than just the zero vector, meaning some non-zero vectors can have a
+    seminorm of zero.
 
     Seminorms must satisfy:
     1. Non-negativity: ||x|| ≥ 0 for all x
@@ -84,7 +87,8 @@ class ISeminorm(ABC):
     @abstractmethod
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         The scalar homogeneity states that:
         ||αx|| = |α|·||x||

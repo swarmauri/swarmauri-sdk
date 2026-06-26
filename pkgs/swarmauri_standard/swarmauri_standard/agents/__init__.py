@@ -1,10 +1,12 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of agent names (file names without the ".py" extension) and corresponding class names
+# # List of agent names (file names without the ".py" extension) and
+# corresponding class names
 # agent_files = [
 #     ("swarmauri_standard.agents.QAAgent", "QAAgent"),
 #     ("swarmauri_standard.agents.RagAgent", "RagAgent"),
-#     ("swarmauri_standard.agents.SimpleConversationAgent", "SimpleConversationAgent"),
+# ("swarmauri_standard.agents.SimpleConversationAgent",
+# "SimpleConversationAgent"),
 #     ("swarmauri_standard.agents.ToolAgent", "ToolAgent"),
 # ]
 

@@ -51,7 +51,9 @@ class AdyenBillingProvider(
     PromotionsMixin,
     BillingProviderBase,
 ):
-    """Adyen Checkout API backed provider for payment-oriented billing flows."""
+    """
+    Adyen Checkout API backed provider for payment-oriented billing flows.
+    """
 
     CAPABILITIES = ALL_CAPABILITIES
     component_name: str = "adyen"
@@ -113,7 +115,8 @@ class AdyenBillingProvider(
             "payload": payload,
         }
 
-    # ---------------------------------------------------------------- Products & Prices
+    # ---------------------------------------------------------------- Products
+    # & Prices
     def _create_product(
         self, product_spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -140,7 +143,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Hosted Checkout
+    # ---------------------------------------------------------------- Hosted
+    # Checkout
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
         amount_minor = getattr(
             price, "unit_amount_minor", None
@@ -172,7 +176,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Online Payments
+    # ---------------------------------------------------------------- Online
+    # Payments
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
         metadata = dict(req.resolve("metadata") or {})
         payment_method = metadata.pop("payment_method", None)
@@ -253,7 +258,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Subscriptions
+    # ----------------------------------------------------------------
+    # Subscriptions
     def _create_subscription(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -276,7 +282,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Invoicing
+    # ----------------------------------------------------------------
+    # Invoicing
     def _create_invoice(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -315,7 +322,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Marketplace
+    # ----------------------------------------------------------------
+    # Marketplace
     def _create_split(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -420,7 +428,8 @@ class AdyenBillingProvider(
         result = self._stub("refund_get", refund_id=refund_id)
         return result
 
-    # ---------------------------------------------------------------- Customers
+    # ----------------------------------------------------------------
+    # Customers
     def _create_customer(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -449,7 +458,8 @@ class AdyenBillingProvider(
         )
         return result
 
-    # ---------------------------------------------------------------- Payment Methods
+    # ---------------------------------------------------------------- Payment
+    # Methods
     def _create_payment_method(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -491,7 +501,8 @@ class AdyenBillingProvider(
         result = self._stub("payout_create", idempotency_key=idempotency_key)
         return result
 
-    # ---------------------------------------------------------------- Balance & Transfers
+    # ---------------------------------------------------------------- Balance
+    # & Transfers
     def _get_balance(self) -> Mapping[str, Any]:
         result = {
             "snapshot_id": f"ady_bal_{uuid4().hex[:6]}",
@@ -530,7 +541,8 @@ class AdyenBillingProvider(
         }
         return result
 
-    # ---------------------------------------------------------------- Promotions
+    # ----------------------------------------------------------------
+    # Promotions
     def _create_coupon(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:

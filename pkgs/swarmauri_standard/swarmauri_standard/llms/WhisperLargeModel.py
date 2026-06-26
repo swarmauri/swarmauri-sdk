@@ -10,8 +10,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing WhisperLargeModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "
+    "Importing WhisperLargeModel from swarmauri.llms is deprecated and will be "  # noqa: E501
+    "removed in a future version. Please use 'from swarmauri_standard.stt import "  # noqa: E501
     "WhisperLargeSTT' or 'from swarmauri.stt import WhisperLargeSTT' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -21,10 +21,13 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "WhisperLargeModel")
 class WhisperLargeModel(LLMBase):
     """
-    A class implementing OpenAI's Whisper Large V3 model using HuggingFace's Inference API.
+    A class implementing OpenAI's Whisper Large V3 model using HuggingFace's
+    Inference API.
 
-    This class provides both synchronous and asynchronous methods for transcribing or
-    translating audio files using the Whisper Large V3 model. It supports both single
+    This class provides both synchronous and asynchronous methods for
+    transcribing or
+    translating audio files using the Whisper Large V3 model. It supports both
+    single
     file processing and batch processing with controlled concurrency.
 
     Attributes:
@@ -57,7 +60,8 @@ class WhisperLargeModel(LLMBase):
         Initialize the WhisperLargeModel instance.
 
         Args:
-            **data (Dict[str, Any]): Keyword arguments containing model configuration.
+            **data (Dict[str, Any]): Keyword arguments containing model
+              configuration.
                    Must include 'api_key' for HuggingFace API authentication.
 
         Raises:
@@ -94,7 +98,7 @@ class WhisperLargeModel(LLMBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', 'translation']"  # noqa: E501
             )
 
         with open(audio_path, "rb") as audio_file:
@@ -143,7 +147,7 @@ class WhisperLargeModel(LLMBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', 'translation']"  # noqa: E501
             )
 
         with open(audio_path, "rb") as audio_file:
@@ -175,13 +179,15 @@ class WhisperLargeModel(LLMBase):
         Synchronously process multiple audio files.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]):
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]):
                 Dictionary mapping file paths to their respective tasks.
                 Key: Path to audio file.
                 Value: Task to perform ("transcription" or "translation").
 
         Returns:
-            List[str]: List of processed texts, maintaining the order of input files.
+            List[str]: List of processed texts, maintaining the order of input
+            files.
 
         Example:
             >>> files = {
@@ -208,15 +214,18 @@ class WhisperLargeModel(LLMBase):
         the API or local resources.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]):
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]):
                 Dictionary mapping file paths to their respective tasks.
                 Key: Path to audio file.
                 Value: Task to perform ("transcription" or "translation").
-            max_concurrent (int, optional): Maximum number of concurrent requests.
+            max_concurrent (int, optional): Maximum number of concurrent
+            requests.
                 Defaults to 5.
 
         Returns:
-            List[str]: List of processed texts, maintaining the order of input files.
+            List[str]: List of processed texts, maintaining the order of input
+            files.
 
         Example:
             >>> files = {
@@ -256,7 +265,8 @@ class WhisperLargeModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

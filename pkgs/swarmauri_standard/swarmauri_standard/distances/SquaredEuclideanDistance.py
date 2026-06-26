@@ -14,21 +14,24 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "SquaredEuclideanDistance")
 class SquaredEuclideanDistance(DistanceBase):
     """
-    A concrete class for computing the squared Euclidean distance between two vectors.
+    A concrete class for computing the squared Euclidean distance between two
+    vectors.
     """
 
     type: Literal["SquaredEuclideanDistance"] = "SquaredEuclideanDistance"
 
     def distance(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Computes the squared Euclidean distance between vectors `vector_a` and `vector_b`.
+        Computes the squared Euclidean distance between vectors `vector_a` and
+        `vector_b`.
 
         Parameters:
         - vector_a (Vector): The first vector in the comparison.
         - vector_b (Vector): The second vector in the comparison.
 
         Returns:
-        - float: The computed squared Euclidean distance between vector_a and vector_b.
+        - float: The computed squared Euclidean distance between vector_a and
+          vector_b.
         """
         if vector_a.shape != vector_b.shape:
             raise ValueError("Vectors must be of the same dimensionality.")
@@ -47,10 +50,14 @@ class SquaredEuclideanDistance(DistanceBase):
         - vector_b (Vector): The second vector.
 
         Raises:
-        - NotImplementedError: Indicates that similarity calculation is not implemented.
+        - NotImplementedError: Indicates that similarity calculation is not
+          implemented.
         """
         raise NotImplementedError(
-            "Similarity calculation is not implemented for Squared Euclidean distance."
+            (
+                "Similarity calculation is not implemented for Squared "
+                "Euclidean distance."
+            )
         )
 
     def distances(
@@ -65,5 +72,8 @@ class SquaredEuclideanDistance(DistanceBase):
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            "Similarity calculation is not implemented for Squared Euclidean distance."
+            (
+                "Similarity calculation is not implemented for Squared "
+                "Euclidean distance."
+            )
         )

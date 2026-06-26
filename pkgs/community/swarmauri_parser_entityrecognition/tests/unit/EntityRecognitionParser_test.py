@@ -28,7 +28,10 @@ def test_serialization(parser):
 
 @pytest.mark.unit
 def test_parse(parser):
-    sample_text = "Apple Inc. is planning to open a new office in New York City, according to CEO Tim Cook."
+    sample_text = (
+        "Apple Inc. is planning to open a new office in New York "
+        "City, according to CEO Tim Cook."
+    )
 
     results = parser.parse(sample_text)
 
@@ -65,7 +68,7 @@ def test_parse(parser):
                 "GPE",
                 "LOC",
             ], (
-                f"Expected entity '{entity}' to be recognized as {expected_type} or similar"
+                f"Expected entity '{entity}' to be recognized as {expected_type} or similar"  # noqa: E501
             )
 
     number_result = parser.parse(42)

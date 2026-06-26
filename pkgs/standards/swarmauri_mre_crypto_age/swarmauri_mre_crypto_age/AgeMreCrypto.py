@@ -210,7 +210,10 @@ class AgeMreCrypto(MreCryptoBase):
         recip_alg = env.get("recipient_alg")
         if recip_alg != "X25519-SEAL":
             raise ValueError(
-                "Envelope recipient_alg must be 'X25519-SEAL' for AgeMreCrypto."
+                (
+                    "Envelope recipient_alg must be 'X25519-SEAL' for "
+                    "AgeMreCrypto."
+                )
             )
         sk = _priv_from_keyref(my_identity)
         my_rid = _fingerprint(sk.public_key())
@@ -279,7 +282,10 @@ class AgeMreCrypto(MreCryptoBase):
                 plaintext = await self.open_for(opts["open_with"], env)  # type: ignore[arg-type]
             else:
                 raise ValueError(
-                    "Adding recipients requires opts['pt'] or opts['open_with']."
+                    (
+                        "Adding recipients requires opts['pt'] or "
+                        "opts['open_with']."
+                    )
                 )
             for ref in add:
                 pk = _pub_from_keyref(ref)

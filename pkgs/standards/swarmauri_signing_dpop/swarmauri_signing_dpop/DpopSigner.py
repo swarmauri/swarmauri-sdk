@@ -44,7 +44,8 @@ Verification options:
   }
 
 Notes:
-- For resource servers, compare the proof JWK thumbprint to access_token.cnf.jkt.
+- For resource servers, compare the proof JWK thumbprint to
+  access_token.cnf.jkt.
 - For authorization servers issuing sender-constrained tokens, bind cnf.jkt to
   jwk_thumbprint(proof.header.jwk) at /token time.
 
@@ -77,8 +78,10 @@ from ._utils import (
     _resolve_keyref,
 )
 
-# ────────────────────────── Helpers: base64url / JWK ──────────────────────────
-# ─────────────────────────── DPoP proof builder/verifier ──────────────────────
+# ────────────────────────── Helpers: base64url / JWK
+# ──────────────────────────
+# ─────────────────────────── DPoP proof builder/verifier
+# ──────────────────────
 
 _ALLOWED_ALGS = {JWAAlg.ES256, JWAAlg.RS256, JWAAlg.EDDSA}
 
@@ -88,7 +91,8 @@ def _now() -> int:
 
 
 class DpopSigner(SigningBase):
-    """DPoP proof signer/verifier that conforms to the SigningBase/ISigning surface."""
+    """DPoP proof signer/verifier that conforms to the SigningBase/ISigning
+    surface."""
 
     def __init__(self) -> None:
         self._jws = JwsSignerVerifier()

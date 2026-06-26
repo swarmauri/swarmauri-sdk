@@ -6,7 +6,8 @@ from swarmauri_core.messages.IMessage import IMessage
 class IConversation(ABC):
     """
     Interface for managing conversations, defining abstract methods for
-    adding messages, retrieving the latest message, getting all messages, and clearing history.
+    adding messages, retrieving the latest message, getting all messages, and
+    clearing history.
     """
 
     @property

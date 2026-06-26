@@ -10,7 +10,8 @@ from swarmauri_core.vector_stores.IVectorStoreComparator import (
 
 
 def _coerce_comparable(value: ComparableValue) -> ComparableValue:
-    """Normalize vector-like wrappers into values understood by metric/similarity APIs."""
+    """Normalize vector-like wrappers into values understood by
+    metric/similarity APIs."""
     if hasattr(value, "to_numpy"):
         try:
             return value.to_numpy()

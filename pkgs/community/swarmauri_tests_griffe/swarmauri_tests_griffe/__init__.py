@@ -41,8 +41,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         dest="griffe_packages",
         default=None,
         help=(
-            "Package name to inspect with Griffe. "
-            "Can be provided multiple times. Defaults to the package defined in pyproject.toml."
+            "Package name to inspect with Griffe. "(
+                "Can be provided multiple times. Defaults to the package "
+                "defined in pyproject.toml."
+            )
         ),
     )
     group.addoption(
@@ -50,7 +52,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         dest="griffe_root",
         default=None,
-        help="Root directory for resolving packages (defaults to pytest's rootpath).",
+        help=(
+            "Root directory for resolving packages (defaults to pytest's "
+            "rootpath)."
+        ),
     )
 
 
@@ -115,17 +120,17 @@ def _discover_packages(config: pytest.Config) -> list[GriffeTarget]:
             # Fall back to importing the module to resolve its path.
             try:
                 module = importlib.import_module(package)
-            except Exception:  # pragma: no cover - import failure should surface during test discovery
+            except Exception:  # pragma: no cover - import failure should surface during test discovery  # noqa: E501
                 if explicit:
                     raise pytest.UsageError(
-                        f"Unable to resolve package '{package}' for Griffe inspection."
+                        f"Unable to resolve package '{package}' for Griffe inspection."  # noqa: E501
                     ) from None
                 continue
             module_file = getattr(module, "__file__", None)
             if not module_file:
                 if explicit:
                     raise pytest.UsageError(
-                        f"Unable to resolve package '{package}' for Griffe inspection."
+                        f"Unable to resolve package '{package}' for Griffe inspection."  # noqa: E501
                     )
                 continue
             targets.append(
@@ -162,16 +167,21 @@ class GriffeWarningsItem(pytest.Item):
             if "griffe" in (warning.filename or "")
             or warning.category.__module__.startswith("griffe")
         ]
-        # If we didn't detect explicit Griffe warnings but still captured warnings,
-        # treat them as relevant—Griffe ran and triggered them during inspection.
+        # If we didn't detect explicit Griffe warnings but still captured
+        # warnings,
+        # treat them as relevant—Griffe ran and triggered them during
+        # inspection.
         relevant = griffe_warnings or caught
         if relevant:
             formatted = "\n".join(
-                f"{warning.category.__name__}: {warning.message} ({warning.filename}:{warning.lineno})"
+                (
+                    f"{warning.category.__name__}: {warning.message} "
+                    f"({warning.filename}:{warning.lineno})"
+                )
                 for warning in relevant
             )
             raise AssertionError(
-                f"Griffe emitted warnings while loading {self.target.name}:\n{formatted}"
+                f"Griffe emitted warnings while loading {self.target.name}:\n{formatted}"  # noqa: E501
             )
 
     def reportinfo(self) -> tuple[Path, int | None, str]:

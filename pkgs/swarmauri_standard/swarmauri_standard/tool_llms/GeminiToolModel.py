@@ -25,14 +25,18 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
 class GeminiToolModel(ToolLLMBase):
     """
-    A class that interacts with Gemini-based LLM APIs to process conversations, handle tool calls, and
-    convert messages for compatible schema. This model supports synchronous and asynchronous operations.
+    A class that interacts with Gemini-based LLM APIs to process conversations,
+    handle tool calls, and
+    convert messages for compatible schema. This model supports synchronous and
+    asynchronous operations.
 
     Attributes:
-        api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
+        api_key (SecretStr): The API key used to authenticate requests to the
+        Gemini API.
         allowed_models (List[str]): List of supported model names.
         name (str): The name of the Gemini model in use.
-        type (Literal["GeminiToolModel"]): The model type, set to "GeminiToolModel".
+        type (Literal["GeminiToolModel"]): The model type, set to
+        "GeminiToolModel".
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
     """
 
@@ -82,7 +86,8 @@ class GeminiToolModel(ToolLLMBase):
 
         Args:
             *args (Any): Variable length argument list.
-            **kwargs (Any): Arbitrary keyword arguments containing initialization data.
+            **kwargs (Any): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(*args, **kwargs)
         self.allowed_models = self.allowed_models or self.get_allowed_models()
@@ -108,7 +113,8 @@ class GeminiToolModel(ToolLLMBase):
             tools (Dict[str, Any]): A dictionary of tools to convert.
 
         Returns:
-            Dict[str, List[Dict[str, Any]]]: Dictionary containing converted tool definitions.
+            Dict[str, List[Dict[str, Any]]]: Dictionary containing converted
+            tool definitions.
         """
         if not tools:
             return {"function_declarations": []}
@@ -121,7 +127,8 @@ class GeminiToolModel(ToolLLMBase):
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, Any]]:
         """
-        Formats message history for compatibility with Gemini API, sanitizing content and updating roles.
+        Formats message history for compatibility with Gemini API, sanitizing
+        content and updating roles.
 
         Args:
             messages (List[Type[MessageBase]]): A list of message objects.
@@ -160,10 +167,12 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             tool_calls (List[Dict[str, Any]]): List of tool calls to process.
             toolkit (Toolkit): Toolkit instance for handling tools.
-            messages (List[Dict[str, Any]]): List of messages in the conversation.
+            messages (List[Dict[str, Any]]): List of messages in the
+            conversation.
 
         Returns:
-            tuple[List[Dict[str, Any]], List[FunctionMessage]]: A tuple containing (updated messages, tool messages for the conversation)
+            tuple[List[Dict[str, Any]], List[FunctionMessage]]: A tuple
+            containing (updated messages, tool messages for the conversation)
         """
         if not toolkit or not tool_calls:
             return messages, []
@@ -249,8 +258,10 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
@@ -317,7 +328,8 @@ class GeminiToolModel(ToolLLMBase):
             if tool_messages:
                 conversation.add_messages(tool_messages)
 
-            # For multiturn, follow up with another request if there were tool calls
+            # For multiturn, follow up with another request if there were tool
+            # calls
             if multiturn:
                 payload["contents"] = messages
                 if "tools" in payload:
@@ -368,8 +380,10 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
@@ -436,7 +450,8 @@ class GeminiToolModel(ToolLLMBase):
             if tool_messages:
                 conversation.add_messages(tool_messages)
 
-            # For multiturn, follow up with another request if there were tool calls
+            # For multiturn, follow up with another request if there were tool
+            # calls
             if multiturn:
                 payload["contents"] = messages
                 if "tools" in payload:
@@ -486,7 +501,8 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
@@ -623,12 +639,14 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
         Yields:
-            AsyncIterator[str]: Asynchronously streamed text chunks from the model response.
+            AsyncIterator[str]: Asynchronously streamed text chunks from the
+            model response.
         """
         generation_config = {
             "temperature": temperature,
@@ -756,12 +774,14 @@ class GeminiToolModel(ToolLLMBase):
         Args:
             conversations (List[Conversation]): List of conversation instances.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         results = []
         for conv in conversations:
@@ -785,18 +805,22 @@ class GeminiToolModel(ToolLLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Asynchronously processes multiple conversations with concurrency control.
+        Asynchronously processes multiple conversations with concurrency
+        control.
 
         Args:
             conversations (List[Conversation]): List of conversation instances.
             toolkit (Toolkit, optional): Optional toolkit for handling tools.
-            tool_choice (Dict[str, Any], optional): Tool selection strategy (not used in Gemini but included for API compatibility)
+            tool_choice (Dict[str, Any], optional): Tool selection strategy
+            (not used in Gemini but included for API compatibility)
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit for generation.
-            max_concurrent (int): Maximum number of concurrent asynchronous tasks.
+            max_concurrent (int): Maximum number of concurrent asynchronous
+            tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

@@ -8,8 +8,10 @@ class EvaluationError(Exception):
     """
     Exception raised when an evaluator encounters an error during evaluation.
 
-    This exception should be raised when an evaluator fails to properly evaluate
-    a program due to issues such as invalid program structure, execution errors,
+    This exception should be raised when an evaluator fails to properly
+    evaluate
+    a program due to issues such as invalid program structure, execution
+    errors,
     or other exceptional conditions.
     """
 
@@ -20,7 +22,8 @@ class IEvaluate(ABC):
     """
     Interface for program evaluation functions.
 
-    This abstract class defines the contract that all evaluators must implement,
+    This abstract class defines the contract that all evaluators must
+    implement,
     providing methods to assess program fitness according to specific criteria.
     Evaluators must be stateless to allow for parallel execution.
     """
@@ -32,8 +35,10 @@ class IEvaluate(ABC):
         """
         Evaluate a program and return a fitness score with metadata.
 
-        This method assesses the fitness of a program according to specific criteria
-        and returns both a scalar score and detailed metadata about the evaluation.
+        This method assesses the fitness of a program according to specific
+        criteria
+        and returns both a scalar score and detailed metadata about the
+        evaluation.
 
         Args:
             program: The program to evaluate
@@ -42,7 +47,8 @@ class IEvaluate(ABC):
         Returns:
             A tuple containing:
                 - float: A scalar fitness score (higher is better)
-                - Dict[str, Any]: Metadata about the evaluation, including feature dimensions
+                - Dict[str, Any]: Metadata about the evaluation, including
+                  feature dimensions
 
         Raises:
             EvaluationError: If the evaluation process fails

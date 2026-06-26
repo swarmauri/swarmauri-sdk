@@ -61,12 +61,14 @@ def test_call(url, selector, expected_substring):
     Args:
         url (str): The URL of the webpage to extract content from.
         selector (str): The CSS selector to extract specific content.
-        expected_substring (str): The expected substring within the extracted text or error message.
+        expected_substring (str): The expected substring within the extracted
+        text or error message.
 
     The test validates:
     - If the response is a dictionary.
     - Whether "extracted_text" or "error" is in the dictionary.
-    - If extraction is successful, check that the text contains the expected substring.
+    - If extraction is successful, check that the text contains the expected
+      substring.
     - If an error occurs, ensure the error contains the expected message.
     """
 
@@ -119,5 +121,5 @@ def test_call(url, selector, expected_substring):
         )
     else:
         assert expected_substring in result["error"], (
-            f"Expected '{expected_substring}' in error message. Actual error: {result['error']}"
+            f"Expected '{expected_substring}' in error message. Actual error: {result['error']}"  # noqa: E501
         )

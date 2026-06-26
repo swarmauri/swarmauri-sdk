@@ -8,7 +8,8 @@ from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
 
 
 class AppServerMixin(IAppServer, BaseModel):
-    """Stores and validates an application callback for app-terminating transports."""
+    """Stores and validates an application callback for app-terminating
+    transports."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 

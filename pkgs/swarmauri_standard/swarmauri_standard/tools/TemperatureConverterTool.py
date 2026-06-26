@@ -13,14 +13,20 @@ class TemperatureConverterTool(ToolBase):
             Parameter(
                 name="from_unit",
                 input_type="string",
-                description="The unit of the input temperature ('celsius', 'fahrenheit', 'kelvin').",
+                description=(
+                    "The unit of the input temperature ('celsius', 'fahrenheit', "  # noqa: E501
+                    "'kelvin')."
+                ),
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),
             Parameter(
                 name="to_unit",
                 input_type="string",
-                description="The unit to convert the temperature to ('celsius', 'fahrenheit', 'kelvin').",
+                description=(
+                    "The unit to convert the temperature to ('celsius', "
+                    "'fahrenheit', 'kelvin')."
+                ),
                 required=True,
                 enum=["celsius", "fahrenheit", "kelvin"],
             ),

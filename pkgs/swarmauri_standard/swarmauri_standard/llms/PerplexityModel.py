@@ -32,8 +32,10 @@ class PerplexityModel(LLMBase):
     and batch processing of conversations using the Perplexity language models.
 
     Attributes:
-        api_key (SecretStr): API key for authenticating requests to the Perplexity API.
-        allowed_models (List[str]): List of allowed model names that can be used.
+        api_key (SecretStr): API key for authenticating requests to the
+        Perplexity API.
+        allowed_models (List[str]): List of allowed model names that can be
+        used.
         name (str): The default model name to use for predictions.
         type (Literal["PerplexityModel"]): The type identifier for this class.
         timeout (float): Timeout for API requests in seconds.
@@ -65,7 +67,8 @@ class PerplexityModel(LLMBase):
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -112,12 +115,14 @@ class PerplexityModel(LLMBase):
         Prepares usage data and calculates response timing.
 
         Args:
-            usage_data (Dict[str, int]): The raw usage data from the API response.
+            usage_data (Dict[str, int]): The raw usage data from the API
+            response.
             prompt_time (float): Time taken for the prompt processing.
             completion_time (float): Time taken for the completion processing.
 
         Returns:
-            UsageData: A UsageData object containing token and timing information.
+            UsageData: A UsageData object containing token and timing
+            information.
         """
 
         total_time = prompt_time + completion_time
@@ -149,17 +154,26 @@ class PerplexityModel(LLMBase):
         Makes a synchronous prediction request.
 
         Args:
-            conversation (Conversation): The conversation object containing the history.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens for the response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for new tokens based on presence.
-            frequency_penalty (Optional[float]): Penalty for new tokens based on frequency.
+            conversation (Conversation): The conversation object containing the
+            history.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens for the response.
+            Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for new tokens based on
+            presence.
+            frequency_penalty (Optional[float]): Penalty for new tokens based
+            on frequency.
 
         Returns:
-            Conversation: An updated Conversation object with the model's response.
+            Conversation: An updated Conversation object with the model's
+            response.
         """
 
         if top_p and top_k:
@@ -221,17 +235,26 @@ class PerplexityModel(LLMBase):
         Makes an asynchronous prediction request.
 
         Args:
-            conversation (Conversation): The conversation object containing the history.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens for the response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for new tokens based on presence.
-            frequency_penalty (Optional[float]): Penalty for new tokens based on frequency.
+            conversation (Conversation): The conversation object containing the
+            history.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens for the response.
+            Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for new tokens based on
+            presence.
+            frequency_penalty (Optional[float]): Penalty for new tokens based
+            on frequency.
 
         Returns:
-            Conversation: An updated Conversation object with the model's response.
+            Conversation: An updated Conversation object with the model's
+            response.
         """
 
         if top_p and top_k:
@@ -294,14 +317,22 @@ class PerplexityModel(LLMBase):
         Synchronously streams the response for a given conversation.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens in the generated response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for introducing new topics. Defaults to None.
-            frequency_penalty (Optional[float]): Penalty for repeating existing tokens. Defaults to None.
+            conversation (Conversation): The conversation object containing
+            message history.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens in the generated
+            response. Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for introducing new
+            topics. Defaults to None.
+            frequency_penalty (Optional[float]): Penalty for repeating existing
+            tokens. Defaults to None.
 
         Yields:
             str: Chunks of response content as the data is streamed.
@@ -379,17 +410,26 @@ class PerplexityModel(LLMBase):
         Asynchronously streams the response for a given conversation.
 
         Args:
-            conversation (Conversation): The conversation object containing message history.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens in the generated response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for introducing new topics. Defaults to None.
-            frequency_penalty (Optional[float]): Penalty for repeating existing tokens. Defaults to None.
+            conversation (Conversation): The conversation object containing
+            message history.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens in the generated
+            response. Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for introducing new
+            topics. Defaults to None.
+            frequency_penalty (Optional[float]): Penalty for repeating existing
+            tokens. Defaults to None.
 
         Yields:
-            str: Chunks of response content as the data is streamed asynchronously.
+            str: Chunks of response content as the data is streamed
+            asynchronously.
         """
         if top_p and top_k:
             raise ValueError("Do not set top_p and top_k")
@@ -458,16 +498,24 @@ class PerplexityModel(LLMBase):
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens in the generated response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for introducing new topics. Defaults to None.
-            frequency_penalty (Optional[float]): Penalty for repeating existing tokens. Defaults to None.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens in the generated
+            response. Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for introducing new
+            topics. Defaults to None.
+            frequency_penalty (Optional[float]): Penalty for repeating existing
+            tokens. Defaults to None.
 
         Returns:
-            List[Conversation]: List of updated conversation objects after processing.
+            List[Conversation]: List of updated conversation objects after
+            processing.
         """
         return [
             self.predict(
@@ -496,21 +544,31 @@ class PerplexityModel(LLMBase):
         max_concurrent: int = 5,  # Maximum concurrent tasks
     ) -> List[Conversation]:
         """
-        Asynchronously processes a batch of conversations with a limit on concurrent tasks.
+        Asynchronously processes a batch of conversations with a limit on
+        concurrent tasks.
 
         Args:
             conversations (List[Conversation]): List of conversation objects.
-            temperature (float): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int): Maximum number of tokens in the generated response. Defaults to 256.
-            top_p (Optional[float]): Nucleus sampling parameter. If specified, `top_k` should not be set.
-            top_k (Optional[int]): Top-k sampling parameter. If specified, `top_p` should not be set.
-            return_citations (bool): Whether to return citations in the response. Defaults to False.
-            presence_penalty (Optional[float]): Penalty for introducing new topics. Defaults to None.
-            frequency_penalty (Optional[float]): Penalty for repeating existing tokens. Defaults to None.
-            max_concurrent (int): Maximum number of concurrent tasks. Defaults to 5.
+            temperature (float): Sampling temperature for response generation.
+            Defaults to 0.7.
+            max_tokens (int): Maximum number of tokens in the generated
+            response. Defaults to 256.
+            top_p (Optional[float]): Nucleus sampling parameter. If specified,
+            `top_k` should not be set.
+            top_k (Optional[int]): Top-k sampling parameter. If specified,
+            `top_p` should not be set.
+            return_citations (bool): Whether to return citations in the
+            response. Defaults to False.
+            presence_penalty (Optional[float]): Penalty for introducing new
+            topics. Defaults to None.
+            frequency_penalty (Optional[float]): Penalty for repeating existing
+            tokens. Defaults to None.
+            max_concurrent (int): Maximum number of concurrent tasks. Defaults
+            to 5.
 
         Returns:
-            List[Conversation]: List of updated conversation objects after processing asynchronously.
+            List[Conversation]: List of updated conversation objects after
+            processing asynchronously.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -532,7 +590,8 @@ class PerplexityModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

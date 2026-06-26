@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 
 @ComponentBase.register_type(MiddlewareBase, "CacheControlMiddleware")
 class CacheControlMiddleware(MiddlewareBase, ComponentBase):
-    """Middleware for managing HTTP cache headers and client-side caching behavior.
+    """
+    Middleware for managing HTTP cache headers and client-side caching
+    behavior.
 
     This middleware controls how responses are cached by clients and proxies.
     It sets appropriate Cache-Control headers and handles conditional requests.

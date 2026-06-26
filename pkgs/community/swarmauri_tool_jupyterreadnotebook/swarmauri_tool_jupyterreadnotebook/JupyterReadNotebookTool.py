@@ -11,27 +11,36 @@ from swarmauri_base.ComponentBase import ComponentBase
 """
 JupyterReadNotebookTool.py
 
-This module defines the JupyterReadNotebookTool, a component that reads a Jupyter notebook file
-from the filesystem, parses it into a NotebookNode object (using a specified nbformat version),
+This module defines the JupyterReadNotebookTool, a component that reads a
+Jupyter notebook file
+from the filesystem, parses it into a NotebookNode object (using a specified
+nbformat version),
 
-validates its integrity, and returns the resulting node for further processing. This component
-inherits from the ToolBase class to seamlessly integrate with the system's tool architecture.
+validates its integrity, and returns the resulting node for further processing.
+This component
+inherits from the ToolBase class to seamlessly integrate with the system's tool
+architecture.
 """
 
 
 @ComponentBase.register_type(ToolBase, "JupyterReadNotebookTool")
 class JupyterReadNotebookTool(ToolBase):
     """
-    JupyterReadNotebookTool is a tool that reads a Jupyter notebook file from the filesystem
-    and returns a validated NotebookNode object. It supports specifying an nbformat version
-    for parsing the file, logs the read operation, and handles both file and validation errors.
+    JupyterReadNotebookTool is a tool that reads a Jupyter notebook file from
+    the filesystem
+    and returns a validated NotebookNode object. It supports specifying an
+    nbformat version
+    for parsing the file, logs the read operation, and handles both file and
+    validation errors.
 
     Attributes:
         version (str): The version of the JupyterReadNotebookTool.
-        parameters (List[Parameter]): A list of parameters required to read the notebook file.
+        parameters (List[Parameter]): A list of parameters required to read the
+        notebook file.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterReadNotebookTool"]): The type identifier for the tool.
+        type (Literal["JupyterReadNotebookTool"]): The type identifier for the
+        tool.
     """
 
     version: str = "1.0.0"
@@ -46,7 +55,9 @@ class JupyterReadNotebookTool(ToolBase):
             Parameter(
                 name="as_version",
                 input_type="integer",
-                description="nbformat version to parse the notebook with (e.g., 4).",
+                description=(
+                    "nbformat version to parse the notebook with (e.g., 4)."
+                ),
                 required=False,
             ),
         ]
@@ -62,20 +73,27 @@ class JupyterReadNotebookTool(ToolBase):
         self, notebook_file_path: str, as_version: int = 4
     ) -> Dict[str, Any]:
         """
-        Reads a Jupyter notebook from the filesystem and returns it as a validated NotebookNode.
+        Reads a Jupyter notebook from the filesystem and returns it as a
+        validated NotebookNode.
 
         Args:
             notebook_file_path (str): The file path to the Jupyter notebook.
-            as_version (int, optional): The nbformat version to parse the file as. Defaults to 4.
+            as_version (int, optional): The nbformat version to parse the file
+            as. Defaults to 4.
 
         Returns:
-            Dict[str, Any]: A dictionary containing either the NotebookNode object under the
-                            "notebook_node" key or an "error" key with a message if an error
+            Dict[str, Any]: A dictionary containing either the NotebookNode
+            object under the
+                            "notebook_node" key or an "error" key with a
+                            message if an error
                             occurred.
         """
         logger = logging.getLogger(__name__)
         logger.info(
-            "Attempting to read Jupyter notebook from '%s' with nbformat version '%d'.",
+            (
+                "Attempting to read Jupyter notebook from '%s' with nbformat "
+                "version '%d'."
+            ),
             notebook_file_path,
             as_version,
         )

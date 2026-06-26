@@ -15,9 +15,12 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "LevenshteinDistance")
 class LevenshteinDistance(DistanceBase):
     """
-    Implements the IDistance interface to calculate the Levenshtein distance between two vectors.
-    The Levenshtein distance between two strings is given by the minimum number of operations needed to transform
-    one string into the other, where an operation is an insertion, deletion, or substitution of a single character.
+    Implements the IDistance interface to calculate the Levenshtein distance
+    between two vectors.
+    The Levenshtein distance between two strings is given by the minimum number
+    of operations needed to transform
+    one string into the other, where an operation is an insertion, deletion, or
+    substitution of a single character.
     """
 
     type: Literal["LevenshteinDistance"] = "LevenshteinDistance"
@@ -26,8 +29,10 @@ class LevenshteinDistance(DistanceBase):
         """
         Compute the Levenshtein distance between two vectors.
 
-        Note: Since Levenshtein distance is typically calculated between strings,
-        it is assumed that the vectors represent strings where each element of the
+        Note: Since Levenshtein distance is typically calculated between
+        strings,
+        it is assumed that the vectors represent strings where each element of
+        the
         vector corresponds to the ASCII value of a character in the string.
 
         Args:
@@ -35,7 +40,8 @@ class LevenshteinDistance(DistanceBase):
             vector_b (List[float]): The second vector in the comparison.
 
         Returns:
-           float: The computed Levenshtein distance between vector_a and vector_b.
+           float: The computed Levenshtein distance between vector_a and
+           vector_b.
         """
         string_a = "".join(
             [chr(int(round(value))) for value in vector_a.value]

@@ -35,7 +35,10 @@ except Exception:  # pragma: no cover - runtime check
 def _require_ssh_keygen() -> None:
     if shutil.which("ssh-keygen") is None:
         raise RuntimeError(
-            "SshEnvelopeSigner requires OpenSSH 'ssh-keygen' on PATH (v8.2+ with -Y support)."
+            (
+                "SshEnvelopeSigner requires OpenSSH 'ssh-keygen' on PATH "
+                "(v8.2+ with -Y support)."
+            )
         )
 
 
@@ -48,7 +51,10 @@ def _canon_json(obj: Any) -> bytes:
 def _canon_cbor(obj: Any) -> bytes:
     if not _CBOR_OK:
         raise RuntimeError(
-            "CBOR canonicalization requires 'cbor2'. Install with: pip install cbor2"
+            (
+                "CBOR canonicalization requires 'cbor2'. Install with: pip "
+                "install cbor2"
+            )
         )
     return cbor2.dumps(obj)
 
@@ -156,7 +162,8 @@ def _extract_pub_from_priv(priv_path: str) -> str:
     return _pub_from_priv_path(priv_path)
 
 
-# ───────────────────────────── Signature container ─────────────────────────────
+# ───────────────────────────── Signature container
+# ─────────────────────────────
 
 
 @dataclass(frozen=True)
@@ -296,16 +303,20 @@ class SshEnvelopeSigner(SigningBase):
             payload (bytes): Original message that was signed.
             signatures (Sequence[Signature]): Signatures to verify.
             require (Optional[Mapping[str, object]]): Verification constraints
-                such as ``min_signers``, ``algs`` or ``kids``. Defaults to ``None``.
-            opts (Optional[Mapping[str, object]]): Options including ``pubkeys``
-                with a list of SSH public key lines and optional ``namespace`` or
+                such as ``min_signers``, ``algs`` or ``kids``. Defaults to
+                ``None``.
+            opts (Optional[Mapping[str, object]]): Options including
+            ``pubkeys``
+                with a list of SSH public key lines and optional ``namespace``
+                or
                 ``identity``. Defaults to ``None``.
 
         Returns:
             bool: ``True`` if verification succeeds, otherwise ``False``.
 
         Raises:
-            RuntimeError: If required options are missing or verification fails.
+            RuntimeError: If required options are missing or verification
+            fails.
             TypeError: If provided public keys or signatures are malformed.
         """
 
@@ -321,14 +332,20 @@ class SshEnvelopeSigner(SigningBase):
         pubkeys = (opts or {}).get("pubkeys") or []
         if not isinstance(pubkeys, (list, tuple)) or not pubkeys:
             raise RuntimeError(
-                "SshEnvelopeSigner.verify_bytes requires opts['pubkeys'] with one or more SSH public keys."
+                (
+                    "SshEnvelopeSigner.verify_bytes requires opts['pubkeys'] with "  # noqa: E501
+                    "one or more SSH public keys."
+                )
             )
 
         allowed_lines = []
         for idx, key_entry in enumerate(pubkeys):
             if not isinstance(key_entry, str):
                 raise TypeError(
-                    "opts['pubkeys'] entries must be OpenSSH public key lines (str)."
+                    (
+                        "opts['pubkeys'] entries must be OpenSSH public key lines "  # noqa: E501
+                        "(str)."
+                    )
                 )
             identity = str(identity_hint or f"signer{idx}")
             allowed_lines.append(_allowed_signers_content(identity, key_entry))
@@ -423,7 +440,8 @@ class SshEnvelopeSigner(SigningBase):
             bytes: Canonicalized envelope bytes.
 
         Raises:
-            ValueError: If the requested canonicalization format is unsupported.
+            ValueError: If the requested canonicalization format is
+            unsupported.
         """
 
         if canon in (None, "json"):
@@ -477,7 +495,8 @@ class SshEnvelopeSigner(SigningBase):
             signatures (Sequence[Signature]): Signatures to validate.
             canon (Optional[Canon]): Canonicalization format. Defaults to
                 ``"json"``.
-            require (Optional[Mapping[str, object]]): Verification constraints as
+            require (Optional[Mapping[str, object]]): Verification constraints
+            as
                 described in :meth:`verify_bytes`. Defaults to ``None``.
             opts (Optional[Mapping[str, object]]): Extra options forwarded to
                 :meth:`verify_bytes`. Defaults to ``None``.

@@ -14,16 +14,19 @@ class MdSnippetChunker(ChunkerBase):
         self, text: Union[str, Any], *args, **kwargs
     ) -> List[tuple]:
         """
-        Extracts paired comments and code blocks from Markdown content based on the
+        Extracts paired comments and code blocks from Markdown content based on
+        the
         specified programming language.
         """
         if self.language:
-            # If language is specified, directly extract the corresponding blocks
+            # If language is specified, directly extract the corresponding
+            # blocks
             pattern = rf"```{self.language}\s*(.*?)```"
             scripts = re.findall(pattern, text, re.DOTALL)
             comments_temp = re.split(pattern, text, flags=re.DOTALL)
         else:
-            # Extract blocks and languages dynamically if no specific language is provided
+            # Extract blocks and languages dynamically if no specific language
+            # is provided
             scripts = []
             languages = []
             for match in re.finditer(r"```(\w+)?\s*(.*?)```", text, re.DOTALL):

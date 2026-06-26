@@ -1,9 +1,12 @@
 """
 test_JupyterExportPythonTool.py
 
-This module contains pytest-based unit tests for the JupyterExportPythonTool class. It verifies
-the functionality and correctness of the class defined in JupyterExportPythonTool.py, ensuring
-it can successfully convert a Jupyter Notebook to a Python script or handle errors appropriately.
+This module contains pytest-based unit tests for the JupyterExportPythonTool
+class. It verifies
+the functionality and correctness of the class defined in
+JupyterExportPythonTool.py, ensuring
+it can successfully convert a Jupyter Notebook to a Python script or handle
+errors appropriately.
 """
 
 import pytest
@@ -28,7 +31,8 @@ def mock_notebook() -> NotebookNode:
 
 def test_tool_initialization() -> None:
     """
-    Tests that the JupyterExportPythonTool initializes with the expected attributes.
+    Tests that the JupyterExportPythonTool initializes with the expected
+    attributes.
     """
     tool = JupyterExportPythonTool()
     assert tool.version == "1.0.0", "Expected default version to be 1.0.0"
@@ -51,7 +55,8 @@ def test_export_notebook_success(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
 ) -> None:
     """
-    Tests that the tool successfully exports a notebook to a Python script when the exporter
+    Tests that the tool successfully exports a notebook to a Python script when
+    the exporter
     runs without errors.
     """
     mock_exporter = mock_exporter_class.return_value
@@ -92,7 +97,8 @@ def test_export_notebook_with_template(
 
     # Ensure the exporter recognized the template file setting
     assert mock_exporter.template_file == custom_template_path, (
-        "PythonExporter.template_file should be set to the provided custom template path."
+        "PythonExporter.template_file should be set to the provided "
+        "custom template path."
     )
     assert "exported_script" in result, (
         "Expected 'exported_script' key in the result"
@@ -106,7 +112,8 @@ def test_export_notebook_failure(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
 ) -> None:
     """
-    Tests that the tool returns an error dictionary when an exception is raised.
+    Tests that the tool returns an error dictionary when an exception is
+    raised.
     """
     mock_exporter = mock_exporter_class.return_value
     mock_exporter.from_notebook_node.side_effect = Exception("Test failure")

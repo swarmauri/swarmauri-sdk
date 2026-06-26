@@ -41,11 +41,14 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "CohereToolModel")
 class CohereToolModel(ToolLLMBase):
     """
-    A language model implementation for interacting with Cohere's API, specifically designed for\
+    A language model implementation for interacting with Cohere's API,
+    specifically designed for\
     tool-augmented conversations.
 
-    This class provides both synchronous and asynchronous methods for generating responses,
-    handling tool calls, and managing conversations with the Cohere API. It supports streaming
+    This class provides both synchronous and asynchronous methods for
+    generating responses,
+    handling tool calls, and managing conversations with the Cohere API. It
+    supports streaming
     responses and batch processing of multiple conversations.
 
     Attributes:
@@ -82,7 +85,8 @@ class CohereToolModel(ToolLLMBase):
         Initialize the CohereToolModel with the provided configuration.
 
         Args:
-            **data (Dict[str, Any]): Keyword arguments for configuring the model, including api_key
+            **data (Dict[str, Any]): Keyword arguments for configuring the
+            model, including api_key
         """
         super().__init__(**data)
         self._headers = {
@@ -129,7 +133,8 @@ class CohereToolModel(ToolLLMBase):
         Extract text content from either a string or a list of content items.
 
         Args:
-            content (Union[str, List[contentItem]]): The content to extract text from
+            content (Union[str, List[contentItem]]): The content to extract
+            text from
 
         Returns:
             str: The extracted text content
@@ -197,7 +202,8 @@ class CohereToolModel(ToolLLMBase):
         Prepare usage statistics from API response and timing data.
 
         Args:
-            usage_data (Dict[str, Any]): Dictionary containing token usage information from the API
+            usage_data (Dict[str, Any]): Dictionary containing token usage
+            information from the API
             prompt_time (float): Time taken to send the prompt
             completion_time (float): Time taken to receive the completion
 
@@ -224,13 +230,15 @@ class CohereToolModel(ToolLLMBase):
         self, conversation: Conversation
     ) -> Conversation:
         """
-        Ensure that a conversation has at least one message by adding a default message if empty.
+        Ensure that a conversation has at least one message by adding a default
+        message if empty.
 
         Args:
             conversation (Conversation): The conversation to check
 
         Returns:
-            Conversation: The conversation, potentially with an added default message
+            Conversation: The conversation, potentially with an added default
+            message
         """
         if not conversation.history:
             conversation.add_message(
@@ -242,14 +250,17 @@ class CohereToolModel(ToolLLMBase):
         self, response_data: Dict[str, Any], toolkit: Toolkit
     ) -> tuple[List[Dict[str, Any]], List[FunctionMessage]]:
         """
-        Process tool calls from the model's response and execute them using the provided toolkit.
+        Process tool calls from the model's response and execute them using the
+        provided toolkit.
 
         Args:
-            response_data (Dict[str, Any]): The response data containing tool calls
+            response_data (Dict[str, Any]): The response data containing tool
+            calls
             toolkit (Toolkit): The toolkit containing the tools to execute
 
         Returns:
-            tuple[List[Dict[str, Any]], List[FunctionMessage]]: Results of the tool executions and tool messages
+            tuple[List[Dict[str, Any]], List[FunctionMessage]]: Results of the
+            tool executions and tool messages
         """
         tool_results = []
         tool_calls = response_data.get("tool_calls", [])
@@ -292,9 +303,11 @@ class CohereToolModel(ToolLLMBase):
             message (str): The current message to process
             chat_history (List[Dict[str, str]]): Previous chat history
             tools (List[Dict[str, Any]], optional): Available tools
-            tool_results (List[Dict[str, Any]], optional): Results from previous tool calls
+            tool_results (List[Dict[str, Any]], optional): Results from
+            previous tool calls
             temperature (float, optional): Sampling temperature
-            force_single_step (bool, optional): Whether to force single-step responses
+            force_single_step (bool, optional): Whether to force single-step
+            responses
 
         Returns:
             Dict[str, Any]: The prepared payload for the API request
@@ -330,11 +343,15 @@ class CohereToolModel(ToolLLMBase):
         Generate a response for a conversation synchronously.
 
         Args:
-            conversation (Conversation): The conversation to generate a response for
+            conversation (Conversation): The conversation to generate a
+            response for
             toolkit (Toolkit): Toolkit containing available tools
-            multiturn (bool, optional): Whether to use multi-turn conversation. Defaults to True
-            temperature (float, optional): Sampling temperature. Defaults to 0.7
-            max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 1024
+            multiturn (bool, optional): Whether to use multi-turn conversation.
+            Defaults to True
+            temperature (float, optional): Sampling temperature. Defaults to
+            0.7
+            max_tokens (int, optional): Maximum number of tokens to generate.
+            Defaults to 1024
 
         Returns:
             IConversation: The updated conversation with the model's response
@@ -410,10 +427,13 @@ class CohereToolModel(ToolLLMBase):
         Stream a response for a conversation synchronously.
 
         Args:
-            conversation (Conversation): The conversation to generate a response for
+            conversation (Conversation): The conversation to generate a
+            response for
             toolkit (Toolkit): Toolkit containing available tools
-            temperature (float, optional): Sampling temperature. Defaults to 0.3
-            max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 1024
+            temperature (float, optional): Sampling temperature. Defaults to
+            0.3
+            max_tokens (int, optional): Maximum number of tokens to generate.
+            Defaults to 1024
 
         Returns:
             Iterator[str]: An iterator yielding response chunks
@@ -497,11 +517,15 @@ class CohereToolModel(ToolLLMBase):
         Generate a response for a conversation asynchronously.
 
         Args:
-            conversation (Conversation): The conversation to generate a response for
+            conversation (Conversation): The conversation to generate a
+            response for
             toolkit (Toolkit): Toolkit containing available tools
-            multiturn (bool, optional): Whether to use multi-turn conversation. Defaults to True
-            temperature (float, optional): Sampling temperature. Defaults to 0.3
-            max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 1024
+            multiturn (bool, optional): Whether to use multi-turn conversation.
+            Defaults to True
+            temperature (float, optional): Sampling temperature. Defaults to
+            0.3
+            max_tokens (int, optional): Maximum number of tokens to generate.
+            Defaults to 1024
 
         Returns:
             IConversation: The updated conversation with the model's response
@@ -580,10 +604,13 @@ class CohereToolModel(ToolLLMBase):
         Stream a response for a conversation asynchronously.
 
         Args:
-            conversation (Conversation): The conversation to generate a response for
+            conversation (Conversation): The conversation to generate a
+            response for
             toolkit (Toolkit): Toolkit containing available tools
-            temperature (float, optional): Sampling temperature. Defaults to 0.3
-            max_tokens (int, optional): Maximum number of tokens to generate. Defaults to 1024
+            temperature (float, optional): Sampling temperature. Defaults to
+            0.3
+            max_tokens (int, optional): Maximum number of tokens to generate.
+            Defaults to 1024
 
         Returns:
             AsyncIterator[str]: An async iterator yielding response chunks
@@ -670,20 +697,27 @@ class CohereToolModel(ToolLLMBase):
         """
         Process multiple conversations in batch mode synchronously.
 
-        This method takes a list of conversations and processes them sequentially using
-        the predict method. Each conversation is processed independently with the same
+        This method takes a list of conversations and processes them
+        sequentially using
+        the predict method. Each conversation is processed independently with
+        the same
         parameters.
 
         Args:
-            conversations (List[Conversation]): A list of conversation objects to process
-            toolkit (Toolkit): The toolkit containing available tools for the model
-            temperature (float, optional): The sampling temperature for response generation.
+            conversations (List[Conversation]): A list of conversation objects
+            to process
+            toolkit (Toolkit): The toolkit containing available tools for the
+            model
+            temperature (float, optional): The sampling temperature for
+            response generation.
                 Defaults to 0.3
-            max_tokens (int, optional): The maximum number of tokens to generate for each
+            max_tokens (int, optional): The maximum number of tokens to
+            generate for each
                 response. Defaults to 1024
 
         Returns:
-            List[IConversation]: A list of processed conversations with their respective responses
+            List[IConversation]: A list of processed conversations with their
+            respective responses
         """
         return [
             self.predict(
@@ -706,26 +740,37 @@ class CohereToolModel(ToolLLMBase):
         """
         Process multiple conversations in batch mode asynchronously.
 
-        This method processes multiple conversations concurrently while limiting the
-        maximum number of simultaneous requests using a semaphore. This helps prevent
-        overwhelming the API service while still maintaining efficient processing.
+        This method processes multiple conversations concurrently while
+        limiting the
+        maximum number of simultaneous requests using a semaphore. This helps
+        prevent
+        overwhelming the API service while still maintaining efficient
+        processing.
 
         Args:
-            conversations (List[Conversation]): A list of conversation objects to process
-            toolkit (Toolkit): The toolkit containing available tools for the model
-            temperature (float, optional): The sampling temperature for response generation.
+            conversations (List[Conversation]): A list of conversation objects
+            to process
+            toolkit (Toolkit): The toolkit containing available tools for the
+            model
+            temperature (float, optional): The sampling temperature for
+            response generation.
                 Defaults to 0.7
-            max_tokens (int, optional): The maximum number of tokens to generate for each
+            max_tokens (int, optional): The maximum number of tokens to
+            generate for each
                 response. Defaults to 1024
-            max_concurrent (int, optional): The maximum number of conversations to process
+            max_concurrent (int, optional): The maximum number of conversations
+            to process
                 simultaneously. Defaults to 5
 
         Returns:
-            List[IConversation]: A list of processed conversations with their respective responses
+            List[IConversation]: A list of processed conversations with their
+            respective responses
 
         Note:
-            The max_concurrent parameter helps control API usage and prevent rate limiting
-            while still allowing for parallel processing of multiple conversations.
+            The max_concurrent parameter helps control API usage and prevent
+            rate limiting
+            while still allowing for parallel processing of multiple
+            conversations.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

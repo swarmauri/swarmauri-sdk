@@ -55,7 +55,7 @@ def test_call():
     # Verify the 'dale_chall_score' value is a float
     dale_chall_score = result.get("dale_chall_score")
     assert isinstance(dale_chall_score, float), (
-        f"Expected float for 'dale_chall_score', but got {type(dale_chall_score).__name__}"
+        f"Expected float for 'dale_chall_score', but got {type(dale_chall_score).__name__}"  # noqa: E501
     )
 
     # Check if the score is approximately what is expected

@@ -67,7 +67,10 @@ class YubiKeyFipsCipherSuite(CipherSuiteBase):
             },
             "compliance": {"fips": True},
             "notes": [
-                "EdDSA excluded; require attestation; hash & curve policy enforced."
+                (
+                    "EdDSA excluded; require attestation; hash & curve policy "
+                    "enforced."
+                )
             ],
         }
 

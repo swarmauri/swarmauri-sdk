@@ -29,8 +29,10 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
         Verifies whether two images represent the same person.
 
         Args:
-            img1_path (Union[str, np.ndarray, List[float]]): Path of the first image or image data.
-            img2_path (Union[str, np.ndarray, List[float]]): Path of the second image or image data.
+            img1_path (Union[str, np.ndarray, List[float]]): Path of the first
+            image or image data.
+            img2_path (Union[str, np.ndarray, List[float]]): Path of the second
+            image or image data.
             threshold (float, optional): The similarity threshold.
             silent (bool, optional): If True, suppresses output.
 
@@ -43,7 +45,8 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
                 img2_path=img2_path,
                 model_name=self.name,
                 detector_backend=self.detector_backend,
-                distance_metric=self.distance_metric,  # This field is specific to Distance
+                # This field is specific to Distance
+                distance_metric=self.distance_metric,
                 align=self.align,
                 enforce_detection=self.enforce_detection,
                 expand_percentage=self.expand_percentage,
@@ -65,19 +68,23 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
         silent: bool = False,
     ) -> List[float]:
         """
-        Calculates the similarity scores between a single file and all images in a folder.
+        Calculates the similarity scores between a single file and all images
+        in a folder.
 
         Args:
             folder_path (str): Path to the folder containing multiple images.
-            single_file (Union[str, np.ndarray, List[float]]): Path of the single image or image data to compare.
+            single_file (Union[str, np.ndarray, List[float]]): Path of the
+            single image or image data to compare.
             threshold (float, optional): The similarity threshold.
             silent (bool, optional): If True, suppresses output.
 
         Returns:
-            List[float]: A list of similarity scores between the single file and images in the folder.
+            List[float]: A list of similarity scores between the single file
+            and images in the folder.
         """
 
-        # Get all image files from the folder (filtering only common image extensions)
+        # Get all image files from the folder (filtering only common image
+        # extensions)
         image_extensions = [".png", ".jpg", ".jpeg", ".bmp", ".tiff"]
         folder_images = [
             os.path.join(folder_path, f)
@@ -118,8 +125,10 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
         Calculates the similarity score between two images.
 
         Args:
-            img1_path (Union[str, np.ndarray, List[float]]): Path of the first image or image data.
-            img2_path (Union[str, np.ndarray, List[float]]): Path of the second image or image data.
+            img1_path (Union[str, np.ndarray, List[float]]): Path of the first
+            image or image data.
+            img2_path (Union[str, np.ndarray, List[float]]): Path of the second
+            image or image data.
             threshold (float, optional): The similarity threshold.
             silent (bool, optional): If True, suppresses output.
 
@@ -152,19 +161,23 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
         silent: bool = False,
     ) -> List[float]:
         """
-        Calculates the similarity scores between a single file and all images in a folder.
+        Calculates the similarity scores between a single file and all images
+        in a folder.
 
         Args:
             folder_path (str): Path to the folder containing multiple images.
-            single_file (Union[str, np.ndarray, List[float]]): Path of the single image or image data to compare.
+            single_file (Union[str, np.ndarray, List[float]]): Path of the
+            single image or image data to compare.
             threshold (float, optional): The similarity threshold.
             silent (bool, optional): If True, suppresses output.
 
         Returns:
-            List[float]: A list of similarity scores between the single file and images in the folder.
+            List[float]: A list of similarity scores between the single file
+            and images in the folder.
         """
 
-        # Get all image files from the folder (filtering only common image extensions)
+        # Get all image files from the folder (filtering only common image
+        # extensions)
         image_extensions = [".png", ".jpg", ".jpeg", ".bmp", ".tiff"]
         folder_images = [
             os.path.join(folder_path, f)

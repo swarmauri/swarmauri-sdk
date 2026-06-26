@@ -33,9 +33,15 @@ class SimpleTracer(ITracer):
         if self.trace_stack:
             completed_trace = self.trace_stack.pop()
             completed_trace.close()
-            # Example of simply printing the completed trace; in practice, you might log it or store it elsewhere
+            # Example of simply printing the completed trace; in practice, you
+            # might log it or store it elsewhere
             print(
-                f"Trace Completed: {completed_trace.name}, Duration: {completed_trace.start_time} to {completed_trace.end_time}, Attributes: {completed_trace.attributes}"
+                (
+                    f"Trace Completed: {completed_trace.name}, Duration: "
+                    f"{completed_trace.start_time} to "
+                    f"{completed_trace.end_time}, Attributes: "
+                    f"{completed_trace.attributes}"
+                )
             )
 
     def annotate_trace(self, key: str, value: Any):

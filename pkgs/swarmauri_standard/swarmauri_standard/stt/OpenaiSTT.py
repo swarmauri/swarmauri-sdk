@@ -13,8 +13,10 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(STTBase, "OpenaiSTT")
 class OpenaiSTT(STTBase):
     """
-    OpenaiSTT is a class that provides transcription and translation capabilities
-    using OpenAI's audio models. It supports both synchronous and asynchronous methods
+    OpenaiSTT is a class that provides transcription and translation
+    capabilities
+    using OpenAI's audio models. It supports both synchronous and asynchronous
+    methods
     for processing audio files.
 
     Attributes:
@@ -44,7 +46,8 @@ class OpenaiSTT(STTBase):
         Initialize the OpenaiSTT class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -67,11 +70,13 @@ class OpenaiSTT(STTBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform synchronous transcription or translation on the provided audio file.
+        Perform synchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -113,11 +118,13 @@ class OpenaiSTT(STTBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform asynchronous transcription or translation on the provided audio file.
+        Perform asynchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -161,10 +168,12 @@ class OpenaiSTT(STTBase):
         path_task_dict: Dict[str, Literal["transcription", "translation"]],
     ) -> List:
         """
-        Synchronously process multiple audio files for transcription or translation.
+        Synchronously process multiple audio files for transcription or
+        translation.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
 
         Returns:
@@ -181,13 +190,16 @@ class OpenaiSTT(STTBase):
         max_concurrent=5,
     ) -> List:
         """
-        Asynchronously process multiple audio files for transcription or translation
+        Asynchronously process multiple audio files for transcription or
+        translation
         with controlled concurrency.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
-            max_concurrent (int): Maximum number of concurrent tasks. Defaults to 5.
+            max_concurrent (int): Maximum number of concurrent tasks. Defaults
+            to 5.
 
         Returns:
             List: A list of resulting texts from each audio file.
@@ -206,7 +218,8 @@ class OpenaiSTT(STTBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: List of allowed model names.

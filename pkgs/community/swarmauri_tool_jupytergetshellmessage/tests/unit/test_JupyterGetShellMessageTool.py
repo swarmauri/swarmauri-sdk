@@ -1,8 +1,10 @@
 """
 test_JupyterGetShellMessageTool.py
 
-This module contains pytest-based unit tests for the JupyterGetShellMessageTool class.
-The tests ensure the tool correctly retrieves shell messages from a Jupyter kernel,
+This module contains pytest-based unit tests for the JupyterGetShellMessageTool
+class.
+The tests ensure the tool correctly retrieves shell messages from a Jupyter
+kernel,
 handles timeouts, and manages exceptions.
 """
 

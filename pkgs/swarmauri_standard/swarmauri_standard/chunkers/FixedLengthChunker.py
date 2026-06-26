@@ -6,10 +6,13 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ChunkerBase, "FixedLengthChunker")
 class FixedLengthChunker(ChunkerBase):
     """
-    Concrete implementation of ChunkerBase that divides text into fixed-length chunks.
+    Concrete implementation of ChunkerBase that divides text into fixed-length
+    chunks.
 
-    This chunker breaks the input text into chunks of a specified size, making sure
-    that each chunk has exactly the number of characters specified by the chunk size,
+    This chunker breaks the input text into chunks of a specified size, making
+    sure
+    that each chunk has exactly the number of characters specified by the chunk
+    size,
     except for possibly the last chunk.
     """
 
@@ -26,7 +29,8 @@ class FixedLengthChunker(ChunkerBase):
         Returns:
         - List[str]: A list of text chunks, each of a specified fixed length.
         """
-        # Check if the input is a string, if not, attempt to convert to a string.
+        # Check if the input is a string, if not, attempt to convert to a
+        # string.
         if not isinstance(text, str):
             text = str(text)
 

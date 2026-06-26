@@ -10,7 +10,8 @@ class ISwarmAPI(ABC):
     @abstractmethod
     def dispatch_request(self, request_data: Dict[str, Any]) -> Any:
         """
-        Dispatches an incoming user request to one or more suitable agents based on their capabilities.
+        Dispatches an incoming user request to one or more suitable agents
+        based on their capabilities.
 
         Parameters:
         - request_data (Dict[str, Any]): Data related to the incoming request.

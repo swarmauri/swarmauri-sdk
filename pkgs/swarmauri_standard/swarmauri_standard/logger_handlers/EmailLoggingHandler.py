@@ -14,7 +14,8 @@ class EmailLoggingHandler(HandlerBase):
     """
     A handler that sends log messages via email using SMTP.
 
-    This handler extends the HandlerBase class to provide email logging functionality.
+    This handler extends the HandlerBase class to provide email logging
+    functionality.
     It uses Python's SMTPHandler to send log records to specified recipients.
     """
 
@@ -43,7 +44,8 @@ class EmailLoggingHandler(HandlerBase):
 
     def compile_handler(self) -> logging.Handler:
         """
-        Compiles and returns an SMTPHandler configured with the provided settings.
+        Compiles and returns an SMTPHandler configured with the provided
+        settings.
 
         Returns:
             logging.Handler: A configured SMTPHandler instance.

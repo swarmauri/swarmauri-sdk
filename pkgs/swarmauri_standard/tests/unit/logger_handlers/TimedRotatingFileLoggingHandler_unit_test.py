@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (
+from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (  # noqa: E501
     TimedRotatingFileLoggingHandler,
 )
 
@@ -97,7 +97,8 @@ def test_init_custom_values():
 
 @pytest.mark.unit
 def test_compile_handler_with_string_formatter(temp_log_file):
-    """Tests that compile_handler correctly creates a handler with a string formatter."""
+    """Tests that compile_handler correctly creates a handler with a string
+    formatter."""
     handler_config = TimedRotatingFileLoggingHandler(
         filename=temp_log_file, formatter="[%(levelname)s] %(message)s"
     )
@@ -112,7 +113,8 @@ def test_compile_handler_with_string_formatter(temp_log_file):
 
 @pytest.mark.unit
 def test_compile_handler_with_formatter_object(temp_log_file, mock_formatter):
-    """Tests that compile_handler correctly creates a handler with a formatter object."""
+    """Tests that compile_handler correctly creates a handler with a formatter
+    object."""
     handler_config = TimedRotatingFileLoggingHandler(
         filename=temp_log_file, formatter=mock_formatter
     )
@@ -126,7 +128,8 @@ def test_compile_handler_with_formatter_object(temp_log_file, mock_formatter):
 
 @pytest.mark.unit
 def test_compile_handler_without_formatter(temp_log_file):
-    """Tests that compile_handler correctly creates a handler with the default formatter."""
+    """Tests that compile_handler correctly creates a handler with the default
+    formatter."""
     handler_config = TimedRotatingFileLoggingHandler(filename=temp_log_file)
 
     log_handler = handler_config.compile_handler()
@@ -140,7 +143,8 @@ def test_compile_handler_without_formatter(temp_log_file):
 
 @pytest.mark.unit
 def test_get_handler_config():
-    """Tests that get_handler_config returns the correct configuration dictionary."""
+    """Tests that get_handler_config returns the correct configuration
+    dictionary."""
     custom_time = datetime.now()
     formatter = "[%(levelname)s] %(message)s"
 
@@ -177,7 +181,8 @@ def test_get_handler_config():
     "swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler.TimedRotatingFileHandler"
 )
 def test_handler_initialization_parameters(mock_handler_class, temp_log_file):
-    """Tests that the TimedRotatingFileHandler is initialized with the correct parameters."""
+    """Tests that the TimedRotatingFileHandler is initialized with the correct
+    parameters."""
     custom_time = datetime.now()
 
     handler_config = TimedRotatingFileLoggingHandler(

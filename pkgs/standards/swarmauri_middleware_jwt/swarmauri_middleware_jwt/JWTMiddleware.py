@@ -1,4 +1,6 @@
-"""JWTMiddleware implementation for validating JWT tokens in FastAPI requests."""
+"""
+JWTMiddleware implementation for validating JWT tokens in FastAPI requests.
+"""
 
 import logging
 from typing import Any, Callable, Dict
@@ -16,7 +18,8 @@ class JWTMiddleware(MiddlewareBase, ComponentBase):
     """Middleware for verifying JWT tokens.
 
     This middleware validates JWT tokens found in the ``Authorization`` header
-    of incoming requests. On successful validation the decoded payload is stored
+    of incoming requests. On successful validation the decoded payload is
+    stored
     on ``request.state.jwt_payload``.
 
     Attributes:

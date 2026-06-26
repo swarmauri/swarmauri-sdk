@@ -16,13 +16,16 @@ class PyPDF2Parser(ParserBase):
 
     def parse(self, source: Union[str, bytes]) -> List[Document]:
         """
-        Parses a PDF file and extracts text from each page as Document instances.
+        Parses a PDF file and extracts text from each page as Document
+        instances.
 
         Parameters:
-        - source (Union[str, bytes]): The path to the PDF file or bytes of the PDF content.
+        - source (Union[str, bytes]): The path to the PDF file or bytes of the
+          PDF content.
 
         Returns:
-        - List[IDocument]: A list of IDocument instances with the extracted text.
+        - List[IDocument]: A list of IDocument instances with the extracted
+          text.
         """
         documents = []
 

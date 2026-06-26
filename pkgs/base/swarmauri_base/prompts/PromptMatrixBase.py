@@ -12,7 +12,8 @@ class PromptMatrixBase(IPromptMatrix, ComponentBase):
 
     @property
     def shape(self) -> Tuple[int, int]:
-        """Get the shape (number of agents, sequence length) of the prompt matrix."""
+        """Get the shape (number of agents, sequence length) of the prompt
+        matrix."""
         if self.matrix:
             return len(self.matrix), len(self.matrix[0])
         return 0, 0

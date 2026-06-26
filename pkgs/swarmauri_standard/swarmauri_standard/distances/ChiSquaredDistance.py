@@ -15,7 +15,8 @@ warnings.warn(
 @ComponentBase.register_type(DistanceBase, "ChiSquaredDistance")
 class ChiSquaredDistance(DistanceBase):
     """
-    Implementation of the IDistanceSimilarity interface using Chi-squared distance metric.
+    Implementation of the IDistanceSimilarity interface using Chi-squared
+    distance metric.
     """
 
     type: Literal["ChiSquaredDistance"] = "ChiSquaredDistance"
@@ -36,7 +37,8 @@ class ChiSquaredDistance(DistanceBase):
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
         """
-        Compute the similarity between two vectors based on the Chi-squared distance.
+        Compute the similarity between two vectors based on the Chi-squared
+        distance.
         """
         return 1 / (1 + self.distance(vector_a, vector_b))
 

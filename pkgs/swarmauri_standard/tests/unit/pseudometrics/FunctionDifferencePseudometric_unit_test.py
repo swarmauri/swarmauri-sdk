@@ -44,7 +44,8 @@ def simple_functions() -> Dict[str, Callable]:
 @pytest.fixture
 def fixed_points_pseudometric() -> FunctionDifferencePseudometric:
     """
-    Fixture providing a FunctionDifferencePseudometric with fixed evaluation points.
+    Fixture providing a FunctionDifferencePseudometric with fixed evaluation
+    points.
 
     Returns
     -------
@@ -229,7 +230,8 @@ def test_generate_grid_points():
         norm_type="l2",
     )
 
-    # Check that we have the expected number of points and they're within bounds
+    # Check that we have the expected number of points and they're within
+    # bounds
     assert len(pseudometric._sample_points) <= 9
     for point in pseudometric._sample_points:
         assert 0 <= point["x"] <= 2
@@ -456,7 +458,8 @@ def test_calculate_difference(fixed_points_pseudometric):
     values1 = [1, 2, 3, 4, 5]
     values2 = [1, 3, 5, 7, 9]
 
-    # Expected difference: sqrt((0)^2 + (1)^2 + (2)^2 + (3)^2 + (4)^2) = sqrt(30)
+    # Expected difference: sqrt((0)^2 + (1)^2 + (2)^2 + (3)^2 + (4)^2) =
+    # sqrt(30)
     expected_l2 = np.sqrt(30)
     actual_l2 = fixed_points_pseudometric._calculate_difference(
         values1, values2

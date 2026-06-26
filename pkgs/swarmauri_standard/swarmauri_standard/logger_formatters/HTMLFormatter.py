@@ -11,8 +11,10 @@ class HTMLFormatter(FormatterBase):
     """
     Formatter that renders log messages as HTML for embedding in web pages.
 
-    This formatter outputs log records as HTML snippets with appropriate tags for
-    timestamp, level, message, and exception information. It supports custom CSS
+    This formatter outputs log records as HTML snippets with appropriate tags
+    for
+    timestamp, level, message, and exception information. It supports custom
+    CSS
     classes and inline styling options.
 
     Attributes:
@@ -49,10 +51,12 @@ class HTMLFormatter(FormatterBase):
         """
         Initialize the formatter after the model is created.
 
-        This method sets up the format string that will be used by the formatter.
+        This method sets up the format string that will be used by the
+        formatter.
         """
         # We'll override the compile_formatter method instead of setting format
-        # since HTML formatting requires more complex logic than a simple format string
+        # since HTML formatting requires more complex logic than a simple
+        # format string
         pass
 
     def escape_html(self, text: str) -> str:

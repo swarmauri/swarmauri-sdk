@@ -76,7 +76,8 @@ def test_intersection_multi_inheritance():
     assert get_origin(result) == Annotated
 
     args = get_args(result)
-    # Since D inherits from both B and C, the only common class among all three would be object
+    # Since D inherits from both B and C, the only common class among all three
+    # would be object
     # The ordering follows B's MRO
     assert args[0] == Union[object]
 

@@ -236,7 +236,9 @@ def test_serialization():
     ],
 )
 def test_compute_parameterized(inner_product, a, b, expected):
-    """Parameterized test for inner product computation with various matrices."""
+    """
+    Parameterized test for inner product computation with various matrices.
+    """
     result = inner_product.compute(a, b)
     assert np.isclose(result, expected)
 

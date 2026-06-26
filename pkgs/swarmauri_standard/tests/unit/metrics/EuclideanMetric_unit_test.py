@@ -125,7 +125,8 @@ def test_euclidean_distance_with_sequences(euclidean_metric, x, y, expected):
 @pytest.mark.unit
 def test_euclidean_distance_with_different_dimensions(euclidean_metric):
     """
-    Test that distance method raises ValueError for inputs with different dimensions.
+    Test that distance method raises ValueError for inputs with different
+    dimensions.
 
     Parameters
     ----------
@@ -166,10 +167,14 @@ def test_distances_with_list_of_lists(euclidean_metric):
     result = euclidean_metric.distances(x, y)
 
     # Expected distances:
-    # d([1,2,3], [7,8,9]) = sqrt((7-1)^2 + (8-2)^2 + (9-3)^2) = sqrt(36+36+36) = sqrt(108) = 10.392
-    # d([1,2,3], [10,11,12]) = sqrt((10-1)^2 + (11-2)^2 + (12-3)^2) = sqrt(81+81+81) = sqrt(243) = 15.588
-    # d([4,5,6], [7,8,9]) = sqrt((7-4)^2 + (8-5)^2 + (9-6)^2) = sqrt(9+9+9) = sqrt(27) = 5.196
-    # d([4,5,6], [10,11,12]) = sqrt((10-4)^2 + (11-5)^2 + (12-6)^2) = sqrt(36+36+36) = sqrt(108) = 10.392
+    # d([1,2,3], [7,8,9]) = sqrt((7-1)^2 + (8-2)^2 + (9-3)^2) = sqrt(36+36+36)
+    # = sqrt(108) = 10.392
+    # d([1,2,3], [10,11,12]) = sqrt((10-1)^2 + (11-2)^2 + (12-3)^2) =
+    # sqrt(81+81+81) = sqrt(243) = 15.588
+    # d([4,5,6], [7,8,9]) = sqrt((7-4)^2 + (8-5)^2 + (9-6)^2) = sqrt(9+9+9) =
+    # sqrt(27) = 5.196
+    # d([4,5,6], [10,11,12]) = sqrt((10-4)^2 + (11-5)^2 + (12-6)^2) =
+    # sqrt(36+36+36) = sqrt(108) = 10.392
 
     expected = [
         [10.392304845413264, 15.588457268119896],
@@ -206,7 +211,8 @@ def test_distances_with_simple_lists(euclidean_metric):
 @pytest.mark.unit
 def test_distances_with_incompatible_dimensions(euclidean_metric):
     """
-    Test that distances method raises ValueError for inputs with incompatible dimensions.
+    Test that distances method raises ValueError for inputs with incompatible
+    dimensions.
 
     Parameters
     ----------

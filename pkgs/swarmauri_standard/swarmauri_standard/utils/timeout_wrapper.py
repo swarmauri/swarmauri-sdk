@@ -17,7 +17,8 @@ def timeout(seconds=5):
                     )
                 except asyncio.TimeoutError:
                     pytest.skip(
-                        f"Async test skipped: exceeded {seconds} seconds timeout"
+                        f"Async test skipped: exceeded {seconds} seconds "
+                        f"timeout"
                     )
 
             return async_wrapper

@@ -30,7 +30,9 @@ class ZapierHookTool(ToolBase):
             Parameter(
                 name="payload",
                 input_type="string",
-                description="A Payload to send when triggering the Zapier webhook",
+                description=(
+                    "A Payload to send when triggering the Zapier webhook"
+                ),
                 required=True,
             )
         ]
@@ -63,17 +65,20 @@ class ZapierHookTool(ToolBase):
         if response.status_code == 200:
             return json.dumps(response.json())
         else:
-            response.raise_for_status()  # This will raise an error for non-200 responses
+            # This will raise an error for non-200 responses
+            response.raise_for_status()
 
     def __call__(self, payload: str) -> Dict[str, str]:
         """
-        Enable the tool to be called directly with the given payload and return the zap response.
+        Enable the tool to be called directly with the given payload and return
+        the zap response.
 
         Parameters:
         payload (str): The input string to be processed by the tool.
 
         Returns:
-        Dict[str, str]: A dictionary with a single key "zap_response", containing the result of executing the zap.
+        Dict[str, str]: A dictionary with a single key "zap_response",
+        containing the result of executing the zap.
 
         Example:
         >>> tool = YourToolClass()

@@ -154,7 +154,8 @@ class MlmEmbedding(EmbeddingBase):
         logging.info(f"Epoch {self.epochs} complete. Loss {loss.item()}")
 
     def find_new_tokens(self, documents):
-        # Identify unique words in documents that are not in the tokenizer's vocabulary
+        # Identify unique words in documents that are not in the tokenizer's
+        # vocabulary
         unique_words = set()
         for doc in documents:
             tokens = set(doc.split())  # Simple whitespace tokenization
@@ -181,7 +182,8 @@ class MlmEmbedding(EmbeddingBase):
             inputs = {k: v.to(self._device) for k, v in inputs.items()}
             with torch.no_grad():
                 outputs = self._model(**inputs)
-            # Extract embedding (for simplicity, averaging the last hidden states)
+            # Extract embedding (for simplicity, averaging the last hidden
+            # states)
             if hasattr(outputs, "last_hidden_state"):
                 embedding = outputs.last_hidden_state.mean(1)
             else:
@@ -206,10 +208,13 @@ class MlmEmbedding(EmbeddingBase):
         Generates an embedding for the input data.
 
         Parameters:
-        - data (Union[str, Any]): The input data, expected to be a textual representation.
-                                  Could be a single string or a batch of strings.
+        - data (Union[str, Any]): The input data, expected to be a textual
+          representation.
+                                  Could be a single string or a batch of
+                                  strings.
         """
-        # Tokenize the input data and ensure the tensors are on the correct device.
+        # Tokenize the input data and ensure the tensors are on the correct
+        # device.
         self._model.eval()
         inputs = self._tokenizer(
             data,
@@ -225,11 +230,13 @@ class MlmEmbedding(EmbeddingBase):
             outputs = self._model(**inputs)
 
         if hasattr(outputs, "last_hidden_state"):
-            # Access the last layer and calculate the mean across all tokens (simple pooling)
+            # Access the last layer and calculate the mean across all tokens
+            # (simple pooling)
             embedding = outputs.last_hidden_state.mean(dim=1)
         else:
             embedding = outputs["logits"].mean(1)
-        # Move the embeddings back to CPU for compatibility with downstream tasks if necessary
+        # Move the embeddings back to CPU for compatibility with downstream
+        # tasks if necessary
         embedding = embedding.cpu().numpy()
 
         return Vector(value=embedding.squeeze().tolist())

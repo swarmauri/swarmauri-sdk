@@ -7,7 +7,9 @@ from typing import Optional, Sequence
 
 
 class IAnycastTransport(ABC):
-    """Interface for transports that can deliver to any of multiple candidates."""
+    """
+    Interface for transports that can deliver to any of multiple candidates.
+    """
 
     @abstractmethod
     async def anycast(
@@ -17,4 +19,5 @@ class IAnycastTransport(ABC):
         *,
         timeout: Optional[float] = None,
     ) -> str:
-        """Send data to one of the candidate addresses and return the chosen target."""
+        """Send data to one of the candidate addresses and return the chosen
+        target."""

@@ -139,7 +139,9 @@ def test_compute_jwk_thumbprint_ec() -> None:
 def test_compute_jwk_thumbprint_rsa() -> None:
     jwk = {
         "kty": "RSA",
-        "n": "0vx7agoebGcQSuuPiLJXZptN9nndrXx9jHvdSkZLtueS4omK0VJW6LQn9Q0QgVH8bR_i_zXNXtKgzYV3P6gPl0Q8BCmG5Fi7o3M4ZaChkCGbdF9ersCzXZBfPzlfDsGTi0a5cc0qpAoky6fhiUikens27ayk_iVIbIAXo1Zb1tcHTfbvUodSnb6P0FoYgqD9BfbK3Wlt8X9-7w3LDwW9ki2TkuuzMdGzRNuESyZ3hFbaM4XapCszgmF0wBp-JT5tAM-QsS1d73ZB_pY0V9jvZA67TUrROoUzHB25m_nZg6aj_SA1w4v7w2gw2NXK9enEDJjT2XlHz-3WlEBeIqoQ",
+        "n": (
+            "0vx7agoebGcQSuuPiLJXZptN9nndrXx9jHvdSkZLtueS4omK0VJW6LQn9Q0QgVH8bR_i_zXNXtKgzYV3P6gPl0Q8BCmG5Fi7o3M4ZaChkCGbdF9ersCzXZBfPzlfDsGTi0a5cc0qpAoky6fhiUikens27ayk_iVIbIAXo1Zb1tcHTfbvUodSnb6P0FoYgqD9BfbK3Wlt8X9-7w3LDwW9ki2TkuuzMdGzRNuESyZ3hFbaM4XapCszgmF0wBp-JT5tAM-QsS1d73ZB_pY0V9jvZA67TUrROoUzHB25m_nZg6aj_SA1w4v7w2gw2NXK9enEDJjT2XlHz-3WlEBeIqoQ"
+        ),
         "e": "AQAB",
     }
     assert (

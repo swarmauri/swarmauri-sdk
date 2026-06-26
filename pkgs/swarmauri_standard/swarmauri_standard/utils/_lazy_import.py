@@ -1,7 +1,8 @@
 import importlib
 
 
-# Define a lazy loader function with a warning message if the module or class is not found
+# Define a lazy loader function with a warning message if the module or class
+# is not found
 def _lazy_import(module_name, class_name):
     try:
         # Import the module
@@ -11,12 +12,14 @@ def _lazy_import(module_name, class_name):
     except ImportError:
         # If module is not available, print a warning message
         print(
-            f"Warning: The module '{module_name}' is not available. "
-            f"Please install the necessary dependencies to enable this functionality."
+            f"Warning: The module '{module_name}' is not available. "(
+                "Please install the necessary dependencies to enable this "
+                "functionality."
+            )
         )
         return None
     except AttributeError:
         print(
-            f"Warning: The class '{class_name}' was not found in module '{module_name}'."
+            f"Warning: The class '{class_name}' was not found in module '{module_name}'."  # noqa: E501
         )
         return None

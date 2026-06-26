@@ -2,7 +2,7 @@ import os
 import pytest
 import subprocess
 from unittest.mock import patch, MagicMock
-from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import (
+from swarmauri_tool_jupyterexecuteandconvert.JupyterExecuteAndConvertTool import (  # noqa: E501
     JupyterExecuteAndConvertTool,
 )
 
@@ -17,7 +17,8 @@ def tool_instance() -> JupyterExecuteAndConvertTool:
 
 def test_tool_attributes(tool_instance: JupyterExecuteAndConvertTool) -> None:
     """
-    Test that the JupyterExecuteAndConvertTool instance has the expected attributes.
+    Test that the JupyterExecuteAndConvertTool instance has the expected
+    attributes.
     """
     assert tool_instance.name == "JupyterExecuteAndConvertTool"
     assert (
@@ -32,7 +33,8 @@ def test_notebook_not_found(
     tool_instance: JupyterExecuteAndConvertTool,
 ) -> None:
     """
-    Test that providing a non-existent notebook path returns an error indicating the file does not exist.
+    Test that providing a non-existent notebook path returns an error
+    indicating the file does not exist.
     """
     result = tool_instance(
         notebook_path="non_existent_notebook.ipynb",
@@ -48,8 +50,10 @@ def test_successful_execution_and_conversion(
     mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
 ) -> None:
     """
-    Test successful execution and conversion of a notebook by mocking subprocess.run.
-    Ensures the tool returns a dictionary with status 'success' and the correct converted file name.
+    Test successful execution and conversion of a notebook by mocking
+    subprocess.run.
+    Ensures the tool returns a dictionary with status 'success' and the correct
+    converted file name.
     """
     # Mock to simulate successful execution and conversion
     mock_subprocess.return_value = None
@@ -104,7 +108,8 @@ def test_execution_error(
     mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
 ) -> None:
     """
-    Test that a CalledProcessError during notebook execution is handled properly.
+    Test that a CalledProcessError during notebook execution is handled
+    properly.
     Ensures the tool returns an error dictionary with the appropriate keys.
     """
     # Mock to raise CalledProcessError for execution
@@ -131,7 +136,8 @@ def test_conversion_error(
     mock_subprocess: MagicMock, tool_instance: JupyterExecuteAndConvertTool
 ) -> None:
     """
-    Test that a CalledProcessError during notebook conversion is handled properly.
+    Test that a CalledProcessError during notebook conversion is handled
+    properly.
     Ensures the tool returns an error dictionary with the appropriate keys.
     """
     # First run: simulate successful notebook execution

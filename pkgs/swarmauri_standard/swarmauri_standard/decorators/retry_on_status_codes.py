@@ -11,7 +11,8 @@ def retry_on_status_codes(
     status_codes: List[int] = [429], max_retries: int = 3, retry_delay: int = 2
 ):
     """
-    A decorator to retry both sync and async functions when specific status codes are encountered,
+    A decorator to retry both sync and async functions when specific status
+    codes are encountered,
     with exponential backoff.
     """
 
@@ -32,7 +33,8 @@ def retry_on_status_codes(
                         backoff_time = retry_delay * (2 ** (attempt - 1))
                         logging.warning(
                             f"Retry attempt {attempt}/{max_retries}: "
-                            f"Received HTTP {e.response.status_code} for {func.__name__}. "
+                            f"Received HTTP {e.response.status_code} for "
+                            f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
                             f"Original error: {str(e)}"
                         )
@@ -42,8 +44,10 @@ def retry_on_status_codes(
 
             if last_exception:
                 error_message = (
-                    f"Request to {func.__name__} failed after {max_retries} retries. "
-                    f"Last encountered status code: {last_exception.response.status_code}. "
+                    f"Request to {func.__name__} failed after {max_retries} "
+                    f"retries. "
+                    f"Last encountered status code: "
+                    f"{last_exception.response.status_code}. "
                     f"Last error details: {str(last_exception)}"
                 )
                 logging.error(error_message)
@@ -68,7 +72,8 @@ def retry_on_status_codes(
                         backoff_time = retry_delay * (2 ** (attempt - 1))
                         logging.warning(
                             f"Retry attempt {attempt}/{max_retries}: "
-                            f"Received HTTP {e.response.status_code} for {func.__name__}. "
+                            f"Received HTTP {e.response.status_code} for "
+                            f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
                             f"Original error: {str(e)}"
                         )
@@ -78,8 +83,10 @@ def retry_on_status_codes(
 
             if last_exception:
                 error_message = (
-                    f"Request to {func.__name__} failed after {max_retries} retries. "
-                    f"Last encountered status code: {last_exception.response.status_code}. "
+                    f"Request to {func.__name__} failed after {max_retries} "
+                    f"retries. "
+                    f"Last encountered status code: "
+                    f"{last_exception.response.status_code}. "
                     f"Last error details: {str(last_exception)}"
                 )
                 logging.error(error_message)

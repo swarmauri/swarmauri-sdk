@@ -32,7 +32,8 @@ class RagAgent(
 ):
     """
     RagAgent (Retriever-And-Generator Agent) extends DocumentAgentBase,
-    specialized in retrieving documents based on input queries and generating responses.
+    specialized in retrieving documents based on input queries and generating
+    responses.
     """
 
     llm: SubclassUnion[LLMBase]

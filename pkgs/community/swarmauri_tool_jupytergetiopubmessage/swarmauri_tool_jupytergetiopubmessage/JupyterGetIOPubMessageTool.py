@@ -15,12 +15,17 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterGetIOPubMessageTool")
 class JupyterGetIOPubMessageTool(ToolBase):
     """
-    JupyterGetIOPubMessageTool is responsible for retrieving IOPub messages from an active
-    Jupyter kernel within a specified timeout. It captures output, errors, and logging
-    information from executed cells, and returns the collected data for further processing.
+    JupyterGetIOPubMessageTool is responsible for retrieving IOPub messages
+    from an active
+    Jupyter kernel within a specified timeout. It captures output, errors, and
+    logging
+    information from executed cells, and returns the collected data for further
+    processing.
 
-    The tool integrates with cell execution tools to enable complete output capture and
-    logs IOPub retrieval events for debugging. Timeouts and message parsing errors are handled
+    The tool integrates with cell execution tools to enable complete output
+    capture and
+    logs IOPub retrieval events for debugging. Timeouts and message parsing
+    errors are handled
     gracefully, ensuring robust communication with the Jupyter kernel.
     """
 
@@ -31,44 +36,59 @@ class JupyterGetIOPubMessageTool(ToolBase):
                 name="channels_url",
                 input_type="string",
                 description=(
-                    "WebSocket URL for the kernel channels endpoint (/api/kernels/{id}/channels)."
+                    "WebSocket URL for the kernel channels endpoint "
+                    "(/api/kernels/{id}/channels)."
                 ),
                 required=True,
             ),
             Parameter(
                 name="timeout",
                 input_type="number",
-                description="Time (in seconds) to wait for incoming IOPub messages before timing out.",
+                description=(
+                    "Time (in seconds) to wait for incoming IOPub messages "
+                    "before "
+                    "timing out."
+                ),
                 required=False,
                 default=5.0,
             ),
         ]
     )
     name: str = "JupyterGetIOPubMessageTool"
-    description: str = "Retrieves IOPub messages from a Jupyter kernel with a specified timeout."
+    description: str = (
+        "Retrieves IOPub messages from a Jupyter kernel with a "
+        "specified timeout."
+    )
     type: Literal["JupyterGetIOPubMessageTool"] = "JupyterGetIOPubMessageTool"
 
     def __call__(
         self, channels_url: str, timeout: float = 5.0
     ) -> Dict[str, Any]:
         """
-        Retrieve IOPub messages from the kernel's WebSocket ``channels`` endpoint.
+        Retrieve IOPub messages from the kernel's WebSocket ``channels``
+        endpoint.
 
-        This method connects to ``/api/kernels/{id}/channels`` via WebSocket and
+        This method connects to ``/api/kernels/{id}/channels`` via WebSocket
+        and
         listens for messages until the kernel becomes idle or the timeout
         expires. Message parsing errors are logged and collected.
 
         Args:
-            channels_url (str): WebSocket URL to ``/api/kernels/{id}/channels``.
-            timeout (float, optional): Time in seconds to wait for IOPub messages. Defaults to 5.0.
+            channels_url (str): WebSocket URL to
+            ``/api/kernels/{id}/channels``.
+            timeout (float, optional): Time in seconds to wait for IOPub
+            messages. Defaults to 5.0.
 
         Returns:
-            Dict[str, Any]: A dictionary containing captured outputs. The dictionary includes:
+            Dict[str, Any]: A dictionary containing captured outputs. The
+            dictionary includes:
                 - "stdout": List of standard output messages
                 - "stderr": List of error messages
                 - "logs": List of logging or debug messages
-                - "execution_results": List of any returned execution data (e.g., from 'execute_result')
-                - "timeout_exceeded": Boolean indicating whether a timeout occurred
+                - "execution_results": List of any returned execution data
+                  (e.g., from 'execute_result')
+                - "timeout_exceeded": Boolean indicating whether a timeout
+                  occurred
 
         Example:
             >>> tool = JupyterGetIOPubMessageTool()
@@ -80,7 +100,10 @@ class JupyterGetIOPubMessageTool(ToolBase):
             ['Hello world!']
         """
         logger.debug(
-            "Starting retrieval of IOPub messages with a timeout of %s seconds.",
+            (
+                "Starting retrieval of IOPub messages with a timeout of %s "
+                "seconds."
+            ),
             timeout,
         )
         start_time = time.time()
@@ -157,11 +180,13 @@ class JupyterGetIOPubMessageTool(ToolBase):
                     if execution_state == "idle":
                         # Kernel is done processing
                         logger.debug(
-                            "Kernel reported idle state. Stopping message capture."
+                            "Kernel reported idle state. Stopping message "
+                            "capture."
                         )
                         break
                 else:
-                    # Other messages (e.g., clear_output, update_display_data) can be logged
+                    # Other messages (e.g., clear_output, update_display_data)
+                    # can be logged
                     logs.append({"type": msg_type, "content": msg_content})
 
         finally:

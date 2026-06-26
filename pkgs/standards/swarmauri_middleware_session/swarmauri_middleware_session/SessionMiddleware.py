@@ -20,7 +20,8 @@ class SessionMiddleware(MiddlewareBase, ComponentBase):
         session_storage: Dict[str, Dict] = {}  # Storage for session data
         session_header: str = "X-Session-ID"  # Header name for session ID
         session_cookie: str = "session_id"      # Cookie name for session ID
-        max_age: int = 3600                    # Default session expiration in seconds
+        max_age: int = 3600                    # Default session expiration in
+        seconds
 
     Methods:
         dispatch: Implements the core middleware dispatch logic
@@ -50,10 +51,14 @@ class SessionMiddleware(MiddlewareBase, ComponentBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain while maintaining session state.
+        """
+        Dispatches the request to the next middleware in the chain while
+        maintaining session state.
 
-        This method processes the request to check for an existing session or create a new one.
-        It ensures that session state is maintained across requests by setting appropriate
+        This method processes the request to check for an existing session or
+        create a new one.
+        It ensures that session state is maintained across requests by setting
+        appropriate
         headers or cookies.
 
         Args:
@@ -73,7 +78,10 @@ class SessionMiddleware(MiddlewareBase, ComponentBase):
             # Session exists - update session storage
             if session_id not in self.session_storage:
                 logger.warning(
-                    f"Session ID {session_id} exists in header but not in storage"
+                    (
+                        f"Session ID {session_id} exists in header but not in "
+                        f"storage"
+                    )
                 )
                 # Create new session data
                 self.session_storage[session_id] = {}
@@ -107,7 +115,8 @@ class SessionMiddleware(MiddlewareBase, ComponentBase):
         """Generates a unique session ID.
 
         This method creates a new unique identifier for the session. You
-        can override this method to implement custom session ID generation logic.
+        can override this method to implement custom session ID generation
+        logic.
 
         Returns:
             A unique session ID as a string

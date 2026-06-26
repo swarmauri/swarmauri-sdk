@@ -240,7 +240,8 @@ class GcpKmsCertService(CertServiceBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         """Describe supported algorithms and features.
 
-        RETURNS (Mapping[str, Iterable[str]]): Keys for categories with supported values.
+        RETURNS (Mapping[str, Iterable[str]]): Keys for categories with
+        supported values.
         """
 
         return {
@@ -272,7 +273,8 @@ class GcpKmsCertService(CertServiceBase):
         key (KeyRef): Reference to the private key in KMS.
         subject (SubjectSpec): Subject specification for the CSR.
         san (Optional[AltNameSpec]): Subject alternative names.
-        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        extensions (Optional[CertExtensionSpec]): Additional certificate
+        extensions.
         sig_alg (Optional[str]): Signature algorithm to use.
         challenge_password (Optional[str]): Password to embed in the CSR.
         output_der (bool): Return DER bytes if ``True``; otherwise PEM.
@@ -319,7 +321,8 @@ class GcpKmsCertService(CertServiceBase):
         serial (Optional[int]): Serial number of the certificate.
         not_before (Optional[int]): Validity start time as a Unix timestamp.
         not_after (Optional[int]): Validity end time as a Unix timestamp.
-        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        extensions (Optional[CertExtensionSpec]): Additional certificate
+        extensions.
         sig_alg (Optional[str]): Signature algorithm to use.
         output_der (bool): Return DER bytes if ``True``; otherwise PEM.
         opts (Optional[Dict[str, Any]]): Extra backend options.
@@ -376,11 +379,13 @@ class GcpKmsCertService(CertServiceBase):
         csr (CsrBytes): CSR to sign.
         ca_key (KeyRef): Reference to the CA key in KMS.
         issuer (Optional[SubjectSpec]): Issuer subject specification.
-        ca_cert (Optional[CertBytes]): CA certificate used for extension defaults.
+        ca_cert (Optional[CertBytes]): CA certificate used for extension
+        defaults.
         serial (Optional[int]): Serial number of the certificate.
         not_before (Optional[int]): Validity start time as a Unix timestamp.
         not_after (Optional[int]): Validity end time as a Unix timestamp.
-        extensions (Optional[CertExtensionSpec]): Additional certificate extensions.
+        extensions (Optional[CertExtensionSpec]): Additional certificate
+        extensions.
         sig_alg (Optional[str]): Signature algorithm to use.
         output_der (bool): Return DER bytes if ``True``; otherwise PEM.
         opts (Optional[Dict[str, Any]]): Extra backend options.
@@ -436,7 +441,8 @@ class GcpKmsCertService(CertServiceBase):
 
         cert (CertBytes): Certificate to verify.
         trust_roots (Optional[Sequence[CertBytes]]): Trusted root certificates.
-        intermediates (Optional[Sequence[CertBytes]]): Intermediate certificates.
+        intermediates (Optional[Sequence[CertBytes]]): Intermediate
+        certificates.
         check_time (Optional[int]): Time of verification as Unix timestamp.
         check_revocation (bool): Whether to check revocation status.
         opts (Optional[Dict[str, Any]]): Extra backend options.

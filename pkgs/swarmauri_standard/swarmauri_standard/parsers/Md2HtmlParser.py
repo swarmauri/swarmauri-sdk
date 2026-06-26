@@ -8,10 +8,13 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ParserBase, "Md2HtmlParser")
 class Md2HtmlParser(ParserBase):
     """
-    A concrete implementation of the IParser interface that parses Markdown text.
+    A concrete implementation of the IParser interface that parses Markdown
+    text.
 
-    This parser takes Markdown formatted text, converts it to HTML using Python's
-    markdown library, and then uses BeautifulSoup to extract plain text content. The
+    This parser takes Markdown formatted text, converts it to HTML using
+    Python's
+    markdown library, and then uses BeautifulSoup to extract plain text
+    content. The
     resulting plain text is then wrapped into Document instances.
     """
 

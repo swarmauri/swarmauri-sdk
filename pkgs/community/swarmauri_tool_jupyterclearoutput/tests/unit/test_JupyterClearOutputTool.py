@@ -1,7 +1,8 @@
 """
 test_JupyterClearOutputTool.py
 
-This module provides test coverage for the JupyterClearOutputTool, ensuring it properly clears
+This module provides test coverage for the JupyterClearOutputTool, ensuring it
+properly clears
 outputs from Jupyter notebooks and adheres to its defined interface.
 """
 
@@ -16,7 +17,8 @@ from swarmauri_tool_jupyterclearoutput.JupyterClearOutputTool import (
 @pytest.fixture
 def sample_notebook() -> Dict[str, Any]:
     """
-    Returns a sample Jupyter notebook structure containing both code and markdown cells,
+    Returns a sample Jupyter notebook structure containing both code and
+    markdown cells,
     with some predefined outputs in the code cells.
     """
     return {
@@ -56,7 +58,8 @@ def sample_notebook() -> Dict[str, Any]:
 
 def test_tool_instantiation() -> None:
     """
-    Tests whether the JupyterClearOutputTool can be instantiated with its default parameters.
+    Tests whether the JupyterClearOutputTool can be instantiated with its
+    default parameters.
     """
     tool = JupyterClearOutputTool()
     assert tool is not None, "Tool instantiation failed."
@@ -79,7 +82,8 @@ def test_tool_attributes() -> None:
 
 def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
     """
-    Verifies that the tool removes outputs and resets execution counts from all code cells
+    Verifies that the tool removes outputs and resets execution counts from all
+    code cells
     while preserving the original cell code and metadata.
     """
     tool = JupyterClearOutputTool()
@@ -116,7 +120,8 @@ def test_clearing_outputs(sample_notebook: Dict[str, Any]) -> None:
 def test_clearing_with_no_cells() -> None:
     """
     Ensures that the tool handles a notebook with no cells without errors.
-    The notebook dict should remain structurally the same, minus any alterations to cells.
+    The notebook dict should remain structurally the same, minus any
+    alterations to cells.
     """
     tool = JupyterClearOutputTool()
     empty_notebook = {
@@ -175,7 +180,8 @@ def test_clearing_with_only_markdown_cells() -> None:
 
 def test_parameters_structure() -> None:
     """
-    Ensures that the tool's parameters are properly defined and contain the required fields.
+    Ensures that the tool's parameters are properly defined and contain the
+    required fields.
     """
     tool = JupyterClearOutputTool()
     assert len(tool.parameters) == 1, (

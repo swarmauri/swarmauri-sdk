@@ -27,7 +27,9 @@ try:
 except Exception:  # pragma: no cover
 
     class SigningBase:  # type: ignore[too-many-ancestors]
-        """Fallback ``SigningBase`` used when :mod:`swarmauri_base` is missing."""
+        """
+        Fallback ``SigningBase`` used when :mod:`swarmauri_base` is missing.
+        """
 
         pass
 
@@ -136,10 +138,12 @@ class PgpEnvelopeSigner(SigningBase):
     """
 
     def supports(self) -> Mapping[str, Iterable[str]]:
-        """Describe the algorithms and canonicalizations supported by the signer.
+        """
+        Describe the algorithms and canonicalizations supported by the signer.
 
         Returns:
-            Mapping[str, Iterable[str]]: Mapping of capability names to supported values.
+            Mapping[str, Iterable[str]]: Mapping of capability names to
+            supported values.
         """
 
         canons = ("json", "cbor") if _CBOR_OK else ("json",)
@@ -167,7 +171,8 @@ class PgpEnvelopeSigner(SigningBase):
         Args:
             key (KeyRef): Reference to the private key used for signing.
             payload (bytes): Data to sign.
-            alg (Optional[Alg]): Requested algorithm, defaults to ``"OpenPGP"``.
+            alg (Optional[Alg]): Requested algorithm, defaults to
+            ``"OpenPGP"``.
             opts (Optional[Mapping[str, object]]): Additional options such as
                 ``passphrase`` for locked keys.
 
@@ -175,7 +180,8 @@ class PgpEnvelopeSigner(SigningBase):
             Sequence[Signature]: A list containing the generated signature.
 
         Raises:
-            RuntimeError: If the private key is locked and no passphrase is provided.
+            RuntimeError: If the private key is locked and no passphrase is
+            provided.
             ValueError: If an unsupported algorithm is requested.
         """
 
@@ -221,13 +227,16 @@ class PgpEnvelopeSigner(SigningBase):
         Args:
             payload (bytes): Signed data.
             signatures (Sequence[Signature]): Signatures to validate.
-            require (Optional[Mapping[str, object]]): Verification requirements such
+            require (Optional[Mapping[str, object]]): Verification requirements
+            such
                 as ``min_signers``.
-            opts (Optional[Mapping[str, object]]): Options containing public keys in
+            opts (Optional[Mapping[str, object]]): Options containing public
+            keys in
                 ``pubkeys``.
 
         Returns:
-            bool: ``True`` if the signatures satisfy the requirements, ``False`` otherwise.
+            bool: ``True`` if the signatures satisfy the requirements,
+            ``False`` otherwise.
 
         Raises:
             TypeError: If an unsupported public key is supplied in ``opts``.
@@ -306,7 +315,8 @@ class PgpEnvelopeSigner(SigningBase):
 
         Args:
             env (Envelope): Envelope to canonicalize.
-            canon (Optional[Canon]): Canonicalization format, ``"json"`` or ``"cbor"``.
+            canon (Optional[Canon]): Canonicalization format, ``"json"`` or
+            ``"cbor"``.
             opts (Optional[Mapping[str, object]]): Additional options (unused).
 
         Returns:
@@ -314,7 +324,8 @@ class PgpEnvelopeSigner(SigningBase):
 
         Raises:
             ValueError: If an unsupported canonicalization format is provided.
-            RuntimeError: If CBOR canonicalization is requested without ``cbor2``.
+            RuntimeError: If CBOR canonicalization is requested without
+            ``cbor2``.
         """
 
         if canon in (None, "json"):
@@ -338,12 +349,14 @@ class PgpEnvelopeSigner(SigningBase):
         Args:
             key (KeyRef): Private key reference.
             env (Envelope): Envelope to sign.
-            alg (Optional[Alg]): Requested algorithm, defaults to ``"OpenPGP"``.
+            alg (Optional[Alg]): Requested algorithm, defaults to
+            ``"OpenPGP"``.
             canon (Optional[Canon]): Canonicalization format.
             opts (Optional[Mapping[str, object]]): Additional options.
 
         Returns:
-            Sequence[Signature]: Detached signature over the canonicalized envelope.
+            Sequence[Signature]: Detached signature over the canonicalized
+            envelope.
         """
 
         payload = await self.canonicalize_envelope(env, canon=canon, opts=opts)
@@ -364,7 +377,8 @@ class PgpEnvelopeSigner(SigningBase):
             env (Envelope): Envelope whose signatures are being verified.
             signatures (Sequence[Signature]): Signatures to check.
             canon (Optional[Canon]): Canonicalization format used.
-            require (Optional[Mapping[str, object]]): Verification requirements.
+            require (Optional[Mapping[str, object]]): Verification
+            requirements.
             opts (Optional[Mapping[str, object]]): Additional options.
 
         Returns:

@@ -17,7 +17,9 @@ def mock_redis_client():
 @pytest.fixture
 @patch("redis.from_url")
 def publisher(mock_from_url, mock_redis_client):
-    """Fixture to create a RedisPublisher instance with a mocked Redis client."""
+    """
+    Fixture to create a RedisPublisher instance with a mocked Redis client.
+    """
     mock_from_url.return_value = mock_redis_client
     return RedisPublisher(host="localhost", port=6379, db=0)
 
@@ -63,7 +65,7 @@ def test_initialization_with_uri(mock_from_url):
 
 @pytest.mark.unit
 def test_initialization_missing_args():
-    expected_error_message = "Redis connection configuration is incomplete: provide `uri`, or all of \\(`host`, `port`, `db`\\)\\."
+    expected_error_message = "Redis connection configuration is incomplete: provide `uri`, or all of \\(`host`, `port`, `db`\\)\\."  # noqa: E501
 
     with pytest.raises(
         ValueError,
@@ -88,7 +90,10 @@ def test_initialization_missing_args():
 def test_initialization_mixed_args():
     with pytest.raises(
         ValueError,
-        match="Cannot specify both `uri` and individual host/port/db/password/username.",
+        match=(
+            "Cannot specify both `uri` and individual "
+            "host/port/db/password/username."
+        ),
     ):
         RedisPublisher(uri="redis://localhost:6379/0", host="otherhost")
 
@@ -96,7 +101,10 @@ def test_initialization_mixed_args():
 @pytest.mark.unit
 def test_serialization(publisher_with_uri):
     logging.info(
-        f"Testing serialization and deserialization of RedisPublisher with URI = {publisher_with_uri}"
+        (
+            f"Testing serialization and deserialization of "
+            f"RedisPublisher with URI = {publisher_with_uri}"
+        )
     )
     assert (
         publisher_with_uri.id

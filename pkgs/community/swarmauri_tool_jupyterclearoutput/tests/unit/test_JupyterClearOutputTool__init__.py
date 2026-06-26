@@ -27,7 +27,8 @@ class TestSwarmAuriToolsInit(BaseTest):
 
     def test_jupyter_clear_output_tool_import(self) -> None:
         """
-        Test if JupyterClearOutputTool is imported correctly and can be instantiated.
+        Test if JupyterClearOutputTool is imported correctly and can be
+        instantiated.
         """
         tool_instance = JupyterClearOutputTool()
         assert tool_instance is not None, (

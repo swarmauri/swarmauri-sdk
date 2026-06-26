@@ -11,7 +11,8 @@ from swarmauri_core.crypto.types import (
 # Lightweight specs (intentionally library-agnostic; providers may accept more
 # via the 'extensions' / 'opts' dictionaries).
 # Times are UNIX epoch seconds (UTC). PEM/DER I/O is byte-oriented: providers
-# should accept PEM or DER and return PEM by default (unless 'output_der=True').
+# should accept PEM or DER and return PEM by default (unless
+# 'output_der=True').
 # -----------------------------------------------------------------------------
 
 
@@ -23,7 +24,8 @@ class SubjectSpec(TypedDict, total=False):
     O: str  # noqa: E741
     OU: str
     emailAddress: str
-    # You can pass additional RDNs via 'extra_rdns' using provider-specific names:
+    # You can pass additional RDNs via 'extra_rdns' using provider-specific
+    # names:
     extra_rdns: Dict[str, str]
 
 
@@ -53,7 +55,8 @@ class KeyUsageSpec(TypedDict, total=False):
 
 
 class ExtendedKeyUsageSpec(TypedDict, total=False):
-    # Either OID strings (e.g., "1.3.6.1.5.5.7.3.1") or common tokens ("serverAuth", "clientAuth", ...)
+    # Either OID strings (e.g., "1.3.6.1.5.5.7.3.1") or common tokens
+    # ("serverAuth", "clientAuth", ...)
     oids: Sequence[str]
 
 
@@ -137,7 +140,8 @@ class ICertService(ABC):
         output_der: bool = False,
         opts: Optional[Dict[str, Any]] = None,
     ) -> CertBytes:
-        """Create a self-signed certificate using 'key' as both subject and issuer."""
+        """Create a self-signed certificate using 'key' as both subject and
+        issuer."""
         ...
 
     @abstractmethod

@@ -33,7 +33,8 @@ class SobolevNorm(NormBase):
     Sobolev norm implementation that combines function and derivative norms.
 
     The Sobolev norm accounts for the smoothness of a function by incorporating
-    the L2 norm of both the function and its derivatives up to a specified order.
+    the L2 norm of both the function and its derivatives up to a specified
+    order.
 
     Attributes
     ----------
@@ -71,7 +72,10 @@ class SobolevNorm(NormBase):
                 self.weights[i] = 1.0
 
         logger.debug(
-            f"Initialized SobolevNorm with order {self.order} and weights {self.weights}"
+            (
+                f"Initialized SobolevNorm with order {self.order} and "
+                f"weights {self.weights}"
+            )
         )
 
     def compute(
@@ -83,12 +87,14 @@ class SobolevNorm(NormBase):
         """
         Compute the Sobolev norm of the input.
 
-        For callable inputs, computes the weighted sum of L2 norms of the function and its derivatives.
+        For callable inputs, computes the weighted sum of L2 norms of the
+        function and its derivatives.
         For other types, falls back to L2 norm of the input itself.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input for which to compute the norm.
 
         Returns
@@ -99,7 +105,8 @@ class SobolevNorm(NormBase):
         Raises
         ------
         TypeError
-            If the input type is not supported or derivatives cannot be computed.
+            If the input type is not supported or derivatives cannot be
+            computed.
         ValueError
             If the norm cannot be computed for the given input.
         """
@@ -108,7 +115,8 @@ class SobolevNorm(NormBase):
         if callable(x):
             return self._compute_for_callable(x)
         elif isinstance(x, (IVector, IMatrix, Sequence)):
-            # For non-callable types, use only the function value (0th derivative)
+            # For non-callable types, use only the function value (0th
+            # derivative)
             # with appropriate weight
             logger.debug(
                 "Computing Sobolev norm for non-callable using L2 norm"
@@ -138,7 +146,8 @@ class SobolevNorm(NormBase):
         ValueError
             If derivatives cannot be computed or evaluated.
         """
-        # Check if the function has the necessary attributes for computing derivatives
+        # Check if the function has the necessary attributes for computing
+        # derivatives
         if not hasattr(func, "derivative") and not hasattr(func, "__call__"):
             raise ValueError(
                 "Function must support derivative computation for Sobolev norm"
@@ -153,7 +162,8 @@ class SobolevNorm(NormBase):
                 f_norm = self._evaluate_function_norm(func)
                 norm_sum += self.weights[0] * f_norm**2
                 logger.debug(
-                    f"0th derivative contribution: {self.weights[0] * f_norm**2}"
+                    f"0th derivative contribution: "
+                    f"{self.weights[0] * f_norm**2}"
                 )
 
             # Compute L2 norms of derivatives
@@ -173,7 +183,10 @@ class SobolevNorm(NormBase):
                     d_norm = self._evaluate_function_norm(current_derivative)
                     norm_sum += self.weights[i] * d_norm**2
                     logger.debug(
-                        f"{i}th derivative contribution: {self.weights[i] * d_norm**2}"
+                        (
+                            f"{i}th derivative contribution: "
+                            f"{self.weights[i] * d_norm**2}"
+                        )
                     )
 
             # Return the square root of the weighted sum
@@ -198,7 +211,8 @@ class SobolevNorm(NormBase):
             The L2 norm of the function.
         """
         # For simplicity, evaluate on a default domain [0, 1] with 100 points
-        # In practice, this would need to be customized based on the application
+        # In practice, this would need to be customized based on the
+        # application
         x_values = np.linspace(0, 1, 100)
         try:
             y_values = np.array([func(x) for x in x_values])
@@ -255,7 +269,8 @@ class SobolevNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -279,17 +294,20 @@ class SobolevNorm(NormBase):
         """
         Check if the Sobolev norm satisfies the definiteness property.
 
-        The definiteness property states that the norm of x is 0 if and only if x is 0.
+        The definiteness property states that the norm of x is 0 if and only if
+        x is 0.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
         -------
         bool
-            True if the norm satisfies the definiteness property, False otherwise.
+            True if the norm satisfies the definiteness property, False
+            otherwise.
         """
         try:
             # For a zero input, the norm should be zero
@@ -322,15 +340,18 @@ class SobolevNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The first input.
-        y : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        y : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The second input.
 
         Returns
         -------
         bool
-            True if the norm satisfies the triangle inequality, False otherwise.
+            True if the norm satisfies the triangle inequality, False
+            otherwise.
 
         Raises
         ------
@@ -378,7 +399,11 @@ class SobolevNorm(NormBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        "Sequences must have the same length for triangle inequality check"
+                        (
+                            "Sequences must have the same length for triangle "
+                            "inequality "
+                            "check"
+                        )
                     )
                 sum_xy = [x[i] + y[i] for i in range(len(x))]
                 norm_sum = self.compute(sum_xy)
@@ -411,11 +436,13 @@ class SobolevNorm(NormBase):
         """
         Check if the Sobolev norm satisfies the absolute homogeneity property.
 
-        The absolute homogeneity property states that norm(a*x) = |a|*norm(x) for scalar a.
+        The absolute homogeneity property states that norm(a*x) = |a|*norm(x)
+        for scalar a.
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input.
         scalar : float
             The scalar value.
@@ -423,7 +450,8 @@ class SobolevNorm(NormBase):
         Returns
         -------
         bool
-            True if the norm satisfies the absolute homogeneity property, False otherwise.
+            True if the norm satisfies the absolute homogeneity property, False
+            otherwise.
         """
         try:
             # Compute norm of x
@@ -491,7 +519,8 @@ class SobolevNorm(NormBase):
 
         Parameters
         ----------
-        x : Union[VectorType, MatrixType, SequenceType, StringType, CallableType]
+        x : Union[VectorType, MatrixType, SequenceType, StringType,
+        CallableType]
             The input to check.
 
         Returns
@@ -513,7 +542,8 @@ class SobolevNorm(NormBase):
                 return bool(x.is_zero())
 
             elif hasattr(x, "__abs__") and callable(x.__abs__):
-                # Use isinstance to make sure __abs__ returns something we can compare
+                # Use isinstance to make sure __abs__ returns something we can
+                # compare
                 abs_value = x.__abs__()
                 if isinstance(abs_value, (int, float)):
                     return abs_value < 1e-10

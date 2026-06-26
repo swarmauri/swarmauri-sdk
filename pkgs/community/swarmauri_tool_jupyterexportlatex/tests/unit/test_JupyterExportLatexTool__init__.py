@@ -1,7 +1,9 @@
 """
-Unit tests for verifying the package initialization of swarmauri_tool_jupyterexportlatex.
+Unit tests for verifying the package initialization of
+swarmauri_tool_jupyterexportlatex.
 
-This module ensures the __init__.py file correctly exposes the JupyterExportLatexTool class
+This module ensures the __init__.py file correctly exposes the
+JupyterExportLatexTool class
 and the __version__ attribute, validating the package setup and exports.
 """
 
@@ -14,9 +16,11 @@ from swarmauri_tool_jupyterexportlatex import (
 
 def test_jupyter_export_latex_tool_imported_properly() -> None:
     """
-    Test that JupyterExportLatexTool can be imported and instantiated without errors.
+    Test that JupyterExportLatexTool can be imported and instantiated without
+    errors.
 
-    Verifies that the class is exposed properly through the package's __init__.py.
+    Verifies that the class is exposed properly through the package's
+    __init__.py.
     """
     tool: Any = JupyterExportLatexTool()
     assert tool is not None, (

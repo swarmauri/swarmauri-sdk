@@ -18,7 +18,8 @@ ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 
 @ComponentBase.register_type(OAuth21AppClientBase, "OktaOAuth21AppClient")
 class OktaOAuth21AppClient(OAuth21AppClientBase):
-    """Request OAuth 2.1 tokens from Okta using secrets or private key JWT assertions."""
+    """Request OAuth 2.1 tokens from Okta using secrets or private key JWT
+    assertions."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

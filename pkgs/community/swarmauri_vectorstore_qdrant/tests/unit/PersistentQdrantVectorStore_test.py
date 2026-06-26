@@ -11,7 +11,9 @@ URL = "http://localhost:6333"  # default URL for Qdrant
 # Skipif decorator
 qdrant_not_configured = pytest.mark.skipif(
     not COLLECTION_NAME,
-    reason="Skipping due to QDRANT_COLLECTION_NAME environment variable not set",
+    reason=(
+        "Skipping due to QDRANT_COLLECTION_NAME environment variable not set"
+    ),
 )
 
 

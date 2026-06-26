@@ -20,7 +20,8 @@ def _b64u(b: bytes) -> str:
 
 def jwk_thumbprint_sha256(jwk: Dict[str, object]) -> str:
     """
-    RFC 7638 JWK Thumbprint (SHA-256, base64url). We serialize the "required members"
+    RFC 7638 JWK Thumbprint (SHA-256, base64url). We serialize the "required
+    members"
     for the kty family, with lexicographic member order and no whitespace.
     """
     kty = jwk.get("kty")
@@ -48,7 +49,8 @@ class DPoPBoundJWTTokenService(JWTTokenService):
     DPoP-bound JWTs per RFC 9449 using the 'cnf' claim with the JWK thumbprint:
       cnf: { "jkt": "<base64url sha-256 of JWK thumbprint (RFC 7638)>" }
 
-    Verification requires access to the current request's DPoP proof JWT and request
+    Verification requires access to the current request's DPoP proof JWT and
+    request
     context (HTTP method + URI, optional nonce). Provide a getter that returns:
         {
           "proof": "<DPoP-Proof-JWT>",
@@ -75,7 +77,8 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         super().__init__(key_provider, default_issuer=default_issuer)
         self._get_ctx = dpop_ctx_getter
         self._max_age = int(proof_max_age_s)
-        # replay_check(jti) should return True if JTI is fresh (i.e., not seen before).
+        # replay_check(jti) should return True if JTI is fresh (i.e., not seen
+        # before).
         # If None, replay protection is skipped.
         self._replay_check = replay_check
         # Toggle strict RFC 9449 verification of the DPoP proof.
@@ -101,8 +104,10 @@ class DPoPBoundJWTTokenService(JWTTokenService):
     ) -> str:
         # Respect explicit cnf if caller already set it.
         if "cnf" not in claims:
-            # If caller wired a context getter that exposes the public JWK (e.g., during token mint),
-            # compute jkt automatically. Otherwise require caller to provide claims["cnf"]["jkt"].
+            # If caller wired a context getter that exposes the public JWK
+            # (e.g., during token mint),
+            # compute jkt automatically. Otherwise require caller to provide
+            # claims["cnf"]["jkt"].
             ctx = self._get_ctx() if self._get_ctx else None
             jwk = ctx.get("jwk") if isinstance(ctx, dict) else None
             if isinstance(jwk, dict):
@@ -154,7 +159,8 @@ class DPoPBoundJWTTokenService(JWTTokenService):
         ):
             raise ValueError("Missing DPoP context (proof, htm, htu)")
 
-        # 1) Extract JWK from the DPoP proof header and verify the proof signature
+        # 1) Extract JWK from the DPoP proof header and verify the proof
+        # signature
         hdr = jwt.get_unverified_header(proof_jwt)
         if hdr.get("typ") != "dpop+jwt":
             raise ValueError("DPoP proof header 'typ' must be 'dpop+jwt'")

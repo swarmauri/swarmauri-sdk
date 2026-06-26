@@ -14,7 +14,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 class GroqSTT(STTBase):
     """
     GroqSTT is a class that provides transcription and translation capabilities
-    using Groq's audio models. It supports both synchronous and asynchronous methods
+    using Groq's audio models. It supports both synchronous and asynchronous
+    methods
     for processing audio files.
 
     Attributes:
@@ -44,7 +45,8 @@ class GroqSTT(STTBase):
         Initialize the GroqSTT class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -69,11 +71,13 @@ class GroqSTT(STTBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform synchronous transcription or translation on the provided audio file.
+        Perform synchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -118,11 +122,13 @@ class GroqSTT(STTBase):
         task: Literal["transcription", "translation"] = "transcription",
     ) -> str:
         """
-        Perform asynchronous transcription or translation on the provided audio file.
+        Perform asynchronous transcription or translation on the provided audio
+        file.
 
         Args:
             audio_path (str): Path to the audio file.
-            task (Literal["transcription", "translation"]): Task type. Defaults to "transcription".
+            task (Literal["transcription", "translation"]): Task type. Defaults
+            to "transcription".
 
         Returns:
             str: The resulting transcription or translation text.
@@ -168,10 +174,12 @@ class GroqSTT(STTBase):
         path_task_dict: Dict[str, Literal["transcription", "translation"]],
     ) -> List:
         """
-        Synchronously process multiple audio files for transcription or translation.
+        Synchronously process multiple audio files for transcription or
+        translation.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
 
         Returns:
@@ -188,13 +196,16 @@ class GroqSTT(STTBase):
         max_concurrent=5,
     ) -> List:
         """
-        Asynchronously process multiple audio files for transcription or translation
+        Asynchronously process multiple audio files for transcription or
+        translation
         with controlled concurrency.
 
         Args:
-            path_task_dict (Dict[str, Literal["transcription", "translation"]]): A dictionary where
+            path_task_dict (Dict[str, Literal["transcription",
+            "translation"]]): A dictionary where
                 the keys are paths to audio files and the values are the tasks.
-            max_concurrent (int): Maximum number of concurrent tasks. Defaults to 5.
+            max_concurrent (int): Maximum number of concurrent tasks. Defaults
+            to 5.
 
         Returns:
             List: A list of resulting texts from each audio file.

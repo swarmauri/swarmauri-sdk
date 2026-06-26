@@ -29,7 +29,8 @@ def custom_weighted_inner_product():
 
 @pytest.fixture
 def vector_pair():
-    """Fixture that returns a pair of vector objects with values and derivatives."""
+    """Fixture that returns a pair of vector objects with values and
+    derivatives."""
     vector1 = Vector(
         value=[1.0, 2.0, 3.0, 4.0], derivatives=[0.5, 1.0, 1.5, 2.0]
     )
@@ -58,7 +59,8 @@ def function_pair():
 
 @pytest.mark.unit
 def test_initialization():
-    """Test the initialization of SobolevH1InnerProduct with default and custom parameters."""
+    """Test the initialization of SobolevH1InnerProduct with default and custom
+    parameters."""
     # Default initialization
     inner_product = SobolevH1InnerProduct()
     assert inner_product.alpha == 1.0
@@ -109,7 +111,8 @@ def test_compute_for_functions(sobolev_h1_inner_product, function_pair):
     """Test computing the inner product for functions."""
     f, g = function_pair
 
-    # We'll test with a specific domain and integration points to make verification easier
+    # We'll test with a specific domain and integration points to make
+    # verification easier
     domain = (0, 1)
     num_points = 5  # Using a small number for easy manual verification
 
@@ -223,7 +226,8 @@ def test_parameterized_weights(alpha, beta, vector_pair):
 def test_compute_dispatch(
     sobolev_h1_inner_product, vector_pair, function_pair
 ):
-    """Test that compute correctly dispatches to the appropriate implementation."""
+    """Test that compute correctly dispatches to the appropriate
+    implementation."""
     vector1, vector2 = vector_pair
     f, g = function_pair
 
@@ -252,7 +256,8 @@ def test_compute_dispatch(
 
     # Test dispatch for functions
     # Note: In the real implementation, we would need to adapt this test since
-    # the compute method would need to determine if the callables return derivatives
+    # the compute method would need to determine if the callables return
+    # derivatives
     # For the test, we assume it correctly identifies our functions
     result = sobolev_h1_inner_product.compute(f, g)
     sobolev_h1_inner_product._compute_for_functions.assert_called_once_with(

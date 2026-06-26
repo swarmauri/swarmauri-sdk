@@ -305,6 +305,7 @@ def test_callable_with_domain(supremum_norm):
     # |complex_func(-1)| = |1 - 1j| = sqrt(2)
     result = supremum_norm.compute(complex_func)
 
-    # Check if the result is one of the expected values (allowing for numerical precision)
+    # Check if the result is one of the expected values (allowing for numerical
+    # precision)
     expected_values = [1 + 1j, 1 - 1j]
     assert any(abs(result - expected) < 1e-10 for expected in expected_values)

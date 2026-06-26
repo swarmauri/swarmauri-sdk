@@ -1,4 +1,4 @@
-from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
+from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (  # noqa: E501
     JupyterValidateNotebookTool,
 )
 

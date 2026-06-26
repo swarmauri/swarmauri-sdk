@@ -15,7 +15,8 @@ from swarmauri_base.auth_idp import (
 
 
 class SalesforceOAuthLoginMixin:
-    """Reusable PKCE, token exchange, and profile helpers for Salesforce logins."""
+    """Reusable PKCE, token exchange, and profile helpers for Salesforce
+    logins."""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 

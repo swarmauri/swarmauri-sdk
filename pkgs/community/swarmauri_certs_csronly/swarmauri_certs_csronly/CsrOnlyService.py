@@ -21,7 +21,8 @@ class CsrOnlyService(CertServiceBase):
     """Service that only builds PKCS#10 CSRs.
 
     Implements CSR generation as defined in RFC 2986 and leverages X.509 naming
-    and extension rules from RFC 5280. This service does **not** issue or verify
+    and extension rules from RFC 5280. This service does **not** issue or
+    verify
     certificates.
     """
 
@@ -55,7 +56,10 @@ class CsrOnlyService(CertServiceBase):
         """Build a PKCS#10 CSR from a KeyRef containing a private key PEM."""
         if key.material is None:
             raise ValueError(
-                "KeyRef.material with private key PEM is required for CSR creation"
+                (
+                    "KeyRef.material with private key PEM is required for CSR "
+                    "creation"
+                )
             )
 
         sk = serialization.load_pem_private_key(key.material, password=None)

@@ -1,11 +1,12 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of llms names (file names without the ".py" extension) and corresponding class names
+# # List of llms names (file names without the ".py" extension) and
+# corresponding class names
 # llms_files = [
-#     ("swarmauri_standard.llms.BlackForestImgGenModel", "BlackForestImgGenModel"),
+#     ("swarmauri_standard.llms.BlackForestImgGenModel", "BlackForestImgGenModel"),  # noqa: E501
 #     ("swarmauri_standard.llms.DeepInfraImgGenModel", "DeepInfraImgGenModel"),
 #     ("swarmauri_standard.llms.FalAIImgGenModel", "FalAIImgGenModel"),
-#     ("swarmauri_standard.llms.HyperbolicImgGenModel", "HyperbolicImgGenModel"),
+#     ("swarmauri_standard.llms.HyperbolicImgGenModel", "HyperbolicImgGenModel"),  # noqa: E501
 #     ("swarmauri_standard.llms.OpenAIImgGenModel", "OpenAIImgGenModel"),
 # ]
 

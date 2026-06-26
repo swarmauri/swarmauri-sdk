@@ -14,7 +14,10 @@ from ._tool_factory import build_tool_from_spec
 class RegisterRuntimeTool(ToolBase):
     version: str = "0.1.0"
     name: str = "RegisterRuntimeTool"
-    description: str = "Create a tool from a serialized tool spec and add it to the active toolkit."
+    description: str = (
+        "Create a tool from a serialized tool spec and add it to the "
+        "active toolkit."
+    )
     type: Literal["RegisterRuntimeTool"] = "RegisterRuntimeTool"
     toolkit: ToolkitBase | None = Field(default=None, exclude=True, repr=False)
     protected_tool_names: set[str] = Field(
@@ -25,7 +28,10 @@ class RegisterRuntimeTool(ToolBase):
             Parameter(
                 name="tool_spec",
                 input_type="object",
-                description="Serialized tool payload with 'type', 'parameters', and '__call__' fields.",
+                description=(
+                    "Serialized tool payload with 'type', 'parameters', and "
+                    "'__call__' fields."
+                ),
                 required=True,
             )
         ]

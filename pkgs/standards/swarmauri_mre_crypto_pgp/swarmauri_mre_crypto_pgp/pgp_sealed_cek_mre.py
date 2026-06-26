@@ -49,14 +49,20 @@ except Exception:  # pragma: no cover
 def _ensure_crypto() -> None:
     if not _CRYPTOGRAPHY_OK:
         raise RuntimeError(
-            "PGPSealedCekMreCrypto requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "PGPSealedCekMreCrypto requires 'cryptography'. Install with: "
+                "pip install cryptography"
+            )
         )
 
 
 def _ensure_pgpy() -> None:
     if not _PGP_OK:
         raise RuntimeError(
-            "PGPSealedCekMreCrypto requires 'PGPy'. Install with: pip install pgpy"
+            (
+                "PGPSealedCekMreCrypto requires 'PGPy'. Install with: pip "
+                "install pgpy"
+            )
         )
 
 
@@ -181,7 +187,10 @@ class PGPSealedCekMreCrypto(IMreCrypto):
         recipient_alg = recipient_alg or "OpenPGP-SEAL"
         if recipient_alg != "OpenPGP-SEAL":
             raise ValueError(
-                "Unsupported recipient_alg for PGPSealedCekMreCrypto (expected 'OpenPGP-SEAL')."
+                (
+                    "Unsupported recipient_alg for PGPSealedCekMreCrypto "
+                    "(expected 'OpenPGP-SEAL')."
+                )
             )
         if not recipients:
             raise ValueError("At least one recipient is required.")
@@ -296,7 +305,10 @@ class PGPSealedCekMreCrypto(IMreCrypto):
             raise ValueError("Unsupported envelope mode for rewrap.")
         if recipient_alg and recipient_alg != "OpenPGP-SEAL":
             raise ValueError(
-                "PGPSealedCekMreCrypto only supports recipient_alg='OpenPGP-SEAL' in rewrap."
+                (
+                    "PGPSealedCekMreCrypto only supports "
+                    "recipient_alg='OpenPGP-SEAL' in rewrap."
+                )
             )
 
         add = add or []
@@ -316,7 +328,10 @@ class PGPSealedCekMreCrypto(IMreCrypto):
                 opener_list = (opts or {}).get("opener_identities")
                 if not opener_list:
                     raise RuntimeError(
-                        "Rewrap(add=... or rotate) requires opts['cek'] or opts['opener_identities']."
+                        (
+                            "Rewrap(add=... or rotate) requires opts['cek'] or "  # noqa: E501
+                            "opts['opener_identities']."
+                        )
                     )
                 if not isinstance(opener_list, (list, tuple)):
                     opener_list = [opener_list]

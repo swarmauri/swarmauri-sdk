@@ -20,7 +20,8 @@ Headers = Dict[str, str]
 class H2Transport(
     TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
 ):
-    """HTTP/2 transport adapter that layers HTTP semantics on top of ``H2MuxTransport``."""
+    """HTTP/2 transport adapter that layers HTTP semantics on top of
+    ``H2MuxTransport``."""
 
     def __init__(self, allow_h2c: bool = False):
         super().__init__(name="H2Transport")

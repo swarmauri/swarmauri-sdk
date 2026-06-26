@@ -44,7 +44,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         *,
         include_secret: bool = False,
     ) -> KeyRef:
-        """Resolve simple URI-style key references into :class:`KeyRef` objects.
+        """
+        Resolve simple URI-style key references into :class:`KeyRef` objects.
 
         Subclasses must implement provider-specific resolution logic.
         """
@@ -98,24 +99,28 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         ----------
         private_key:
             Provider-specific handle to the private key. Downstream providers
-            SHOULD supply ``export_public``/``export_private`` callables when the
+            SHOULD supply ``export_public``/``export_private`` callables when
+            the
             object cannot be expressed without third-party dependencies.
         chain:
             Optional iterable describing the certificate chain or related
             metadata. Items are expected to already be ``bytes`` objects unless
             ``export_chain`` is provided.
         include_secret:
-            When ``True`` the resulting :class:`KeyRef` will contain private key
+            When ``True`` the resulting :class:`KeyRef` will contain private
+            key
             material. Providers MUST supply ``export_private`` if the private
             material is not directly representable without additional
             dependencies.
         tags:
             Additional tags to merge into the returned :class:`KeyRef`.
         key_type:
-            Explicit key type override. When omitted ``_infer_key_type`` is used
+            Explicit key type override. When omitted ``_infer_key_type`` is
+            used
             which defaults to :class:`KeyType.OPAQUE` for unknown structures.
         export_public / export_private / export_chain:
-            Optional callables responsible for turning provider specific objects
+            Optional callables responsible for turning provider specific
+            objects
             into ``bytes``. They allow downstream implementations to keep the
             serialization logic (and any third-party imports) out of the base
             class.
@@ -288,7 +293,10 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         if isinstance(value, dict):
             return json.dumps(value, sort_keys=True).encode("utf-8")
         raise TypeError(
-            "Unable to coerce value to bytes; supply an explicit export callable"
+            (
+                "Unable to coerce value to bytes; supply an explicit export "
+                "callable"
+            )
         )
 
     def _infer_key_type_from_jwk(self, jwk: Dict[str, object]) -> KeyType:

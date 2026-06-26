@@ -113,7 +113,8 @@ class TestSimilarity:
     def test_similarity_calculation(
         self, hellingeraffinitysimilarity, x, y, expected
     ):
-        """Test similarity calculation with different probability distributions."""
+        """Test similarity calculation with different probability
+        distributions."""
         similarity = hellingeraffinitysimilarity.similarity(x, y)
         assert np.isclose(similarity, expected, rtol=1e-2)
 
@@ -189,7 +190,8 @@ class TestDissimilarity:
     def test_dissimilarity_calculation(
         self, hellingeraffinitysimilarity, x, y, expected
     ):
-        """Test dissimilarity calculation with different probability distributions."""
+        """Test dissimilarity calculation with different probability
+        distributions."""
         dissimilarity = hellingeraffinitysimilarity.dissimilarity(x, y)
         assert np.isclose(dissimilarity, expected, rtol=1e-10)
 
@@ -235,7 +237,8 @@ class TestProperties:
         assert hellingeraffinitysimilarity.check_symmetry(x, y) is True
 
     def test_identity_of_discernibles_true(self, hellingeraffinitysimilarity):
-        """Test the identity of discernibles property when distributions are equal."""
+        """Test the identity of discernibles property when distributions are
+        equal."""
         x = np.array([0.3, 0.7])
         y = np.array([0.3, 0.7])
         assert (
@@ -244,7 +247,8 @@ class TestProperties:
         )
 
     def test_identity_of_discernibles_false(self, hellingeraffinitysimilarity):
-        """Test the identity of discernibles property when distributions are different."""
+        """Test the identity of discernibles property when distributions are
+        different."""
         x = np.array([0.3, 0.7])
         y = np.array([0.7, 0.3])
         assert (

@@ -74,7 +74,10 @@ def test_nltk_resources_downloaded(mock_download, mock_find, evaluator):
             ],
         ),
         (
-            "The mitochondria is the powerhouse of the cell. It produces ATP through oxidative phosphorylation.",
+            (
+                "The mitochondria is the powerhouse of the cell. It produces "
+                "ATP through oxidative phosphorylation."
+            ),
             pytest.approx(15, abs=10),
             [
                 "sentence_count",
@@ -133,7 +136,8 @@ def test_count_syllables(evaluator, word, expected_count):
         word: The word to count syllables for
         expected_count: The expected syllable count
     """
-    # Allow some flexibility in syllable counting since different methods may yield
+    # Allow some flexibility in syllable counting since different methods may
+    # yield
     # slightly different results
     count = evaluator._count_syllables(word)
     assert count > 0  # Every word should have at least one syllable

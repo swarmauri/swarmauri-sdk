@@ -46,7 +46,10 @@ _ALGS = ("v4.public", "v4.local", "paseto.v4.public", "paseto.v4.local")
 def _require_pyseto() -> None:
     if not _PASETO_OK:
         raise ImportError(
-            "PasetoV4TokenService requires 'pyseto'. Install with: pip install pyseto"
+            (
+                "PasetoV4TokenService requires 'pyseto'. Install with: pip "
+                "install pyseto"
+            )
         )
 
 
@@ -236,7 +239,10 @@ class PasetoV4TokenService(TokenServiceBase):
         else:
             if not self._local_kids:
                 raise RuntimeError(
-                    "v4.local verify requires PasetoV4TokenService(local_kids=[...])"
+                    (
+                        "v4.local verify requires "
+                        "PasetoV4TokenService(local_kids=[...])"
+                    )
                 )
             last_err: Optional[Exception] = None
             for kid in self._local_kids:

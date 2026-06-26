@@ -1,6 +1,7 @@
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
-# # List of embeddings names (file names without the ".py" extension) and corresponding class names
+# # List of embeddings names (file names without the ".py" extension) and
+# corresponding class names
 # embeddings_files = [
 #     ("swarmauri_standard.embeddings.CohereEmbedding", "CohereEmbedding"),
 #     ("swarmauri_standard.embeddings.GeminiEmbedding", "GeminiEmbedding"),

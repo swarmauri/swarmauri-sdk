@@ -84,7 +84,10 @@ def _jwk_thumbprint_sha256_ec(jwk: Mapping[str, Any]) -> str:
 def _ensure_crypto():
     if not _CRYPTO_OK:
         raise RuntimeError(
-            "Secp256k1EnvelopeSigner requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "Secp256k1EnvelopeSigner requires 'cryptography'. Install "
+                "with: pip install cryptography"
+            )
         )
 
 
@@ -305,7 +308,10 @@ async def _stream_to_bytes(payload: ByteStream) -> bytes:
             buf.extend(_coerce_chunk(chunk))
         return bytes(buf)
     raise TypeError(
-        "Stream payload must be bytes, bytearray, or an (async) iterable of bytes-like objects."
+        (
+            "Stream payload must be bytes, bytearray, or an (async) "
+            "iterable of bytes-like objects."
+        )
     )
 
 
@@ -531,7 +537,10 @@ class Secp256k1EnvelopeSigner(ISigning):
         pub_entries = opts_map.get("pubkeys")
         if not isinstance(pub_entries, IterableABC):
             raise ValueError(
-                "verify_bytes requires opts['pubkeys'] with one or more secp256k1 public keys."
+                (
+                    "verify_bytes requires opts['pubkeys'] with one or more "
+                    "secp256k1 public keys."
+                )
             )
         pubs: list[ec.EllipticCurvePublicKey] = []
         for entry in pub_entries:
@@ -568,7 +577,8 @@ class Secp256k1EnvelopeSigner(ISigning):
                         size_bytes = (pk.curve.key_size + 7) // 8
                         if len(sig_bytes) != 2 * size_bytes:
                             raise InvalidSignature(
-                                "Invalid RAW ECDSA signature length for secp256k1."
+                                "Invalid RAW ECDSA signature length for "
+                                "secp256k1."
                             )
                         r = int.from_bytes(sig_bytes[:size_bytes], "big")
                         s = int.from_bytes(sig_bytes[size_bytes:], "big")

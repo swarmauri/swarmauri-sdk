@@ -26,7 +26,9 @@ class GunningFogTool(ToolBase):
         Parameter(
             name="input_text",
             input_type="string",
-            description="The input text for which to calculate the Gunning-Fog score.",
+            description=(
+                "The input text for which to calculate the Gunning-Fog score."
+            ),
             required=True,
         )
     ]
@@ -135,7 +137,8 @@ class GunningFogTool(ToolBase):
 
     def validate_input(self, data: Dict[str, Any]) -> bool:
         """
-        Validates the input data to ensure it contains the required 'input_text' key.
+        Validates the input data to ensure it contains the required
+        'input_text' key.
 
         Parameters:
             data (Dict[str, Any]): The input data to validate.

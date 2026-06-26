@@ -1,4 +1,5 @@
-"""Expose the :class:`~swarmauri_gitfilter_minio.minio_filter.MinioFilter` plugin."""
+"""Expose the :class:`~swarmauri_gitfilter_minio.minio_filter.MinioFilter`
+plugin."""
 
 from .minio_filter import MinioFilter
 

@@ -9,9 +9,12 @@ from swarmauri_base import FullUnion
 
 @ObserveBase.register_model()
 class LoggerBase(ILogger, ObserveBase):
-    """LoggerBase is an implementation of ILogger that wraps Python's built-in logging module.
+    """
+    LoggerBase is an implementation of ILogger that wraps Python's built-in
+    logging module.
 
-    It compiles a logger with a specified name and attaches either user-provided or default handlers.
+    It compiles a logger with a specified name and attaches either
+    user-provided or default handlers.
     """
 
     name: str = __name__
@@ -23,7 +26,8 @@ class LoggerBase(ILogger, ObserveBase):
     def model_post_init(self, *args, **kwargs):
         """Initialize the LoggerBase instance.
 
-        This method initializes the logger by compiling a logging.Logger instance with the configured name and handlers.
+        This method initializes the logger by compiling a logging.Logger
+        instance with the configured name and handlers.
 
         Parameters
         ----------

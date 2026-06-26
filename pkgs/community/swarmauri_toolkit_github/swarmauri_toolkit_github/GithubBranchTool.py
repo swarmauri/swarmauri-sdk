@@ -16,13 +16,19 @@ class GithubBranchTool(ToolBase):
             Parameter(
                 name="action",
                 input_type="string",
-                description="The action to perform on the GitHub API, e.g., 'create_repo', 'delete_repo', 'create_issue', etc.",
+                description=(
+                    "The action to perform on the GitHub API, e.g., "
+                    "'create_repo', 'delete_repo', 'create_issue', etc."
+                ),
                 required=True,
             ),
             Parameter(
                 name="repo_name",
                 input_type="string",
-                description="The full name of the repository to interact with, e.g. 'owner/repository'.",
+                description=(
+                    "The full name of the repository to interact with, e.g. "
+                    "'owner/repository'."
+                ),
                 required=True,
             ),
             Parameter(
@@ -34,7 +40,9 @@ class GithubBranchTool(ToolBase):
             Parameter(
                 name="source_branch",
                 input_type="string",
-                description="The name of the source branch to create a branch from.",
+                description=(
+                    "The name of the source branch to create a branch from."
+                ),
                 required=False,
             ),
         ]

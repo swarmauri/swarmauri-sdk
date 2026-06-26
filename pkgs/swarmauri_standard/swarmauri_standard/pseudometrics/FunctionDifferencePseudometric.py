@@ -28,11 +28,15 @@ T = TypeVar("T", bound=Union[int, float, complex])
 )
 class FunctionDifferencePseudometric(PseudometricBase):
     """
-    Measures the distance between two functions based on their output differences.
+    Measures the distance between two functions based on their output
+    differences.
 
-    This pseudometric calculates the distance between functions by evaluating them
-    at specific points and measuring the differences in their outputs. Functions are
-    considered close if they produce similar outputs at the evaluation points, even
+    This pseudometric calculates the distance between functions by evaluating
+    them
+    at specific points and measuring the differences in their outputs.
+    Functions are
+    considered close if they produce similar outputs at the evaluation points,
+    even
     if they differ elsewhere.
 
     Attributes
@@ -48,7 +52,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
     domain_bounds : Optional[Dict[str, Tuple[float, float]]]
         Bounds for the domain when using random or grid sampling.
     norm_type : str
-        The type of norm to use for calculating differences ('l1', 'l2', 'max').
+        The type of norm to use for calculating differences ('l1', 'l2',
+        'max').
     """
 
     type: Literal["FunctionDifferencePseudometric"] = (
@@ -74,31 +79,42 @@ class FunctionDifferencePseudometric(PseudometricBase):
         num_samples : int, optional
             Number of points to sample if using random sampling, by default 10.
         sampling_strategy : str, optional
-            Strategy for sampling points ('fixed', 'random', 'grid'), by default "fixed".
+            Strategy for sampling points ('fixed', 'random', 'grid'), by
+            default "fixed".
         domain_bounds : Optional[Dict[str, tuple]], optional
-            Bounds for the domain when using random or grid sampling, by default None.
+            Bounds for the domain when using random or grid sampling, by
+            default None.
             Example: {'x': (-1, 1), 'y': (0, 2)} for a 2D domain.
         norm_type : str, optional
-            The type of norm to use for calculating differences ('l1', 'l2', 'max'),
+            The type of norm to use for calculating differences ('l1', 'l2',
+            'max'),
             by default "l2".
 
         Raises
         ------
         ValueError
             If evaluation_points is None and sampling_strategy is 'fixed',
-            or if domain_bounds is None and sampling_strategy is 'random' or 'grid'.
+            or if domain_bounds is None and sampling_strategy is 'random' or
+            'grid'.
         """
         super().__init__()
 
         # Validate inputs
         if sampling_strategy == "fixed" and evaluation_points is None:
             raise ValueError(
-                "evaluation_points must be provided when sampling_strategy is 'fixed'"
+                (
+                    "evaluation_points must be provided when sampling_strategy "  # noqa: E501
+                    "is "
+                    "'fixed'"
+                )
             )
 
         if sampling_strategy in ["random", "grid"] and domain_bounds is None:
             raise ValueError(
-                "domain_bounds must be provided when sampling_strategy is 'random' or 'grid'"
+                (
+                    "domain_bounds must be provided when sampling_strategy is "
+                    "'random' or 'grid'"
+                )
             )
 
         if norm_type not in ["l1", "l2", "max"]:
@@ -116,7 +132,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
             self._generate_sample_points()
 
         logger.debug(
-            f"Initialized FunctionDifferencePseudometric with strategy={sampling_strategy}, "
+            f"Initialized FunctionDifferencePseudometric with "
+            f"strategy={sampling_strategy}, "
             f"num_samples={num_samples}, norm_type={norm_type}"
         )
 
@@ -145,7 +162,10 @@ class FunctionDifferencePseudometric(PseudometricBase):
             )
 
         logger.debug(
-            f"Generated {len(self._sample_points)} sample points using {self.sampling_strategy} strategy"
+            (
+                f"Generated {len(self._sample_points)} sample points using "
+                f"{self.sampling_strategy} strategy"
+            )
         )
 
     def _generate_random_points(self) -> None:
@@ -276,7 +296,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
                         results.append(float(abs(value)))
                     else:
                         raise ValueError(
-                            f"Function output {value} cannot be converted to a float"
+                            f"Function output {value} cannot be converted to a "  # noqa: E501
+                            f"float"
                         )
             except Exception as e:
                 logger.error(
@@ -304,7 +325,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
         Returns
         -------
         float
-            The difference between the function values, based on the selected norm.
+            The difference between the function values, based on the selected
+            norm.
 
         Raises
         ------
@@ -345,7 +367,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
         Returns
         -------
         float
-            The distance between the functions based on their output differences
+            The distance between the functions based on their output
+            differences
 
         Raises
         ------
@@ -393,7 +416,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
         Returns
         -------
         List[List[float]]
-            A matrix of distances where distances[i][j] is the distance between xs[i] and ys[j]
+            A matrix of distances where distances[i][j] is the distance between
+            xs[i] and ys[j]
 
         Raises
         ------
@@ -497,7 +521,10 @@ class FunctionDifferencePseudometric(PseudometricBase):
 
             if not result:
                 logger.warning(
-                    f"Symmetry check failed: d(x,y) = {dist_xy}, d(y,x) = {dist_yx}"
+                    (
+                        f"Symmetry check failed: d(x,y) = {dist_xy}, d(y,x) = "
+                        f"{dist_yx}"
+                    )
                 )
 
             return result
@@ -540,7 +567,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
             if not result:
                 logger.warning(
                     f"Triangle inequality check failed: "
-                    f"d(x,z) = {dist_xz}, d(x,y) + d(y,z) = {dist_xy + dist_yz}"
+                    f"d(x,z) = {dist_xz}, d(x,y) + d(y,z) = "
+                    f"{dist_xy + dist_yz}"
                 )
 
             return result
@@ -553,7 +581,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
         """
         Check if the distance function satisfies the weak identity property.
 
-        For a pseudometric, d(x,y) = 0 is allowed even when x ≠ y, which happens
+        For a pseudometric, d(x,y) = 0 is allowed even when x ≠ y, which
+        happens
         when the functions produce identical outputs at all evaluation points.
 
         Parameters
@@ -566,10 +595,12 @@ class FunctionDifferencePseudometric(PseudometricBase):
         Returns
         -------
         bool
-            True if the pseudometric properly handles the weak identity property
+            True if the pseudometric properly handles the weak identity
+            property
         """
         try:
-            # Create a function that's equal to x at all evaluation points but different elsewhere
+            # Create a function that's equal to x at all evaluation points but
+            # different elsewhere
             points = self._get_evaluation_points()
 
             # Evaluate x at all points to create a lookup table
@@ -577,7 +608,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
             for point in points:
                 x_values[str(point)] = x(point)
 
-            # Create a function that matches x at evaluation points but differs elsewhere
+            # Create a function that matches x at evaluation points but differs
+            # elsewhere
             def modified_x(p):
                 # If p is in our evaluation points, return the same value as x
                 p_str = str(p)
@@ -626,7 +658,8 @@ class FunctionDifferencePseudometric(PseudometricBase):
         cls, data: Dict[str, Any]
     ) -> "FunctionDifferencePseudometric":
         """
-        Create a FunctionDifferencePseudometric from a dictionary representation.
+        Create a FunctionDifferencePseudometric from a dictionary
+        representation.
 
         Parameters
         ----------

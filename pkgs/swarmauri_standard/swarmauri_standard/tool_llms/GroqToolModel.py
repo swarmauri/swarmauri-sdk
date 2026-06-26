@@ -26,10 +26,13 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(ToolLLMBase, "GroqToolModel")
 class GroqToolModel(ToolLLMBase):
     """
-    GroqToolModel provides an interface to interact with Groq's large language models for tool usage.
+    GroqToolModel provides an interface to interact with Groq's large language
+    models for tool usage.
 
-    This class supports synchronous and asynchronous predictions, streaming of responses,
-    and batch processing. It communicates with the Groq API to manage conversations, format messages,
+    This class supports synchronous and asynchronous predictions, streaming of
+    responses,
+    and batch processing. It communicates with the Groq API to manage
+    conversations, format messages,
     and handle tool-related functions.
 
     Attributes:
@@ -115,7 +118,8 @@ class GroqToolModel(ToolLLMBase):
         Formats messages for API compatibility.
 
         Parameters:
-            messages (List[Type[MessageBase]]): List of message instances to format.
+            messages (List[Type[MessageBase]]): List of message instances to
+            format.
 
         Returns:
             List[Dict[str, str]]: List of formatted message dictionaries.
@@ -141,17 +145,24 @@ class GroqToolModel(ToolLLMBase):
         messages: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
         """
-        Processes a list of tool calls and appends the results to the messages list.
+        Processes a list of tool calls and appends the results to the messages
+        list.
 
         Args:
-            tool_calls (List[Dict[str, Any]]): A list of dictionaries representing tool calls. Each dictionary should contain
-                               a "function" key with a nested dictionary that includes the "name" and "arguments"
-                               of the function to be called, and an "id" key for the tool call identifier.
-            toolkit (Toolkit): An object that provides access to tools via the `get_tool_by_name` method.
-            messages (List[Dict[str, Any]]): A list of message dictionaries to which the results of the tool calls will be appended.
+            tool_calls (List[Dict[str, Any]]): A list of dictionaries
+            representing tool calls. Each dictionary should contain
+                               a "function" key with a nested dictionary that
+                               includes the "name" and "arguments"
+                               of the function to be called, and an "id" key
+                               for the tool call identifier.
+            toolkit (Toolkit): An object that provides access to tools via the
+            `get_tool_by_name` method.
+            messages (List[Dict[str, Any]]): A list of message dictionaries to
+            which the results of the tool calls will be appended.
 
         Returns:
-            List[Dict[str, Any]]: The updated list of messages with the results of the tool calls appended.
+            List[Dict[str, Any]]: The updated list of messages with the results
+            of the tool calls appended.
         """
         if tool_calls:
             for tool_call in tool_calls:
@@ -185,15 +196,18 @@ class GroqToolModel(ToolLLMBase):
         Makes a synchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -269,15 +283,18 @@ class GroqToolModel(ToolLLMBase):
         Makes an asynchronous prediction using the Groq model.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
-            multiturn (bool): Whether to follow up a tool call with another LLM request.
+            multiturn (bool): Whether to follow up a tool call with another LLM
+            request.
             temperature (float): Sampling temperature.
             max_tokens (int): Maximum token limit.
 
         Returns:
-            IConversation: Updated conversation with agent responses and tool calls.
+            IConversation: Updated conversation with agent responses and tool
+            calls.
         """
         formatted_messages = self._format_messages(conversation.history)
 
@@ -358,7 +375,8 @@ class GroqToolModel(ToolLLMBase):
         Streams response from Groq model in real-time.
 
         Parameters:
-            conversation (Conversation): Conversation instance with message history.
+            conversation (Conversation): Conversation instance with message
+            history.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -461,7 +479,8 @@ class GroqToolModel(ToolLLMBase):
         Asynchronously streams response from Groq model.
 
         Parameters:
-            conversation (IConversation): Conversation instance with message history.
+            conversation (IConversation): Conversation instance with message
+            history.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -565,7 +584,8 @@ class GroqToolModel(ToolLLMBase):
         Processes a batch of conversations sequentially.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.
@@ -596,10 +616,12 @@ class GroqToolModel(ToolLLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Processes a batch of conversations concurrently with limited concurrency.
+        Processes a batch of conversations concurrently with limited
+        concurrency.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
+            conversations (List[Conversation]): List of conversations to
+            process.
             toolkit (Toolkit): Optional toolkit for tool conversion.
             tool_choice (Dict[str, Any]): Tool selection strategy.
             temperature (float): Sampling temperature.

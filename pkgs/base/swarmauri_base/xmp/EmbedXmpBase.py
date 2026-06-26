@@ -40,6 +40,9 @@ class EmbedXmpBase(IEmbedXMP, ComponentBase):
 
         if "<rdf:RDF" not in xmp_xml and "<x:xmpmeta" not in xmp_xml:
             raise ValueError(
-                "XMP must be an RDF/XML packet containing <rdf:RDF> or <x:xmpmeta>."
+                (
+                    "XMP must be an RDF/XML packet containing <rdf:RDF> or "
+                    "<x:xmpmeta>."
+                )
             )
         return xmp_xml.encode("utf-8")

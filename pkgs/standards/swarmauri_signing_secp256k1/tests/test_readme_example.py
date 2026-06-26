@@ -20,7 +20,8 @@ def test_readme_usage_example_executes() -> None:
         re.DOTALL,
     )
     assert match, (
-        "Expected README usage example fenced by <!-- example-start --> markers."
+        "Expected README usage example fenced by <!-- example-start "
+        "--> markers."
     )
 
     example_src = textwrap.dedent(match.group("code"))

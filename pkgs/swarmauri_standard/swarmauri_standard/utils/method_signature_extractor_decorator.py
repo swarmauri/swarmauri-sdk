@@ -102,7 +102,8 @@ class MethodSignatureExtractor(BaseModel):
 
 def extract_method_signature(func: Callable):
     """
-    A decorator that extracts method signature details and attaches them to the function.
+    A decorator that extracts method signature details and attaches them to the
+    function.
 
     Args:
         func (Callable): The function to extract signature details for.

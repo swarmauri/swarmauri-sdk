@@ -13,7 +13,8 @@ def load_pem_private_key_and_chain(
     pem_bytes: bytes,
     password: Optional[bytes],
 ) -> Tuple[object, List[x509.Certificate]]:
-    """Load a PEM private key and return it with any provided certificate chain."""
+    """Load a PEM private key and return it with any provided certificate
+    chain."""
 
     private_key = serialization.load_pem_private_key(
         pem_bytes, password=password

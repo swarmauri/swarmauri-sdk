@@ -65,7 +65,9 @@ class MinioStorageAdapter(StorageAdapterBase):
 
     # ------------------------------------------------------------------
     def upload(self, key: str, data: BinaryIO) -> str:
-        """Upload *data* to ``bucket/prefix/key`` and return the artifact URI."""
+        """
+        Upload *data* to ``bucket/prefix/key`` and return the artifact URI.
+        """
         size: Optional[int] = None
         try:
             size = os.fstat(data.fileno()).st_size  # type: ignore[attr-defined]

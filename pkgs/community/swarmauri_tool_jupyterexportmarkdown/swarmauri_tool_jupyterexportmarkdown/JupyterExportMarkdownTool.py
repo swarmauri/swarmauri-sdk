@@ -1,9 +1,12 @@
 """
 JupyterExportMarkdownTool.py
 
-This module defines the JupyterExportMarkdownTool, a component that converts a Jupyter
-Notebook into Markdown format. It demonstrates how to inherit from the ToolBase class
-and integrate with the swarmauri framework. The tool supports custom templates, styling,
+This module defines the JupyterExportMarkdownTool, a component that converts a
+Jupyter
+Notebook into Markdown format. It demonstrates how to inherit from the ToolBase
+class
+and integrate with the swarmauri framework. The tool supports custom templates,
+styling,
 and logs export operations to help track usage and potential errors.
 """
 
@@ -24,16 +27,20 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_type(ToolBase, "JupyterExportMarkdownTool")
 class JupyterExportMarkdownTool(ToolBase):
     """
-    JupyterExportMarkdownTool converts a Jupyter Notebook (represented as a NotebookNode or JSON-like
-    structure) into Markdown format. It supports a custom template for formatting and allows optional
-    styling resources. This tool is designed for effortless integration with static site generators.
+    JupyterExportMarkdownTool converts a Jupyter Notebook (represented as a
+    NotebookNode or JSON-like
+    structure) into Markdown format. It supports a custom template for
+    formatting and allows optional
+    styling resources. This tool is designed for effortless integration with
+    static site generators.
 
     Attributes:
         version (str): The version of the JupyterExportMarkdownTool.
         parameters (List[Parameter]): A list of parameters for notebook export.
         name (str): The name of the tool.
         description (str): A brief description of the tool's functionality.
-        type (Literal["JupyterExportMarkdownTool"]): The type identifier for the tool.
+        type (Literal["JupyterExportMarkdownTool"]): The type identifier for
+        the tool.
     """
 
     version: str = "1.0.0"
@@ -43,7 +50,8 @@ class JupyterExportMarkdownTool(ToolBase):
                 name="notebook_json",
                 input_type="object",
                 description=(
-                    "A JSON-like dictionary representing the Jupyter Notebook to export. "
+                    "A JSON-like dictionary representing the Jupyter Notebook "
+                    "to export. "
                     "It should conform to the NotebookNode structure."
                 ),
                 required=True,
@@ -52,7 +60,7 @@ class JupyterExportMarkdownTool(ToolBase):
                 name="template",
                 input_type="string",
                 description=(
-                    "An optional nbconvert-compatible template name or path to "
+                    "An optional nbconvert-compatible template name or path to "  # noqa: E501
                     "customize the Markdown output."
                 ),
                 required=False,
@@ -79,18 +87,23 @@ class JupyterExportMarkdownTool(ToolBase):
         styles: Optional[str] = None,
     ) -> Dict[str, str]:
         """
-        Converts the provided Jupyter Notebook JSON into Markdown format using nbconvert.
+        Converts the provided Jupyter Notebook JSON into Markdown format using
+        nbconvert.
 
         Args:
-            notebook_json (Dict[str, Any]): A dictionary representing the Jupyter notebook
+            notebook_json (Dict[str, Any]): A dictionary representing the
+            Jupyter notebook
                 structure (NotebookNode). Must follow nbformat specifications.
-            template (Optional[str]): An optional template name or path for customizing the
+            template (Optional[str]): An optional template name or path for
+            customizing the
                 Markdown output.
-            styles (Optional[str]): A string of custom CSS rules to embed in the exported
+            styles (Optional[str]): A string of custom CSS rules to embed in
+            the exported
                 Markdown. Useful for styling code blocks, headings, etc.
 
         Returns:
-            Dict[str, str]: A dictionary containing either the exported Markdown content or
+            Dict[str, str]: A dictionary containing either the exported
+            Markdown content or
             an error message if the conversion fails.
 
          Example:
@@ -100,7 +113,8 @@ class JupyterExportMarkdownTool(ToolBase):
             ...         {
             ...             "cell_type": "markdown",
             ...             "metadata": {},
-            ...             "source": ["# Sample Notebook\\n", "Some introductory text."]
+            ...             "source": ["# Sample Notebook\\n", "Some
+            introductory text."]
             ...         }
             ...     ],
             ...     "metadata": {},
@@ -138,7 +152,8 @@ class JupyterExportMarkdownTool(ToolBase):
             # Prepare resources (e.g., for styling)
             resources = {}
             if styles:
-                # The CSS styles are stored in a list (nbconvert expects CSS as a list of strings)
+                # The CSS styles are stored in a list (nbconvert expects CSS as
+                # a list of strings)
                 resources["inlining"] = {"css": [styles]}
                 logger.info("Custom CSS styles have been applied.")
 

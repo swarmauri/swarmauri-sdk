@@ -10,8 +10,10 @@ class ColorFormatter(FormatterBase):
     """
     A formatter that adds ANSI color codes to log messages based on log level.
 
-    This formatter enhances log readability by color-coding different log levels
-    without requiring external dependencies. It's implemented in pure Python using
+    This formatter enhances log readability by color-coding different log
+    levels
+    without requiring external dependencies. It's implemented in pure Python
+    using
     ANSI escape sequences.
     """
 
@@ -62,7 +64,8 @@ class ColorFormatter(FormatterBase):
         Create and return a custom logging.Formatter that applies color codes.
 
         Returns:
-            logging.Formatter: A formatter instance that adds color to log messages
+            logging.Formatter: A formatter instance that adds color to log
+            messages
                                based on their level when use_colors is True.
         """
         if not self.use_colors:
@@ -80,10 +83,11 @@ class ColorFormatter(FormatterBase):
                 # Save the original levelname
                 orig_levelname = record.levelname
 
-                # Add color codes to the levelname if the level has a defined color
+                # Add color codes to the levelname if the level has a defined
+                # color
                 if record.levelname in self.colors:
                     # Prepend color code to levelname and append reset code
-                    record.levelname = f"{self.colors[record.levelname]}{record.levelname}{self.reset}"
+                    record.levelname = f"{self.colors[record.levelname]}{record.levelname}{self.reset}"  # noqa: E501
 
                 # Format the record
                 result = super().format(record)

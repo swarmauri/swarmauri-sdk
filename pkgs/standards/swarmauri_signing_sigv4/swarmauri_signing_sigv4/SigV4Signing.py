@@ -157,7 +157,9 @@ class SigV4Signing(SigningBase):
         canon: Optional[Canon] = None,
         opts: Optional[Mapping[str, object]] = None,
     ) -> bytes:
-        """Build the canonical request bytes for a SigV4 HTTP request envelope."""
+        """
+        Build the canonical request bytes for a SigV4 HTTP request envelope.
+        """
 
         method = str(env["method"]).upper()
         uri = str(env.get("uri", "/"))

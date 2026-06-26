@@ -10,9 +10,12 @@ class IEvaluatorPool(ABC):
     """
     Interface for evaluator pools that manage sets of evaluators.
 
-    This abstract class defines the contract for evaluator pools, providing methods
-    for dynamic registration, execution, and aggregation of evaluators. Pools are
-    responsible for coordinating the evaluation of programs across multiple evaluators
+    This abstract class defines the contract for evaluator pools, providing
+    methods
+    for dynamic registration, execution, and aggregation of evaluators. Pools
+    are
+    responsible for coordinating the evaluation of programs across multiple
+    evaluators
     and aggregating their results.
     """
 
@@ -51,7 +54,8 @@ class IEvaluatorPool(ABC):
 
         Args:
             evaluator: The evaluator to add to the pool
-            name: Optional name for the evaluator, if not provided a name will be generated
+            name: Optional name for the evaluator, if not provided a name will
+            be generated
 
         Returns:
             The name assigned to the evaluator
@@ -82,7 +86,8 @@ class IEvaluatorPool(ABC):
         """
         Evaluate all programs with all registered evaluators.
 
-        This method runs each program through each evaluator and collects the results.
+        This method runs each program through each evaluator and collects the
+        results.
 
         Args:
             programs: The programs to evaluate
@@ -103,7 +108,8 @@ class IEvaluatorPool(ABC):
         """
         Asynchronously evaluate all programs with all registered evaluators.
 
-        This method runs each program through each evaluator concurrently and collects the results.
+        This method runs each program through each evaluator concurrently and
+        collects the results.
 
         Args:
             programs: The programs to evaluate
@@ -122,7 +128,8 @@ class IEvaluatorPool(ABC):
         """
         Aggregate multiple scores into a single score.
 
-        This method combines multiple evaluation scores into a single scalar value
+        This method combines multiple evaluation scores into a single scalar
+        value
         according to the pool's aggregation strategy.
 
         Args:
@@ -144,7 +151,8 @@ class IEvaluatorPool(ABC):
         Set the function used to aggregate scores.
 
         Args:
-            func: A function that takes a sequence of scores and returns an aggregated score
+            func: A function that takes a sequence of scores and returns an
+            aggregated score
 
         Raises:
             TypeError: If func is not callable or has an invalid signature

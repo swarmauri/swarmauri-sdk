@@ -24,7 +24,8 @@ from swarmauri_base.mre_crypto.MreCryptoBase import MreCryptoBase
 from swarmauri_base.ComponentBase import ComponentBase
 
 
-# ======================== Field and envelope constants ========================
+# ======================== Field and envelope constants
+# ========================
 
 # Prime field for Shamir (Mersenne prime > 2^521)
 _P = (1 << 521) - 1
@@ -84,7 +85,8 @@ def _lagrange_interpolate_at(
     x: int, points: Sequence[Tuple[int, int]], p: int = _P
 ) -> int:
     """
-    Compute f(x) from k points (x_i, y_i) on a degree-(k-1) polynomial over GF(p).
+    Compute f(x) from k points (x_i, y_i) on a degree-(k-1) polynomial over
+    GF(p).
     Works for x == 0 (reconstruct secret) or any other x (evaluate at new x).
     """
     k = len(points)
@@ -228,7 +230,8 @@ class ShamirMreCrypto(MreCryptoBase):
             "features": ("aad", "threshold", "rewrap_without_reencrypt"),
         }
 
-    # ----------------------------- encrypt_for_many -----------------------------
+    # ----------------------------- encrypt_for_many
+    # -----------------------------
     async def encrypt_for_many(
         self,
         recipients: Sequence[KeyRef],
@@ -300,7 +303,8 @@ class ShamirMreCrypto(MreCryptoBase):
             env["shared"].update(extra)  # type: ignore[index]
         return env
 
-    # --------------------------------- open_for --------------------------------
+    # --------------------------------- open_for
+    # --------------------------------
     async def open_for(
         self,
         my_identity: KeyRef,
@@ -330,7 +334,8 @@ class ShamirMreCrypto(MreCryptoBase):
             aad or payload.get("aad"),
         )
 
-    # ------------------------------- open_for_many ------------------------------
+    # ------------------------------- open_for_many
+    # ------------------------------
     async def open_for_many(
         self,
         my_identities: Sequence[KeyRef],
@@ -359,7 +364,10 @@ class ShamirMreCrypto(MreCryptoBase):
                 break
         if len(points) < k:
             raise ValueError(
-                f"Need at least {k} shares; provided {len(points)} that match the envelope."
+                (
+                    f"Need at least {k} shares; provided {len(points)} that "
+                    f"match the envelope."
+                )
             )
         cek_int = _lagrange_interpolate_at(0, points, _P)
         cek = _int_to_bytes(cek_int).rjust(_decode_cek_len(env), b"\x00")
@@ -371,7 +379,8 @@ class ShamirMreCrypto(MreCryptoBase):
             aad or payload.get("aad"),
         )
 
-    # ---------------------------------- rewrap ---------------------------------
+    # ---------------------------------- rewrap
+    # ---------------------------------
     async def rewrap(
         self,
         env: MultiRecipientEnvelope,
@@ -526,6 +535,9 @@ def _collect_k_points(
             break
     if len(points) < k:
         raise ValueError(
-            f"Envelope has only {len(points)} usable shares; need at least {k}."
+            (
+                f"Envelope has only {len(points)} usable shares; need at "
+                f"least {k}."
+            )
         )
     return points

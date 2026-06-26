@@ -20,7 +20,10 @@ class GmailSendTool(ToolBase):
             Parameter(
                 name="recipients",
                 input_type="string",
-                description="The email addresses of the recipients, separated by commas",
+                description=(
+                    "The email addresses of the recipients, separated by "
+                    "commas"
+                ),
                 required=True,
             ),
             Parameter(
@@ -47,8 +50,10 @@ class GmailSendTool(ToolBase):
 
     def authenticate(self) -> Resource:
         """
-        Authenticates the user and creates a Gmail API service for sending emails.
-        This method returns the service instance, without saving it as an attribute.
+        Authenticates the user and creates a Gmail API service for sending
+        emails.
+        This method returns the service instance, without saving it as an
+        attribute.
         """
         credentials = service_account.Credentials.from_service_account_file(
             self.credentials_path, scopes=self.SCOPES
@@ -68,7 +73,8 @@ class GmailSendTool(ToolBase):
         message_text (str): The HTML body of the email.
 
         Returns:
-        Dict[str, str]: The created MIMEText message in a format suitable for Gmail API.
+        Dict[str, str]: The created MIMEText message in a format suitable for
+        Gmail API.
         """
         message = MIMEMultipart("alternative")
         message["from"] = self.sender_email
@@ -85,17 +91,22 @@ class GmailSendTool(ToolBase):
         self, recipients: str, subject: str, htmlMsg: str
     ) -> Dict[str, str]:
         """
-        Sends an email to the specified recipients with the given subject and HTML message.
+        Sends an email to the specified recipients with the given subject and
+        HTML message.
 
         Parameters:
-            recipients (str): The email address of the recipients, separated by commas.
+            recipients (str): The email address of the recipients, separated by
+            commas.
             subject (str): The subject of the email.
             htmlMsg (str): The HTML content of the email body.
 
         Returns:
-            Dict[str, str]: A message indicating the status of the email sending process.
+            Dict[str, str]: A message indicating the status of the email
+            sending process.
         """
-        service = self.authenticate()  # Authenticate within this function and do not store in the object state
+        # Authenticate within this function and do not store in the object
+        # state
+        service = self.authenticate()
         try:
             message = self.create_message(recipients, subject, htmlMsg)
             service.users().messages().send(

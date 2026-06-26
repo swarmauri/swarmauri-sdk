@@ -1,5 +1,5 @@
 import pytest
-from swarmauri_measurement_mutualinformation.MutualInformationMeasurement import (
+from swarmauri_measurement_mutualinformation.MutualInformationMeasurement import (  # noqa: E501
     MutualInformationMeasurement as Measurement,
 )
 

@@ -31,7 +31,8 @@ class TestInit:
         assert isinstance(init_module.__version__, str)
 
     def test_all_definition(self, init_module):
-        """Tests that the __all__ variable is defined and contains expected values."""
+        """Tests that the __all__ variable is defined and contains expected
+        values."""
         LOGGER.debug("Testing __all__ definition")
         assert hasattr(init_module, "__all__")
         assert isinstance(init_module.__all__, list)

@@ -17,7 +17,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 @ComponentBase.register_type(LLMBase, "GeminiProModel")
 class GeminiProModel(LLMBase):
     """
-    GeminiProModel is a class interface for interacting with the Gemini language model API.
+    GeminiProModel is a class interface for interacting with the Gemini
+    language model API.
 
     Attributes:
         api_key (str): API key for authentication with the Gemini API.
@@ -122,7 +123,8 @@ class GeminiProModel(LLMBase):
         Retrieves the system message content from a conversation.
 
         Args:
-            messages (List[Type[MessageBase]]): List of message objects with message history.
+            messages (List[Type[MessageBase]]): List of message objects with
+            message history.
 
         Returns:
             str: Content of the system message, if present; otherwise, None.
@@ -166,18 +168,24 @@ class GeminiProModel(LLMBase):
         max_tokens: int = 25,
     ) -> Conversation:
         """
-        Generates a prediction for the given conversation using the specified parameters.
+        Generates a prediction for the given conversation using the specified
+        parameters.
 
         Args:
-            conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): The sampling temperature to use. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+            conversation (Conversation): The conversation object containing the
+            history of messages.
+            temperature (float, optional): The sampling temperature to use.
+            Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to
+            generate. Defaults to 256.
 
         Returns:
-            Conversation: The updated conversation object with the new message added.
+            Conversation: The updated conversation object with the new message
+            added.
 
         Raises:
-            httpx.HTTPStatusError: If the HTTP request to the generation endpoint fails.
+            httpx.HTTPStatusError: If the HTTP request to the generation
+            endpoint fails.
         """
         generation_config = {
             "temperature": temperature,
@@ -231,18 +239,24 @@ class GeminiProModel(LLMBase):
         max_tokens: int = 256,
     ) -> Conversation:
         """
-        Asynchronously generates a response for a given conversation using the GeminiProModel.
+        Asynchronously generates a response for a given conversation using the
+        GeminiProModel.
 
         Args:
-            conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): Sampling temperature for response generation. Defaults to 0.7.
-            max_tokens (int, optional): Maximum number of tokens in the generated response. Defaults to 256.
+            conversation (Conversation): The conversation object containing the
+            history of messages.
+            temperature (float, optional): Sampling temperature for response
+            generation. Defaults to 0.7.
+            max_tokens (int, optional): Maximum number of tokens in the
+            generated response. Defaults to 256.
 
         Returns:
-            Conversation: The updated conversation object with the generated response added.
+            Conversation: The updated conversation object with the generated
+            response added.
 
         Raises:
-            httpx.HTTPStatusError: If the HTTP request to the generation endpoint fails.
+            httpx.HTTPStatusError: If the HTTP request to the generation
+            endpoint fails.
         """
         generation_config = {
             "temperature": temperature,
@@ -297,9 +311,12 @@ class GeminiProModel(LLMBase):
         Streams the response from the model based on the given conversation.
 
         Args:
-            conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): The temperature setting for the generation. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+            conversation (Conversation): The conversation object containing the
+            history of messages.
+            temperature (float, optional): The temperature setting for the
+            generation. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to
+            generate. Defaults to 256.
 
         Yields:
             str: Chunks of the generated response text.
@@ -372,15 +389,19 @@ class GeminiProModel(LLMBase):
         Asynchronously streams generated content for a given conversation.
 
         Args:
-            conversation (Conversation): The conversation object containing the history of messages.
-            temperature (float, optional): The temperature for the generation process. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+            conversation (Conversation): The conversation object containing the
+            history of messages.
+            temperature (float, optional): The temperature for the generation
+            process. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to
+            generate. Defaults to 256.
 
         Yields:
             str: Chunks of generated content as they are received.
 
         Raises:
-            httpx.HTTPStatusError: If the HTTP request to the generation service fails.
+            httpx.HTTPStatusError: If the HTTP request to the generation
+            service fails.
 
         """
         generation_config = {
@@ -445,9 +466,12 @@ class GeminiProModel(LLMBase):
         Synchronously process multiple conversations.
 
         Args:
-            conversations (List[Conversation]): A list of Conversation objects to be processed.
-            temperature (float, optional): The sampling temperature to use. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens to generate. Defaults to 256.
+            conversations (List[Conversation]): A list of Conversation objects
+            to be processed.
+            temperature (float, optional): The sampling temperature to use.
+            Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens to
+            generate. Defaults to 256.
 
         Returns:
             List: A list of predictions for each conversation.
@@ -469,16 +493,22 @@ class GeminiProModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List:
         """
-        Asynchronously processes a batch of conversations using the `apredict` method.
+        Asynchronously processes a batch of conversations using the `apredict`
+        method.
 
         Args:
-            conversations (List[Conversation]): A list of Conversation objects to be processed.
-            temperature (float, optional): The temperature parameter for the prediction. Defaults to 0.7.
-            max_tokens (int, optional): The maximum number of tokens for the prediction. Defaults to 256.
-            max_concurrent (int, optional): The maximum number of concurrent tasks. Defaults to 5.
+            conversations (List[Conversation]): A list of Conversation objects
+            to be processed.
+            temperature (float, optional): The temperature parameter for the
+            prediction. Defaults to 0.7.
+            max_tokens (int, optional): The maximum number of tokens for the
+            prediction. Defaults to 256.
+            max_concurrent (int, optional): The maximum number of concurrent
+            tasks. Defaults to 5.
 
         Returns:
-            List: A list of results from the `apredict` method for each conversation.
+            List: A list of results from the `apredict` method for each
+            conversation.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -495,7 +525,8 @@ class GeminiProModel(LLMBase):
 
     def get_allowed_models(self) -> List[str]:
         """
-        Queries the LLMProvider API endpoint to retrieve the list of allowed models.
+        Queries the LLMProvider API endpoint to retrieve the list of allowed
+        models.
 
         Returns:
             List[str]: A list of allowed model names.

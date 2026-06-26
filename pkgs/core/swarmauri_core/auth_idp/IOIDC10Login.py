@@ -14,5 +14,6 @@ class IOIDC10Login(ABC):
 
     @abstractmethod
     async def exchange(self, code: str, state: str) -> Mapping[str, Any]:
-        """Exchange the authorization code and return normalized identity claims."""
+        """Exchange the authorization code and return normalized identity
+        claims."""
         ...

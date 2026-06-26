@@ -90,7 +90,8 @@ class AgentBase(IAgent, ComponentBase):
         Class: AgentBase
         Method: abatch
 
-        Default async batch implementation: concurrently calls `aexec` on all inputs.
+        Default async batch implementation: concurrently calls `aexec` on all
+        inputs.
         Subclasses can override for more efficient implementations.
         """
         llm_kwargs = llm_kwargs or self.llm_kwargs or {}

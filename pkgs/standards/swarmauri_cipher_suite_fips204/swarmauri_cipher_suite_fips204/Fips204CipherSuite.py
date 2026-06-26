@@ -50,7 +50,11 @@ class Fips204CipherSuite(CipherSuiteBase):
             "constraints": {"nistSecurityLevels": _ML_DSA_LEVEL},
             "compliance": {"fips204": True, "pqc": True},
             "notes": [
-                "Implements the ML-DSA (Dilithium) parameter sets from FIPS 204.",
+                (
+                    "Implements the ML-DSA (Dilithium) parameter sets from "
+                    "FIPS "
+                    "204."
+                ),
             ],
         }
 

@@ -78,5 +78,7 @@ class OutlookSendMailTool(ToolBase):
             return {"success": "Email sent successfully"}
         else:
             return {
-                "error": f"Failed to send email, status code {response.status_code}"
+                "error": (
+                    f"Failed to send email, status code {response.status_code}"
+                )
             }

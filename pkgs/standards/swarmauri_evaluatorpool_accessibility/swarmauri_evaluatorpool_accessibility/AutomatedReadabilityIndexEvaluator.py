@@ -17,7 +17,8 @@ from swarmauri_standard.programs.Program import Program
 )
 class AutomatedReadabilityIndexEvaluator(EvaluatorBase, ComponentBase):
     """
-    Computes the Automated Readability Index (ARI) for a Program’s textual sources.
+    Computes the Automated Readability Index (ARI) for a Program’s textual
+    sources.
 
     Conforms to the IEvaluate interface by returning a dict:
         { "score": <float>, "metadata": <dict> }

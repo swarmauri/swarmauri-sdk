@@ -65,7 +65,8 @@ def complex_inner_product(
     hermitian_weight_matrix,
 ) -> TraceFormWeightedInnerProduct:
     """
-    Fixture providing a TraceFormWeightedInnerProduct instance with complex weights.
+    Fixture providing a TraceFormWeightedInnerProduct instance with complex
+    weights.
 
     Parameters
     ----------

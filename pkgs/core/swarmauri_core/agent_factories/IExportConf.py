@@ -7,7 +7,8 @@ class IExportConf(ABC):
     Interface for exporting configurations related to agent factories.
 
     Implementing classes are expected to provide functionality for representing
-    the factory's configuration as a dictionary, JSON string, or exporting to a file.
+    the factory's configuration as a dictionary, JSON string, or exporting to a
+    file.
     """
 
     @abstractmethod
@@ -16,7 +17,8 @@ class IExportConf(ABC):
         Serializes the agent factory's configuration to a dictionary.
 
         Returns:
-            Dict[str, Any]: A dictionary representation of the factory's configuration.
+            Dict[str, Any]: A dictionary representation of the factory's
+            configuration.
         """
         pass
 
@@ -33,9 +35,11 @@ class IExportConf(ABC):
     @abstractmethod
     def to_file(self, file_path: str) -> None:
         """
-        Exports the agent factory's configuration to a file in a suitable format.
+        Exports the agent factory's configuration to a file in a suitable
+        format.
 
         Parameters:
-            file_path (str): The path to the file where the configuration should be saved.
+            file_path (str): The path to the file where the configuration
+            should be saved.
         """
         pass

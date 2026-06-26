@@ -19,7 +19,8 @@ from swarmauri_core.crypto.types import KeyRef
 
 @ComponentBase.register_type(CertServiceBase, "ScepCertService")
 class ScepCertService(CertServiceBase):
-    """Certificate enrollment via SCEP (Simple Certificate Enrollment Protocol).
+    """
+    Certificate enrollment via SCEP (Simple Certificate Enrollment Protocol).
 
     The service maps :class:`~swarmauri_core.certs.ICertService` flows onto the
     SCEP message exchange so that clients can issue and validate X.509
@@ -46,7 +47,8 @@ class ScepCertService(CertServiceBase):
     def supports(self) -> Mapping[str, Iterable[str]]:
         """Return supported algorithms and features.
 
-        RETURNS (Mapping[str, Iterable[str]]): Supported keys, signatures, and features.
+        RETURNS (Mapping[str, Iterable[str]]): Supported keys, signatures, and
+        features.
         """
         return {
             "key_algs": ("RSA-2048", "RSA-3072", "EC-P256", "EC-P384"),
@@ -78,7 +80,8 @@ class ScepCertService(CertServiceBase):
         san (AltNameSpec / None): Subject alternative names to include.
         extensions (CertExtensionSpec / None): Additional X.509 extensions.
         sig_alg (str / None): Signature algorithm to use.
-        challenge_password (str / None): Challenge password embedded in the CSR.
+        challenge_password (str / None): Challenge password embedded in the
+        CSR.
         output_der (bool): If True, return DER; otherwise PEM.
         opts (Dict[str, Any] / None): Implementation-specific options.
         RETURNS (CsrBytes): The serialized CSR.

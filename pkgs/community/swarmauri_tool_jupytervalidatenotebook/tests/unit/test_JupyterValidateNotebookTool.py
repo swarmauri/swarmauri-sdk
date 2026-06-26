@@ -3,13 +3,14 @@ test_JupyterValidateNotebookTool.py
 
 Pytest based unit tests for JupyterValidateNotebookTool from
 swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool.
-This file ensures that the tool behaves correctly for valid and invalid notebooks,
+This file ensures that the tool behaves correctly for valid and invalid
+notebooks,
 and checks various attributes and features of the class.
 """
 
 import nbformat
 from nbformat import NotebookNode
-from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (
+from swarmauri_tool_jupytervalidatenotebook.JupyterValidateNotebookTool import (  # noqa: E501
     JupyterValidateNotebookTool,
 )
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -51,7 +52,8 @@ def test_class_attributes() -> None:
 
 def test_valid_notebook_validation() -> None:
     """
-    Test the validation process with a valid notebook. Expecting a success response.
+    Test the validation process with a valid notebook. Expecting a success
+    response.
     """
     # Create a valid minimal notebook
     valid_notebook: NotebookNode = nbformat.v4.new_notebook()
@@ -68,12 +70,15 @@ def test_valid_notebook_validation() -> None:
 
 def test_invalid_notebook_validation() -> None:
     """
-    Test the validation process with an invalid notebook. Expecting a failure response.
+    Test the validation process with an invalid notebook. Expecting a failure
+    response.
     """
-    # Create a notebook with an invalid nbformat value (it must be 4 for v4 notebooks)
+    # Create a notebook with an invalid nbformat value (it must be 4 for v4
+    # notebooks)
     invalid_notebook: NotebookNode = nbformat.v4.new_notebook()
     invalid_notebook["nbformat"] = (
-        3  # This violates the schema and should trigger NotebookValidationError
+        # This violates the schema and should trigger NotebookValidationError
+        3
     )
 
     tool = JupyterValidateNotebookTool()

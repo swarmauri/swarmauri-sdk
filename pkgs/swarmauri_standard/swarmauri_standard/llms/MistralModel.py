@@ -19,7 +19,8 @@ class MistralModel(LLMBase):
     """
     A model class for interfacing with the Mistral language model API.
 
-    Provides methods for synchronous, asynchronous, and streaming conversation interactions
+    Provides methods for synchronous, asynchronous, and streaming conversation
+    interactions
     with the Mistral language model API.
 
     Attributes:
@@ -68,7 +69,8 @@ class MistralModel(LLMBase):
         Initialize the GroqAIAudio class with the provided data.
 
         Args:
-            **data (Dict[str, Any]): Arbitrary keyword arguments containing initialization data.
+            **data (Dict[str, Any]): Arbitrary keyword arguments containing
+            initialization data.
         """
         super().__init__(**data)
         self._client = httpx.Client(
@@ -171,10 +173,13 @@ class MistralModel(LLMBase):
         Args:
             conversation (Conversation): The conversation to respond to.
             temperature (int, optional): Sampling temperature. Defaults to 0.7.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to
+            256.
             top_p (int, optional): Top-p sampling parameter. Defaults to 1.
-            enable_json (bool, optional): If True, enables JSON responses. Defaults to False.
-            safe_prompt (bool, optional): Enables safe prompt mode if True. Defaults to False.
+            enable_json (bool, optional): If True, enables JSON responses.
+            Defaults to False.
+            safe_prompt (bool, optional): Enables safe prompt mode if True.
+            Defaults to False.
 
         Returns:
             Conversation: Updated conversation with the model response.
@@ -229,10 +234,13 @@ class MistralModel(LLMBase):
         Args:
             conversation (Conversation): The conversation to respond to.
             temperature (int, optional): Sampling temperature. Defaults to 0.7.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to
+            256.
             top_p (int, optional): Top-p sampling parameter. Defaults to 1.
-            enable_json (bool, optional): Enables JSON responses. Defaults to False.
-            safe_prompt (bool, optional): Enables safe prompt mode if True. Defaults to False.
+            enable_json (bool, optional): Enables JSON responses. Defaults to
+            False.
+            safe_prompt (bool, optional): Enables safe prompt mode if True.
+            Defaults to False.
 
         Returns:
             Conversation: Updated conversation with the model response.
@@ -288,9 +296,11 @@ class MistralModel(LLMBase):
         Args:
             conversation (Conversation): The conversation to respond to.
             temperature (int, optional): Sampling temperature. Defaults to 0.7.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to
+            256.
             top_p (int, optional): Top-p sampling parameter. Defaults to 1.
-            safe_prompt (bool, optional): Enables safe prompt mode if True. Defaults to False.
+            safe_prompt (bool, optional): Enables safe prompt mode if True.
+            Defaults to False.
 
         Yields:
             str: Chunks of response content.
@@ -357,9 +367,11 @@ class MistralModel(LLMBase):
         Args:
             conversation (Conversation): The conversation to respond to.
             temperature (int, optional): Sampling temperature. Defaults to 0.7.
-            max_tokens (int, optional): Maximum tokens in response. Defaults to 256.
+            max_tokens (int, optional): Maximum tokens in response. Defaults to
+            256.
             top_p (int, optional): Top-p sampling parameter. Defaults to 1.
-            safe_prompt (bool, optional): Enables safe prompt mode if True. Defaults to False.
+            safe_prompt (bool, optional): Enables safe prompt mode if True.
+            Defaults to False.
 
         Yields:
             str: Chunks of response content.
@@ -423,18 +435,22 @@ class MistralModel(LLMBase):
         safe_prompt: bool = False,
     ) -> List[Conversation]:
         """
-        Synchronously processes multiple conversations and generates responses for each.
+        Synchronously processes multiple conversations and generates responses
+        for each.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            temperature (float, optional): Sampling temperature for response generation.
+            conversations (List[Conversation]): List of conversations to
+            process.
+            temperature (float, optional): Sampling temperature for response
+            generation.
             max_tokens (int, optional): Maximum tokens for the response.
             top_p (int, optional): Nucleus sampling parameter.
             enable_json (bool, optional): If True, enables JSON output format.
             safe_prompt (bool, optional): If True, enables safe prompting.
 
         Returns:
-            List[Conversation]: List of updated conversations with generated responses.
+            List[Conversation]: List of updated conversations with generated
+            responses.
         """
         return [
             self.predict(
@@ -459,11 +475,14 @@ class MistralModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Asynchronously processes multiple conversations with controlled concurrency.
+        Asynchronously processes multiple conversations with controlled
+        concurrency.
 
         Args:
-            conversations (List[Conversation]): List of conversations to process.
-            temperature (float, optional): Sampling temperature for response generation.
+            conversations (List[Conversation]): List of conversations to
+            process.
+            temperature (float, optional): Sampling temperature for response
+            generation.
             max_tokens (int, optional): Maximum tokens for the response.
             top_p (int, optional): Nucleus sampling parameter.
             enable_json (bool, optional): If True, enables JSON output format.
@@ -471,7 +490,8 @@ class MistralModel(LLMBase):
             max_concurrent (int, optional): Maximum number of concurrent tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with generated responses.
+            List[Conversation]: List of updated conversations with generated
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

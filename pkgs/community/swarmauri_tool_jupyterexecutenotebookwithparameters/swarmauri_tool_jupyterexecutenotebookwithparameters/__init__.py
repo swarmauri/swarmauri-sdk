@@ -1,4 +1,4 @@
-from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (
+from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (  # noqa: E501
     JupyterExecuteNotebookWithParametersTool,
 )
 

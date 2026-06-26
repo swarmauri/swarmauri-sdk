@@ -8,7 +8,10 @@ from swarmauri_standard.distances.CanberraDistance import (
 class CanberraDistance(_StandardCanberraDistance):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "CanberraDistance is deprecated and will be removed from the active workspace by v0.12.0.",
+            (
+                "CanberraDistance is deprecated and will be removed from the "
+                "active workspace by v0.12.0."
+            ),
             DeprecationWarning,
             stacklevel=2,
         )

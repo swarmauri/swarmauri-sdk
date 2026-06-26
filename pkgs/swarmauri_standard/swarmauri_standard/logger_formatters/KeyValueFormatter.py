@@ -11,8 +11,10 @@ class KeyValueFormatter(FormatterBase):
     """
     A formatter that renders log record attributes as key=value pairs.
 
-    This formatter outputs log messages in a structured format where each attribute
-    is represented as a key-value pair, making it easier to parse logs programmatically.
+    This formatter outputs log messages in a structured format where each
+    attribute
+    is represented as a key-value pair, making it easier to parse logs
+    programmatically.
 
     Attributes:
         key_value_separator: Character used to separate keys from values
@@ -43,7 +45,8 @@ class KeyValueFormatter(FormatterBase):
 
     def compile_formatter(self) -> logging.Formatter:
         """
-        Create and return a custom logging.Formatter that formats records as key-value pairs.
+        Create and return a custom logging.Formatter that formats records as
+        key-value pairs.
 
         Returns:
             A logging Formatter instance that uses our custom format method
@@ -89,7 +92,8 @@ class KeyValueFormatter(FormatterBase):
                             f"{key}{self.key_value_separator}{value}"
                         )
 
-        # Include any non-standard attributes directly attached to the LogRecord
+        # Include any non-standard attributes directly attached to the
+        # LogRecord
         if self.include_extra:
             for key, value in record.__dict__.items():
                 # Skip standard attributes and internal ones (starting with _)

@@ -12,10 +12,12 @@ logger = logging.getLogger(__name__)
 @ComponentBase.register_model()
 class ProgramBase(IProgram, ComponentBase):
     """
-    Abstract base class for program representation with serialization, diffing, and validation.
+    Abstract base class for program representation with serialization, diffing,
+    and validation.
 
     This class provides reusable logic for program representation, implementing
-    the core functionality required by the IProgram interface including serialization,
+    the core functionality required by the IProgram interface including
+    serialization,
     diffing, validation, and diff application workflows.
 
     Attributes:
@@ -115,7 +117,7 @@ class ProgramBase(IProgram, ComponentBase):
                 elif action == "add" or action == "modify":
                     if "value" not in operation:
                         raise ValueError(
-                            f"Missing 'value' for {action} operation on key {key}"
+                            f"Missing 'value' for {action} operation on key {key}"  # noqa: E501
                         )
                     new_dict[key] = operation["value"]
                 else:
@@ -136,7 +138,8 @@ class ProgramBase(IProgram, ComponentBase):
         """
         Validate that this program is well-formed and executable.
 
-        This base implementation always returns True. Subclasses should override
+        This base implementation always returns True. Subclasses should
+        override
         this method to implement specific validation logic.
 
         Returns:

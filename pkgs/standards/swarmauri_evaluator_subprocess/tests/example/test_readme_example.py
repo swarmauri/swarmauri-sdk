@@ -1,4 +1,5 @@
-"""Execute the Quickstart snippet from the README to ensure it stays up-to-date."""
+"""Execute the Quickstart snippet from the README to ensure it stays
+up-to-date."""
 
 from __future__ import annotations
 

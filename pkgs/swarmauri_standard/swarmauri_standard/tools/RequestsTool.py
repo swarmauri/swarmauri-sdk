@@ -27,7 +27,7 @@ class JSONRequestsTool(ToolBase):
             Parameter(
                 name="method",
                 input_type="string",
-                description="The HTTP method to use ('get', 'post', 'put', 'delete').",
+                description="The HTTP method to use ('get', 'post', 'put', 'delete').",  # noqa: E501
                 required=True,
                 enum=["get", "post", "put", "delete"],
             ),
@@ -46,13 +46,19 @@ class JSONRequestsTool(ToolBase):
             Parameter(
                 name="data",
                 input_type="object",
-                description="The form data to include in the request (used in POST and PUT).",
+                description=(
+                    "The form data to include in the request (used in POST and "  # noqa: E501
+                    "PUT)."
+                ),
                 required=False,
             ),
             Parameter(
                 name="json",
                 input_type="object",
-                description="The JSON data to include in the request (used in POST and PUT).",
+                description=(
+                    "The JSON data to include in the request (used in POST and "  # noqa: E501
+                    "PUT)."
+                ),
                 required=False,
             ),
             Parameter(
@@ -75,14 +81,17 @@ class JSONRequestsTool(ToolBase):
 
         Args:
             url (str): The URL to send the GET request to.
-            params (Optional[Dict[str, Any]]): The query parameters to include in the request.
-            headers (Optional[Dict[str, str]]): Additional headers to include in the request.
+            params (Optional[Dict[str, Any]]): The query parameters to include
+            in the request.
+            headers (Optional[Dict[str, str]]): Additional headers to include
+            in the request.
 
         Returns:
             requests.Response: The response object from the GET request.
         """
         response = requests.get(url, params=params, headers=headers)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        # Raise an HTTPError for bad responses (4xx and 5xx)
+        response.raise_for_status()
         return response
 
     def post(
@@ -97,15 +106,19 @@ class JSONRequestsTool(ToolBase):
 
         Args:
             url (str): The URL to send the POST request to.
-            data (Optional[Dict[str, Any]]): The form data to include in the request.
-            json (Optional[Dict[str, Any]]): The JSON data to include in the request.
-            headers (Optional[Dict[str, str]]): Additional headers to include in the request.
+            data (Optional[Dict[str, Any]]): The form data to include in the
+            request.
+            json (Optional[Dict[str, Any]]): The JSON data to include in the
+            request.
+            headers (Optional[Dict[str, str]]): Additional headers to include
+            in the request.
 
         Returns:
             requests.Response: The response object from the POST request.
         """
         response = requests.post(url, data=data, json=json, headers=headers)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        # Raise an HTTPError for bad responses (4xx and 5xx)
+        response.raise_for_status()
         return response
 
     def put(
@@ -120,15 +133,19 @@ class JSONRequestsTool(ToolBase):
 
         Args:
             url (str): The URL to send the PUT request to.
-            data (Optional[Dict[str, Any]]): The form data to include in the request.
-            json (Optional[Dict[str, Any]]): The JSON data to include in the request.
-            headers (Optional[Dict[str, str]]): Additional headers to include in the request.
+            data (Optional[Dict[str, Any]]): The form data to include in the
+            request.
+            json (Optional[Dict[str, Any]]): The JSON data to include in the
+            request.
+            headers (Optional[Dict[str, str]]): Additional headers to include
+            in the request.
 
         Returns:
             requests.Response: The response object from the PUT request.
         """
         response = requests.put(url, data=data, json=json, headers=headers)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        # Raise an HTTPError for bad responses (4xx and 5xx)
+        response.raise_for_status()
         return response
 
     def delete(
@@ -139,23 +156,28 @@ class JSONRequestsTool(ToolBase):
 
         Args:
             url (str): The URL to send the DELETE request to.
-            headers (Optional[Dict[str, str]]): Additional headers to include in the request.
+            headers (Optional[Dict[str, str]]): Additional headers to include
+            in the request.
 
         Returns:
             requests.Response: The response object from the DELETE request.
         """
         response = requests.delete(url, headers=headers)
-        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        # Raise an HTTPError for bad responses (4xx and 5xx)
+        response.raise_for_status()
         return response
 
     def __call__(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """
-        Calls the appropriate HTTP method (GET, POST, PUT, DELETE) based on the method argument.
+        Calls the appropriate HTTP method (GET, POST, PUT, DELETE) based on the
+        method argument.
 
         Args:
-            method (str): The HTTP method to use ('get', 'post', 'put', 'delete').
+            method (str): The HTTP method to use ('get', 'post', 'put',
+            'delete').
             url (str): The URL for the request.
-            **kwargs: Additional keyword arguments passed to the respective method.
+            **kwargs: Additional keyword arguments passed to the respective
+            method.
 
         Returns:
             requests.Response: The response object from the HTTP request.

@@ -14,7 +14,8 @@ logger = getLogger(__name__)
 class BulkheadMiddleware(MiddlewareBase):
     """Bulkhead middleware implementation to control concurrency isolation.
 
-    This middleware restricts the maximum number of concurrent requests to prevent
+    This middleware restricts the maximum number of concurrent requests to
+    prevent
     resource overload. It uses a semaphore to manage the concurrency level.
 
     Attributes:
@@ -41,10 +42,13 @@ class BulkheadMiddleware(MiddlewareBase):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request while controlling concurrency using a semaphore.
+        """
+        Dispatches the request while controlling concurrency using a semaphore.
 
-        This method uses a semaphore to limit the number of concurrent requests.
-        If the maximum concurrency is reached, the request will wait until a slot
+        This method uses a semaphore to limit the number of concurrent
+        requests.
+        If the maximum concurrency is reached, the request will wait until a
+        slot
         becomes available.
 
         Args:

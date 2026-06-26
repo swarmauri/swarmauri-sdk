@@ -235,7 +235,8 @@ def test_check_identity_of_discernibles(overlap_similarity):
         is True
     )
 
-    # Different sets with similarity = 1 (one is subset of other) should return False
+    # Different sets with similarity = 1 (one is subset of other) should return
+    # False
     assert (
         overlap_similarity.check_identity_of_discernibles({1, 2}, {1, 2, 3})
         is False

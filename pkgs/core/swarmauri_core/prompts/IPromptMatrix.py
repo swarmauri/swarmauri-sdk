@@ -6,7 +6,8 @@ class IPromptMatrix(ABC):
     @property
     @abstractmethod
     def shape(self) -> Tuple[int, int]:
-        """Get the shape (number of agents, sequence length) of the prompt matrix."""
+        """Get the shape (number of agents, sequence length) of the prompt
+        matrix."""
         pass
 
     @abstractmethod

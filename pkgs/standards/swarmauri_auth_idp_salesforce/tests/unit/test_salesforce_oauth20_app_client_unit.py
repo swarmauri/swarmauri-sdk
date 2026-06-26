@@ -130,7 +130,7 @@ async def test_access_token_caches(patch_jwt_encode) -> None:
 def test_requires_private_key() -> None:
     with pytest.raises(
         ValueError,
-        match="private key \\(PEM or JWK\\) required for Salesforce JWT bearer flow",
+        match="private key \\(PEM or JWK\\) required for Salesforce JWT bearer flow",  # noqa: E501
     ):
         SalesforceOAuth20AppClient(
             token_endpoint="https://login.salesforce.com/services/oauth2/token",

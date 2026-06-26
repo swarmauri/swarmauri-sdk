@@ -36,7 +36,8 @@ class BraintreeBillingProvider(
     WebhooksMixin,
     BillingProviderBase,
 ):
-    """Braintree SDK backed provider featuring the primary Swarmauri capabilities."""
+    """Braintree SDK backed provider featuring the primary Swarmauri
+    capabilities."""
 
     CAPABILITIES = frozenset(
         {
@@ -73,7 +74,11 @@ class BraintreeBillingProvider(
 
             if not (self.merchant_id and self.public_key and self.private_key):
                 raise ValueError(
-                    "merchant_id, public_key, and private_key are required for Braintree API calls"
+                    (
+                        "merchant_id, public_key, and private_key are required "  # noqa: E501
+                        "for "
+                        "Braintree API calls"
+                    )
                 )
             env = (
                 braintree.Environment.Production
@@ -105,7 +110,8 @@ class BraintreeBillingProvider(
             return dict(obj.__dict__)
         return {"raw": str(obj)}
 
-    # --------------------------------------------------------------------- utils
+    # ---------------------------------------------------------------------
+    # utils
     @staticmethod
     def _dump(obj: Any) -> Mapping[str, Any]:
         if hasattr(obj, "model_dump"):
@@ -123,7 +129,8 @@ class BraintreeBillingProvider(
             "payload": payload,
         }
 
-    # ------------------------------------------------------------ products/prices
+    # ------------------------------------------------------------
+    # products/prices
     def _create_product(
         self, product_spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -160,7 +167,8 @@ class BraintreeBillingProvider(
             ),
         }
 
-    # --------------------------------------------------------------- hosted flow
+    # --------------------------------------------------------------- hosted
+    # flow
     def _create_checkout(self, price: Any, request: Any) -> Mapping[str, Any]:
         return {
             "id": f"bt_checkout_{uuid4().hex[:8]}",
@@ -173,7 +181,8 @@ class BraintreeBillingProvider(
             ),
         }
 
-    # ----------------------------------------------------------- online payments
+    # ----------------------------------------------------------- online
+    # payments
     def _create_payment_intent(self, req: Any) -> Mapping[str, Any]:
         gateway = self._bt()
         amount = int(req.resolve("amount_minor") or 0)
@@ -228,7 +237,8 @@ class BraintreeBillingProvider(
             "raw": raw,
         }
 
-    # --------------------------------------------------------------- subscription
+    # ---------------------------------------------------------------
+    # subscription
     def _create_subscription(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -264,7 +274,8 @@ class BraintreeBillingProvider(
             "raw": raw,
         }
 
-    # --------------------------------------------------------------------- refund
+    # ---------------------------------------------------------------------
+    # refund
     def _create_refund(
         self, payment: Any, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -295,7 +306,8 @@ class BraintreeBillingProvider(
             "raw": raw,
         }
 
-    # ------------------------------------------------------------------- customer
+    # -------------------------------------------------------------------
+    # customer
     def _create_customer(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -332,7 +344,8 @@ class BraintreeBillingProvider(
             payment_method_id=getattr(pm, "id", ""),
         )
 
-    # --------------------------------------------------------------- payment info
+    # --------------------------------------------------------------- payment
+    # info
     def _create_payment_method(
         self, spec: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -382,7 +395,8 @@ class BraintreeBillingProvider(
             )
         return methods
 
-    # --------------------------------------------------------------------- reports
+    # ---------------------------------------------------------------------
+    # reports
     def _create_report(
         self, req: Any, *, idempotency_key: str
     ) -> Mapping[str, Any]:
@@ -397,7 +411,8 @@ class BraintreeBillingProvider(
             ),
         }
 
-    # ------------------------------------------------------------------------ risk
+    # ------------------------------------------------------------------------
+    # risk
     def _verify_webhook_signature(
         self, raw_body: bytes, headers: Mapping[str, str], secret: str
     ) -> bool:
@@ -422,7 +437,8 @@ class BraintreeBillingProvider(
             )
         return rows
 
-    # --------------------------------------------------------------------- webhooks
+    # ---------------------------------------------------------------------
+    # webhooks
     def _parse_event(
         self, raw_body: bytes, headers: Mapping[str, str]
     ) -> Mapping[str, Any]:

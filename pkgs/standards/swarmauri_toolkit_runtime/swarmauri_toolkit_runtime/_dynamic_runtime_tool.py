@@ -65,21 +65,24 @@ class SafeExpressionValidator(ast.NodeVisitor):
     def generic_visit(self, node):
         if not isinstance(node, ALLOWED_AST_NODES):
             raise ValueError(
-                f"Runtime tool '__call__' contains unsafe syntax: {type(node).__name__}"
+                f"Runtime tool '__call__' contains unsafe syntax: {type(node).__name__}"  # noqa: E501
             )
         super().generic_visit(node)
 
     def visit_Name(self, node: ast.Name):
         if node.id not in self.allowed_names:
             raise ValueError(
-                f"Runtime tool '__call__' references disallowed name '{node.id}'"
+                f"Runtime tool '__call__' references disallowed name '{node.id}'"  # noqa: E501
             )
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
         if not isinstance(node.func, ast.Name):
             raise ValueError(
-                "Runtime tool '__call__' only allows direct calls to approved builtins"
+                (
+                    "Runtime tool '__call__' only allows direct calls to approved "  # noqa: E501
+                    "builtins"
+                )
             )
         if node.func.id not in SAFE_BUILTINS:
             raise ValueError(
@@ -141,25 +144,25 @@ class DynamicRuntimeTool(ToolBase):
         parameter_names = [parameter.name for parameter in self.parameters]
         if len(args) > len(parameter_names):
             raise ValueError(
-                f"Runtime tool '{self.name}' received too many positional arguments"
+                f"Runtime tool '{self.name}' received too many positional arguments"  # noqa: E501
             )
 
         bound_inputs: Dict[str, Any] = dict(zip(parameter_names, args))
         for key, value in kwargs.items():
             if key not in parameter_names:
                 raise ValueError(
-                    f"Runtime tool '{self.name}' received unexpected argument '{key}'"
+                    f"Runtime tool '{self.name}' received unexpected argument '{key}'"  # noqa: E501
                 )
             if key in bound_inputs:
                 raise ValueError(
-                    f"Runtime tool '{self.name}' received duplicate argument '{key}'"
+                    f"Runtime tool '{self.name}' received duplicate argument '{key}'"  # noqa: E501
                 )
             bound_inputs[key] = value
 
         for parameter in self.parameters:
             if parameter.required and parameter.name not in bound_inputs:
                 raise ValueError(
-                    f"Runtime tool '{self.name}' is missing required argument '{parameter.name}'"
+                    f"Runtime tool '{self.name}' is missing required argument '{parameter.name}'"  # noqa: E501
                 )
         return bound_inputs
 

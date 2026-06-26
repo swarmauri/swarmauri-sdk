@@ -19,7 +19,9 @@ from swarmauri_base.auth_idp import (
 
 @ComponentBase.register_type(OIDC10LoginBase, "AzureOIDC10Login")
 class AzureOIDC10Login(OIDC10LoginBase):
-    """Azure AD confidential client OIDC login using authorization code + PKCE."""
+    """
+    Azure AD confidential client OIDC login using authorization code + PKCE.
+    """
 
     model_config = ConfigDict(extra="forbid")
 

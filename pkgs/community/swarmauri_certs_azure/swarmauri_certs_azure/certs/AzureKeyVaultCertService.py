@@ -91,7 +91,10 @@ class AzureKeyVaultCertService(CertServiceBase):
         pem_priv = key.material
         if not pem_priv:
             raise NotImplementedError(
-                "Non-exportable keys are not supported in this simplified service."
+                (
+                    "Non-exportable keys are not supported in this simplified "
+                    "service."
+                )
             )
         subject_name = _to_x509_name(subject)
         builder = x509.CertificateSigningRequestBuilder().subject_name(

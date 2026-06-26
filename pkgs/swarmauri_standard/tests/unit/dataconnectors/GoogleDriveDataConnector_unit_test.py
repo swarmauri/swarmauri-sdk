@@ -13,7 +13,8 @@ def authenticated_connector():
 
     # Perform authentication once
     try:
-        connector.authenticate()  # Requires manual input for the authorization code
+        # Requires manual input for the authorization code
+        connector.authenticate()
     except Exception as e:
         pytest.fail(f"Authentication failed: {e}")
 

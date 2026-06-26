@@ -42,7 +42,10 @@ def _ensure_deps() -> None:
         )
     if not _CRYPTO_OK:
         raise RuntimeError(
-            "XMLDSigner requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "XMLDSigner requires 'cryptography'. Install with: pip "
+                "install cryptography"
+            )
         )
 
 

@@ -10,7 +10,10 @@ try:
     import httpx
 except Exception as e:  # pragma: no cover
     raise ImportError(
-        "IntrospectionTokenService requires 'httpx'. Install with: pip install httpx"
+        (
+            "IntrospectionTokenService requires 'httpx'. Install with: "
+            "pip install httpx"
+        )
     ) from e
 
 try:  # pragma: no cover - fallback for isolated tests
@@ -36,21 +39,26 @@ class IntrospectionTokenService(TokenServiceBase):
     """
     OAuth 2.0 Token Introspection client (RFC 7662) — VERIFY ONLY.
 
-    - POSTs opaque tokens to the configured `endpoint` and validates the response.
+    - POSTs opaque tokens to the configured `endpoint` and validates the
+      response.
     - Authentication:
-        * client_secret_basic  → Authorization: Basic base64(client_id:client_secret)
+        * client_secret_basic  → Authorization: Basic
+          base64(client_id:client_secret)
         * client_secret_post   → client_id/client_secret in form body
         * bearer               → Authorization: Bearer <authorization_value>
     - Caching:
-        * Positive hits cached up to min(cache_ttl_s, exp-leeway) when 'exp' is present.
+        * Positive hits cached up to min(cache_ttl_s, exp-leeway) when 'exp' is
+          present.
         * Negative hits cached for negative_ttl_s.
     - Validation:
         * Requires "active": true from the AS.
         * Enforces exp/nbf/iat drift (leeway_s), optional iss/aud checks.
 
     Notes:
-    - This service intentionally DOES NOT mint tokens. `mint()` raises NotImplementedError.
-    - `jwks()` returns {} by default; if `jwks_url` is configured, it fetches and returns that set.
+    - This service intentionally DOES NOT mint tokens. `mint()` raises
+      NotImplementedError.
+    - `jwks()` returns {} by default; if `jwks_url` is configured, it fetches
+      and returns that set.
     """
 
     type: Literal["IntrospectionTokenService"] = "IntrospectionTokenService"
@@ -117,7 +125,10 @@ class IntrospectionTokenService(TokenServiceBase):
         elif self._client_auth == "bearer":
             if not self._authorization:
                 raise ValueError(
-                    "bearer client_auth requires 'authorization' (a token string)"
+                    (
+                        "bearer client_auth requires 'authorization' (a token "
+                        "string)"
+                    )
                 )
 
     # ------------------------ lifecycle ------------------------
@@ -171,8 +182,10 @@ class IntrospectionTokenService(TokenServiceBase):
         leeway_s: int = -1,
     ) -> Dict[str, Any]:
         """
-        POST token to the introspection endpoint, validate standard fields, and return claims.
-        Raises ValueError on inactive/invalid tokens, or httpx.HTTPError on transport errors.
+        POST token to the introspection endpoint, validate standard fields, and
+        return claims.
+        Raises ValueError on inactive/invalid tokens, or httpx.HTTPError on
+        transport errors.
         """
         if not isinstance(token, str) or not token:
             raise ValueError("token must be a non-empty string")
@@ -208,7 +221,8 @@ class IntrospectionTokenService(TokenServiceBase):
         # Call endpoint
         client = await self._get_client()
         resp = await client.post(self._endpoint, data=form, headers=headers)
-        # Accept 200 only; some AS return 400 for malformed tokens (treat as inactive w/ negative cache)
+        # Accept 200 only; some AS return 400 for malformed tokens (treat as
+        # inactive w/ negative cache)
         if resp.status_code == 401 or resp.status_code == 403:
             # Auth to introspection endpoint failed → configuration error
             resp.raise_for_status()
@@ -264,7 +278,8 @@ class IntrospectionTokenService(TokenServiceBase):
 
     async def jwks(self) -> dict:  # type: ignore[override]
         """
-        Opaque tokens have no public keys. If `jwks_url` is configured, fetch and expose it
+        Opaque tokens have no public keys. If `jwks_url` is configured, fetch
+        and expose it
         (useful when the same issuer also serves JWTs); otherwise return {}.
         """
         if not self._jwks_url:

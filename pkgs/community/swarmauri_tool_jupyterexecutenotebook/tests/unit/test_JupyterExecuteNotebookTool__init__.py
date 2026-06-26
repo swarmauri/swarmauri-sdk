@@ -8,7 +8,8 @@ attribute.
 
 def test_jupyter_execute_notebook_tool_exposed() -> None:
     """
-    Test that JupyterExecuteNotebookTool is successfully exposed by the package.
+    Test that JupyterExecuteNotebookTool is successfully exposed by the
+    package.
 
     This verifies that the class is accessible at the package's top level,
     ensuring __init__.py correctly re-exports the component.
@@ -50,7 +51,7 @@ def test_jupyter_execute_notebook_tool_inherits_base_class() -> None:
     from swarmauri_tool_jupyterexecutenotebook import (
         JupyterExecuteNotebookTool,
     )
-    from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (
+    from swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool import (  # noqa: E501
         ToolBase,
     )
 

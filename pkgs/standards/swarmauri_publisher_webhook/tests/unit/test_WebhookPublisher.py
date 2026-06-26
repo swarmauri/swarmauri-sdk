@@ -41,7 +41,8 @@ def test_publish_success(
         mock_response = MagicMock(spec=httpx.Response)
         mock_response.status_code = 200
         mock_response.text = "Success"
-        # Configure raise_for_status on the mock_response itself, as it would be on a real response
+        # Configure raise_for_status on the mock_response itself, as it would
+        # be on a real response
         mock_response.raise_for_status = MagicMock()
         mock_client_post.return_value = mock_response
 
@@ -68,6 +69,6 @@ def test_publish_http_error(
 
         with pytest.raises(
             RuntimeError,
-            match="Failed to POST to https://example.com/test-hook: Network error",
+            match="Failed to POST to https://example.com/test-hook: Network error",  # noqa: E501
         ):
             publisher.publish("test_channel", {"key": "value"})

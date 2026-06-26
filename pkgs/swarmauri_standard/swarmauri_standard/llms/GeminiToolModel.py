@@ -28,9 +28,13 @@ from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing GeminiToolModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tool_llms import "
-    "GeminiToolModel' or 'from swarmauri.tool_llms import GeminiToolModel' instead.",
+    "Importing GeminiToolModel from swarmauri.llms is deprecated and will be "(
+        "removed in a future version. Please use 'from "
+        "swarmauri_standard.tool_llms import "
+    )(
+        "GeminiToolModel' or 'from swarmauri.tool_llms import "
+        "GeminiToolModel' instead."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )
@@ -39,14 +43,18 @@ warnings.warn(
 @ComponentBase.register_type(LLMBase, "GeminiToolModel")
 class GeminiToolModel(LLMBase):
     """
-    A class that interacts with Gemini-based LLM APIs to process conversations, handle tool calls, and
-    convert messages for compatible schema. This model supports synchronous and asynchronous operations.
+    A class that interacts with Gemini-based LLM APIs to process conversations,
+    handle tool calls, and
+    convert messages for compatible schema. This model supports synchronous and
+    asynchronous operations.
 
     Attributes:
-        api_key (SecretStr): The API key used to authenticate requests to the Gemini API.
+        api_key (SecretStr): The API key used to authenticate requests to the
+        Gemini API.
         allowed_models (List[str]): List of supported model names.
         name (str): The name of the Gemini model in use.
-        type (Literal["GeminiToolModel"]): The model type, set to "GeminiToolModel".
+        type (Literal["GeminiToolModel"]): The model type, set to
+        "GeminiToolModel".
         timeout (float): Maximum timeout for API requests in seconds.
     Providers Resources: https://ai.google.dev/api/python/google/generativeai/protos/
 
@@ -96,11 +104,13 @@ class GeminiToolModel(LLMBase):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
-        Initializes the GeminiToolModel instance with the provided API key and model name.
+        Initializes the GeminiToolModel instance with the provided API key and
+        model name.
 
         Args:
             *args (Any): Additional positional arguments.
-            **kwargs (Any): Additional keyword arguments, including 'allowed_models'.
+            **kwargs (Any): Additional keyword arguments, including
+            'allowed_models'.
         """
         super().__init__(*args, **kwargs)
 
@@ -114,7 +124,8 @@ class GeminiToolModel(LLMBase):
             tools (Dict[str, Any]): A dictionary of tools to convert.
 
         Returns:
-            Dict[str, List[Dict[str, Any]]]: Dictionary with function declarations for Gemini.
+            Dict[str, List[Dict[str, Any]]]: Dictionary with function
+            declarations for Gemini.
         """
         response = [
             GeminiSchemaConverter().convert(tools[tool]) for tool in tools
@@ -125,7 +136,8 @@ class GeminiToolModel(LLMBase):
         self, messages: List[Type[MessageBase]]
     ) -> List[Dict[str, Any]]:
         """
-        Formats message history for compatibility with Gemini API, sanitizing content and updating roles.
+        Formats message history for compatibility with Gemini API, sanitizing
+        content and updating roles.
 
         Args:
             messages (List[Type[MessageBase]]): A list of message objects.
@@ -194,7 +206,8 @@ class GeminiToolModel(LLMBase):
                         "functionResponse": {
                             "name": fn,
                             "response": {
-                                "result": val,  # Return the API response to Gemini
+                                # Return the API response to Gemini
+                                "result": val,
                             },
                         }
                     }
@@ -214,7 +227,8 @@ class GeminiToolModel(LLMBase):
             messages (List[Type[MessageBase]]): List of message objects.
 
         Returns:
-            Optional[str]: Content of the system context message, or None if no system message exists.
+            Optional[str]: Content of the system context message, or None if no
+            system message exists.
         """
         system_context = None
         for message in messages:
@@ -236,7 +250,8 @@ class GeminiToolModel(LLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
@@ -326,7 +341,8 @@ class GeminiToolModel(LLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
@@ -416,7 +432,8 @@ class GeminiToolModel(LLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
 
         Yields:
@@ -506,7 +523,8 @@ class GeminiToolModel(LLMBase):
         Args:
             conversation (Conversation): The conversation instance.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
 
         Yields:
@@ -595,11 +613,13 @@ class GeminiToolModel(LLMBase):
         Args:
             conversations (List[Conversation]): List of conversation instances.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         return [
             self.predict(
@@ -620,17 +640,21 @@ class GeminiToolModel(LLMBase):
         max_concurrent: int = 5,
     ) -> List[Conversation]:
         """
-        Asynchronously processes multiple conversations with concurrency control.
+        Asynchronously processes multiple conversations with concurrency
+        control.
 
         Args:
             conversations (List[Conversation]): List of conversation instances.
             toolkit (Optional[Toolkit]): Optional toolkit for handling tools.
-            temperature (float): Sampling temperature, controls randomness in generation.
+            temperature (float): Sampling temperature, controls randomness in
+            generation.
             max_tokens (int): Maximum token limit for generation.
-            max_concurrent (int): Maximum number of concurrent asynchronous tasks.
+            max_concurrent (int): Maximum number of concurrent asynchronous
+            tasks.
 
         Returns:
-            List[Conversation]: List of updated conversations with model responses.
+            List[Conversation]: List of updated conversations with model
+            responses.
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 

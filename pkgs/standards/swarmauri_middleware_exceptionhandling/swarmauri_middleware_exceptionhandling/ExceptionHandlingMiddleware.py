@@ -18,7 +18,8 @@ class ExceptionHandlingMiddleware(MiddlewareBase, IMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Any]
     ) -> Any:
-        """Dispatches the request to the next middleware in the chain while handling exceptions."""
+        """Dispatches the request to the next middleware in the chain while
+        handling exceptions."""
         try:
             # Call the next middleware in the chain
             return await call_next(request)
@@ -40,7 +41,8 @@ class ExceptionHandlingMiddleware(MiddlewareBase, IMiddleware):
                 "error": {
                     "type": "Unhandled Exception",
                     "message": str(e),
-                    "timestamp": datetime.utcnow().isoformat(),  # Fix: Remove duplicate datetime
+                    # Fix: Remove duplicate datetime
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
             }
 

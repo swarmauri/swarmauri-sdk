@@ -1,8 +1,10 @@
 """
 test_JupyterWriteNotebookTool.py
 
-This module contains pytest-based unit tests for the JupyterWriteNotebookTool class,
-ensuring it correctly writes Jupyter notebook data to disk in JSON format and verifies
+This module contains pytest-based unit tests for the JupyterWriteNotebookTool
+class,
+ensuring it correctly writes Jupyter notebook data to disk in JSON format and
+verifies
 basic integrity checks.
 """
 
@@ -76,7 +78,8 @@ def test_call_success(
         encoding="utf-8",
     )
 
-    # Verify that the file was created and the returned message indicates success
+    # Verify that the file was created and the returned message indicates
+    # success
     assert "message" in result, f"Expected success message but got: {result}"
     assert "Notebook written successfully" in result["message"], (
         "Success message not found."
@@ -122,13 +125,15 @@ def test_call_invalid_file_path(sample_notebook_data: Dict[str, Any]) -> None:
     Tests that providing an invalid file path results in an error.
     """
     tool = JupyterWriteNotebookTool()
-    # Using an invalid path (e.g., empty string or invalid characters) should trigger an exception
+    # Using an invalid path (e.g., empty string or invalid characters) should
+    # trigger an exception
     result = tool(
         notebook_data=sample_notebook_data, output_file="", encoding="utf-8"
     )
 
     assert "error" in result, (
-        "Expected an error for an invalid file path but got a success response."
+        "Expected an error for an invalid file path but got a success "
+        "response."
     )
     assert (
         "An error occurred during notebook write operation" in result["error"]

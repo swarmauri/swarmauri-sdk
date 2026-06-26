@@ -90,14 +90,16 @@ def test_compute_with_vector(l2_norm, real_vector):
 def test_compute_with_matrix(l2_norm, mock_matrix):
     """Test L2EuclideanNorm.compute with an IMatrix input."""
     result = l2_norm.compute(mock_matrix)
-    # For matrix [[1, 2], [3, 4]], the L2 norm should be sqrt(1^2 + 2^2 + 3^2 + 4^2) = sqrt(30)
+    # For matrix [[1, 2], [3, 4]], the L2 norm should be sqrt(1^2 + 2^2 + 3^2 +
+    # 4^2) = sqrt(30)
     assert math.isclose(result, math.sqrt(30), rel_tol=1e-10)
 
 
 @pytest.mark.unit
 def test_compute_with_string(l2_norm):
     """Test L2EuclideanNorm.compute with a string input."""
-    # For string "abc", the L2 norm is sqrt(97^2 + 98^2 + 99^2) where 97, 98, 99 are ASCII values
+    # For string "abc", the L2 norm is sqrt(97^2 + 98^2 + 99^2) where 97, 98,
+    # 99 are ASCII values
     result = l2_norm.compute("abc")
     expected = math.sqrt(sum(ord(c) ** 2 for c in "abc"))
     assert math.isclose(result, expected, rel_tol=1e-10)
@@ -121,7 +123,8 @@ def test_compute_with_invalid_input(l2_norm):
 
 @pytest.mark.unit
 def test_compute_with_invalid_sequence(l2_norm):
-    """Test L2EuclideanNorm.compute with a sequence containing non-numeric elements."""
+    """Test L2EuclideanNorm.compute with a sequence containing non-numeric
+    elements."""
     with pytest.raises(ValueError):
         l2_norm.compute(["a", "b", "c"])
 
@@ -171,14 +174,16 @@ def test_check_triangle_inequality(l2_norm, x, y):
 
 @pytest.mark.unit
 def test_check_triangle_inequality_with_mismatched_types(l2_norm):
-    """Test L2EuclideanNorm.check_triangle_inequality with mismatched input types."""
+    """Test L2EuclideanNorm.check_triangle_inequality with mismatched input
+    types."""
     with pytest.raises(TypeError):
         l2_norm.check_triangle_inequality([1, 2], "string")
 
 
 @pytest.mark.unit
 def test_check_triangle_inequality_with_mismatched_dimensions(l2_norm):
-    """Test L2EuclideanNorm.check_triangle_inequality with mismatched dimensions."""
+    """Test L2EuclideanNorm.check_triangle_inequality with mismatched
+    dimensions."""
     with pytest.raises(ValueError):
         l2_norm.check_triangle_inequality([1, 2], [3, 4, 5])
 

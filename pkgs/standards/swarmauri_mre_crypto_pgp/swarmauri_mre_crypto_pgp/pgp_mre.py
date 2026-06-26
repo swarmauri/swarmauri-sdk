@@ -43,7 +43,10 @@ except Exception:  # pragma: no cover
 def _ensure_crypto() -> None:
     if not _CRYPTOGRAPHY_OK:
         raise RuntimeError(
-            "PGPMreCrypto requires 'cryptography'. Install with: pip install cryptography"
+            (
+                "PGPMreCrypto requires 'cryptography'. Install with: pip "
+                "install cryptography"
+            )
         )
 
 
@@ -209,7 +212,11 @@ class PGPMreCrypto(MreCryptoBase):
         if m == MreMode.ENC_ONCE_HEADERS:
             if payload_alg != "AES-256-GCM":
                 raise ValueError(
-                    "PGPMreCrypto currently supports only AES-256-GCM for shared payload."
+                    (
+                        "PGPMreCrypto currently supports only AES-256-GCM for "
+                        "shared "
+                        "payload."
+                    )
                 )
             cek = os.urandom(32)
             nonce, ct, tag = _aead_encrypt_gcm(cek, pt, aad=aad)
@@ -375,7 +382,10 @@ class PGPMreCrypto(MreCryptoBase):
                             continue
                 else:
                     raise RuntimeError(
-                        "Rewrap(add=...) requires opts['cek'] or opts['manage_key']."
+                        (
+                            "Rewrap(add=...) requires opts['cek'] or "
+                            "opts['manage_key']."
+                        )
                     )
 
             if add and cek is not None:
@@ -413,7 +423,10 @@ class PGPMreCrypto(MreCryptoBase):
                                 continue
                     if not cek:
                         raise RuntimeError(
-                            "rotate_payload_on_revoke requires CEK via opts['manage_key'] or opts['cek']."
+                            (
+                                "rotate_payload_on_revoke requires CEK via opts['manage_key'] "  # noqa: E501
+                                "or opts['cek']."
+                            )
                         )
 
                 new_cek = os.urandom(32)
@@ -442,7 +455,10 @@ class PGPMreCrypto(MreCryptoBase):
                     or not add_pubkeys
                 ):
                     raise RuntimeError(
-                        "After rotation, provide opts['add_pubkeys'] = [KeyRef(pub=...), ...] for remaining recipients."
+                        (
+                            "After rotation, provide opts['add_pubkeys'] = "
+                            "[KeyRef(pub=...), ...] for remaining recipients."
+                        )
                     )
                 pubs = [_load_pubkey(r) for r in add_pubkeys]
                 rids = [_fingerprint_pub(pk) for pk in pubs]
@@ -469,7 +485,11 @@ class PGPMreCrypto(MreCryptoBase):
                 pt_bytes = (opts or {}).get("plaintext")
                 if not isinstance(pt_bytes, (bytes, bytearray)):
                     raise RuntimeError(
-                        "Rewrap(add=...) in sealed_per_recipient mode requires opts['plaintext']."
+                        (
+                            "Rewrap(add=...) in sealed_per_recipient mode "
+                            "requires "
+                            "opts['plaintext']."
+                        )
                     )
                 pubs = [_load_pubkey(r) for r in add]
                 rids = [_fingerprint_pub(pk) for pk in pubs]

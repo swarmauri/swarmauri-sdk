@@ -93,7 +93,10 @@ def build_store(args: argparse.Namespace) -> FsVectorStore:
         max_file_size=args.max_file_size,
     )
     LOGGER.info(
-        "Building filesystem BM25F index [bold cyan](root=%s, mode=%s)[/bold cyan]",
+        (
+            "Building filesystem BM25F index [bold cyan](root=%s, "
+            "mode=%s)[/bold cyan]"
+        ),
         args.root,
         args.mode,
     )

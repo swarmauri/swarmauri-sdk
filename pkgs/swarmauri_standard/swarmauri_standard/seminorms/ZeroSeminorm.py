@@ -61,17 +61,22 @@ class ZeroSeminorm(SeminormBase):
         Returns
         -------
         bool
-            Always returns True as the triangle inequality is trivially satisfied
+            Always returns True as the triangle inequality is trivially
+            satisfied
         """
         logger.debug(
-            f"Checking triangle inequality for ZeroSeminorm with inputs of types {type(x)} and {type(y)}"
+            (
+                f"Checking triangle inequality for ZeroSeminorm with inputs "
+                f"of types {type(x)} and {type(y)}"
+            )
         )
         # Triangle inequality is always satisfied for the zero seminorm
         return True
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
-        Check if the scalar homogeneity property holds for the given input and scalar.
+        Check if the scalar homogeneity property holds for the given input and
+        scalar.
 
         For ZeroSeminorm, scalar homogeneity is always satisfied since:
         ||αx|| = 0 = |α|·||x|| = |α|·0 = 0
@@ -89,7 +94,10 @@ class ZeroSeminorm(SeminormBase):
             Always returns True as scalar homogeneity is trivially satisfied
         """
         logger.debug(
-            f"Checking scalar homogeneity for ZeroSeminorm with input of type {type(x)} and scalar {alpha}"
+            (
+                f"Checking scalar homogeneity for ZeroSeminorm with input of "
+                f"type {type(x)} and scalar {alpha}"
+            )
         )
         # Scalar homogeneity is always satisfied for the zero seminorm
         return True
