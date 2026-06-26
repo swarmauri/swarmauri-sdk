@@ -58,6 +58,10 @@ def to_plain(node):
 
     # If node is a ScalarNode, return its underlying value.
     if isinstance(node, ScalarNode):
+        if isinstance(
+            node.value, (DocumentNode, MappingNode, SequenceNode, ScalarNode)
+        ):
+            return to_plain(node.value)
         if node.style in ("|", ">") and node.value is not None:
             return node.value
         if node.style == "|":
