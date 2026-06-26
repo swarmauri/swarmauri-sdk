@@ -234,7 +234,6 @@ members = [
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
-    "experimental/swarmauri_crypto_sodium",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_distance_canberra",
     "standards/swarmauri_distance_chebyshev",
