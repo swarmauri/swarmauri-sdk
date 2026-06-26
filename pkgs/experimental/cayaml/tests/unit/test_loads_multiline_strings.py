@@ -1,10 +1,6 @@
-import pytest
 from cayaml import loads
 
 
-@pytest.mark.xfail(
-    reason="Multi-line strings and different block styles not yet fully supported by cayaml."
-)
 def test_multiline_strings():
     """
     Tests various forms of multiline string handling:

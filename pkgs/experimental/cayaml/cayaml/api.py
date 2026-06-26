@@ -56,6 +56,8 @@ def dumps(data) -> str:
     """
     Convert plain Python objects into a YAML-formatted string (without preserving formatting metadata).
     """
+    if isinstance(data, Node):
+        return _internal_dump_round_trip(data)
     if not isinstance(data, Node):
         data = _internal_to_ast(data)
     return _internal_dump_plain(data)

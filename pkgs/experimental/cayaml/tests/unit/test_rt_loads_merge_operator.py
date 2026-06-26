@@ -1,8 +1,6 @@
-import pytest
 from cayaml import round_trip_loads
 
 
-@pytest.mark.xfail(reason="Merge operator '<<:' not yet supported by cayaml.")
 def test_merge_operator():
     """
     Tests the merge operator explicitly in a scenario with multiple merges.

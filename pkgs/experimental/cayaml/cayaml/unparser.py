@@ -191,7 +191,10 @@ def _internal_dump_plain(node: Node, indent: int = 0) -> str:
                     if isinstance(value_node, ScalarNode)
                     else _internal_dump_plain(value_node, 0)
                 )
-                lines.append(prefix + f"{key_str}: {value_str}")
+                line = prefix + f"{key_str}: {value_str}"
+                if key_node.trailing_comments:
+                    line += " " + " ".join(key_node.trailing_comments)
+                lines.append(line)
         return "\n".join(lines)
     elif isinstance(node, SequenceNode):
         lines = []

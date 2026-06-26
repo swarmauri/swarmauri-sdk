@@ -1,10 +1,6 @@
-import pytest
 from cayaml import loads
 
 
-@pytest.mark.xfail(
-    reason="Unicode characters beyond basic ASCII not yet supported by cayaml."
-)
 def test_unicode_support():
     """
     Tests that YAML can handle various Unicode characters.

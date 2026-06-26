@@ -38,6 +38,10 @@ def to_plain(node):
     # If node is a MappingNode, convert its pairs into a dictionary.
     if isinstance(node, MappingNode):
         result = {}
+        for merge_node in node.merges:
+            merged = to_plain(merge_node)
+            if isinstance(merged, dict):
+                result.update(merged)
         for key_node, value_node in node.pairs:
             # Convert the key: if it's a ScalarNode, use its value; otherwise, convert recursively.
             key = (
@@ -54,6 +58,25 @@ def to_plain(node):
 
     # If node is a ScalarNode, return its underlying value.
     if isinstance(node, ScalarNode):
+        if node.style in ("|", ">") and node.value is not None:
+            return node.value
+        if node.style == "|":
+            return "\n".join(node.lines or []) + "\n"
+        if node.style == ">":
+            lines = node.lines or []
+            folded = []
+            paragraph = []
+            for line in lines:
+                if line:
+                    paragraph.append(line.strip())
+                else:
+                    if paragraph:
+                        folded.append(" ".join(paragraph))
+                        paragraph = []
+                    folded.append("")
+            if paragraph:
+                folded.append(" ".join(paragraph))
+            return "\n".join(folded).rstrip("\n") + "\n"
         return node.value
 
     # Fallback: if the node is already a plain Python object or unknown type.

@@ -104,6 +104,12 @@ class MappingNode(Node):
                 if isinstance(v, ScalarNode) and v.style is None:
                     return v.value
                 return v
+        for merge in reversed(self.merges):
+            if isinstance(merge, MappingNode):
+                try:
+                    return merge[key]
+                except KeyError:
+                    continue
         raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -116,9 +122,14 @@ class MappingNode(Node):
 
     def __eq__(self, other):
         if isinstance(other, MappingNode):
-            return self.pairs == other.pairs
+            return self.pairs == other.pairs and self.merges == other.merges
         elif isinstance(other, dict):
             converted = {}
+            for merge in self.merges:
+                if isinstance(merge, MappingNode):
+                    for k, v in merge.pairs:
+                        key = k.value if hasattr(k, "value") else k
+                        converted[key] = v.value if isinstance(v, ScalarNode) else v
             for k, v in self.pairs:
                 key = k.value if hasattr(k, "value") else k
                 # For scalar nodes, use the unboxed value.

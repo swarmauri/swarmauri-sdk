@@ -1,8 +1,6 @@
-import pytest
 from cayaml import loads
 
 
-@pytest.mark.xfail(reason="Literal block scalars not yet supported by cayaml.")
 def test_literal_block():
     """
     Test literal block scalar (|) formatting.
@@ -22,7 +20,6 @@ def test_literal_block():
     assert data["literal_block"] == "Line one\nLine two\n"
 
 
-@pytest.mark.xfail(reason="Folded block scalars not yet supported by cayaml.")
 def test_folded_block():
     """
     Test folded block scalar (>) formatting.
