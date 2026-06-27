@@ -36,7 +36,9 @@ from .ast_nodes import Node, YamlStream
 # -----------------------------
 def loads(yaml_str: str):
     """
-    Parse a YAML string (plain mode) and return plain Python objects (dict, list, scalars).
+    Parse a YAML string in plain mode.
+
+    Return plain Python objects such as dicts, lists, and scalars.
     If multiple documents exist, this returns only the first one.
     """
     docs = loads_all(yaml_str)
@@ -45,7 +47,9 @@ def loads(yaml_str: str):
 
 def load(file_obj):
     """
-    Parse YAML from a file-like object (plain mode) and return plain Python objects.
+    Parse YAML from a file-like object in plain mode.
+
+    Return plain Python objects.
     If multiple documents exist, this returns only the first one.
     """
     yaml_str = file_obj.read()
@@ -54,7 +58,9 @@ def load(file_obj):
 
 def dumps(data) -> str:
     """
-    Convert plain Python objects into a YAML-formatted string (without preserving formatting metadata).
+    Convert plain Python objects into YAML text.
+
+    Formatting metadata is not preserved.
     """
     if isinstance(data, Node):
         return _internal_dump_round_trip(data)
@@ -136,7 +142,9 @@ def round_trip_dump(data, file_obj):
 # --------------------------------
 def round_trip_loads_all(yaml_str: str):
     """
-    Parse a YAML string in round-trip mode, returning multiple docs as a list of DocumentNodes.
+    Parse YAML in round-trip mode.
+
+    Return multiple docs as a list of DocumentNodes.
     """
     yaml_stream = _internal_parse_stream(yaml_str)
     if isinstance(yaml_stream, YamlStream):
@@ -146,7 +154,9 @@ def round_trip_loads_all(yaml_str: str):
 
 def round_trip_load_all(file_obj):
     """
-    Parse from a file in round-trip mode, returning multiple docs as DocumentNodes.
+    Parse from a file in round-trip mode.
+
+    Return multiple docs as DocumentNodes.
     """
     yaml_str = file_obj.read()
     return round_trip_loads_all(yaml_str)

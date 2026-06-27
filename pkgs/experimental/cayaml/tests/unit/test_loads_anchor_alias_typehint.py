@@ -3,7 +3,7 @@ from cayaml import loads
 
 def test_anchor_alias_typehint():
     """
-    Tests YAML anchor (&) and alias (*) along with an optional type hint (e.g., !!str).
+    Tests YAML anchor, alias, and optional type hint support.
     Example:
 
         mystring: &s !!str "hello"

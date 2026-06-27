@@ -1,4 +1,4 @@
-# ast_nodes.py - Updated with equality methods for SequenceNode (and MappingNode)
+# ast_nodes.py - YAML AST node models.
 
 
 class Node:
@@ -9,8 +9,8 @@ class Node:
         leading_comments (list of str): Comments preceding this node.
         trailing_comments (list of str): Comments following this node.
         tag (str or None): YAML tag/type hint (e.g., "!!str", "!CustomTag").
-        anchor (str or None): Anchor name if this node is anchored (e.g., &anchorName).
-        alias_of (str or None): If this node is an alias (e.g., *anchorName), this stores the referenced anchor name.
+        anchor (str or None): Anchor name if this node is anchored.
+        alias_of (str or None): Referenced anchor name for aliases.
     """
 
     def __init__(self):
@@ -19,6 +19,7 @@ class Node:
         self.tag = None
         self.anchor = None
         self.alias_of = None
+        self.flow_style = False
 
     def is_alias(self):
         return self.alias_of is not None
@@ -38,9 +39,9 @@ class DocumentNode(Node):
     Represents a single YAML document.
 
     Attributes:
-        root (Node): The root node of the document (MappingNode, SequenceNode, or ScalarNode).
-        has_doc_start (bool): True if the document start marker '---' was encountered.
-        has_doc_end (bool): True if the document end marker '...' was encountered.
+        root (Node): The root node of the document.
+        has_doc_start (bool): True if the '---' marker was encountered.
+        has_doc_end (bool): True if the '...' marker was encountered.
     """
 
     def __init__(self):
@@ -52,13 +53,17 @@ class DocumentNode(Node):
     def __getitem__(self, key):
         if self.root and isinstance(self.root, MappingNode):
             return self.root[key]
-        raise TypeError("DocumentNode does not contain a subscriptable mapping")
+        raise TypeError(
+            "DocumentNode does not contain a subscriptable mapping"
+        )
 
     def __setitem__(self, key, value):
         if self.root and isinstance(self.root, MappingNode):
             self.root[key] = value
         else:
-            raise TypeError("DocumentNode does not contain a subscriptable mapping")
+            raise TypeError(
+                "DocumentNode does not contain a subscriptable mapping"
+            )
 
     def __eq__(self, other):
         # If other is a DocumentNode, compare all attributes.
@@ -82,11 +87,11 @@ class DocumentNode(Node):
 
 class MappingNode(Node):
     """
-    Represents a YAML mapping (key-value pairs) while preserving key order and merge operators.
+    Represents a YAML mapping while preserving key order and merges.
 
     Attributes:
-        pairs (list of tuple(Node, Node)): An ordered list of (key, value) node pairs.
-        merges (list of Node): A list of nodes specified by merge operators (<<:), if any.
+        pairs (list of tuple(Node, Node)): Ordered key/value node pairs.
+        merges (list of Node): Nodes specified by merge operators.
     """
 
     def __init__(self):
@@ -100,7 +105,7 @@ class MappingNode(Node):
     def __getitem__(self, key):
         for k, v in self.pairs:
             if hasattr(k, "value") and k.value == key:
-                # For plain scalars (no block style, no comments, etc.), return the raw value.
+                # Plain scalars return their raw value for ergonomic access.
                 if isinstance(v, ScalarNode) and v.style is None:
                     return v.value
                 return v
@@ -129,7 +134,9 @@ class MappingNode(Node):
                 if isinstance(merge, MappingNode):
                     for k, v in merge.pairs:
                         key = k.value if hasattr(k, "value") else k
-                        converted[key] = v.value if isinstance(v, ScalarNode) else v
+                        converted[key] = (
+                            v.value if isinstance(v, ScalarNode) else v
+                        )
             for k, v in self.pairs:
                 key = k.value if hasattr(k, "value") else k
                 # For scalar nodes, use the unboxed value.
@@ -163,9 +170,10 @@ class SequenceNode(Node):
         if isinstance(other, SequenceNode):
             return self.items == other.items
         elif isinstance(other, list):
-            # Convert items: if an item is a ScalarNode, compare its value; otherwise, compare the item directly.
+            # Compare scalar values directly while preserving node comparisons.
             converted = [
-                item.value if hasattr(item, "value") else item for item in self.items
+                item.value if hasattr(item, "value") else item
+                for item in self.items
             ]
             return converted == other
         return False
@@ -176,14 +184,14 @@ class SequenceNode(Node):
 
 class ScalarNode(Node):
     """
-    Represents a YAML scalar value (string, int, float, etc.) and captures block style details.
+    Represents a YAML scalar value and captures block style details.
 
     Attributes:
         value: The scalar value.
         style (str or None): The style of the scalar. Options include:
-                             None for plain scalars, '|' for literal, '>' for folded.
-        chomping (str or None): The chomping indicator for block scalars ('+', '-', or None).
-        lines (list of str or None): The original lines of a block scalar for precise re-emission.
+                             None for plain, '|' for literal, '>' for folded.
+        chomping (str or None): Block scalar chomping indicator.
+        lines (list of str or None): Original block scalar lines.
     """
 
     def __init__(self, value, style=None):
@@ -195,7 +203,8 @@ class ScalarNode(Node):
 
     def __repr__(self):
         return (
-            f"<ScalarNode value={self.value!r} style={self.style!r} tag={self.tag!r}>"
+            f"<ScalarNode value={self.value!r} "
+            f"style={self.style!r} tag={self.tag!r}>"
         )
 
     def __eq__(self, other):

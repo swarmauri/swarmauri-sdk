@@ -24,8 +24,13 @@ def test_multiline_strings():
     """
     data = round_trip_loads(yaml_str)
 
-    assert data["literal_block"] == "This is on line one.\nThis is on line two.\n"
-    assert data["folded_block"] == "This is line one, but folded into a single line.\n"
+    assert (
+        data["literal_block"] == "This is on line one.\nThis is on line two.\n"
+    )
+    assert (
+        data["folded_block"]
+        == "This is line one, but folded into a single line.\n"
+    )
     assert (
         data["plain_multiline"]
         == "This is a single-line string with a backslash in plain style"

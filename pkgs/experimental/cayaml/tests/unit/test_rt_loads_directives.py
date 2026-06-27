@@ -14,7 +14,8 @@ def test_directives():
     age: 30
     """
     data = round_trip_loads(yaml_str)
-    # The directive might set version or define tags. Minimal parser may ignore them.
+    # The directive might set version or define tags.
+    # Minimal parser behavior may ignore them.
     # Just ensure no parse errors and the data is recognized.
     assert data["name"] == "John Doe"
     assert data["age"] == 30

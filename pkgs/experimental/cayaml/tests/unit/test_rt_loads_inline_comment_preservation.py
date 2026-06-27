@@ -3,8 +3,8 @@ from cayaml import round_trip_loads, dumps
 
 def test_inline_comment_preservation():
     """
-    Tests that inline comments (# ...) are preserved (or at least not cause parse errors).
-    Depending on the library, we might store them in metadata or simply ignore them.
+    Tests that inline comments are preserved or do not cause parse errors.
+    Depending on the library, they may be stored or ignored.
     """
     yaml_str = """
     key1: value1  # This is an inline comment
@@ -16,7 +16,8 @@ def test_inline_comment_preservation():
     assert data["key2"] == "value2"
 
     # If we want comment "preservation", we'd expect them in a data structure,
-    # or re-dumping with the same comments. That usually requires a more advanced YAML parser.
+    # or re-dumping with the same comments.
+    # That usually requires a more advanced YAML parser.
     output = dumps(data)
     # For demonstration, let's say we'd want the comments back:
     assert "# This is an inline comment" in output

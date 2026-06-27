@@ -1,16 +1,32 @@
 """
-plain_conversion.py - Helpers to convert Cayaml AST nodes to plain Python objects.
+plain_conversion.py - Convert Cayaml AST nodes to plain Python objects.
 
 This module provides the `to_plain()` function which recursively traverses
-the AST (returned by the round-trip loader) and converts each node into its plain
+the AST returned by the round-trip loader and converts each node into its plain
 Python equivalent. For example:
   - DocumentNode and MappingNode are converted to dictionaries.
   - SequenceNode is converted to a list.
   - ScalarNode is converted to its underlying value.
-If the node is a YamlStream containing multiple documents, a list of plain objects is returned.
+YamlStream nodes are returned as a list of plain objects.
 """
 
-from .ast_nodes import DocumentNode, MappingNode, SequenceNode, ScalarNode, YamlStream
+from .ast_nodes import (
+    DocumentNode,
+    MappingNode,
+    SequenceNode,
+    ScalarNode,
+    YamlStream,
+)
+
+
+def plain_key(node):
+    """Convert a YAML key into a hashable Python key."""
+    key = to_plain(node)
+    if isinstance(key, list):
+        return tuple(key)
+    if isinstance(key, dict):
+        return tuple(key.items())
+    return key
 
 
 def to_plain(node):
@@ -18,13 +34,13 @@ def to_plain(node):
     Recursively convert the given AST node into plain Python objects.
 
     Parameters:
-        node: An AST node (DocumentNode, MappingNode, SequenceNode, or ScalarNode)
+        node: An AST node such as DocumentNode, MappingNode, or ScalarNode
               or a YamlStream.
 
     Returns:
-        The equivalent plain Python data structure (dict, list, scalar) for that node.
+        The equivalent plain Python data structure for that node.
     """
-    # If node is a YamlStream, return a list of plain objects, one per document.
+    # If node is a YamlStream, return plain objects per document.
     if isinstance(node, YamlStream):
         return [to_plain(doc) for doc in node.documents]
 
@@ -43,13 +59,7 @@ def to_plain(node):
             if isinstance(merged, dict):
                 result.update(merged)
         for key_node, value_node in node.pairs:
-            # Convert the key: if it's a ScalarNode, use its value; otherwise, convert recursively.
-            key = (
-                key_node.value
-                if isinstance(key_node, ScalarNode)
-                else to_plain(key_node)
-            )
-            result[key] = to_plain(value_node)
+            result[plain_key(key_node)] = to_plain(value_node)
         return result
 
     # If node is a SequenceNode, convert each item recursively.

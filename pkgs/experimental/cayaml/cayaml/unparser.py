@@ -5,9 +5,10 @@ This module traverses the AST (constructed using ast_nodes.py) and
 reconstructs a YAML-formatted string.
 
 It provides two internal dump functions:
-  - _internal_dump_plain(node, indent=0): Emits plain YAML (ignoring extra formatting metadata).
-  - _internal_dump_round_trip(node, indent=0): Emits YAML preserving document markers,
-    comments, anchors/tags, block styles (folded/literal), merge operators, and key order.
+  - _internal_dump_plain(node, indent=0): Emits plain YAML.
+  - _internal_dump_round_trip(node, indent=0): Emits YAML preserving
+    document markers, comments, anchors/tags, block styles, merge
+    operators, and key order.
 
 If the input to dumps() is a plain Python structure (list, dict, or scalar),
 we convert it to an AST before emitting YAML.
@@ -33,8 +34,17 @@ def _plain_scalar(node: ScalarNode) -> str:
         return str(val)
     elif isinstance(val, str):
         # Quote if needed.
-        if not val or any(c in val for c in [" ", ":", "-", "#"]):
-            return '"' + val.replace('"', '\\"') + '"'
+        if not val or any(
+            c in val
+            for c in [" ", ":", "-", "#", "\n", "[", "]", "{", "}", ","]
+        ):
+            return (
+                '"'
+                + val.replace("\\", "\\\\")
+                .replace("\n", "\\n")
+                .replace('"', '\\"')
+                + '"'
+            )
         return val
     else:
         return str(val)
@@ -58,7 +68,7 @@ def _internal_dump_round_trip(node: Node, indent: int = 0) -> str:
 
 
 def unparse_document(doc: DocumentNode, indent: int = 0) -> str:
-    """Unparse a DocumentNode into YAML text, preserving document markers and comments."""
+    """Unparse a DocumentNode into YAML text."""
     lines = []
     prefix = " " * indent
     for comment in doc.leading_comments:
@@ -88,6 +98,19 @@ def unparse_node(node: Node, indent: int = 0) -> str:
 
 def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
     """Unparse a MappingNode with formatting metadata preserved."""
+    if mapping.flow_style:
+        entries = []
+        for merge_node in mapping.merges:
+            entries.append("<<: " + unparse_node(merge_node, 0))
+        for key_node, value_node in mapping.pairs:
+            key_str = (
+                unparse_scalar(key_node, 0)
+                if isinstance(key_node, ScalarNode)
+                else unparse_node(key_node, 0)
+            )
+            entries.append(f"{key_str}: {unparse_node(value_node, 0)}")
+        return " " * indent + "{" + ", ".join(entries) + "}"
+
     lines = []
     prefix = " " * indent
     for merge_node in mapping.merges:
@@ -101,7 +124,15 @@ def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
             if isinstance(key_node, ScalarNode)
             else unparse_node(key_node, 0)
         )
-        if isinstance(value_node, (MappingNode, SequenceNode)):
+        if (
+            isinstance(value_node, (MappingNode, SequenceNode))
+            and value_node.flow_style
+        ):
+            line = prefix + f"{key_str}: {unparse_node(value_node, 0)}"
+            if key_node.trailing_comments:
+                line += " " + " ".join(key_node.trailing_comments)
+            lines.append(line)
+        elif isinstance(value_node, (MappingNode, SequenceNode)):
             line = prefix + f"{key_str}:"
             if key_node.trailing_comments:
                 line += " " + " ".join(key_node.trailing_comments)
@@ -118,10 +149,16 @@ def unparse_mapping(mapping: MappingNode, indent: int = 0) -> str:
 
 def unparse_sequence(seq: SequenceNode, indent: int = 0) -> str:
     """Unparse a SequenceNode with formatting metadata preserved."""
+    if seq.flow_style:
+        items = ", ".join(unparse_node(item, 0) for item in seq.items)
+        return " " * indent + "[" + items + "]"
+
     lines = []
     prefix = " " * indent
     for item in seq.items:
-        if isinstance(item, (MappingNode, SequenceNode)):
+        if isinstance(item, (MappingNode, SequenceNode)) and item.flow_style:
+            lines.append(prefix + f"- {unparse_node(item, 0)}")
+        elif isinstance(item, (MappingNode, SequenceNode)):
             lines.append(prefix + "-")
             lines.append(unparse_node(item, indent + 2))
         else:
@@ -138,7 +175,8 @@ def unparse_scalar(scalar: ScalarNode, indent: int = 0) -> str:
     tag_part = f"{scalar.tag} " if scalar.tag else ""
     anchor_part = f"&{scalar.anchor} " if scalar.anchor else ""
     if scalar.style in ("|", ">"):
-        lines = [prefix + tag_part + anchor_part + scalar.style]
+        chomping = scalar.chomping or ""
+        lines = [prefix + tag_part + anchor_part + scalar.style + chomping]
         if scalar.lines:
             for line in scalar.lines:
                 lines.append(" " * (indent + 2) + line)
@@ -156,8 +194,17 @@ def unparse_scalar(scalar: ScalarNode, indent: int = 0) -> str:
             text = str(val)
         elif isinstance(val, str):
             text = val
-            if not text or any(c in text for c in [" ", ":", "-", "#"]):
-                text = '"' + text.replace('"', '\\"') + '"'
+            if not text or any(
+                c in text
+                for c in [" ", ":", "-", "#", "\n", "[", "]", "{", "}", ","]
+            ):
+                text = (
+                    '"'
+                    + text.replace("\\", "\\\\")
+                    .replace("\n", "\\n")
+                    .replace('"', '\\"')
+                    + '"'
+                )
         else:
             text = str(val)
         return prefix + tag_part + anchor_part + text
@@ -204,10 +251,12 @@ def _internal_dump_plain(node: Node, indent: int = 0) -> str:
                 lines.append(prefix + "-")
                 lines.append(_internal_dump_plain(item, indent + 2))
             else:
-                lines.append(
-                    prefix
-                    + f"- {_plain_scalar(item) if isinstance(item, ScalarNode) else _internal_dump_plain(item, 0)}"
+                item_text = (
+                    _plain_scalar(item)
+                    if isinstance(item, ScalarNode)
+                    else _internal_dump_plain(item, 0)
                 )
+                lines.append(prefix + f"- {item_text}")
         return "\n".join(lines)
     elif isinstance(node, ScalarNode):
         return " " * indent + _plain_scalar(node)
@@ -225,8 +274,17 @@ def _plain_scalar(node: ScalarNode) -> str:
     elif isinstance(val, (int, float)):
         return str(val)
     elif isinstance(val, str):
-        if not val or any(c in val for c in [" ", ":", "-", "#"]):
-            return '"' + val.replace('"', '\\"') + '"'
+        if not val or any(
+            c in val
+            for c in [" ", ":", "-", "#", "\n", "[", "]", "{", "}", ","]
+        ):
+            return (
+                '"'
+                + val.replace("\\", "\\\\")
+                .replace("\n", "\\n")
+                .replace('"', '\\"')
+                + '"'
+            )
         return val
     else:
         return str(val)

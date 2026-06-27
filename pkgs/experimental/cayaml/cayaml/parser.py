@@ -1,9 +1,8 @@
 """
 parser.py - YAML parser for Cayaml (Swarmauri's Canon YAML)
 
-This minimal parser tokenizes YAML input and builds an AST (using node classes from ast_nodes.py).
+This parser tokenizes YAML input and builds an AST.
 It preserves basic metadata such as document markers and comments.
-Advanced features (anchors, aliases, block styles, etc.) can be added by expanding these functions.
 
 This module exposes two internal functions:
   - _internal_load(yaml_str): Returns an AST representing the YAML input.
@@ -11,7 +10,13 @@ This module exposes two internal functions:
 """
 
 import math
-from .ast_nodes import YamlStream, DocumentNode, MappingNode, SequenceNode, ScalarNode
+from .ast_nodes import (
+    YamlStream,
+    DocumentNode,
+    MappingNode,
+    SequenceNode,
+    ScalarNode,
+)
 
 
 def split_inline_comment(text: str) -> tuple[str, str | None]:
@@ -57,7 +62,63 @@ def split_tag_anchor_prefix(text: str) -> tuple[str | None, str | None, str]:
     return tag, anchor, " ".join(parts)
 
 
-def parse_scalar(value: str):
+def parse_quoted_scalar(value: str):
+    """Decode YAML single- and double-quoted scalar text."""
+    if len(value) < 2:
+        return value
+    quote = value[0]
+    inner = value[1:-1]
+    if quote == "'":
+        return inner.replace("''", "'")
+
+    escapes = {
+        "0": "\0",
+        "a": "\a",
+        "b": "\b",
+        "t": "\t",
+        "\t": "\t",
+        "n": "\n",
+        "v": "\v",
+        "f": "\f",
+        "r": "\r",
+        "e": "\x1b",
+        '"': '"',
+        "/": "/",
+        "\\": "\\",
+        " ": " ",
+    }
+    result = []
+    i = 0
+    while i < len(inner):
+        char = inner[i]
+        if char != "\\":
+            result.append(char)
+            i += 1
+            continue
+        i += 1
+        if i >= len(inner):
+            result.append("\\")
+            break
+        escape = inner[i]
+        if escape in escapes:
+            result.append(escapes[escape])
+            i += 1
+        elif escape == "x" and i + 2 < len(inner):
+            result.append(chr(int(inner[i + 1 : i + 3], 16)))
+            i += 3
+        elif escape == "u" and i + 4 < len(inner):
+            result.append(chr(int(inner[i + 1 : i + 5], 16)))
+            i += 5
+        elif escape == "U" and i + 8 < len(inner):
+            result.append(chr(int(inner[i + 1 : i + 9], 16)))
+            i += 9
+        else:
+            result.append(escape)
+            i += 1
+    return "".join(result)
+
+
+def parse_scalar(value: str, tag: str | None = None):
     """
     Convert a scalar string into int, float, bool, None, or leave as string.
     This function also strips quotes if present.
@@ -67,7 +128,23 @@ def parse_scalar(value: str):
     if (value.startswith('"') and value.endswith('"')) or (
         value.startswith("'") and value.endswith("'")
     ):
-        return value[1:-1]
+        unquoted = parse_quoted_scalar(value)
+    else:
+        unquoted = value
+
+    if tag in ("!!str", "tag:yaml.org,2002:str"):
+        return unquoted
+    if tag in ("!!int", "tag:yaml.org,2002:int"):
+        return int(str(unquoted).replace("_", ""), 0)
+    if tag in ("!!float", "tag:yaml.org,2002:float"):
+        return float(str(unquoted).replace("_", ""))
+    if tag in ("!!bool", "tag:yaml.org,2002:bool"):
+        return str(unquoted).lower() == "true"
+    if tag in ("!!null", "tag:yaml.org,2002:null"):
+        return None
+
+    if unquoted != value:
+        return unquoted
 
     lower = value.lower()
     # Handle booleans
@@ -90,37 +167,174 @@ def parse_scalar(value: str):
 
     # Try to parse int (base=0 helps with 0x, 0o, etc.)
     try:
-        return int(value, 0)
+        return int(value.replace("_", ""), 0)
     except ValueError:
         pass
 
     # Try float
     try:
-        return float(value)
+        return float(value.replace("_", ""))
     except ValueError:
         pass
 
     return " ".join(value.split())
 
 
-def block_scalar_value(style: str, lines: list[str]) -> str:
+def block_scalar_value(
+    style: str, lines: list[str], chomping: str | None = None
+) -> str:
     """Convert captured block scalar lines to their plain scalar value."""
     if style == "|":
-        return "\n".join(lines) + "\n"
+        value = "\n".join(lines) + "\n"
+    else:
+        folded = []
+        paragraph = []
+        for line in lines:
+            if line:
+                paragraph.append(line.strip())
+            else:
+                if paragraph:
+                    folded.append(" ".join(paragraph))
+                    paragraph = []
+                folded.append("")
+        if paragraph:
+            folded.append(" ".join(paragraph))
+        value = "\n".join(folded).rstrip("\n") + "\n"
 
-    folded = []
-    paragraph = []
-    for line in lines:
-        if line:
-            paragraph.append(line.strip())
+    if chomping == "-":
+        return value.rstrip("\n")
+    if chomping == "+":
+        return value
+    return value.rstrip("\n") + "\n"
+
+
+def parse_block_scalar_header(raw_value: str) -> tuple[str, str | None] | None:
+    """Parse block scalar style/chomping indicators from |, >, |-, >+, etc."""
+    if not raw_value or raw_value[0] not in ("|", ">"):
+        return None
+    style = raw_value[0]
+    chomping = None
+    for char in raw_value[1:]:
+        if char in ("+", "-"):
+            chomping = char
+        elif char.isdigit():
+            continue
         else:
-            if paragraph:
-                folded.append(" ".join(paragraph))
-                paragraph = []
-            folded.append("")
-    if paragraph:
-        folded.append(" ".join(paragraph))
-    return "\n".join(folded).rstrip("\n") + "\n"
+            return None
+    return style, chomping
+
+
+def split_top_level(text: str, delimiter: str) -> list[str]:
+    """Split on a delimiter outside quotes and flow brackets."""
+    parts = []
+    start = 0
+    depth = 0
+    quote = ""
+    escape = False
+
+    for index, char in enumerate(text):
+        if escape:
+            escape = False
+            continue
+        if quote:
+            if char == "\\" and quote == '"':
+                escape = True
+            elif char == quote:
+                if (
+                    quote == "'"
+                    and index + 1 < len(text)
+                    and text[index + 1] == "'"
+                ):
+                    escape = True
+                    continue
+                quote = ""
+            continue
+        if char in ("'", '"'):
+            quote = char
+            continue
+        if char in "[{":
+            depth += 1
+            continue
+        if char in "]}":
+            depth -= 1
+            continue
+        if char == delimiter and depth == 0:
+            parts.append(text[start:index].strip())
+            start = index + 1
+
+    parts.append(text[start:].strip())
+    return parts
+
+
+def find_top_level_colon(text: str) -> int:
+    """Return the index of the first top-level mapping colon, or -1."""
+    depth = 0
+    quote = ""
+    escape = False
+    for index, char in enumerate(text):
+        if escape:
+            escape = False
+            continue
+        if quote:
+            if char == "\\" and quote == '"':
+                escape = True
+            elif char == quote:
+                if (
+                    quote == "'"
+                    and index + 1 < len(text)
+                    and text[index + 1] == "'"
+                ):
+                    escape = True
+                    continue
+                quote = ""
+            continue
+        if char in ("'", '"'):
+            quote = char
+            continue
+        if char in "[{":
+            depth += 1
+            continue
+        if char in "]}":
+            depth -= 1
+            continue
+        if char == ":" and depth == 0:
+            return index
+    return -1
+
+
+def parse_flow_node(text: str, anchors: dict[str, object]):
+    """Parse a flow-style sequence or mapping into AST nodes."""
+    text = text.strip()
+    if text.startswith("[") and text.endswith("]"):
+        sequence = SequenceNode()
+        sequence.flow_style = True
+        inner = text[1:-1].strip()
+        if inner:
+            for item in split_top_level(inner, ","):
+                if item:
+                    sequence.add_item(make_scalar_node(item, anchors))
+        return sequence
+
+    if text.startswith("{") and text.endswith("}"):
+        mapping = MappingNode()
+        mapping.flow_style = True
+        inner = text[1:-1].strip()
+        if inner:
+            for item in split_top_level(inner, ","):
+                colon = find_top_level_colon(item)
+                if colon == -1:
+                    key_text = item
+                    value_text = ""
+                else:
+                    key_text = item[:colon].strip()
+                    value_text = item[colon + 1 :].strip()
+                mapping.add_pair(
+                    make_scalar_node(key_text, anchors),
+                    make_scalar_node(value_text, anchors),
+                )
+        return mapping
+
+    return None
 
 
 def make_scalar_node(value: str, anchors: dict[str, object]) -> ScalarNode:
@@ -131,18 +345,71 @@ def make_scalar_node(value: str, anchors: dict[str, object]) -> ScalarNode:
         target = anchors.get(alias)
         if isinstance(target, ScalarNode):
             node = ScalarNode(target.value, style=target.style)
-            node.lines = list(target.lines) if target.lines is not None else None
+            node.lines = (
+                list(target.lines) if target.lines is not None else None
+            )
             node.tag = target.tag
         else:
             node = ScalarNode(target)
         node.alias_of = alias
+    elif flow_node := parse_flow_node(scalar_text, anchors):
+        node = flow_node
     else:
-        node = ScalarNode(parse_scalar(scalar_text))
-    node.tag = tag or node.tag
-    node.anchor = anchor
-    if anchor:
-        anchors[anchor] = node
+        node = ScalarNode(parse_scalar(scalar_text, tag=tag))
+    assign_node_metadata(node, tag=tag, anchor=anchor, anchors=anchors)
     return node
+
+
+def materialize_anchored_container(value_node, placeholder):
+    """Copy parsed container contents into an anchor placeholder."""
+    if isinstance(placeholder, MappingNode) and isinstance(
+        value_node, MappingNode
+    ):
+        placeholder.pairs = value_node.pairs
+        placeholder.merges = value_node.merges
+        placeholder.flow_style = value_node.flow_style
+        return placeholder
+    if isinstance(placeholder, SequenceNode) and isinstance(
+        value_node, SequenceNode
+    ):
+        placeholder.items = value_node.items
+        placeholder.flow_style = value_node.flow_style
+        return placeholder
+    return value_node
+
+
+def new_container_placeholder(nested_lines: list[str]):
+    """Create a container placeholder matching the nested block shape."""
+    trimmed = skip_blank_and_comment(nested_lines)
+    if trimmed and trimmed[0].lstrip().startswith("-"):
+        return SequenceNode()
+    return MappingNode()
+
+
+def parse_block_scalar_lines(
+    lines: list[str], start: int, current_indent: int, style_char: str
+):
+    """Capture block scalar lines and return (lines, next_index)."""
+    block_lines = []
+    block_indent = None
+    i = start
+    while i < len(lines):
+        next_line = lines[i]
+        if not next_line.strip():
+            if block_indent is not None:
+                block_lines.append("")
+            i += 1
+            continue
+        next_line_indent = len(next_line) - len(next_line.lstrip())
+        if next_line_indent <= current_indent:
+            break
+        if block_indent is None:
+            block_indent = next_line_indent
+        if next_line_indent < block_indent:
+            break
+        block_lines.append(next_line[block_indent:])
+        i += 1
+    return block_lines, i
 
 
 def assign_node_metadata(
@@ -160,7 +427,7 @@ def assign_node_metadata(
 
 def _internal_parse_stream(yaml_str: str) -> YamlStream:
     """
-    Tokenize and parse a YAML string, returning a YamlStream (which may have multiple DocumentNodes).
+    Tokenize and parse YAML into a YamlStream.
     """
     lines = yaml_str.splitlines()
     return parse_stream(lines)
@@ -213,7 +480,9 @@ def parse_stream(lines: list) -> YamlStream:
 
     while i < n:
         # Skip any leading blank lines
-        while i < n and (not lines[i].strip() or lines[i].strip().startswith("%")):
+        while i < n and (
+            not lines[i].strip() or lines[i].strip().startswith("%")
+        ):
             i += 1
         if i >= n:
             break
@@ -243,7 +512,10 @@ def parse_stream(lines: list) -> YamlStream:
 
         while doc_lines and (
             doc_lines[0].strip().startswith("%")
-            or (doc_lines[0].strip().startswith("!") and ":" not in doc_lines[0])
+            or (
+                doc_lines[0].strip().startswith("!")
+                and ":" not in doc_lines[0]
+            )
         ):
             doc_lines.pop(0)
 
@@ -305,13 +577,41 @@ def parse_mapping(lines: list, indent: int, anchors=None):
             i += 1
             continue
 
-        # If no colon, we presumably have reached a new block or item
-        if ":" not in line_strip:
+        if line_strip.startswith("?"):
+            key_text = line_strip[1:].strip()
+            i += 1
+            if i >= n:
+                value_node = ScalarNode("")
+            else:
+                value_line = lines[i]
+                value_indent = len(value_line) - len(value_line.lstrip())
+                value_strip = value_line.strip()
+                if (
+                    value_indent != current_indent
+                    or not value_strip.startswith(":")
+                ):
+                    value_node = ScalarNode("")
+                else:
+                    i += 1
+                    value_text, inline_comment = split_inline_comment(
+                        value_strip[1:].strip()
+                    )
+                    value_node = make_scalar_node(value_text, anchors)
+                    if inline_comment:
+                        value_node.trailing_comments.append(inline_comment)
+            mapping.add_pair(make_scalar_node(key_text, anchors), value_node)
+            continue
+
+        colon_index = find_top_level_colon(line_strip)
+
+        # If no top-level colon, we presumably have reached a new block or item
+        if colon_index == -1:
             break
 
         # Split key : value
-        key_part, _, value_part = line_strip.partition(":")
-        key_node = ScalarNode(parse_scalar(key_part.strip()))
+        key_part = line_strip[:colon_index]
+        value_part = line_strip[colon_index + 1 :]
+        key_node = make_scalar_node(key_part.strip(), anchors)
 
         # Move to next line to see if there's nested content or block scalars
         i += 1
@@ -321,7 +621,10 @@ def parse_mapping(lines: list, indent: int, anchors=None):
         if inline_comment:
             key_node.trailing_comments.append(inline_comment)
 
-        if key_node.value == "<<":
+        key_value = (
+            key_node.value if isinstance(key_node, ScalarNode) else None
+        )
+        if key_value == "<<":
             merge_node = parse_merge_value(raw_value, anchors)
             mapping.merges.extend(
                 merge_node.items
@@ -331,32 +634,22 @@ def parse_mapping(lines: list, indent: int, anchors=None):
             continue
 
         # -- Block scalar check (| or >) --
-        if raw_value in ("|", ">"):
-            style_char = raw_value  # '|' or '>'
+        if block_header := parse_block_scalar_header(raw_value):
+            style_char, chomping = block_header
             block_node = ScalarNode(None, style=style_char)
+            block_node.chomping = chomping
             block_node.lines = []
 
-            # Determine the indentation level of the block content from the
-            # first line following the block indicator. YAML treats that
-            # indentation as significant for the entire block, so we capture it
-            # and strip exactly that amount from each subsequent line.
-
-            block_indent = None
-            while i < n:
-                next_line = lines[i]
-                next_line_indent = len(next_line) - len(next_line.lstrip())
-                if next_line_indent <= current_indent or not next_line.strip():
-                    break
-                if block_indent is None:
-                    block_indent = next_line_indent
-                if next_line_indent < block_indent:
-                    break
-                block_node.lines.append(next_line[block_indent:])
-                i += 1
-
-            block_node.value = block_scalar_value(style_char, block_node.lines)
+            block_node.lines, i = parse_block_scalar_lines(
+                lines, i, current_indent, style_char
+            )
+            block_node.value = block_scalar_value(
+                style_char, block_node.lines, chomping=chomping
+            )
             value_node = block_node
-            assign_node_metadata(value_node, tag=tag, anchor=anchor, anchors=anchors)
+            assign_node_metadata(
+                value_node, tag=tag, anchor=anchor, anchors=anchors
+            )
 
         # If value part is empty => The actual value is on subsequent lines
         elif not raw_value:
@@ -370,12 +663,23 @@ def parse_mapping(lines: list, indent: int, anchors=None):
                 i += 1
 
             if nested_lines:
+                placeholder = None
+                if anchor:
+                    placeholder = new_container_placeholder(nested_lines)
+                    assign_node_metadata(
+                        placeholder, tag=tag, anchor=anchor, anchors=anchors
+                    )
                 value_node, _ = parse_block(
                     nested_lines, indent=current_indent + 1, anchors=anchors
                 )
-                assign_node_metadata(
-                    value_node, tag=tag, anchor=anchor, anchors=anchors
-                )
+                if placeholder is not None:
+                    value_node = materialize_anchored_container(
+                        value_node, placeholder
+                    )
+                else:
+                    assign_node_metadata(
+                        value_node, tag=tag, anchor=anchor, anchors=anchors
+                    )
             else:
                 value_node = ScalarNode("")
                 assign_node_metadata(
@@ -386,7 +690,11 @@ def parse_mapping(lines: list, indent: int, anchors=None):
             value_node = make_scalar_node(
                 " ".join(
                     part
-                    for part in (tag, f"&{anchor}" if anchor else None, raw_value)
+                    for part in (
+                        tag,
+                        f"&{anchor}" if anchor else None,
+                        raw_value,
+                    )
                     if part
                 ),
                 anchors,
@@ -425,37 +733,29 @@ def parse_sequence(lines: list, indent: int, anchors=None):
             break
 
         # Remove leading dash
-        dash_part, inline_comment = split_inline_comment(line_strip[1:].strip())
+        dash_part, inline_comment = split_inline_comment(
+            line_strip[1:].strip()
+        )
         i += 1
         tag, anchor, remaining_value = split_tag_anchor_prefix(dash_part)
         dash_part = remaining_value
 
-        # If dash_part is '|' or '>', we have a block scalar in a sequence item
-        if dash_part in ("|", ">"):
-            style_char = dash_part
+        # Block scalar sequence item.
+        if block_header := parse_block_scalar_header(dash_part):
+            style_char, chomping = block_header
             block_node = ScalarNode(None, style=style_char)
+            block_node.chomping = chomping
             block_node.lines = []
 
-            # As with mappings, determine the indentation for the block scalar
-            # from the first line that follows the indicator. Each subsequent
-            # line must be at least that indented; anything less signals the end
-            # of the block.
-
-            block_indent = None
-            while i < n:
-                nxt = lines[i]
-                nxt_indent = len(nxt) - len(nxt.lstrip())
-                if nxt_indent <= current_indent or not nxt.strip():
-                    break
-                if block_indent is None:
-                    block_indent = nxt_indent
-                if nxt_indent < block_indent:
-                    break
-                block_node.lines.append(nxt[block_indent:])
-                i += 1
-
-            block_node.value = block_scalar_value(style_char, block_node.lines)
-            assign_node_metadata(block_node, tag=tag, anchor=anchor, anchors=anchors)
+            block_node.lines, i = parse_block_scalar_lines(
+                lines, i, current_indent, style_char
+            )
+            block_node.value = block_scalar_value(
+                style_char, block_node.lines, chomping=chomping
+            )
+            assign_node_metadata(
+                block_node, tag=tag, anchor=anchor, anchors=anchors
+            )
             sequence.add_item(block_node)
 
         elif not dash_part:
@@ -470,20 +770,69 @@ def parse_sequence(lines: list, indent: int, anchors=None):
                 i += 1
 
             if nested_lines:
+                placeholder = None
+                if anchor:
+                    placeholder = new_container_placeholder(nested_lines)
+                    assign_node_metadata(
+                        placeholder, tag=tag, anchor=anchor, anchors=anchors
+                    )
                 item_node, _ = parse_block(
                     nested_lines, indent=current_indent + 1, anchors=anchors
                 )
-                assign_node_metadata(item_node, tag=tag, anchor=anchor, anchors=anchors)
+                if placeholder is not None:
+                    item_node = materialize_anchored_container(
+                        item_node, placeholder
+                    )
+                else:
+                    assign_node_metadata(
+                        item_node, tag=tag, anchor=anchor, anchors=anchors
+                    )
             else:
                 item_node = ScalarNode("")
-                assign_node_metadata(item_node, tag=tag, anchor=anchor, anchors=anchors)
+                assign_node_metadata(
+                    item_node, tag=tag, anchor=anchor, anchors=anchors
+                )
+            sequence.add_item(item_node)
+        elif find_top_level_colon(dash_part) != -1:
+            item_lines = [" " * (current_indent + 2) + dash_part]
+            while i < n:
+                nested_line = lines[i]
+                nested_indent = len(nested_line) - len(nested_line.lstrip())
+                if nested_indent <= current_indent or not nested_line.strip():
+                    break
+                item_lines.append(nested_line)
+                i += 1
+
+            placeholder = None
+            if anchor:
+                placeholder = MappingNode()
+                assign_node_metadata(
+                    placeholder, tag=tag, anchor=anchor, anchors=anchors
+                )
+            item_node, _ = parse_mapping(
+                item_lines, indent=current_indent + 2, anchors=anchors
+            )
+            if placeholder is not None:
+                item_node = materialize_anchored_container(
+                    item_node, placeholder
+                )
+            else:
+                assign_node_metadata(
+                    item_node, tag=tag, anchor=anchor, anchors=anchors
+                )
+            if inline_comment:
+                item_node.trailing_comments.append(inline_comment)
             sequence.add_item(item_node)
         else:
             # Normal scalar or inline text after '-'
             item_node = make_scalar_node(
                 " ".join(
                     part
-                    for part in (tag, f"&{anchor}" if anchor else None, dash_part)
+                    for part in (
+                        tag,
+                        f"&{anchor}" if anchor else None,
+                        dash_part,
+                    )
                     if part
                 ),
                 anchors,
@@ -498,7 +847,7 @@ def parse_sequence(lines: list, indent: int, anchors=None):
 
 def skip_blank_and_comment(lines: list):
     """
-    Return the subset of lines starting with the first non-blank, non-comment line.
+    Return lines starting with the first non-blank, non-comment line.
     """
     i = 0
     while i < len(lines):

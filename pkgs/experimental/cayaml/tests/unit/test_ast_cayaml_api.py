@@ -1,7 +1,12 @@
 import io
 import pytest
 
-from cayaml import round_trip_load, round_trip_loads, round_trip_dump, round_trip_dumps
+from cayaml import (
+    round_trip_load,
+    round_trip_loads,
+    round_trip_dump,
+    round_trip_dumps,
+)
 
 
 def test_round_trip_loads_scalars():
