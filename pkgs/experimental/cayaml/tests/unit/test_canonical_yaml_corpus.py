@@ -1,5 +1,7 @@
 from textwrap import dedent
 
+import pytest
+
 from cayaml import dumps, loads, loads_all, round_trip_dumps, round_trip_loads
 from cayaml.ast_nodes import DocumentNode
 
@@ -44,6 +46,42 @@ CANONICAL_FEATURE_CORPUS = dedent(
         block item
     """
 )
+
+UPSTREAM_STYLE_CONFORMANCE_CASES = [
+    {
+        "id": "plain-scalar-nested-continuation",
+        "source": "key:\n  first\n  second\n",
+        "expected": {"key": "first second"},
+        "reference": "yaml-test-suite block scalar/flow-in block parity",
+    },
+    {
+        "id": "plain-scalar-blank-line-continuation",
+        "source": "key:\n  first\n\n  second\n",
+        "expected": {"key": "first\nsecond"},
+        "reference": "yaml-test-suite folded plain scalar continuation",
+    },
+    {
+        "id": "explicit-key-comment-before-value",
+        "source": "? key\n# value comment\n: value\n",
+        "expected": {"key": "value"},
+        "reference": "yaml-test-suite explicit key separation",
+    },
+    {
+        "id": "explicit-key-indented-comment-before-value",
+        "source": "? key\n  # value comment\n: value\n",
+        "expected": {"key": "value"},
+        "reference": "yaml-test-suite explicit key separation",
+    },
+]
+
+
+@pytest.mark.parametrize(
+    "case",
+    UPSTREAM_STYLE_CONFORMANCE_CASES,
+    ids=[case["id"] for case in UPSTREAM_STYLE_CONFORMANCE_CASES],
+)
+def test_upstream_style_conformance_cases(case):
+    assert loads(case["source"]) == case["expected"], case["reference"]
 
 
 def test_canonical_feature_corpus_plain_loads():

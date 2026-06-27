@@ -48,8 +48,7 @@ def to_plain(node):
     if isinstance(node, DocumentNode):
         if node.root is not None:
             return to_plain(node.root)
-        else:
-            return {}
+        return None
 
     # If node is a MappingNode, convert its pairs into a dictionary.
     if isinstance(node, MappingNode):

@@ -17,6 +17,7 @@ class Node:
         self.leading_comments = []  # Comments before the node
         self.trailing_comments = []  # Comments after the node
         self.tag = None
+        self.tag_text = None
         self.anchor = None
         self.alias_of = None
         self.flow_style = False
@@ -49,6 +50,9 @@ class DocumentNode(Node):
         self.root = None
         self.has_doc_start = False
         self.has_doc_end = False
+        self.yaml_version = None
+        self.tag_handles = {}
+        self.directives = []
 
     def __getitem__(self, key):
         if self.root and isinstance(self.root, MappingNode):
@@ -199,6 +203,8 @@ class ScalarNode(Node):
         self.value = value
         self.style = style  # None, '|', or '>' (plain, literal, folded)
         self.chomping = None
+        self.indent_indicator = None
+        self.block_header = None
         self.lines = None
 
     def __repr__(self):

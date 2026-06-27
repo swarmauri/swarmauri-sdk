@@ -1,0 +1,220 @@
+[
+  {
+    "id": "229Q",
+    "name": "Spec Example 2.4. Sequence of Mappings",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/229Q.yaml",
+    "yaml": "-\n  name: Mark McGwire\n  hr:   65\n  avg:  0.278\n-\n  name: Sammy Sosa\n  hr:   63\n  avg:  0.288\n",
+    "json": [
+      {
+        "name": "Mark McGwire",
+        "hr": 65,
+        "avg": 0.278
+      },
+      {
+        "name": "Sammy Sosa",
+        "hr": 63,
+        "avg": 0.288
+      }
+    ]
+  },
+  {
+    "id": "2XXW",
+    "name": "Spec Example 2.25. Unordered Sets",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/2XXW.yaml",
+    "yaml": "# Sets are represented as a\n# Mapping where each key is\n# associated with a null value\n--- !!set\n? Mark McGwire\n? Sammy Sosa\n? Ken Griff\n",
+    "json": {
+      "Mark McGwire": null,
+      "Sammy Sosa": null,
+      "Ken Griff": null
+    }
+  },
+  {
+    "id": "4ABK",
+    "name": "Flow Mapping Separate Values",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/4ABK.yaml",
+    "yaml": "{\nunquoted : \"separate\",\nhttp://foo.com,\nomitted value:,\n}\n",
+    "json": {
+      "unquoted": "separate",
+      "http://foo.com": null,
+      "omitted value": null
+    }
+  },
+  {
+    "id": "5BVJ",
+    "name": "Spec Example 5.7. Block Scalar Indicators",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/5BVJ.yaml",
+    "yaml": "literal: |\n  some\n  text\nfolded: >\n  some\n  text\n",
+    "json": {
+      "literal": "some\ntext\n",
+      "folded": "some text\n"
+    }
+  },
+  {
+    "id": "5C5M",
+    "name": "Spec Example 7.15. Flow Mappings",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/5C5M.yaml",
+    "yaml": "- { one : two , three: four , }\n- {five: six,seven : eight}\n",
+    "json": [
+      {
+        "one": "two",
+        "three": "four"
+      },
+      {
+        "five": "six",
+        "seven": "eight"
+      }
+    ]
+  },
+  {
+    "id": "5KJE",
+    "name": "Spec Example 7.13. Flow Sequence",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/5KJE.yaml",
+    "yaml": "- [ one, two, ]\n- [three ,four]\n",
+    "json": [
+      [
+        "one",
+        "two"
+      ],
+      [
+        "three",
+        "four"
+      ]
+    ]
+  },
+  {
+    "id": "5TYM",
+    "name": "Spec Example 6.21. Local Tag Prefix",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/5TYM.yaml",
+    "yaml": "%TAG !m! !my-\n--- # Bulb here\n!m!light fluorescent\n...\n%TAG !m! !my-\n--- # Color here\n!m!light green\n",
+    "json_all": [
+      "fluorescent",
+      "green"
+    ]
+  },
+  {
+    "id": "6LVF",
+    "name": "Spec Example 6.13. Reserved Directives",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/6LVF.yaml",
+    "yaml": "%FOO  bar baz # Should be ignored\n              # with a warning.\n--- \"foo\"\n",
+    "json": "foo"
+  },
+  {
+    "id": "2LFX",
+    "name": "Spec Example 6.13. Reserved Directives [1.3]",
+    "source_url": "https://github.com/yaml/yaml-test-suite/blob/main/src/2LFX.yaml",
+    "yaml": "%FOO  bar baz # Should be ignored\n              # with a warning.\n---\n\"foo\"\n",
+    "json": "foo"
+  },
+  {
+    "id": "96NN-00",
+    "name": "Leading tab content in literals",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/96NN/00",
+    "yaml": "foo: |-\n \tbar\n",
+    "json": {
+      "foo": "\tbar"
+    }
+  },
+  {
+    "id": "2G84-03",
+    "name": "Empty literal scalar with keep chomping",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/2G84/03",
+    "yaml": "--- |1+\n",
+    "json": ""
+  },
+  {
+    "id": "K858",
+    "name": "Spec Example 8.6. Empty Scalar Chomping",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/K858",
+    "yaml": "strip: >-\n\nclip: >\n\nkeep: |+\n\n",
+    "json": {
+      "strip": "",
+      "clip": "",
+      "keep": "\n"
+    }
+  },
+  {
+    "id": "3R3P",
+    "name": "Single block sequence with anchor",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/3R3P",
+    "yaml": "&sequence\n- a\n",
+    "json": [
+      "a"
+    ]
+  },
+  {
+    "id": "FTA2",
+    "name": "Single block sequence with anchor and explicit document start",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/FTA2",
+    "yaml": "--- &sequence\n- a\n",
+    "json": [
+      "a"
+    ]
+  },
+  {
+    "id": "5WE3",
+    "name": "Spec Example 8.17. Explicit Block Mapping Entries",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/5WE3",
+    "yaml": "? explicit key # Empty value\n? |\n  block key\n: - one # Explicit compact\n  - two # block value\n",
+    "json": {
+      "explicit key": null,
+      "block key\n": [
+        "one",
+        "two"
+      ]
+    }
+  },
+  {
+    "id": "6BCT",
+    "name": "Spec Example 6.3. Separation Spaces",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/6BCT",
+    "yaml": "- foo:\t bar\n- - baz\n  -\tbaz\n",
+    "json": [
+      {
+        "foo": "bar"
+      },
+      [
+        "baz",
+        "baz"
+      ]
+    ]
+  },
+  {
+    "id": "2SXE",
+    "name": "Anchors With Colon in Name",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/2SXE",
+    "yaml": "&a: key: &a value\nfoo:\n  *a:\n",
+    "json": {
+      "key": "value",
+      "foo": "key"
+    }
+  },
+  {
+    "id": "36F6",
+    "name": "Multiline plain scalar with empty line",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/36F6",
+    "yaml": "---\nplain: a\n b\n\n c\n",
+    "json": {
+      "plain": "a b\nc"
+    }
+  },
+  {
+    "id": "S4JQ",
+    "name": "Non-specific scalar tag suppresses implicit resolution",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/S4JQ",
+    "yaml": "# Assuming conventional resolution:\n- \"12\"\n- 12\n- ! 12\n",
+    "json": [
+      "12",
+      12,
+      "12"
+    ]
+  },
+  {
+    "id": "AB8U",
+    "name": "Sequence entry that looks like two with wrong indentation",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/data/AB8U",
+    "yaml": "- single multiline\n - sequence entry\n",
+    "json": [
+      "single multiline - sequence entry"
+    ]
+  }
+]

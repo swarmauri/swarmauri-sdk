@@ -11,6 +11,7 @@ from .api import (
     round_trip_dumps,
     round_trip_load_all,
     round_trip_loads_all,
+    YamlParseError,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     "round_trip_dumps",
     "round_trip_load_all",
     "round_trip_loads_all",
+    "YamlParseError",
 ]

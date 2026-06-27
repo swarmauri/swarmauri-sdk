@@ -1,0 +1,122 @@
+[
+  {
+    "id": "2CMS",
+    "yaml": "this\n is\n  invalid: x\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/2CMS"
+  },
+  {
+    "id": "4HVU",
+    "yaml": "key:\n   - ok\n   - also ok\n  - wrong\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/4HVU"
+  },
+  {
+    "id": "4JVG",
+    "yaml": "top1: &node1\n  &k1 key1: val1\ntop2: &node2\n  &v2 val2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/4JVG"
+  },
+  {
+    "id": "6S55",
+    "yaml": "key:\n - bar\n - baz\n invalid\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/6S55"
+  },
+  {
+    "id": "9KBC",
+    "yaml": "--- key1: value1\n    key2: value2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/9KBC"
+  },
+  {
+    "id": "BF9H",
+    "yaml": "---\nplain: a\n       b # end of scalar\n       c\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/BF9H"
+  },
+  {
+    "id": "BS4K",
+    "yaml": "word1  # comment\nword2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/BS4K"
+  },
+  {
+    "id": "CVW2",
+    "yaml": "---\n[ a, b, c,#invalid\n]\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/CVW2"
+  },
+  {
+    "id": "CXX2",
+    "yaml": "--- &anchor a: b\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/CXX2"
+  },
+  {
+    "id": "DK4H",
+    "yaml": "---\n[ key\n  : value ]\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/DK4H"
+  },
+  {
+    "id": "DK95/06",
+    "yaml": "foo:\n  a: 1\n  \tb: 2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/DK95/06"
+  },
+  {
+    "id": "DMG6",
+    "yaml": "key:\n  ok: 1\n wrong: 2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/DMG6"
+  },
+  {
+    "id": "EW3V",
+    "yaml": "k1: v1\n k2: v2\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/EW3V"
+  },
+  {
+    "id": "GDY7",
+    "yaml": "key: value\nthis is #not a: key\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/GDY7"
+  },
+  {
+    "id": "HU3P",
+    "yaml": "key:\n  word1 word2\n  no: key\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/HU3P"
+  },
+  {
+    "id": "MUS6/01",
+    "yaml": "%YAML 1.2\n---\n%YAML 1.2\n---\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/MUS6/01"
+  },
+  {
+    "id": "N4JP",
+    "yaml": "map:\n  key1: \"quoted1\"\n key2: \"bad indentation\"\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/N4JP"
+  },
+  {
+    "id": "T833",
+    "yaml": "---\n{\n foo: 1\n bar: 2 }\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/T833"
+  },
+  {
+    "id": "U44R",
+    "yaml": "map:\n  key1: \"quoted1\"\n   key2: \"bad indentation\"\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/U44R"
+  },
+  {
+    "id": "Y79Y/000",
+    "yaml": "foo: |\n\t\nbar: 1\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/Y79Y/000"
+  },
+  {
+    "id": "Y79Y/003",
+    "yaml": "- [\n\tfoo,\n foo\n ]\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/Y79Y/003"
+  },
+  {
+    "id": "Y79Y/009",
+    "yaml": "? key:\n:\tkey:\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/Y79Y/009"
+  },
+  {
+    "id": "ZCZ6",
+    "yaml": "a: b: c: d\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/ZCZ6"
+  },
+  {
+    "id": "ZXT5",
+    "yaml": "[ \"key\"\n  :value ]\n",
+    "source_url": "https://github.com/yaml/yaml-test-suite/tree/main/src/ZXT5"
+  }
+]

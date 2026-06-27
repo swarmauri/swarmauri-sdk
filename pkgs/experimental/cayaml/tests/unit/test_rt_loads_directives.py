@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from cayaml import round_trip_loads
 
 
@@ -5,14 +7,16 @@ def test_directives():
     """
     Tests handling of YAML directives such as %YAML 1.2, %TAG, etc.
     """
-    yaml_str = """
-    %YAML 1.2
-    %TAG ! tag:example.com,2025:app/
-    ---
-    !User
-    name: "John Doe"
-    age: 30
-    """
+    yaml_str = dedent(
+        """
+        %YAML 1.2
+        %TAG ! tag:example.com,2025:app/
+        ---
+        !User
+        name: "John Doe"
+        age: 30
+        """
+    )
     data = round_trip_loads(yaml_str)
     # The directive might set version or define tags.
     # Minimal parser behavior may ignore them.

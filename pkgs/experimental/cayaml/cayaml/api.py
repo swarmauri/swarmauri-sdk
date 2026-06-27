@@ -25,7 +25,11 @@ Round-trip mode (multi-doc):
   - round_trip_load_all(file_obj)
 """
 
-from .parser import _internal_parse_stream, _internal_to_ast
+from .parser import (
+    YamlParseError as YamlParseError,
+    _internal_parse_stream,
+    _internal_to_ast,
+)
 from .unparser import _internal_dump_plain, _internal_dump_round_trip
 from .plain_conversion import to_plain
 from .ast_nodes import Node, YamlStream
