@@ -99,7 +99,8 @@ class JupyterExecuteNotebookTool(ToolBase):
         Example:
             >>> tool = JupyterExecuteNotebookTool()
             >>> executed_notebook = tool("example_notebook.ipynb", 60)
-        >>> # The returned notebook contains executed cells and outputs.
+            >>> # The returned notebook contains executed cells
+            >>> # and outputs.
         """
         return self.execute_notebook(notebook_path, timeout)
 

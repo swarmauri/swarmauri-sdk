@@ -123,7 +123,7 @@ class JupyterExportHtmlTool(ToolBase):
 
         Example:
             >>> exporter = JupyterExportHtmlTool()
-        >>> result = exporter(
+            >>> result = exporter(
         ...     notebook_json='{"cells":[],"metadata":{}}',
         ...     template_file=None,
         ... )

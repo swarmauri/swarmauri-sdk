@@ -45,7 +45,8 @@ class QrCodeGeneratorTool(ToolBase):
         Example:
             >>> tool = QrCodeGeneratorTool()
             >>> result = tool("Hello, world!")
-        >>> print(result['image_b64'])  # Prints the QR code image payload
+            >>> # Prints the QR code image payload
+            >>> print(result['image_b64'])
         """
         # Generate QR Code
         qr = qrcode.QRCode(
