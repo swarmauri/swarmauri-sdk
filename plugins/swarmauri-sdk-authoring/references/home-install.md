@@ -1,14 +1,16 @@
 # Home Install
 
-The repo plugin is the source of truth. To mirror it into a local Codex home install, run the installer from the repository root:
+The repo marketplace is the source of truth. To install or refresh the plugin in the current Codex home, run the installer from the repository root:
 
 ```bash
 python plugins/swarmauri-sdk-authoring/scripts/install_home.py
 ```
 
-The installer chooses the home root as:
+The installer uses the Codex CLI to run the same operations a manual install should use:
 
-1. `$CODEX_HOME` when set.
-2. `~/.codex` otherwise.
+```bash
+codex plugin marketplace add <repo-root>
+codex plugin add swarmauri-sdk-authoring@swarmauri-sdk
+```
 
-It copies this plugin to `<home>/plugins/swarmauri-sdk-authoring` and updates `<home>/.agents/plugins/marketplace.json` with a local marketplace entry. Shared plugin files must use `$CODEX_HOME`, `~`, or relative paths in documentation; never commit workstation-specific absolute paths.
+The installer finds the Codex CLI from `CODEX_CLI_PATH` first, then from `PATH`. It registers `<repo-root>/.agents/plugins/marketplace.json` as the `swarmauri-sdk` marketplace and installs `swarmauri-sdk-authoring@swarmauri-sdk` into the local Codex plugin cache. Shared plugin files must use `$CODEX_HOME`, `~`, or relative paths in documentation; never commit workstation-specific absolute paths.

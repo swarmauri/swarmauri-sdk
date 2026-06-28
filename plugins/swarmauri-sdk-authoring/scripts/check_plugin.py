@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 
+MARKETPLACE_NAME = "swarmauri-sdk"
 PLUGIN_NAME = "swarmauri-sdk-authoring"
 SKILLS = {
     "swarmauri-add-core-interface",
@@ -50,13 +51,28 @@ def main() -> int:
     _assert("TODO" not in json.dumps(manifest), "plugin manifest contains TODO text")
 
     marketplace = _load_json(repo_root / ".agents" / "plugins" / "marketplace.json")
-    entries = {
-        entry["name"]: entry for entry in marketplace.get("plugins", [])
-    }
-    _assert(PLUGIN_NAME in entries, "marketplace entry is missing")
+    _assert(marketplace.get("name") == MARKETPLACE_NAME, "marketplace name mismatch")
     _assert(
-        entries[PLUGIN_NAME]["source"]["path"] == f"./plugins/{PLUGIN_NAME}",
-        "marketplace source path mismatch",
+        marketplace.get("interface", {}).get("displayName") == "Swarmauri SDK",
+        "marketplace interface display name mismatch",
+    )
+    entries = {entry["name"]: entry for entry in marketplace.get("plugins", [])}
+    _assert(PLUGIN_NAME in entries, "marketplace entry is missing")
+    entry = entries[PLUGIN_NAME]
+    _assert(entry.get("category") == "Developer Tools", "marketplace category mismatch")
+    _assert(
+        entry.get("source") == {
+            "source": "local",
+            "path": f"./plugins/{PLUGIN_NAME}",
+        },
+        "marketplace source mismatch",
+    )
+    _assert(
+        entry.get("policy") == {
+            "installation": "AVAILABLE",
+            "authentication": "ON_INSTALL",
+        },
+        "marketplace policy mismatch",
     )
 
     skill_root = plugin_root / "skills"
