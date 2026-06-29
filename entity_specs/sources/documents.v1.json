@@ -1,0 +1,111 @@
+{
+  "manifest_version": "1",
+  "family": "documents",
+  "description": "Pilot source spec for the Swarmauri document entity family.",
+  "targets": [
+    "python",
+    "rust",
+    "npm",
+    "tsx",
+    "react+tsx",
+    "vue+tsx",
+    "svelte+tsx"
+  ],
+  "entities": [
+    {
+      "id": "swarmauri_base.documents.DocumentBase.DocumentBase",
+      "name": "DocumentBase",
+      "layer": "base",
+      "role": "base_registered_model",
+      "base_ids": [
+        "swarmauri_core.documents.IDocument.IDocument"
+      ],
+      "registration": {
+        "kind": "register_model",
+        "registrar": "ComponentBase",
+        "type_name": null
+      },
+      "python": {
+        "source_path": "pkgs/base/swarmauri_base/documents/DocumentBase.py",
+        "imports": [
+          "from typing import Dict, Optional, Literal",
+          "from pydantic import Field, ConfigDict",
+          "",
+          "from swarmauri_core.documents.IDocument import IDocument",
+          "from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes",
+          "from swarmauri_standard.vectors.Vector import Vector"
+        ],
+        "bases": [
+          "IDocument",
+          "ComponentBase"
+        ],
+        "model_config": "ConfigDict(extra=\"forbid\", arbitrary_types_allowed=True)"
+      },
+      "fields": [
+        {
+          "name": "content",
+          "annotation": "str",
+          "required": true
+        },
+        {
+          "name": "metadata",
+          "annotation": "Dict",
+          "default": "{}"
+        },
+        {
+          "name": "embedding",
+          "annotation": "Optional[Vector]",
+          "default": "None"
+        },
+        {
+          "name": "resource",
+          "annotation": "Optional[str]",
+          "default": "ResourceTypes.DOCUMENT.value",
+          "frozen": true
+        },
+        {
+          "name": "type",
+          "annotation": "Literal[\"DocumentBase\"]",
+          "default": "DocumentBase",
+          "discriminator": true
+        }
+      ]
+    },
+    {
+      "id": "swarmauri_standard.documents.Document.Document",
+      "name": "Document",
+      "layer": "concrete",
+      "role": "concrete_registered_type",
+      "base_ids": [
+        "swarmauri_base.documents.DocumentBase.DocumentBase"
+      ],
+      "registration": {
+        "kind": "register_type",
+        "registrar": "ComponentBase",
+        "base_types": [
+          "DocumentBase"
+        ],
+        "type_name": "Document"
+      },
+      "python": {
+        "source_path": "pkgs/swarmauri_standard/swarmauri_standard/documents/Document.py",
+        "imports": [
+          "from typing import Literal",
+          "from swarmauri_base.documents.DocumentBase import DocumentBase",
+          "from swarmauri_base.ComponentBase import ComponentBase"
+        ],
+        "bases": [
+          "DocumentBase"
+        ]
+      },
+      "fields": [
+        {
+          "name": "type",
+          "annotation": "Literal[\"Document\"]",
+          "default": "Document",
+          "discriminator": true
+        }
+      ]
+    }
+  ]
+}

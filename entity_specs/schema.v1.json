@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://swarmauri.com/schemas/swarmauri-entities.v1.json",
+  "title": "Swarmauri Entity Manifest",
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "schema",
+    "generated_by",
+    "targets",
+    "scope",
+    "summary",
+    "packages",
+    "entities"
+  ],
+  "properties": {
+    "manifest_version": {
+      "const": "1"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scope": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "package_count",
+        "entity_count",
+        "by_layer",
+        "by_role"
+      ],
+      "properties": {
+        "package_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "entity_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_layer": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_role": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "member",
+          "scope_reason",
+          "entity_count"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "member": {
+            "type": "string"
+          },
+          "scope_reason": {
+            "type": "string"
+          },
+          "entity_count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "layer",
+          "role",
+          "package",
+          "module",
+          "source_path",
+          "line",
+          "bases",
+          "decorators",
+          "registration",
+          "fields",
+          "enum_members",
+          "methods"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "layer": {
+            "enum": [
+              "core",
+              "base",
+              "concrete"
+            ]
+          },
+          "role": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "source_path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "bases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decorators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "registration": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "type_discriminator": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resource_default": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "doc": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fields": {
+            "type": "array"
+          },
+          "enum_members": {
+            "type": "array"
+          },
+          "methods": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "source_specs": {
+      "type": "array",
+      "description": "Optional list of editable source-spec files governed by $defs.source_spec.",
+      "items": {
+        "$ref": "#/$defs/source_spec"
+      }
+    }
+  },
+  "$defs": {
+    "source_spec": {
+      "type": "object",
+      "required": [
+        "manifest_version",
+        "family",
+        "targets",
+        "entities"
+      ],
+      "properties": {
+        "manifest_version": {
+          "const": "1"
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "python",
+              "rust",
+              "npm",
+              "tsx",
+              "react+tsx",
+              "vue+tsx",
+              "svelte+tsx"
+            ]
+          }
+        },
+        "entities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/source_entity"
+          }
+        }
+      }
+    },
+    "source_entity": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "layer",
+        "role",
+        "fields"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layer": {
+          "enum": [
+            "core",
+            "base",
+            "concrete"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "registration": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "annotation"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "annotation": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
