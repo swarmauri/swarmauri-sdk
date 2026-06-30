@@ -340,14 +340,39 @@ jobs:
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
       - name: Publish
+        id: publish
         run: |
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Publishing workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
+          VERSION=$(python -c "import toml; print(toml.load('${MEMBER}/pyproject.toml')['project']['version'])")
+          echo "Version: $VERSION"
+          if python - "$PACKAGE_NAME" "$VERSION" <<'PY'
+          import sys
+          import urllib.error
+          import urllib.request
+
+          package_name, version = sys.argv[1:3]
+          url = f"https://pypi.org/pypi/{package_name}/{version}/json"
+          try:
+              with urllib.request.urlopen(url) as response:
+                  sys.exit(0 if response.status == 200 else 1)
+          except urllib.error.HTTPError as exc:
+              if exc.code == 404:
+                  sys.exit(1)
+              raise
+          PY
+          then
+            echo "PyPI already has ${PACKAGE_NAME}==${VERSION}; skipping publish."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           for attempt in 1 2 3 4 5; do
             if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"; then
+              echo "published=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             if [ "$attempt" = "5" ]; then
@@ -380,8 +405,14 @@ jobs:
       - name: Create Git Tag
         run: |
           cd pkgs/${{ matrix.member }}
-          git tag "${{ steps.prepare_release.outputs.tag }}"
-          git push origin "${{ steps.prepare_release.outputs.tag }}"
+          TAG="${{ steps.prepare_release.outputs.tag }}"
+          git fetch --tags origin
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists; skipping tag creation."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi
 
       - name: Generate Release Notes
         id: generate_release_notes
@@ -407,8 +438,22 @@ jobs:
           zip -j "$ZIP_PATH" distout/*.whl distout/*.tar.gz
           echo "Artifacts zipped to: $ZIP_PATH"
 
+      - name: Check GitHub Release
+        id: check_github_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.prepare_release.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "GitHub release ${TAG} already exists; skipping release creation."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub Release
         id: create_release
+        if: ${{ steps.check_github_release.outputs.exists != 'true' }}
         uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -422,6 +467,7 @@ jobs:
             pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
 
       - name: Publish GitHub Release
+        if: ${{ steps.check_github_release.outputs.exists != 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
