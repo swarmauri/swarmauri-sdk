@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_github_release"
-version = "0.3.1.dev7"
+version = "0.3.1.dev8"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "GitHub Release storage adapter for Peagen"
 readme = "README.md"
