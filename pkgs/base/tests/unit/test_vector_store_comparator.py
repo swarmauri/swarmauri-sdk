@@ -1,4 +1,5 @@
 import warnings
+from math import sqrt
 
 import pytest
 
@@ -6,13 +7,27 @@ from swarmauri_base.vector_stores.VectorStoreComparator import (
     MetricVectorStoreComparator,
     SimilarityVectorStoreComparator,
 )
-from swarmauri_standard.metrics.EuclideanMetric import EuclideanMetric
-from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
+
+
+class FakeEuclideanMetric:
+    def distance(self, x, y):
+        return sqrt(sum((left - right) ** 2 for left, right in zip(x, y)))
+
+
+class FakeCosineSimilarity:
+    def similarity(self, x, y):
+        numerator = sum(left * right for left, right in zip(x, y))
+        x_norm = sqrt(sum(value * value for value in x))
+        y_norm = sqrt(sum(value * value for value in y))
+        return numerator / (x_norm * y_norm)
+
+    def similarities(self, x, ys):
+        return [self.similarity(x, y) for y in ys]
 
 
 @pytest.mark.unit
 def test_metric_comparator_ranks_ascending():
-    comparator = MetricVectorStoreComparator(EuclideanMetric())
+    comparator = MetricVectorStoreComparator(FakeEuclideanMetric())
     indices = comparator.top_k_indices(
         [0.0, 0.0], [[2.0, 0.0], [1.0, 0.0]], top_k=2
     )
@@ -22,7 +37,7 @@ def test_metric_comparator_ranks_ascending():
 
 @pytest.mark.unit
 def test_similarity_comparator_ranks_descending():
-    comparator = SimilarityVectorStoreComparator(CosineSimilarity())
+    comparator = SimilarityVectorStoreComparator(FakeCosineSimilarity())
     indices = comparator.top_k_indices(
         [1.0, 0.0], [[0.0, 1.0], [1.0, 0.0]], top_k=2
     )

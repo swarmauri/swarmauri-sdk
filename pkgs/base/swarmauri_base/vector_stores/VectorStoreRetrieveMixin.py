@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List
 from pydantic import BaseModel
-from swarmauri_standard.documents.Document import Document
+from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.vector_stores.IVectorStoreRetrieve import (
     IVectorStoreRetrieve,
 )
@@ -9,7 +9,7 @@ from swarmauri_core.vector_stores.IVectorStoreRetrieve import (
 
 class VectorStoreRetrieveMixin(IVectorStoreRetrieve, BaseModel):
     @abstractmethod
-    def retrieve(self, query: str, top_k: int = 5) -> List[Document]:
+    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
         """
         Retrieve the top_k most relevant documents based on the given query.
 

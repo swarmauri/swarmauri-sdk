@@ -4,8 +4,8 @@ from typing import List, Literal, Optional
 
 from pydantic import Field, PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
-from swarmauri_standard.documents.Document import Document
 
 
 @ComponentBase.register_model()
@@ -20,7 +20,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
     are to be implemented by concrete subclasses.
     """
 
-    documents: List[Document] = []
+    documents: List[IDocument] = []
     _embedder = PrivateAttr()
     _comparator = PrivateAttr(default=None)
     resource: Optional[str] = Field(default=ResourceTypes.VECTOR_STORE.value)
@@ -35,7 +35,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         return self._comparator
 
     @abstractmethod
-    def add_document(self, document: Document) -> None:
+    def add_document(self, document: IDocument) -> None:
         """
         Add a single document to the document store.
 
@@ -45,7 +45,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         pass
 
     @abstractmethod
-    def add_documents(self, documents: List[Document]) -> None:
+    def add_documents(self, documents: List[IDocument]) -> None:
         """
         Add multiple documents to the document store in a batch operation.
 
@@ -56,7 +56,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         pass
 
     @abstractmethod
-    def get_document(self, id: str) -> Optional[Document]:
+    def get_document(self, id: str) -> Optional[IDocument]:
         """
         Retrieve a single document by its identifier.
 
@@ -70,7 +70,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         pass
 
     @abstractmethod
-    def get_all_documents(self) -> List[Document]:
+    def get_all_documents(self) -> List[IDocument]:
         """
         Retrieve all documents stored in the document store.
 
@@ -80,7 +80,7 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         pass
 
     @abstractmethod
-    def update_document(self, id: str, updated_document: Document) -> None:
+    def update_document(self, id: str, updated_document: IDocument) -> None:
         """
         Update a document in the document store.
 
