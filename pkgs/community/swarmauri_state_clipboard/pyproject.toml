@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_state_clipboard"
-version = "0.9.1.dev6"
+version = "0.9.1.dev7"
 description = "Clipboard-backed Swarmauri state provider for transient desktop workflows and local automation."
 license = "Apache-2.0"
 readme = "README.md"

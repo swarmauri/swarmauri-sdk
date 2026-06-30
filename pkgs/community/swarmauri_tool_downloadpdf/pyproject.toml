@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_downloadpdf"
-version = "0.10.1.dev6"
+version = "0.10.1.dev7"
 description = "Swarmauri document-ingestion tool for downloading PDFs and returning base64-encoded content."
 license = "Apache-2.0"
 readme = "README.md"
