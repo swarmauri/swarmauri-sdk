@@ -3,11 +3,11 @@
 Implements the ICrypto contract using:
 - XChaCha20-Poly1305-IETF for symmetric AEAD
 - X25519 sealed boxes for:
-    • sealing/unsealing data (X25519-SEALEDBOX)
-    • wrapping/unwrapping DEKs (X25519-SEAL-WRAP)
+    - sealing/unsealing data (X25519-SEALEDBOX)
+    - wrapping/unwrapping DEKs (X25519-SEAL-WRAP)
 - encrypt_for_many:
-    • sealed-style (enc_alg="X25519-SEALEDBOX")
-    • KEM+AEAD (enc_alg="XCHACHA20-POLY1305", recipient_wrap_alg="X25519-SEAL-WRAP")
+    - sealed-style (enc_alg="X25519-SEALEDBOX")
+    - KEM+AEAD with XCHACHA20-POLY1305 and X25519-SEAL-WRAP
 
 This implementation calls libsodium via ctypes and does not depend on PyNaCl.
 """
@@ -82,7 +82,8 @@ def _load_libsodium() -> CDLL:
         import warnings
 
         warnings.warn(
-            f"Failed to load bundled libsodium: {e}, falling back to system libsodium"
+            "Failed to load bundled libsodium: "
+            f"{e}, falling back to system libsodium"
         )
 
     # Existing environment variable check
@@ -110,7 +111,8 @@ def _load_libsodium() -> CDLL:
         except OSError:
             continue
     raise RuntimeError(
-        "Could not load libsodium. Install swarmauri_crypto_sodium with bundled libsodium, "
+        "Could not load libsodium. Install swarmauri_crypto_sodium with "
+        "bundled libsodium, "
         "set LIBSODIUM_PATH, or install libsodium system-wide."
     )
 
@@ -507,7 +509,7 @@ class SodiumCrypto(CryptoBase):
             aad=aad,
         )
 
-    # ---------------- signing / verification (not yet implemented) ----------------
+    # Signing / verification are not implemented yet.
     async def sign(
         self,
         key: KeyRef,
@@ -530,5 +532,6 @@ class SodiumCrypto(CryptoBase):
     ) -> bool:
         """Verify a signature (not yet implemented in this provider)."""
         raise UnsupportedAlgorithm(
-            "Digital signature verification not yet implemented in SodiumCrypto"
+            "Digital signature verification not yet implemented in "
+            "SodiumCrypto"
         )

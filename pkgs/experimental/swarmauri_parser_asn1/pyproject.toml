@@ -39,5 +39,7 @@ ASN1EncodeTool = "swarmauri_parser_asn1.tool:ASN1EncodeTool"
 
 [dependency-groups]
 dev = [
+    "lark>=1.1.9",
+    "pytest>=8.0",
     "ruff>=0.11.0",
 ]

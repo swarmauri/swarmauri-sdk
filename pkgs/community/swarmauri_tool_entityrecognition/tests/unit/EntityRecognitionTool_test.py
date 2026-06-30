@@ -25,7 +25,18 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_call():
-    tool = Tool()
+    def fake_ner(text):
+        assert (
+            text
+            == "Apple Inc. is an American multinational technology company."
+        )
+        return [
+            {"entity": "I-ORG", "word": "Apple"},
+            {"entity": "I-ORG", "word": "Inc"},
+            {"entity": "I-MISC", "word": "American"},
+        ]
+
+    tool = Tool(nlp=fake_ner)
 
     text = "Apple Inc. is an American multinational technology company."
     expected_result = {"I-ORG": ["Apple", "Inc"], "I-MISC": ["American"]}

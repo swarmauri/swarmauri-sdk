@@ -1,9 +1,9 @@
 // asn1.lark — pragmatic ASN.1 grammar (subset of ITU‑T X.680)
 // Designed for Lark's Earley parser (MIT-only usage). No standalone LALR.
 
-/* -------------------------
-   Lexer: whitespace & comments
-   ------------------------- */
+// -------------------------
+// Lexer: whitespace & comments
+// -------------------------
 %import common.WS
 %ignore WS
 COMMENT: /--[^\n]*/        // ASN.1 line comment from `--` to end-of-line
@@ -15,26 +15,26 @@ EXPORTS_BLOCK: /EXPORTS\b[^;]*;/
 %ignore IMPORTS_BLOCK
 %ignore EXPORTS_BLOCK
 
-/* -------------------------
-   Entry point
-   ------------------------- */
+// -------------------------
+// Entry point
+// -------------------------
 start: module+
 
 module: UIDENT "DEFINITIONS" "::=" "BEGIN" module_body "END"
 
 module_body: (assignment | ";")*
 
-/* -------------------------
-   Assignments
-   ------------------------- */
+// -------------------------
+// Assignments
+// -------------------------
 assignment: type_assignment | value_assignment
 
 type_assignment: UIDENT "::=" type
 value_assignment: LIDENT type "::=" value    -> value_assign
 
-/* -------------------------
-   Types (core)
-   ------------------------- */
+// -------------------------
+// Types (core)
+// -------------------------
 ?type: builtin_type
      | type_ref
      | "SEQUENCE" "{" field_list "}"         -> seq_type
@@ -60,9 +60,9 @@ int_value: INT
 tagged_type: "[" tagclass? INT "]" ("IMPLICIT" | "EXPLICIT")? type
 tagclass: "UNIVERSAL" | "APPLICATION" | "PRIVATE" | "CONTEXT" | "CONTEXT-SPECIFIC"
 
-/* -------------------------
-   Built-in types (commonly used)
-   ------------------------- */
+// -------------------------
+// Built-in types (commonly used)
+// -------------------------
 builtin_type: "BOOLEAN"                           -> t_boolean
             | "INTEGER" enum_spec?                -> t_integer
             | "ENUMERATED" "{" enum_list "}"      -> t_enumerated
@@ -82,9 +82,9 @@ enum_item: UIDENT ("(" INT ")")?
 
 type_ref: UIDENT
 
-/* -------------------------
-   SEQUENCE/SET fields & CHOICE alts
-   ------------------------- */
+// -------------------------
+// SEQUENCE/SET fields & CHOICE alts
+// -------------------------
 field_list: (field ("," field)*)? ("," "...")?
 field: LIDENT type field_opts?
 field_opts: "OPTIONAL"
@@ -93,9 +93,9 @@ field_opts: "OPTIONAL"
 alt_list: alt ("," alt)*
 alt: UIDENT type
 
-/* -------------------------
-   Values (practical subset)
-   ------------------------- */
+// -------------------------
+// Values (practical subset)
+// -------------------------
 value: NUMBER
      | STRING
      | oid_value
@@ -109,9 +109,9 @@ oid_comp: INT
         | UIDENT
         | UIDENT "(" INT ")"
 
-/* -------------------------
-   Tokens
-   ------------------------- */
+// -------------------------
+// Tokens
+// -------------------------
 UIDENT: /[A-Z][A-Za-z0-9-]*/
 LIDENT: /[a-z][A-Za-z0-9-]*/
 INT: /[0-9]+/

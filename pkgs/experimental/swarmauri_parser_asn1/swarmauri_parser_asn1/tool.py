@@ -22,7 +22,7 @@ except Exception:
             return deco
 
 
-GRAMMAR_PACKAGE = "swarmauri_asn1.grammar"
+GRAMMAR_PACKAGE = "swarmauri_parser_asn1.grammar"
 GRAMMAR_FILE = "asn1.lark"
 
 
@@ -45,7 +45,7 @@ class ASN1EncodeTool(ToolBase):
             lexer="dynamic",
             ambiguity="resolve",
             maybe_placeholders=True,
-            cache=True,
+            cache=False,
         )
         self._schema: Schema = self._compile_modules(asn1_files)
 

@@ -49,6 +49,9 @@ class Asn1ToIR(Transformer):
                 values[it.name] = it
         return {"types": types, "values": values}
 
+    def assignment(self, items):
+        return items[0]
+
     # type_assignment: UIDENT "::=" type
     def type_assignment(self, items):
         name, t = items

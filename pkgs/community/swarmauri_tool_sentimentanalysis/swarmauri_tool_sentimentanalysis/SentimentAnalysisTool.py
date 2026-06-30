@@ -1,10 +1,12 @@
-from transformers import pipeline
+from typing import Callable, Dict, List, Literal, Optional
+
+from pydantic import Field
 from transformers import logging as hf_logging
-from typing import List, Literal, Dict
+from transformers import pipeline
+
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.ComponentBase import ComponentBase
-from pydantic import Field
 
 hf_logging.set_verbosity_error()
 
@@ -31,6 +33,7 @@ class SentimentAnalysisTool(ToolBase):
     name: str = "SentimentAnalysisTool"
     description: str = "Analyzes the sentiment of the given text."
     type: Literal["SentimentAnalysisTool"] = "SentimentAnalysisTool"
+    analyzer: Optional[Callable] = None
 
     def __call__(self, text: str) -> Dict[str, str]:
         """
@@ -48,13 +51,9 @@ class SentimentAnalysisTool(ToolBase):
         Raises:
             RuntimeError: If sentiment analysis fails.
         """
-        analyzer = None
         try:
-            analyzer = pipeline("sentiment-analysis")
+            analyzer = self.analyzer or pipeline("sentiment-analysis")
             result = analyzer(text)
             return {"sentiment": result[0]["label"]}
         except Exception as e:
             raise RuntimeError(f"Sentiment analysis failed: {str(e)}")
-        finally:
-            if analyzer is not None:
-                del analyzer

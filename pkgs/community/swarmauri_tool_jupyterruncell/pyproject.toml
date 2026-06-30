@@ -54,7 +54,7 @@ swarmauri_standard = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=asttokens"
+addopts = "--pylicense-accept-deps=asttokens,ptyprocess,pygments"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

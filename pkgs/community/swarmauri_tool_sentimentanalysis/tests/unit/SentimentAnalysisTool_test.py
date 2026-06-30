@@ -37,7 +37,11 @@ def test_serialization():
 )
 @pytest.mark.unit
 def test_call(text, expected_labels):
-    tool = Tool()
+    def fake_analyzer(value):
+        assert value == text
+        return [{"label": expected_labels[0]}]
+
+    tool = Tool(analyzer=fake_analyzer)
     result = tool(text)
 
     assert result["sentiment"] in expected_labels
@@ -45,4 +49,4 @@ def test_call(text, expected_labels):
     assert isinstance(result, dict)
     assert "sentiment" in result
 
-    assert not hasattr(tool, "analyzer")
+    assert tool.analyzer is fake_analyzer

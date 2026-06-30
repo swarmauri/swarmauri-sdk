@@ -54,7 +54,7 @@ swarmauri_standard = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=tqdm,pyphen"
+addopts = "--pylicense-accept-deps=pygments,tqdm,pyphen"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",
