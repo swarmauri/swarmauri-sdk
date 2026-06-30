@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_stepca"
-version = "0.3.4.dev6"
+version = "0.3.4.dev7"
 description = "Asynchronous Swarmauri certificate service for smallstep step-ca CSR creation, one-time-token signing requests, and X.509 certificate parsing."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_deepseek"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 description = "Provider-specific Swarmauri import package for DeepSeek OpenAI-compatible chat completions, reasoning models, streaming, async, and batch LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_paystack"
-version = "0.9.3.dev6"
+version = "0.9.3.dev7"
 description = "Paystack-backed Swarmauri billing provider for checkout, payment initialization, subscriptions, invoices, refunds, splits, and webhook verification."
 license = "Apache-2.0"
 readme = "README.md"

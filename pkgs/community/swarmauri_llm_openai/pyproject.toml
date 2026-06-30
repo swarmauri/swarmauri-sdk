@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_openai"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 description = "Provider-specific Swarmauri import package for OpenAI chat, reasoning, tool-calling, transcription, and text-to-speech workflows."
 license = "Apache-2.0"
 readme = "README.md"

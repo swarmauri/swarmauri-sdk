@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_circuitbreaker"
-version = "0.7.4.dev6"
+version = "0.7.4.dev7"
 description = "Async circuit-breaker middleware for Swarmauri and FastAPI request flows backed by pybreaker."
 license = "Apache-2.0"
 readme = "README.md"
