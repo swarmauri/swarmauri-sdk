@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_lexicaldensity"
-version = "0.10.1.dev5"
+version = "0.11.0.dev1"
 description = "NLTK-powered Swarmauri NLP tool for measuring lexical density across prompts, documents, and corpora."
 license = "Apache-2.0"
 readme = "README.md"

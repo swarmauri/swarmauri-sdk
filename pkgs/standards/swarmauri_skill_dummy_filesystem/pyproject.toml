@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_skill_dummy_filesystem"
-version = "0.9.1.dev9"
+version = "0.11.0.dev1"
 description = "Packaged dummy filesystem skill for Swarmauri tests."
 license = "Apache-2.0"
 readme = "README.md"

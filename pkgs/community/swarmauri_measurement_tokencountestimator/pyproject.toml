@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_measurement_tokencountestimator"
-version = "0.9.4.dev8"
+version = "0.11.0.dev1"
 description = "Token-budget estimation measurement for Swarmauri using tiktoken encodings and prompt-length preflight checks."
 license = "Apache-2.0"
 readme = "README.md"

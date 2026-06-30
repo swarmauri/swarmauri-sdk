@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_webscraping"
-version = "0.10.1.dev8"
+version = "0.11.0.dev1"
 description = "Swarmauri web-content extraction tool for scraping HTML pages with CSS selectors."
 license = "Apache-2.0"
 readme = "README.md"

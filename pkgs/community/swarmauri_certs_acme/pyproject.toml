@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_acme"
-version = "0.3.4.dev8"
+version = "0.11.0.dev1"
 description = "ACME v2 certificate service for Swarmauri CSR creation, certificate issuance, PEM chain retrieval, and X.509 inspection."
 license = "Apache-2.0"
 readme = "README.md"

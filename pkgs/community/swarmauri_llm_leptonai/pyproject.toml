@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_leptonai"
-version = "0.9.4.dev5"
+version = "0.11.0.dev1"
 description = "Provider-specific Swarmauri import package for Lepton AI hosted chat models, streaming workflows, and SDXL image generation."
 license = "Apache-2.0"
 readme = "README.md"

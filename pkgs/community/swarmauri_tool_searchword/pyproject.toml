@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_searchword"
-version = "0.4.1.dev8"
+version = "0.11.0.dev1"
 description = "Case-insensitive Swarmauri file-search tool for counting and highlighting word or phrase matches."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

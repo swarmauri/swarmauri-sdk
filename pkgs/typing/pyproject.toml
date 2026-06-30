@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_typing"
-version = "0.10.1.dev9"
+version = "0.11.0.dev1"
 
 description = "Dynamic typing utilities for Swarmauri annotated unions, intersection metadata, and registry-driven component models."
 keywords = [

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_file"
-version = "0.3.1.dev7"
+version = "0.11.0.dev1"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Filesystem git filter for Peagen"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_perplexity"
-version = "0.1.1.dev8"
+version = "0.11.0.dev1"
 description = "Provider-specific Swarmauri import package for Perplexity chat, streaming, async, batch, and citation-aware LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"

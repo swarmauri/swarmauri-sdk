@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_textlength"
-version = "0.9.1.dev8"
+version = "0.11.0.dev1"
 description = "NLTK-powered Swarmauri text-analysis tool for counting characters, words, and sentences."
 license = "Apache-2.0"
 readme = "README.md"

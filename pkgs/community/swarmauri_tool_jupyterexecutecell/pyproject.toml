@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutecell"
-version = "0.10.1.dev5"
+version = "0.11.0.dev1"
 description = "Swarmauri code-execution tool for running notebook cells in an active IPython environment with captured output."
 license = "Apache-2.0"
 readme = "README.md"

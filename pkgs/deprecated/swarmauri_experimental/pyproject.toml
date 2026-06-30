@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_experimental"
-version = "0.6.2.dev3"
+version = "0.11.0.dev1"
 description = "This repository includes experimental components. (Inactive: experimental packages are now standalone.)"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"

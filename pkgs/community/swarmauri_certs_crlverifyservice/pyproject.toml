@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_crlverifyservice"
-version = "0.1.4.dev5"
+version = "0.11.0.dev1"
 description = "CRL-based Swarmauri certificate verification service for RFC 5280 revocation checks and X.509 metadata parsing."
 license = "Apache-2.0"
 readme = "README.md"

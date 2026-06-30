@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutenotebook"
-version = "0.10.1.dev5"
+version = "0.11.0.dev1"
 description = "Swarmauri notebook-execution tool for running Jupyter notebooks with nbclient and capturing cell outputs."
 license = "Apache-2.0"
 readme = "README.md"

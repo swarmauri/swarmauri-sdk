@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupytershutdownkernel"
-version = "0.9.1.dev8"
+version = "0.11.0.dev1"
 description = "Swarmauri notebook-lifecycle tool for shutting down Jupyter kernels programmatically with jupyter_client."
 license = "Apache-2.0"
 readme = "README.md"

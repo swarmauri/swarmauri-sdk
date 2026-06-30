@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterexecutenotebookwithparameters"
-version = "1.4.1.dev5"
+version = "0.11.0.dev1"
 description = "Swarmauri papermill tool for executing parameterized Jupyter notebooks and writing executed notebook outputs."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_embedding_mlm"
-version = "0.8.3.dev5"
+version = "0.11.0.dev1"
 description = "Trainable Swarmauri embedding component for Hugging Face masked language models, tokenizer adaptation, local fine-tuning, and Vector output."
 license = "Apache-2.0"
 readme = "README.md"

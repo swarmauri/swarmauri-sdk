@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_bertembedding"
-version = "0.8.4.dev5"
+version = "0.11.0.dev1"
 description = "BERT-based dense embedding parser for Swarmauri with batch text encoding and document metadata vectors."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_smogindex"
-version = "0.10.1.dev5"
+version = "0.11.0.dev1"
 description = "Swarmauri readability-analysis tool for calculating SMOG Index scores across text and documentation."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_gcpkms"
-version = "0.9.4.dev5"
+version = "0.11.0.dev1"
 description = "Google Cloud KMS-backed Swarmauri key provider for key metadata, encryption, signing, wrapping, public JWKS, and HKDF workflows."
 license = "Apache-2.0"
 readme = "README.md"

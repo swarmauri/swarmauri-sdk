@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterwritenotebook"
-version = "0.9.1.dev5"
+version = "0.11.0.dev1"
 description = "Swarmauri notebook-output tool for writing Jupyter notebook data to disk with read-back verification."
 license = "Apache-2.0"
 readme = "README.md"

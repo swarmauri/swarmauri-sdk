@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_minio"
-version = "0.2.2.dev9"
+version = "0.11.0.dev1"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "MinIO storage adapter for SwarmauriSDK"
 readme = "README.md"

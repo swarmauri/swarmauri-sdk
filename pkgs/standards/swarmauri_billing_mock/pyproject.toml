@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_mock"
-version = "0.10.1.dev9"
+version = "0.11.0.dev1"
 description = "Deterministic in-memory Swarmauri billing provider for testing, examples, and full billing capability contract checks."
 license = "Apache-2.0"
 readme = "README.md"
