@@ -148,7 +148,9 @@ def pytest_collection_modifyitems(
 
 
 class ReadmeExampleItem(pytest.Item):
-    def __init__(self, name: str, parent: pytest.Collector, example: ReadmeExample):
+    def __init__(
+        self, name: str, parent: pytest.Collector, example: ReadmeExample
+    ):
         super().__init__(name, parent)
         self.example = example
         self.path = example.path
@@ -164,7 +166,10 @@ class ReadmeExampleItem(pytest.Item):
 
 class ReadmeAggregateItem(pytest.Item):
     def __init__(
-        self, name: str, parent: pytest.Collector, examples: Sequence[ReadmeExample]
+        self,
+        name: str,
+        parent: pytest.Collector,
+        examples: Sequence[ReadmeExample],
     ):
         super().__init__(name, parent)
         self.examples = list(examples)
@@ -211,7 +216,8 @@ def _resolve_files(config: pytest.Config) -> List[Path]:
     if missing:
         config.issue_config_time_warning(
             PytestWarning(
-                "readme examples plugin: missing files -> " + ", ".join(missing)
+                "readme examples plugin: missing files -> "
+                + ", ".join(missing)
             ),
             stacklevel=2,
         )
@@ -265,7 +271,10 @@ def _split_values(raw: object) -> list[str]:
 
 
 def _extract_examples(
-    path: Path, languages: set[str], skip_markers: set[str], allow_untagged: bool
+    path: Path,
+    languages: set[str],
+    skip_markers: set[str],
+    allow_untagged: bool,
 ) -> list[ReadmeExample]:
     text = path.read_text(encoding="utf-8")
     examples: list[ReadmeExample] = []
@@ -368,10 +377,10 @@ def _execute_example(example: ReadmeExample) -> str | None:
         with redirect_stdout(stdout):
             exec(code_object, namespace, namespace)
     except Exception as exc:  # pragma: no cover - verified via plugin tests
-        summary = "".join(traceback.format_exception_only(exc.__class__, exc)).strip()
-        return (
-            f"{example.path}:{example.line} ({example.display_name}) raised {summary}"
-        )
+        summary = "".join(
+            traceback.format_exception_only(exc.__class__, exc)
+        ).strip()
+        return f"{example.path}:{example.line} ({example.display_name}) raised {summary}"
     return None
 
 

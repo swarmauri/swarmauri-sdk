@@ -1,7 +1,9 @@
 # File: tests/workflows/merge_strategies/test_dict_merge.py
 
 import pytest
-from swarmauri_workflow_statedriven.merge_strategies.dict_merge import DictMergeStrategy
+from swarmauri_workflow_statedriven.merge_strategies.dict_merge import (
+    DictMergeStrategy,
+)
 
 
 @pytest.mark.unit

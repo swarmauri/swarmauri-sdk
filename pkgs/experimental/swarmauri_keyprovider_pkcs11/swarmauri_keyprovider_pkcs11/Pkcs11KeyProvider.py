@@ -71,7 +71,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
         try:
             self._lib = pkcs11.lib(module_path)
         except pkcs11.PKCS11Error as exc:  # pragma: no cover - init sanity
-            raise ImportError(f"failed to load PKCS#11 module: {module_path}") from exc
+            raise ImportError(
+                f"failed to load PKCS#11 module: {module_path}"
+            ) from exc
         if token_label:
             self._slot = next(
                 (
@@ -108,7 +110,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
         if self._allow_ec:
             algs.append(KeyAlg.ECDSA_P256_SHA256.value)
         if self._allow_rsa:
-            algs.extend([KeyAlg.RSA_OAEP_SHA256.value, KeyAlg.RSA_PSS_SHA256.value])
+            algs.extend(
+                [KeyAlg.RSA_OAEP_SHA256.value, KeyAlg.RSA_PSS_SHA256.value]
+            )
         return {
             "class": ("sym", "asym"),
             "algs": tuple(algs),
@@ -166,7 +170,11 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 export_policy=ExportPolicy.NONE,
                 public=None,
                 material=None,
-                tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                tags={
+                    "label": spec.label,
+                    "alg": spec.alg.value,
+                    "provider": "pkcs11",
+                },
                 fingerprint=self._fingerprint(kid=kid),
             )
 
@@ -216,7 +224,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
             )
             self._idx.setdefault(kid, {})[version] = entry
             pub_pem = serialization.load_der_public_key(
-                rsa.RSAPublicNumbers(int.from_bytes(n, "big"), int.from_bytes(e, "big"))
+                rsa.RSAPublicNumbers(
+                    int.from_bytes(n, "big"), int.from_bytes(e, "big")
+                )
                 .public_key()
                 .public_bytes(
                     serialization.Encoding.DER,
@@ -234,7 +244,11 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 export_policy=ExportPolicy.NONE,
                 public=pub_pem,
                 material=None,
-                tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                tags={
+                    "label": spec.label,
+                    "alg": spec.alg.value,
+                    "provider": "pkcs11",
+                },
                 fingerprint=self._fingerprint(public=pub_pem, kid=kid),
             )
 
@@ -297,7 +311,11 @@ class Pkcs11KeyProvider(KeyProviderBase):
                 export_policy=ExportPolicy.NONE,
                 public=pub_pem,
                 material=None,
-                tags={"label": spec.label, "alg": spec.alg.value, "provider": "pkcs11"},
+                tags={
+                    "label": spec.label,
+                    "alg": spec.alg.value,
+                    "provider": "pkcs11",
+                },
                 fingerprint=self._fingerprint(public=pub_pem, kid=kid),
             )
 
@@ -315,7 +333,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
         spec = KeySpec(
             klass=entry_latest.klass,
             alg=entry_latest.alg,
-            size_bits=spec_overrides.get("size_bits") if spec_overrides else None,
+            size_bits=spec_overrides.get("size_bits")
+            if spec_overrides
+            else None,
             label=entry_latest.tags.get("label"),
             export_policy=ExportPolicy.NONE,
             uses=entry_latest.tags.get("uses", (KeyUse.sign, KeyUse.verify)),
@@ -346,10 +366,14 @@ class Pkcs11KeyProvider(KeyProviderBase):
             fingerprint=self._fingerprint(public=new_ref.public, kid=kid),
         )
 
-    async def destroy_key(self, kid: str, version: Optional[int] = None) -> bool:
+    async def destroy_key(
+        self, kid: str, version: Optional[int] = None
+    ) -> bool:
         if kid not in self._idx:
             return False
-        versions = [version] if version is not None else list(self._idx[kid].keys())
+        versions = (
+            [version] if version is not None else list(self._idx[kid].keys())
+        )
         ok = True
         with self._session() as s:
             for v in versions:
@@ -368,7 +392,11 @@ class Pkcs11KeyProvider(KeyProviderBase):
         return ok
 
     async def get_key(
-        self, kid: str, version: Optional[int] = None, *, include_secret: bool = False
+        self,
+        kid: str,
+        version: Optional[int] = None,
+        *,
+        include_secret: bool = False,
     ) -> KeyRef:
         ent = self._entry(kid, version)
         public_pem = None
@@ -429,10 +457,16 @@ class Pkcs11KeyProvider(KeyProviderBase):
             raise KeyError("unknown kid")
         return tuple(sorted(self._idx[kid].keys()))
 
-    async def get_public_jwk(self, kid: str, version: Optional[int] = None) -> dict:
+    async def get_public_jwk(
+        self, kid: str, version: Optional[int] = None
+    ) -> dict:
         ent = self._entry(kid, version)
         if ent.klass == KeyClass.symmetric:
-            return {"kty": "oct", "alg": "A256GCM", "kid": f"{ent.kid}.{ent.version}"}
+            return {
+                "kty": "oct",
+                "alg": "A256GCM",
+                "kid": f"{ent.kid}.{ent.version}",
+            }
         with self._session() as s:
             pub_obj = _first_or_none(
                 s.get_objects(
@@ -478,7 +512,9 @@ class Pkcs11KeyProvider(KeyProviderBase):
         with self._session() as s:
             return s.generate_random(n)
 
-    async def hkdf(self, ikm: bytes, *, salt: bytes, info: bytes, length: int) -> bytes:
+    async def hkdf(
+        self, ikm: bytes, *, salt: bytes, info: bytes, length: int
+    ) -> bytes:
         return HKDF(
             algorithm=hashes.SHA256(), length=length, salt=salt, info=info
         ).derive(ikm)

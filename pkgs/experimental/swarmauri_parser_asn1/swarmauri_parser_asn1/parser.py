@@ -88,7 +88,13 @@ class ASN1Parser(ParserBase):
             self._schema, self._schema.resolve(type_name), raw, 0
         )
         doc = Document(
-            content=json.dumps(value, ensure_ascii=False, separators=(",", ":")),
-            metadata={"format": "asn.1", "codec": "der", "root_type": type_name},
+            content=json.dumps(
+                value, ensure_ascii=False, separators=(",", ":")
+            ),
+            metadata={
+                "format": "asn.1",
+                "codec": "der",
+                "root_type": type_name,
+            },
         )
         return [doc]

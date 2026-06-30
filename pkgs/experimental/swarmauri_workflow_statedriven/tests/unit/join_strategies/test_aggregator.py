@@ -1,7 +1,9 @@
 # File: tests/workflows/join_strategies/test_aggregator.py
 
 import pytest
-from swarmauri_workflow_statedriven.join_strategies.aggregator import AggregatorStrategy
+from swarmauri_workflow_statedriven.join_strategies.aggregator import (
+    AggregatorStrategy,
+)
 
 
 @pytest.mark.unit

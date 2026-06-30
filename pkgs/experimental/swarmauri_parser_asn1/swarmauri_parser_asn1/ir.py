@@ -64,7 +64,9 @@ class Choice:
     alts: List[tuple[str, Any]]  # [(altName, type), ...]
 
 
-TypeNode = Union[Builtin, TypeRef, Sequence, SetType, SeqOf, SetOf, Choice, tuple]
+TypeNode = Union[
+    Builtin, TypeRef, Sequence, SetType, SeqOf, SetOf, Choice, tuple
+]
 
 
 @dataclass

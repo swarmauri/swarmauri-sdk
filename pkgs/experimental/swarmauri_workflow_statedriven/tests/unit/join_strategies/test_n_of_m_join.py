@@ -1,7 +1,9 @@
 # File: tests/workflows/join_strategies/test_n_of_m_join.py
 
 import pytest
-from swarmauri_workflow_statedriven.join_strategies.n_of_m_join import NofMJoinStrategy
+from swarmauri_workflow_statedriven.join_strategies.n_of_m_join import (
+    NofMJoinStrategy,
+)
 
 
 @pytest.mark.unit

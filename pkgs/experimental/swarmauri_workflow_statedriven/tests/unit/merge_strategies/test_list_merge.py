@@ -1,7 +1,9 @@
 # File: tests/workflows/merge_strategies/test_list_merge.py
 
 import pytest
-from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMergeStrategy
+from swarmauri_workflow_statedriven.merge_strategies.list_merge import (
+    ListMergeStrategy,
+)
 
 
 @pytest.mark.unit

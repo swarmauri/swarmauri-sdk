@@ -22,7 +22,12 @@ try:
     # cryptography for parsing/generating SPKIs; quick verifications
     from cryptography import x509
     from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric import ec, ed25519, rsa, padding
+    from cryptography.hazmat.primitives.asymmetric import (
+        ec,
+        ed25519,
+        rsa,
+        padding,
+    )
 except Exception as e:  # pragma: no cover
     raise ImportError(
         "Pkcs11CertService requires 'cryptography'. Install with: pip install cryptography"
@@ -79,7 +84,9 @@ def _asn1_to_pem_cert(cert: asn1_x509.Certificate) -> bytes:
     b = cert.dump()
     return (
         b"-----BEGIN CERTIFICATE-----\n"
-        + base64.encodebytes(b).replace(b"\n", b"\n")[0:-1].replace(b"\n", b"\n")
+        + base64.encodebytes(b)
+        .replace(b"\n", b"\n")[0:-1]
+        .replace(b"\n", b"\n")
         + b"\n-----END CERTIFICATE-----\n"
     )
 
@@ -153,10 +160,18 @@ def _extensions_from_spec(
                     "critical": True,
                     "extn_value": asn1_x509.KeyUsage(
                         {
-                            "digital_signature": ku.get("digital_signature", False),
-                            "content_commitment": ku.get("content_commitment", False),
-                            "key_encipherment": ku.get("key_encipherment", False),
-                            "data_encipherment": ku.get("data_encipherment", False),
+                            "digital_signature": ku.get(
+                                "digital_signature", False
+                            ),
+                            "content_commitment": ku.get(
+                                "content_commitment", False
+                            ),
+                            "key_encipherment": ku.get(
+                                "key_encipherment", False
+                            ),
+                            "data_encipherment": ku.get(
+                                "data_encipherment", False
+                            ),
                             "key_agreement": ku.get("key_agreement", False),
                             "key_cert_sign": ku.get("key_cert_sign", False),
                             "crl_sign": ku.get("crl_sign", False),
@@ -203,7 +218,9 @@ def _extensions_from_spec(
             gns.append(asn1_x509.GeneralName(name="iPAddress", value=ip))
         for uri in san.get("uri", []) or []:
             gns.append(
-                asn1_x509.GeneralName(name="uniformResourceIdentifier", value=uri)
+                asn1_x509.GeneralName(
+                    name="uniformResourceIdentifier", value=uri
+                )
             )
         for em in san.get("email", []) or []:
             gns.append(asn1_x509.GeneralName(name="rfc822Name", value=em))
@@ -307,13 +324,17 @@ class _Pkcs11Session:
 
     def __enter__(self):
         if self._slot_id is not None:
-            slot = [s for s in self._module.get_slots() if s.slot_id == self._slot_id][
-                0
-            ]
+            slot = [
+                s
+                for s in self._module.get_slots()
+                if s.slot_id == self._slot_id
+            ][0]
             token = slot.get_token()
         elif self._token_label is not None:
             token = next(
-                t for t in self._module.get_tokens() if t.label == self._token_label
+                t
+                for t in self._module.get_tokens()
+                if t.label == self._token_label
             )
         else:
             token = self._module.get_tokens()[0]
@@ -342,7 +363,9 @@ def _find_private_key(
         query[Attribute.ID] = key_id
     obj = next(iter(session.get_objects(query)), None)
     if not obj:
-        raise RuntimeError("PKCS#11 private key not found with provided attributes")
+        raise RuntimeError(
+            "PKCS#11 private key not found with provided attributes"
+        )
     return obj  # type: ignore[return-value]
 
 
@@ -391,7 +414,9 @@ def _sign_with_pkcs11(
     if algorithm == "Ed25519":
         return priv.sign(tbs, mechanism=Mechanism.EDDSA)
 
-    raise ValueError(f"Unsupported signature algorithm for PKCS#11: {algorithm}")
+    raise ValueError(
+        f"Unsupported signature algorithm for PKCS#11: {algorithm}"
+    )
 
 
 def _sig_alg_identifier(alg: str) -> asn1_algos.SignedDigestAlgorithm:
@@ -419,10 +444,14 @@ def _sig_alg_identifier(alg: str) -> asn1_algos.SignedDigestAlgorithm:
             }
         )
     if alg == "ECDSA-P256-SHA256":
-        return asn1_algos.SignedDigestAlgorithm({"algorithm": "ecdsa_with_sha256"})
+        return asn1_algos.SignedDigestAlgorithm(
+            {"algorithm": "ecdsa_with_sha256"}
+        )
     if alg == "Ed25519":
         return asn1_algos.SignedDigestAlgorithm({"algorithm": "ed25519"})
-    raise ValueError(f"Unsupported signature algorithm identifier mapping: {alg}")
+    raise ValueError(
+        f"Unsupported signature algorithm identifier mapping: {alg}"
+    )
 
 
 def _parse_keyref_pkcs11_attrs(
@@ -445,7 +474,9 @@ class Pkcs11CertService(CertServiceBase):
     certificate signing requests using keys stored in an HSM.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.CRYPTO.value, frozen=True)
+    resource: Optional[str] = Field(
+        default=ResourceTypes.CRYPTO.value, frozen=True
+    )
     type: Literal["Pkcs11CertService"] = "Pkcs11CertService"
 
     def __init__(
@@ -505,7 +536,9 @@ class Pkcs11CertService(CertServiceBase):
     ) -> bytes:
         """Build a PKCS#10 CSR and sign it with the subject private key (RFC 2986)."""
         if not key.public:
-            raise ValueError("KeyRef.public (PEM/DER) is required to create a CSR")
+            raise ValueError(
+                "KeyRef.public (PEM/DER) is required to create a CSR"
+            )
 
         sig_alg = sig_alg or self._default_sig_alg
         spki = _pem_or_der_to_asn1_pub(key.public)
@@ -593,12 +626,16 @@ class Pkcs11CertService(CertServiceBase):
         tbs = asn1_x509.TbsCertificate(
             {
                 "version": "v3",
-                "serial_number": int(serial or int.from_bytes(os.urandom(8), "big")),
+                "serial_number": int(
+                    serial or int.from_bytes(os.urandom(8), "big")
+                ),
                 "signature": _sig_alg_identifier(sig_alg),
                 "issuer": subject_name,
                 "validity": asn1_x509.Validity(
                     {
-                        "not_before": _utc_time(not_before or _now_epoch() - 300),
+                        "not_before": _utc_time(
+                            not_before or _now_epoch() - 300
+                        ),
                         "not_after": _utc_time(
                             not_after or (_now_epoch() + 365 * 24 * 3600)
                         ),
@@ -621,7 +658,9 @@ class Pkcs11CertService(CertServiceBase):
         ) as sess:
             _, label, key_id = _parse_keyref_pkcs11_attrs(key)
             priv = _find_private_key(sess, label=label, key_id=key_id)
-            sig = _sign_with_pkcs11(sess, priv, algorithm=sig_alg, tbs=tbs_bytes)
+            sig = _sign_with_pkcs11(
+                sess, priv, algorithm=sig_alg, tbs=tbs_bytes
+            )
 
         cert = asn1_x509.Certificate(
             {
@@ -684,12 +723,16 @@ class Pkcs11CertService(CertServiceBase):
         tbs = asn1_x509.TbsCertificate(
             {
                 "version": "v3",
-                "serial_number": int(serial or int.from_bytes(os.urandom(8), "big")),
+                "serial_number": int(
+                    serial or int.from_bytes(os.urandom(8), "big")
+                ),
                 "signature": _sig_alg_identifier(sig_alg),
                 "issuer": issuer_name,
                 "validity": asn1_x509.Validity(
                     {
-                        "not_before": _utc_time(not_before or _now_epoch() - 300),
+                        "not_before": _utc_time(
+                            not_before or _now_epoch() - 300
+                        ),
                         "not_after": _utc_time(
                             not_after or (_now_epoch() + 365 * 24 * 3600)
                         ),
@@ -712,7 +755,9 @@ class Pkcs11CertService(CertServiceBase):
         ) as sess:
             _, label, key_id = _parse_keyref_pkcs11_attrs(ca_key)
             priv = _find_private_key(sess, label=label, key_id=key_id)
-            sig = _sign_with_pkcs11(sess, priv, algorithm=sig_alg, tbs=tbs_bytes)
+            sig = _sign_with_pkcs11(
+                sess, priv, algorithm=sig_alg, tbs=tbs_bytes
+            )
 
         cert = asn1_x509.Certificate(
             {
@@ -741,7 +786,9 @@ class Pkcs11CertService(CertServiceBase):
             if b"-----BEGIN" in cert
             else x509.load_der_x509_certificate(cert)
         )
-        now = dt.datetime.fromtimestamp(check_time or _now_epoch(), dt.timezone.utc)
+        now = dt.datetime.fromtimestamp(
+            check_time or _now_epoch(), dt.timezone.utc
+        )
         if c.not_valid_before_utc > now:
             raise ValueError("certificate_not_yet_valid")
         if c.not_valid_after_utc < now:

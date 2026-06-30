@@ -54,7 +54,9 @@ class ASN1EncodeTool(ToolBase):
         tree = self._lark.parse(text)
         return Asn1ToIR().transform(tree)
 
-    def __call__(self, *, type_name: str, data: dict, out: str | None = None) -> bytes:
+    def __call__(
+        self, *, type_name: str, data: dict, out: str | None = None
+    ) -> bytes:
         raise NotImplementedError(
             "Encoder stub: implement encode_value analogously to decode_value"
         )

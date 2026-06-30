@@ -183,7 +183,11 @@ class Asn1ToIR(Transformer):
         t = items[idx]
         return (
             t,
-            Tag("CONTEXT" if tagcls == "CONTEXT-SPECIFIC" else tagcls, tagnum, mode),
+            Tag(
+                "CONTEXT" if tagcls == "CONTEXT-SPECIFIC" else tagcls,
+                tagnum,
+                mode,
+            ),
         )
 
     # Constraints

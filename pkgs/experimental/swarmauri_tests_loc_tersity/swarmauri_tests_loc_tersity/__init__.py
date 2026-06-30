@@ -41,7 +41,9 @@ def _collect_files(config: pytest.Config) -> tuple[Path, list[Path]]:
 
 
 class LocItem(pytest.Item):
-    def __init__(self, name: str, parent: pytest.Collector, path: Path, max_lines: int):
+    def __init__(
+        self, name: str, parent: pytest.Collector, path: Path, max_lines: int
+    ):
         super().__init__(name, parent)
         self.path = path
         self.max_lines = max_lines
@@ -49,7 +51,9 @@ class LocItem(pytest.Item):
     def runtest(self) -> None:
         count = sum(1 for _ in self.path.open())
         if count > self.max_lines:
-            raise AssertionError(f"{self.path} has {count} lines (>{self.max_lines})")
+            raise AssertionError(
+                f"{self.path} has {count} lines (>{self.max_lines})"
+            )
 
     def reportinfo(self) -> tuple[Path, None, str]:
         return self.path, None, f"loc check for {self.path.name}"
@@ -57,7 +61,11 @@ class LocItem(pytest.Item):
 
 class LocAggregateItem(pytest.Item):
     def __init__(
-        self, name: str, parent: pytest.Collector, files: list[Path], max_lines: int
+        self,
+        name: str,
+        parent: pytest.Collector,
+        files: list[Path],
+        max_lines: int,
     ):
         super().__init__(name, parent)
         self.files = files
@@ -68,7 +76,9 @@ class LocAggregateItem(pytest.Item):
         for file in self.files:
             count = sum(1 for _ in file.open())
             if count > self.max_lines:
-                failures.append(f"{file} has {count} lines (>{self.max_lines})")
+                failures.append(
+                    f"{file} has {count} lines (>{self.max_lines})"
+                )
         if failures:
             pytest.fail("\n".join(failures))
 

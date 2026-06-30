@@ -13,7 +13,9 @@ class MembershipCondition(Condition):
     Checks whether a given value is (or is not) a member of a state's output.
     """
 
-    def __init__(self, node_name: str, member: Any, should_be_member: bool = True):
+    def __init__(
+        self, node_name: str, member: Any, should_be_member: bool = True
+    ):
         """
         File: membership_condition.py
         Class: MembershipCondition

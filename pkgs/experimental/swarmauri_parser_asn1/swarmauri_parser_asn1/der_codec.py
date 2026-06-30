@@ -302,6 +302,10 @@ def decode_value(schema: Schema, tnode: Any, buf: bytes, i: int = 0):
 
 
 def _unwrap_tag(tnode):
-    if isinstance(tnode, tuple) and len(tnode) == 2 and isinstance(tnode[1], Tag):
+    if (
+        isinstance(tnode, tuple)
+        and len(tnode) == 2
+        and isinstance(tnode[1], Tag)
+    ):
         return tnode[0], tnode[1]
     return tnode, None

@@ -1,7 +1,9 @@
 # File: tests/workflows/input_modes/test_identity_input_mode.py
 
 import pytest
-from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
+from swarmauri_workflow_statedriven.input_modes.identity import (
+    IdentityInputMode,
+)
 
 
 class DummyStateManager:

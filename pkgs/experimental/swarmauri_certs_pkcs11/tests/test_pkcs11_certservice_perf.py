@@ -23,8 +23,12 @@ def test_verify_perf(benchmark) -> None:
         .issuer_name(name)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1))
-        .not_valid_after(dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=1))
+        .not_valid_before(
+            dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=1)
+        )
+        .not_valid_after(
+            dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=1)
+        )
         .sign(key, None)
     )
     cert_pem = cert.public_bytes(serialization.Encoding.PEM)

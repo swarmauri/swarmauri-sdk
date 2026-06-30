@@ -1,7 +1,9 @@
 # File: tests/workflows/join_strategies/test_all_join.py
 
 import pytest
-from swarmauri_workflow_statedriven.join_strategies.all_join import AllJoinStrategy
+from swarmauri_workflow_statedriven.join_strategies.all_join import (
+    AllJoinStrategy,
+)
 
 
 @pytest.mark.unit

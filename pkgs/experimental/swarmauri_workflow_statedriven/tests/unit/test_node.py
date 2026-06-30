@@ -3,7 +3,9 @@
 import pytest
 from swarmauri_workflow_statedriven.node import Node
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
-from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
+from swarmauri_workflow_statedriven.input_modes.identity import (
+    IdentityInputMode,
+)
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 
 
@@ -62,7 +64,12 @@ def test_init_requires_exactly_one_backend():
         Node("n1", input_mode=FirstInputMode())
     # both agent and tool
     with pytest.raises(ValueError):
-        Node("n2", agent=DummyAgent(), tool=DummyTool(), input_mode=FirstInputMode())
+        Node(
+            "n2",
+            agent=DummyAgent(),
+            tool=DummyTool(),
+            input_mode=FirstInputMode(),
+        )
 
 
 @pytest.mark.unit

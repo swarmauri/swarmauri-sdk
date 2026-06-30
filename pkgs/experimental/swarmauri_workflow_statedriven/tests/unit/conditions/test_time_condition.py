@@ -3,7 +3,9 @@
 import pytest
 from datetime import datetime, time
 import swarmauri_workflow_statedriven.conditions.time_condition as tc_module
-from swarmauri_workflow_statedriven.conditions.time_condition import TimeWindowCondition
+from swarmauri_workflow_statedriven.conditions.time_condition import (
+    TimeWindowCondition,
+)
 
 
 class _FixedDateTime:
@@ -40,7 +42,9 @@ def test_within_non_wrapping_window(monkeypatch):
     fixed = time(12, 0, 0)
     monkeypatch.setattr(tc_module, "datetime", _FixedDateTime(fixed))
 
-    cond = TimeWindowCondition(start_time=time(9, 0, 0), end_time=time(17, 0, 0))
+    cond = TimeWindowCondition(
+        start_time=time(9, 0, 0), end_time=time(17, 0, 0)
+    )
     assert cond.evaluate({}) is True
 
     # Before window
@@ -64,7 +68,9 @@ def test_within_wrapping_window(monkeypatch):
     For a window that wraps midnight (22:00–02:00), times in late night and early morning are True.
     """
     # Setup wrapping window
-    cond = TimeWindowCondition(start_time=time(22, 0, 0), end_time=time(2, 0, 0))
+    cond = TimeWindowCondition(
+        start_time=time(22, 0, 0), end_time=time(2, 0, 0)
+    )
 
     # Late-night case
     fixed = time(23, 30, 0)

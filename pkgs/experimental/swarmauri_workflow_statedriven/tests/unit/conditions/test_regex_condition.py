@@ -2,7 +2,9 @@
 
 import pytest
 import re
-from swarmauri_workflow_statedriven.conditions.regex_condition import RegexCondition
+from swarmauri_workflow_statedriven.conditions.regex_condition import (
+    RegexCondition,
+)
 
 
 @pytest.mark.unit

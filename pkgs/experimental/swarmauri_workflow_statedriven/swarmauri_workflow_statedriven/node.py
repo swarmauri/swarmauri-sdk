@@ -5,9 +5,13 @@ import json
 from swarmauri_workflow_statedriven.input_modes.base import InputMode
 from swarmauri_workflow_statedriven.input_modes.first import FirstInputMode
 from swarmauri_workflow_statedriven.join_strategies.base import JoinStrategy
-from swarmauri_workflow_statedriven.join_strategies.first_join import FirstJoinStrategy
+from swarmauri_workflow_statedriven.join_strategies.first_join import (
+    FirstJoinStrategy,
+)
 from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
-from swarmauri_workflow_statedriven.merge_strategies.list_merge import ListMergeStrategy
+from swarmauri_workflow_statedriven.merge_strategies.list_merge import (
+    ListMergeStrategy,
+)
 from swarmauri_workflow_statedriven.state_manager import StateManager
 from swarmauri_workflow_statedriven.exceptions import WorkflowError
 
@@ -50,7 +54,9 @@ class Node:
             ValueError if neither or both of agent/tool are provided.
         """
         if (agent is None) == (tool is None):
-            raise ValueError(f"Node '{name}' requires exactly one of agent or tool")
+            raise ValueError(
+                f"Node '{name}' requires exactly one of agent or tool"
+            )
 
         self.name = name
         self.agent = agent

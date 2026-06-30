@@ -7,17 +7,25 @@ pytest.skip("Requires full Swarmauri environment", allow_module_level=True)
 def test_usage():
     # File: example_workflow.py
 
-    from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
+    from swarmauri_standard.vector_stores.TfidfVectorStore import (
+        TfidfVectorStore,
+    )
     from swarmauri_standard.llms.OpenAIModel import OpenAIModel
     from swarmauri_standard.agents.RagAgent import RagAgent
 
     from swarmauri_workflow_statedriven.base import WorkflowBase
-    from swarmauri_workflow_statedriven.input_modes.identity import IdentityInputMode
-    from swarmauri_workflow_statedriven.input_modes.aggregate import AggregateInputMode
+    from swarmauri_workflow_statedriven.input_modes.identity import (
+        IdentityInputMode,
+    )
+    from swarmauri_workflow_statedriven.input_modes.aggregate import (
+        AggregateInputMode,
+    )
     from swarmauri_workflow_statedriven.join_strategies.first_join import (
         FirstJoinStrategy,
     )
-    from swarmauri_workflow_statedriven.join_strategies.all_join import AllJoinStrategy
+    from swarmauri_workflow_statedriven.join_strategies.all_join import (
+        AllJoinStrategy,
+    )
     from swarmauri_workflow_statedriven.merge_strategies.concat_merge import (
         ConcatMergeStrategy,
     )
@@ -27,7 +35,9 @@ def test_usage():
     from swarmauri_workflow_statedriven.conditions.function_condition import (
         FunctionCondition,
     )
-    from swarmauri_workflow_statedriven.conditions.regex_condition import RegexCondition
+    from swarmauri_workflow_statedriven.conditions.regex_condition import (
+        RegexCondition,
+    )
 
     # — your existing setup for LLM, vector store, prompts, and RagAgents —
     api_key = ""
@@ -97,7 +107,9 @@ def test_usage():
 
     rag_agents = {
         role: RagAgent(
-            llm=llm, vector_store=vector_store, system_context=prompt_templates[role]
+            llm=llm,
+            vector_store=vector_store,
+            system_context=prompt_templates[role],
         )
         for role in role_documents
     }
@@ -166,10 +178,14 @@ def test_usage():
             RegexCondition(node_name="GatherRequirements", pattern=r"system"),
         )
         wf.add_transition(
-            "DesignSystem", "ImplementBackend", FunctionCondition(lambda state: True)
+            "DesignSystem",
+            "ImplementBackend",
+            FunctionCondition(lambda state: True),
         )
         wf.add_transition(
-            "DesignSystem", "ImplementFrontend", FunctionCondition(lambda state: True)
+            "DesignSystem",
+            "ImplementFrontend",
+            FunctionCondition(lambda state: True),
         )
         wf.add_transition(
             "ImplementBackend", "QA", FunctionCondition(lambda state: True)
@@ -178,7 +194,9 @@ def test_usage():
             "ImplementFrontend", "QA", FunctionCondition(lambda state: True)
         )
         wf.add_transition(
-            "QA", "Finalize", RegexCondition(node_name="QA", pattern=r"Test Case")
+            "QA",
+            "Finalize",
+            RegexCondition(node_name="QA", pattern=r"Test Case"),
         )
         return wf
 

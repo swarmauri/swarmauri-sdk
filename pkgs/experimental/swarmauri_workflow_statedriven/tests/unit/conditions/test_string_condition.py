@@ -1,7 +1,9 @@
 # File: tests/workflows/conditions/test_string_condition.py
 
 import pytest
-from swarmauri_workflow_statedriven.conditions.string_condition import StringCondition
+from swarmauri_workflow_statedriven.conditions.string_condition import (
+    StringCondition,
+)
 
 
 @pytest.mark.unit
@@ -23,7 +25,9 @@ def test_startswith_operator_true_and_false():
     Class: StringCondition
     Method: evaluate with operator "startswith"
     """
-    cond = StringCondition(node_name="Y", operator="startswith", substring="pre")
+    cond = StringCondition(
+        node_name="Y", operator="startswith", substring="pre"
+    )
     assert cond.evaluate({"Y": "prefix"}) is True
     assert cond.evaluate({"Y": "suffix"}) is False
 
@@ -50,7 +54,9 @@ def test_non_string_output_returns_false():
     cond = StringCondition(node_name="X", operator="contains", substring="a")
     assert cond.evaluate({"X": 123}) is False
     # Missing key yields default "" which is str, contains yields False
-    cond2 = StringCondition(node_name="Missing", operator="contains", substring="a")
+    cond2 = StringCondition(
+        node_name="Missing", operator="contains", substring="a"
+    )
     assert cond2.evaluate({}) is False
 
 

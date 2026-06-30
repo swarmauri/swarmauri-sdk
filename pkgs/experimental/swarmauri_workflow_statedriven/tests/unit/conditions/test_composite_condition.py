@@ -37,7 +37,10 @@ def test_and_condition_one_false():
 
     Returns False if any sub‑condition is False.
     """
-    conds = [FunctionCondition(lambda s: True), FunctionCondition(lambda s: False)]
+    conds = [
+        FunctionCondition(lambda s: True),
+        FunctionCondition(lambda s: False),
+    ]
     and_cond = AndCondition(conds)
     assert and_cond.evaluate({}) is False
 
@@ -64,7 +67,10 @@ def test_or_condition_all_false():
 
     Returns False when all sub‑conditions are False.
     """
-    conds = [FunctionCondition(lambda s: False), FunctionCondition(lambda s: 0)]
+    conds = [
+        FunctionCondition(lambda s: False),
+        FunctionCondition(lambda s: 0),
+    ]
     or_cond = OrCondition(conds)
     assert or_cond.evaluate({}) is False
 
@@ -78,7 +84,10 @@ def test_or_condition_one_true():
 
     Returns True if any sub‑condition is True.
     """
-    conds = [FunctionCondition(lambda s: False), FunctionCondition(lambda s: True)]
+    conds = [
+        FunctionCondition(lambda s: False),
+        FunctionCondition(lambda s: True),
+    ]
     or_cond = OrCondition(conds)
     assert or_cond.evaluate({}) is True
 

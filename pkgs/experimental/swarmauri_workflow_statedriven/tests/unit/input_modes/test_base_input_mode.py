@@ -37,5 +37,7 @@ def test_dummy_mode_prepare_returns_expected():
     """
     mode = DummyMode()
     # state_manager and results can be None or empty dict for this test
-    out = mode.prepare(state_manager=None, node_name="X", data="input", results={})
+    out = mode.prepare(
+        state_manager=None, node_name="X", data="input", results={}
+    )
     assert out == "prepared:input"
