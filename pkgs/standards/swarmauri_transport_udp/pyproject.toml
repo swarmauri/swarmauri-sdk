@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_udp"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "UDP transport family for Swarmauri."
 readme = "README.md"

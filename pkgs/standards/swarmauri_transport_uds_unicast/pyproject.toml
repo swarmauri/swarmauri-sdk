@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_uds_unicast"
-version = "0.1.1.dev6"
+version = "0.1.1.dev7"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Unix domain socket unicast transport for Swarmauri."
 readme = "README.md"
