@@ -47,9 +47,7 @@ def test_modifying_prepared_does_not_mutate_original():
     mode = AggregateInputMode()
     sm = DummyStateManager()
     results = {"A": {"nested": 9}}
-    prepared = mode.prepare(
-        state_manager=sm, node_name="X", data=None, results=results
-    )
+    prepared = mode.prepare(state_manager=sm, node_name="X", data=None, results=results)
     # mutate prepared
     prepared["A"] = "changed"
     # original remains unchanged

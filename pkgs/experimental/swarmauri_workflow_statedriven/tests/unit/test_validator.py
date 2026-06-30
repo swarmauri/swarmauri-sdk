@@ -30,9 +30,7 @@ def test_validate_requirements_false_when_phrase_missing():
     assert validate_requirements({"Requirements Gathering": ""}) is False
     # Irrelevant content
     assert (
-        validate_requirements(
-            {"Requirements Gathering": "collect user stories"}
-        )
+        validate_requirements({"Requirements Gathering": "collect user stories"})
         is False
     )
 
@@ -47,9 +45,7 @@ def test_validate_requirements_true_when_phrase_present():
     state = {"Requirements Gathering": "The SYSTEM design must be modular."}
     assert validate_requirements(state) is True
     # Phrase embedded in text
-    state = {
-        "Requirements Gathering": "Include system Design and architecture."
-    }
+    state = {"Requirements Gathering": "Include system Design and architecture."}
     assert validate_requirements(state) is True
 
 

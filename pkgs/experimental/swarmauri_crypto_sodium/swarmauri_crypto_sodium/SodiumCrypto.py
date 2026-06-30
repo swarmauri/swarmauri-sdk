@@ -95,7 +95,11 @@ def _load_libsodium() -> CDLL:
     if sys.platform.startswith("linux"):
         names = ["libsodium.so.23", "libsodium.so"]
     elif sys.platform == "darwin":
-        names = ["libsodium.23.dylib", "libsodium.dylib", "lib/libsodium.dylib"]
+        names = [
+            "libsodium.23.dylib",
+            "libsodium.dylib",
+            "lib/libsodium.dylib",
+        ]
     elif sys.platform.startswith("win"):
         names = ["libsodium.dll", "sodium.dll"]
     else:
@@ -180,7 +184,9 @@ def _ensure_len(name: str, b: Optional[bytes], *sizes: int) -> bytes:
     if b is None:
         raise ValueError(f"{name} is required")
     if sizes and len(b) not in sizes:
-        raise IntegrityError(f"{name} must be one of lengths {sizes}, got {len(b)}")
+        raise IntegrityError(
+            f"{name} must be one of lengths {sizes}, got {len(b)}"
+        )
     return b
 
 
@@ -336,7 +342,9 @@ class SodiumCrypto(CryptoBase):
 
     async def unwrap(self, kek: KeyRef, wrapped: WrappedKey) -> bytes:
         if wrapped.wrap_alg != _WRAP_ALG:
-            raise UnsupportedAlgorithm(f"Unsupported wrap_alg: {wrapped.wrap_alg}")
+            raise UnsupportedAlgorithm(
+                f"Unsupported wrap_alg: {wrapped.wrap_alg}"
+            )
         pk = _ensure_len(
             "X25519 key.public",
             kek.public,

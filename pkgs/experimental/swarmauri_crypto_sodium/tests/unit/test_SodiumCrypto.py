@@ -23,7 +23,8 @@ try:
     )
 except Exception as exc:  # pragma: no cover - handled by pytest.skip
     pytest.skip(
-        f"swarmauri_crypto_sodium import failed: {exc}", allow_module_level=True
+        f"swarmauri_crypto_sodium import failed: {exc}",
+        allow_module_level=True,
     )
 
 
@@ -106,7 +107,9 @@ async def test_encrypt_rejects_unknown_algorithm(sodium_crypto, symmetric_key):
 
 
 @pytest.mark.asyncio
-async def test_encrypt_rejects_incorrect_nonce_length(sodium_crypto, symmetric_key):
+async def test_encrypt_rejects_incorrect_nonce_length(
+    sodium_crypto, symmetric_key
+):
     with pytest.raises(IntegrityError):
         await sodium_crypto.encrypt(
             symmetric_key,
@@ -310,7 +313,9 @@ async def test_encrypt_for_many_sealed_variant(sodium_crypto, x25519_keys):
 
 
 @pytest.mark.asyncio
-async def test_encrypt_for_many_rejects_unknown_enc_alg(sodium_crypto, x25519_keys):
+async def test_encrypt_for_many_rejects_unknown_enc_alg(
+    sodium_crypto, x25519_keys
+):
     pk, sk = x25519_keys
     recipient = KeyRef(
         kid="r6",
@@ -322,11 +327,15 @@ async def test_encrypt_for_many_rejects_unknown_enc_alg(sodium_crypto, x25519_ke
         material=sk,
     )
     with pytest.raises(UnsupportedAlgorithm):
-        await sodium_crypto.encrypt_for_many([recipient], b"data", enc_alg="AES256-GCM")
+        await sodium_crypto.encrypt_for_many(
+            [recipient], b"data", enc_alg="AES256-GCM"
+        )
 
 
 @pytest.mark.asyncio
-async def test_encrypt_for_many_rejects_unknown_wrap_alg(sodium_crypto, x25519_keys):
+async def test_encrypt_for_many_rejects_unknown_wrap_alg(
+    sodium_crypto, x25519_keys
+):
     pk, sk = x25519_keys
     recipient = KeyRef(
         kid="r7",
@@ -361,7 +370,9 @@ async def test_decrypt_rejects_unknown_algorithm(sodium_crypto, symmetric_key):
 
 
 @pytest.mark.asyncio
-async def test_decrypt_rejects_invalid_nonce_length(sodium_crypto, symmetric_key):
+async def test_decrypt_rejects_invalid_nonce_length(
+    sodium_crypto, symmetric_key
+):
     ct = await sodium_crypto.encrypt(symmetric_key, b"nonce-check")
     bad_ct = AEADCiphertext(
         kid=ct.kid,
@@ -377,7 +388,9 @@ async def test_decrypt_rejects_invalid_nonce_length(sodium_crypto, symmetric_key
 
 
 @pytest.mark.asyncio
-async def test_decrypt_raises_on_integrity_failure(sodium_crypto, symmetric_key):
+async def test_decrypt_raises_on_integrity_failure(
+    sodium_crypto, symmetric_key
+):
     ct = await sodium_crypto.encrypt(symmetric_key, b"tamper")
     tampered = AEADCiphertext(
         kid=ct.kid,
@@ -497,7 +510,9 @@ async def test_unseal_requires_matching_secret_key(sodium_crypto, x25519_keys):
 
 
 @pytest.mark.asyncio
-async def test_encrypt_for_many_requires_wrap_key_material(sodium_crypto, x25519_keys):
+async def test_encrypt_for_many_requires_wrap_key_material(
+    sodium_crypto, x25519_keys
+):
     pk, _ = x25519_keys
     recipient = KeyRef(
         kid="r10",
@@ -514,7 +529,9 @@ async def test_encrypt_for_many_requires_wrap_key_material(sodium_crypto, x25519
 
 
 @pytest.mark.asyncio
-async def test_encrypt_for_many_requires_valid_wrap_key(sodium_crypto, x25519_keys):
+async def test_encrypt_for_many_requires_valid_wrap_key(
+    sodium_crypto, x25519_keys
+):
     pk, sk = x25519_keys
     recipient = KeyRef(
         kid="r11",
@@ -530,7 +547,9 @@ async def test_encrypt_for_many_requires_valid_wrap_key(sodium_crypto, x25519_ke
 
 
 @pytest.mark.asyncio
-async def test_decrypt_uses_explicit_aad_when_provided(sodium_crypto, symmetric_key):
+async def test_decrypt_uses_explicit_aad_when_provided(
+    sodium_crypto, symmetric_key
+):
     ct = await sodium_crypto.encrypt(symmetric_key, b"aad-data", aad=b"orig")
     new_aad = b"override"
     decrypted = await sodium_crypto.decrypt(symmetric_key, ct, aad=new_aad)

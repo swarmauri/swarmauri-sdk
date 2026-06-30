@@ -59,9 +59,7 @@ def test_le_comparator():
 
 @pytest.mark.unit
 def test_missing_node_returns_none_comparisons_false():
-    cond = StateValueCondition(
-        node_name="Missing", expected=1, comparator="eq"
-    )
+    cond = StateValueCondition(node_name="Missing", expected=1, comparator="eq")
     # state.get returns None, None == 1 is False
     assert cond.evaluate({}) is False
 

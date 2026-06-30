@@ -54,9 +54,7 @@ class Node:
             ValueError if neither or both of agent/tool are provided.
         """
         if (agent is None) == (tool is None):
-            raise ValueError(
-                f"Node '{name}' requires exactly one of agent or tool"
-            )
+            raise ValueError(f"Node '{name}' requires exactly one of agent or tool")
 
         self.name = name
         self.agent = agent
