@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_skill_filesystem"
-version = "0.9.1.dev6"
+version = "0.9.1.dev7"
 description = "Filesystem-backed skill loader for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
