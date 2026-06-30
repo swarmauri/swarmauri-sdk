@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certs_csronly"
-version = "0.8.4.dev7"
+version = "0.8.4.dev8"
 description = "CSR-only Swarmauri certificate service for PKCS#10 request generation with SANs, challenge passwords, and PEM or DER output."
 license = "Apache-2.0"
 readme = "README.md"

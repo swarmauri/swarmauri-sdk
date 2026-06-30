@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_gcpkms"
-version = "0.2.4.dev7"
+version = "0.2.4.dev8"
 description = "Google Cloud KMS oriented Swarmauri certificate service for CSR creation, CSR signing, self-signed certificates, verification, and X.509 parsing."
 license = "Apache-2.0"
 readme = "README.md"

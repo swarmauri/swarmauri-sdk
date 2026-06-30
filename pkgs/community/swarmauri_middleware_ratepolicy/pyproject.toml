@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_ratepolicy"
-version = "0.8.4.dev7"
+version = "0.8.4.dev8"
 description = "Synchronous retry-policy middleware for Swarmauri with bounded attempts and exponential backoff."
 license = "Apache-2.0"
 readme = "README.md"

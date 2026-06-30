@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_scep"
-version = "0.8.4.dev7"
+version = "0.8.4.dev8"
 description = "SCEP-oriented Swarmauri certificate service for PKCS#10 CSR creation, challenge-password enrollment requests, response capture, and X.509 parsing."
 license = "Apache-2.0"
 readme = "README.md"

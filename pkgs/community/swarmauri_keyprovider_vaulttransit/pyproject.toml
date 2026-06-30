@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_keyprovider_vaulttransit"
-version = "0.9.4.dev7"
+version = "0.9.4.dev8"
 description = "HashiCorp Vault Transit-backed Swarmauri key provider for non-exportable key lifecycle, public JWKS metadata, Vault RNG, and HKDF."
 license = "Apache-2.0"
 readme = "README.md"

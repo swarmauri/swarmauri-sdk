@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_adyen"
-version = "0.9.3.dev7"
+version = "0.9.3.dev8"
 description = "Adyen Checkout API backed Swarmauri billing provider for hosted sessions, payments, captures, cancels, refunds, and webhook validation."
 license = "Apache-2.0"
 readme = "README.md"

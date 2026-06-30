@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_hyperbolic"
-version = "0.1.1.dev7"
+version = "0.1.1.dev8"
 description = "Provider-specific Swarmauri import package for Hyperbolic OpenAI-compatible chat, vision-language inference, streaming, and text-to-speech workflows."
 license = "Apache-2.0"
 readme = "README.md"
