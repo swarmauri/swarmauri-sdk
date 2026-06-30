@@ -122,7 +122,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             a.shape[0] != self.weight_matrix.shape[0]
             or b.shape[0] != self.weight_matrix.shape[1]
         ):
-            error_msg = f"Incompatible dimensions: a.shape={a.shape}, "(
+            error_msg = (
+                f"Incompatible dimensions: a.shape={a.shape}, "
                 f"weight_matrix.shape={self.weight_matrix.shape}, "
                 f"b.shape={b.shape}"
             )
