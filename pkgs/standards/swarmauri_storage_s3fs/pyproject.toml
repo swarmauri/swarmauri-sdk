@@ -47,7 +47,7 @@ S3FSStorageAdapter = "swarmauri_storage_s3fs.s3fs_storage_adapter:S3FSStorageAda
 s3fs = "swarmauri_storage_s3fs.s3fs_storage_adapter:S3FSStorageAdapter"
 
 [tool.pytest.ini_options]
-addopts = "--basetemp=.pytest-tmp --pylicense-accept-deps=wrapt,aiohttp,aiohappyeyeballs,aiosignal"
+addopts = "--basetemp=.pytest-tmp --pylicense-accept-deps=aiohttp,aiohappyeyeballs,aiosignal"
 norecursedirs = [".uv-cache", "combined", "scripts"]
 markers = [
     "test: standard test",

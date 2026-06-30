@@ -111,7 +111,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-package=EmbedXMP --pylicense-mode=parameterized --pylicense-accept-deps=numpy"
+addopts = "--pylicense-package=EmbedXMP --pylicense-mode=parameterized"
 
 [tool.poetry]
 packages = [

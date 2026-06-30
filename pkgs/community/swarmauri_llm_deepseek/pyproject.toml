@@ -57,7 +57,6 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=numpy"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

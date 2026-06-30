@@ -65,7 +65,6 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=cachetools,google-auth,pyasn1,pyasn1-modules,pycparser,rsa"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

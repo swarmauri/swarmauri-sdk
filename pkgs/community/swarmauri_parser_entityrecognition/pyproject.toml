@@ -56,7 +56,7 @@ swarmauri_standard = { workspace = true }
 
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=tqdm,wrapt"
+addopts = "--pylicense-accept-deps=tqdm"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

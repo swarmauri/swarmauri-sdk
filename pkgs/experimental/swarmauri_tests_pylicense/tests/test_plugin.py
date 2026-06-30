@@ -51,7 +51,9 @@ def test_classifier_fallback(monkeypatch):
             return DummyDist()
         raise PackageNotFoundError
 
-    monkeypatch.setattr("swarmauri_tests_pylicense.distribution", fake_distribution)
+    monkeypatch.setattr(
+        "swarmauri_tests_pylicense.distribution", fake_distribution
+    )
     licenses = _collect_licenses("foo")
     assert licenses["foo"].license == "MIT License"
 
@@ -93,5 +95,32 @@ def test_non_standard_license_and_accept_dependency(pytester, monkeypatch):
         "swarmauri_tests_pylicense",
         "--pylicense-package=dummy",
         "--pylicense-accept-deps=dep",
+    )
+    result.assert_outcomes(passed=1)
+
+
+def test_policy_accepted_dependency(pytester, monkeypatch):
+    monkeypatch.setattr(
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "pycparser"), "Custom", "1.0")],
+    )
+    result = pytester.runpytest(
+        "-p",
+        "swarmauri_tests_pylicense",
+        "--pylicense-package=dummy",
+    )
+    result.assert_outcomes(passed=1)
+
+
+def test_policy_accepted_dependency_aggregate(pytester, monkeypatch):
+    monkeypatch.setattr(
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "numpy"), "Custom", "1.0")],
+    )
+    result = pytester.runpytest(
+        "-p",
+        "swarmauri_tests_pylicense",
+        "--pylicense-package=dummy",
+        "--pylicense-mode=aggregate",
     )
     result.assert_outcomes(passed=1)

@@ -60,7 +60,6 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 [tool.pytest.ini_options]
-addopts = "--pylicense-accept-deps=pycparser"
 norecursedirs = ["combined", "scripts"]
 markers = [
     "test: standard test",

@@ -27,16 +27,10 @@ from swarmauri_standard.schema_converters.MistralSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    (
-        "Importing MistralToolModel from swarmauri.llms is "
-        "deprecated and will be "
-    )(
-        "removed in a future version. Please use 'from "
-        "swarmauri_standard.tool_llms import "
-    )(
-        "MistralToolModel' or 'from swarmauri.tool_llms import "
-        "MistralToolModel' instead."
-    ),
+    "Importing MistralToolModel from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from "
+    "swarmauri_standard.tool_llms import MistralToolModel' or 'from "
+    "swarmauri.tool_llms import MistralToolModel' instead.",
     DeprecationWarning,
     stacklevel=2,
 )

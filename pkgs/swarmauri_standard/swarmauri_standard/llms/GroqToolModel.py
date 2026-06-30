@@ -27,13 +27,10 @@ from swarmauri_standard.schema_converters.GroqSchemaConverter import (
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing GroqToolModel from swarmauri.llms is deprecated and will be "(
-        "removed in a future version. Please use 'from "
-        "swarmauri_standard.tool_llms import "
-    )(
-        "GroqToolModel' or 'from swarmauri.tool_llms import "
-        "GroqToolModel' instead."
-    ),
+    "Importing GroqToolModel from swarmauri.llms is deprecated and will be "
+    "removed in a future version. Please use 'from "
+    "swarmauri_standard.tool_llms import GroqToolModel' or 'from "
+    "swarmauri.tool_llms import GroqToolModel' instead.",
     DeprecationWarning,
     stacklevel=2,
 )

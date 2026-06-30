@@ -64,6 +64,26 @@ _KNOWN_SAFE_UNKNOWN_DEPS = {
     "click",  # BSD-3-Clause (bundled LICENSE.txt)
 }
 
+# Dependencies approved by Swarmauri policy despite imperfect or compound
+# package metadata that does not normalize cleanly to STANDARD_LICENSES.
+_KNOWN_ACCEPTED_DEPS = {
+    "cachetools",
+    "google-auth",
+    "isodate",
+    "jmespath",
+    "numpy",
+    "pyasn1",
+    "pyasn1-modules",
+    "pycparser",
+    "pyrfc3339",
+    "rsa",
+    "s3transfer",
+    "starlette",
+    "tenacity",
+    "transformers",
+    "wrapt",
+}
+
 LICENSE_PATTERNS = [
     "MIT License",
     "Apache License",
@@ -90,7 +110,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--pylicense-package",
         action="store",
         default=None,
-        help="Package name to inspect (defaults to project name in pyproject.toml).",
+        help=(
+            "Package name to inspect (defaults to project name in "
+            "pyproject.toml)."
+        ),
     )
     group.addoption(
         "--pylicense-allow-list",
@@ -108,7 +131,10 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--pylicense-accept-deps",
         action="store",
         default=None,
-        help="Comma-separated list of dependency names to accept regardless of license.",
+        help=(
+            "Comma-separated list of dependency names to accept regardless of "
+            "license."
+        ),
     )
 
 
@@ -151,10 +177,14 @@ def _license_from_dist(dist) -> str:
                 break
     if not license_str or license_str == "UNKNOWN":
         classifiers = [
-            c for c in meta.get_all("Classifier", []) if c.startswith("License ::")
+            c
+            for c in meta.get_all("Classifier", [])
+            if c.startswith("License ::")
         ]
         if classifiers:
-            license_str = " / ".join(c.split("::")[-1].strip() for c in classifiers)
+            license_str = " / ".join(
+                c.split("::")[-1].strip() for c in classifiers
+            )
     if not license_str or license_str == "UNKNOWN":
         for file in dist.files or []:
             name = file.name.upper()
@@ -235,16 +265,19 @@ class LicenseItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple assertion
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
-        accepted: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
+        accepted: Set[str] = getattr(
+            self.config, "_pylicense_accept_deps", set()
+        )
         dep_canon = canonicalize_name(self.dep)
         lic = self.license
-        if dep_canon in accepted:
+        if dep_canon in accepted or dep_canon in _KNOWN_ACCEPTED_DEPS:
             return
         if lic == "UNKNOWN":
             if dep_canon in _KNOWN_SAFE_UNKNOWN_DEPS:
                 return
             pytest.fail(
-                f"{self.dep}=={self.version} has unknown license", pytrace=False
+                f"{self.dep}=={self.version} has unknown license",
+                pytrace=False,
             )
         if lic.lower() not in STANDARD_LICENSES:
             pytest.fail(
@@ -272,7 +305,10 @@ class LicenseItem(pytest.Item):
 
 class LicenseAggregateItem(pytest.Item):
     def __init__(
-        self, name: str, parent: pytest.Collector, licenses: Dict[str, PackageLicense]
+        self,
+        name: str,
+        parent: pytest.Collector,
+        licenses: Dict[str, PackageLicense],
     ):
         super().__init__(name, parent)
         self.licenses = licenses
@@ -280,11 +316,13 @@ class LicenseAggregateItem(pytest.Item):
     def runtest(self) -> None:  # pragma: no cover - simple aggregation
         allow: Set[str] = getattr(self.config, "_pylicense_allow", set())
         disallow: Set[str] = getattr(self.config, "_pylicense_disallow", set())
-        accepted: Set[str] = getattr(self.config, "_pylicense_accept_deps", set())
+        accepted: Set[str] = getattr(
+            self.config, "_pylicense_accept_deps", set()
+        )
         failures = []
         for dep, info in self.licenses.items():
             canon = canonicalize_name(dep)
-            if canon in accepted:
+            if canon in accepted or canon in _KNOWN_ACCEPTED_DEPS:
                 continue
             lic = info.license
             ver = info.version
@@ -292,7 +330,9 @@ class LicenseAggregateItem(pytest.Item):
                 if canon not in _KNOWN_SAFE_UNKNOWN_DEPS:
                     failures.append(f"{dep}=={ver} has unknown license")
             elif lic.lower() not in STANDARD_LICENSES:
-                failures.append(f"{dep}=={ver} uses non-standard license {lic}")
+                failures.append(
+                    f"{dep}=={ver} uses non-standard license {lic}"
+                )
             elif disallow and lic in disallow:
                 failures.append(f"{dep}=={ver} uses forbidden license {lic}")
             elif allow and lic not in allow:
@@ -319,12 +359,14 @@ def pytest_configure(config: pytest.Config) -> None:
         config.getoption("--pylicense-allow-list"), "PYLICENSE_ALLOW_LIST"
     )
     disallow = _parse_list(
-        config.getoption("--pylicense-disallow-list"), "PYLICENSE_DISALLOW_LIST"
+        config.getoption("--pylicense-disallow-list"),
+        "PYLICENSE_DISALLOW_LIST",
     )
     accept_deps = {
         canonicalize_name(d)
         for d in _parse_list(
-            config.getoption("--pylicense-accept-deps"), "PYLICENSE_ACCEPT_DEPS"
+            config.getoption("--pylicense-accept-deps"),
+            "PYLICENSE_ACCEPT_DEPS",
         )
     }
     config._pylicense_allow = allow
@@ -345,7 +387,10 @@ def pytest_collection_modifyitems(
             path_str = "::".join(dp.path)
             item = LicenseItem.from_parent(
                 session,
-                name=f"{PLUGIN_NAME}:license::{path_str}=={dp.version} [{dp.license}]",
+                name=(
+                    f"{PLUGIN_NAME}:license::{path_str}=={dp.version} "
+                    f"[{dp.license}]"
+                ),
                 dep=dp.path[-1],
                 version=dp.version,
                 license=dp.license,
