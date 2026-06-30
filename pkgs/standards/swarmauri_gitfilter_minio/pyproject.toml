@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_minio"
-version = "0.3.1.dev4"
+version = "0.3.1.dev5"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "MinIO git filter for Peagen"
 readme = "README.md"

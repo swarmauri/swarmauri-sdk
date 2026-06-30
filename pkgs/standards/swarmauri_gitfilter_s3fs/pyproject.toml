@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_gitfilter_s3fs"
-version = "0.3.1.dev4"
+version = "0.3.1.dev5"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "S3 git filter for Peagen using s3fs"
 readme = "README.md"
