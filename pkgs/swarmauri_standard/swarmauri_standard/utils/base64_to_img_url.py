@@ -1,4 +1,4 @@
-import requests
+import httpx
 
 
 def base64_to_img_url(base64_str: str, api_key: str) -> str:
@@ -26,7 +26,7 @@ def base64_to_img_url(base64_str: str, api_key: str) -> str:
     }
 
     # Send POST request to ImgBB API
-    response = requests.post(url, payload)
+    response = httpx.post(url, data=payload)
 
     # Check if the request was successful
     if response.status_code == 200:

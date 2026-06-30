@@ -1,5 +1,5 @@
 import pytest
-import requests
+import httpx
 from swarmauri_tool_webscraping.WebScrapingTool import (
     WebScrapingTool as Tool,
 )
@@ -79,7 +79,11 @@ def test_call(url, selector, expected_substring):
 
         def raise_for_status(self):
             if self.status_code >= 400:
-                raise requests.HTTPError(f"{self.status_code} Client Error")
+                raise httpx.HTTPStatusError(
+                    f"{self.status_code} Client Error",
+                    request=httpx.Request("GET", "https://example.com"),
+                    response=httpx.Response(self.status_code),
+                )
 
     def mock_get(mock_url):
         if mock_url == "https://example.com":
@@ -96,15 +100,15 @@ def test_call(url, selector, expected_substring):
                 "<html><body><h1>404 Not Found</h1></body></html>",
                 404,
             )
-        raise requests.RequestException("Unexpected URL")
+        raise httpx.HTTPError("Unexpected URL")
 
     tool = Tool()
-    original_get = requests.get
-    requests.get = mock_get
+    original_get = httpx.get
+    httpx.get = mock_get
     try:
         result = tool(url, selector)
     finally:
-        requests.get = original_get
+        httpx.get = original_get
 
     # Check the result type
     assert isinstance(result, dict), "Result should be a dictionary."

@@ -6,7 +6,7 @@ import json
 from typing import Any, Mapping, Optional, Sequence, cast
 from uuid import uuid4
 
-import requests
+import httpx
 from pydantic import Field, PrivateAttr, SecretStr
 
 from swarmauri_base.billing import (
@@ -91,7 +91,7 @@ class PayPalBillingProvider(
             raise ValueError(
                 "client_id and client_secret are required for PayPal API calls"
             )
-        response = requests.post(
+        response = httpx.post(
             f"{self._base}/v1/oauth2/token",
             data={"grant_type": "client_credentials"},
             auth=(self.client_id, self.client_secret.get_secret_value()),
@@ -118,7 +118,7 @@ class PayPalBillingProvider(
         }
         if idempotency_key:
             headers["PayPal-Request-Id"] = idempotency_key
-        response = requests.request(
+        response = httpx.request(
             method,
             f"{self._base}{path}",
             headers=headers,

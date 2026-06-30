@@ -8,8 +8,8 @@ from dataclasses import dataclass
 from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Tuple
 
 import google.auth
-from google.auth.transport.requests import Request as GARequest
-import requests
+from google.auth.transport.urllib3 import Request as GARequest
+import httpx
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
@@ -165,7 +165,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             f"keyRings/{self._ring}/cryptoKeys?cryptoKeyId={spec.name}"
         )
         body = {"purpose": purpose}
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json=body, timeout=self._timeout
         )
         if r.status_code not in (200, 201):
@@ -210,7 +210,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         name = self._version_name(kid, version)
         token = self._token()
         url = f"{API_ROOT}/{name}:destroy"
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json={}, timeout=self._timeout
         )
         if r.status_code != 200:
@@ -259,7 +259,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         token = self._token()
         name = self._key_name(kid)
         url = f"{API_ROOT}/{name}/cryptoKeyVersions?pageSize=1000"
-        r = requests.get(url, headers=self._hdr(token), timeout=self._timeout)
+        r = httpx.get(url, headers=self._hdr(token), timeout=self._timeout)
         if r.status_code != 200:
             raise RuntimeError(
                 f"list_versions failed: {r.status_code} {r.text}"
@@ -282,7 +282,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
     async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
         token = self._token()
         list_url = f"{API_ROOT}/projects/{self._project}/locations/{self._location}/keyRings/{self._ring}/cryptoKeys?pageSize=1000"  # noqa: E501
-        r = requests.get(
+        r = httpx.get(
             list_url, headers=self._hdr(token), timeout=self._timeout
         )
         if r.status_code != 200:
@@ -295,7 +295,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             if prefix_kids and not kid.startswith(prefix_kids):
                 continue
             v_url = f"{API_ROOT}/{ck['name']}/cryptoKeyVersions?pageSize=1000"
-            rv = requests.get(
+            rv = httpx.get(
                 v_url, headers=self._hdr(token), timeout=self._timeout
             )
             if rv.status_code != 200:
@@ -346,7 +346,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         body: Dict[str, Any] = {"plaintext": _b64e(plaintext)}
         if aad:
             body["additionalAuthenticatedData"] = _b64e(aad)
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json=body, timeout=self._timeout
         )
         if r.status_code != 200:
@@ -367,7 +367,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         body: Dict[str, Any] = {"ciphertext": _b64e(ciphertext)}
         if aad:
             body["additionalAuthenticatedData"] = _b64e(aad)
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json=body, timeout=self._timeout
         )
         if r.status_code != 200:
@@ -410,7 +410,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         token = self._token()
         url = f"{API_ROOT}/{vname}:asymmetricDecrypt"
         body = {"ciphertext": _b64e(wrapped)}
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json=body, timeout=self._timeout
         )
         if r.status_code != 200:
@@ -442,7 +442,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         token = self._token()
         url = f"{API_ROOT}/{vname}:asymmetricSign"
         body = {"digest": {f"sha{h.digest_size * 8}": _b64e(digest_bytes)}}
-        r = requests.post(
+        r = httpx.post(
             url, headers=self._hdr(token), json=body, timeout=self._timeout
         )
         if r.status_code != 200:
@@ -535,7 +535,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
         token = self._token()
         if version is None:
             ck_url = f"{API_ROOT}/{self._key_name(kid)}"
-            r = requests.get(
+            r = httpx.get(
                 ck_url, headers=self._hdr(token), timeout=self._timeout
             )
             if r.status_code != 200:
@@ -548,7 +548,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
                 vname = primary
             else:
                 lv_url = f"{API_ROOT}/{self._key_name(kid)}/cryptoKeyVersions?pageSize=1000"  # noqa: E501
-                rv = requests.get(
+                rv = httpx.get(
                     lv_url, headers=self._hdr(token), timeout=self._timeout
                 )
                 if rv.status_code != 200:
@@ -572,9 +572,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
             vname = self._version_name(kid, version)
 
         v_url = f"{API_ROOT}/{vname}"
-        rv = requests.get(
-            v_url, headers=self._hdr(token), timeout=self._timeout
-        )
+        rv = httpx.get(v_url, headers=self._hdr(token), timeout=self._timeout)
         if rv.status_code != 200:
             raise RuntimeError(
                 f"get version failed: {rv.status_code} {rv.text}"
@@ -600,7 +598,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
                 return self._pub_cache[version_name][0]
         token = self._token()
         url = f"{API_ROOT}/{version_name}/publicKey"
-        r = requests.get(url, headers=self._hdr(token), timeout=self._timeout)
+        r = httpx.get(url, headers=self._hdr(token), timeout=self._timeout)
         if r.status_code != 200:
             raise RuntimeError(
                 f"getPublicKey failed: {r.status_code} {r.text}"

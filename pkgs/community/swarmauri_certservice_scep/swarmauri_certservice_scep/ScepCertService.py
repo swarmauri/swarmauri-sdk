@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Sequence
 
-import requests
+import httpx
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
@@ -154,7 +154,7 @@ class ScepCertService(CertServiceBase):
         opts (Dict[str, Any] / None): Implementation-specific options.
         RETURNS (CertBytes): The certificate returned by the server.
         """
-        resp = requests.post(
+        resp = httpx.post(
             f"{self._url}/pkiclient.exe?operation=PKIOperation", data=csr
         )
         resp.raise_for_status()

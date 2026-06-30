@@ -1,4 +1,4 @@
-import requests
+import httpx
 from typing import Dict
 from swarmauri.tools.concrete.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
@@ -32,11 +32,11 @@ class FileDownloaderTool(ToolBase):
         - Dict[str, bytes]: A dictionary containing the file content as bytes.
         """
         try:
-            response = requests.get(url)
+            response = httpx.get(url)
             # Raises an HTTPError if the request resulted in an error
             response.raise_for_status()
             return {"file_content": response.content}
-        except requests.RequestException as e:
+        except httpx.HTTPError as e:
             raise RuntimeError(
                 f"Failed to download file from '{url}'. Error: {e}"
             )

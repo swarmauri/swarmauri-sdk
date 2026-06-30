@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict
 
 import boto3
-import requests
+import httpx
 
 
 class AwsIdentityResolver:
@@ -28,7 +28,7 @@ class AwsIdentityResolver:
 
     def _get_role_credentials(self, access_token: str) -> Dict[str, str]:
         url = f"https://portal.sso.{self.sso_region}.amazonaws.com/federation/credentials"
-        response = requests.get(
+        response = httpx.get(
             url,
             params={
                 "account_id": self.account_id,

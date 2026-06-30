@@ -39,11 +39,11 @@ dependencies = [
     "swarmauri_base",
     "httpx>=0.27",
     "boto3>=1.34",
-    "requests>=2.31",
+    "httpx>=0.27",
 ]
 
 [project.optional-dependencies]
-identity = ["boto3>=1.34", "requests>=2.31"]
+identity = ["boto3>=1.34", "httpx>=0.27"]
 
 [project.entry-points.'swarmauri.auth_idp']
 AwsOAuth20Login = "swarmauri_auth_idp_aws:AwsOAuth20Login"

@@ -1,6 +1,6 @@
 import os
 import json
-import requests
+import httpx
 from swarmauri.llms.concrete.GroqModel import GroqModel
 from swarmauri.agents.concrete.SimpleConversationAgent import SimpleConversationAgent
 from swarmauri.conversations.concrete.Conversation import Conversation
@@ -98,7 +98,7 @@ def get_existing_issues():
     """Retrieve all existing issues with the pytest-failure label."""
     url = f"https://api.github.com/repos/{REPO}/issues"
     params = {"labels": "pytest-failure", "state": "open"}
-    response = requests.get(url, headers=HEADERS, params=params)
+    response = httpx.get(url, headers=HEADERS, params=params)
     response.raise_for_status()
     return response.json()
 
@@ -137,7 +137,7 @@ This issue is auto-labeled for the `{package}` package.
 """,
         "labels": ["pytest-failure", package],
     }
-    response = requests.post(url, headers=HEADERS, json=data)
+    response = httpx.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
     print(
         f"Issue created for {test['name']} with Groq suggestion in package '{package}'."
@@ -167,7 +167,7 @@ New failure detected:
 - **Matrix Package**: `{package}`
 """
     }
-    response = requests.post(url, headers=HEADERS, json=data)
+    response = httpx.post(url, headers=HEADERS, json=data)
     response.raise_for_status()
     print(f"Comment added to issue {issue_number} for {test['name']}.")
 

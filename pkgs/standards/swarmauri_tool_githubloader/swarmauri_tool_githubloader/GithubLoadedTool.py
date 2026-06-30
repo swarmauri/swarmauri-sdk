@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Optional, Literal, Any
-import requests
+import httpx
 import yaml
 from pydantic import Field, PrivateAttr
 
@@ -48,7 +48,7 @@ class GithubLoadedTool(ToolBase):
         headers = (
             {"Authorization": f"token {self.token}"} if self.token else {}
         )
-        response = requests.get(url, headers=headers, timeout=10)
+        response = httpx.get(url, headers=headers, timeout=10)
         response.raise_for_status()
         return response.text
 

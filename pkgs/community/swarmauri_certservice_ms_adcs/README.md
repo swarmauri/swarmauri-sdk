@@ -30,7 +30,7 @@ A: Not yet. `sign_cert()` currently raises `NotImplementedError`. Use `create_cs
 
 ### Q: Which authentication modes are modeled?
 
-A: `_AuthCfg` supports `ntlm`, `kerberos`, `basic`, and `none`. NTLM and Kerberos require optional dependencies: `requests-ntlm` and `requests-kerberos`.
+A: `_AuthCfg` supports `basic` and `none` with the built-in `httpx` client. NTLM and Kerberos require an httpx-compatible auth adapter before use.
 
 ### Q: What certificate operations are implemented?
 
@@ -58,8 +58,7 @@ A: `parse_cert()` returns serial, signature algorithm, issuer, subject, validity
 
 - Network access to an AD CS Web Enrollment endpoint when integrating with a live CA.
 - PEM private key material for CSR and self-signed certificate creation.
-- Optional `requests-ntlm` for NTLM authentication.
-- Optional `requests-kerberos` for Kerberos/SPNEGO authentication.
+- Optional httpx-compatible adapters for NTLM or Kerberos/SPNEGO authentication.
 - Issuer certificates when using signature verification.
 
 ## Installation
@@ -67,19 +66,13 @@ A: `parse_cert()` returns serial, signature algorithm, issuer, subject, validity
 Install with `uv`:
 
 ```bash
-uv add "swarmauri_certservice_ms_adcs[ntlm,kerberos]"
+uv add swarmauri_certservice_ms_adcs
 ```
 
 Install with `pip`:
 
 ```bash
-pip install "swarmauri_certservice_ms_adcs[ntlm,kerberos]"
-```
-
-Install without auth extras when using anonymous or basic-auth-only flows:
-
-```bash
-uv add swarmauri_certservice_ms_adcs
+pip install swarmauri_certservice_ms_adcs
 ```
 
 ## Usage
@@ -146,8 +139,8 @@ asyncio.run(main())
 
 ## Authentication Modes
 
-- `ntlm`: install `requests-ntlm` and provide `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="...")`.
-- `kerberos`: install `requests-kerberos` and provide `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
+- `ntlm`: provide an httpx-compatible NTLM auth adapter before using `_AuthCfg(mode="ntlm", username="DOMAIN\\user", password="...")`.
+- `kerberos`: provide an httpx-compatible Kerberos/SPNEGO auth adapter before using `_AuthCfg(mode="kerberos", spnego_delegate=True)` when delegation is required.
 - `basic`: provide `_AuthCfg(mode="basic", username="...", password="...")`.
 - `none`: provide `_AuthCfg(mode="none")` for anonymous, mTLS-fronted, or externally authenticated flows.
 

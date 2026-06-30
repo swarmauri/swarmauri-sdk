@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import datetime
 
-import requests
+import httpx
 from swarmauri_core.tracing.ITraceContext import ITraceContext
 from swarmauri_core.tracing.ITracer import ITracer
 
@@ -56,7 +56,7 @@ class RemoteAPITracer(ITracer):
         }
         json_data = json.dumps(trace_data)
         # POST the serialized data to the remote REST API
-        response = requests.post(self.api_endpoint, json=json_data)
+        response = httpx.post(self.api_endpoint, json=json_data)
         if not response.ok:
             raise Exception(
                 (

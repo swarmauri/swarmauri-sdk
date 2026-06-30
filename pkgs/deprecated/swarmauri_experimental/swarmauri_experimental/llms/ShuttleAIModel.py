@@ -9,7 +9,7 @@ from swarmauri.messages.base.MessageBase import MessageBase
 from swarmauri.messages.concrete.AgentMessage import AgentMessage
 from swarmauri.llms.base.LLMBase import LLMBase
 
-import requests
+import httpx
 
 
 class ShuttleAIModel(LLMBase):
@@ -139,7 +139,7 @@ class ShuttleAIModel(LLMBase):
         }
 
         logging.info(f"Payload being sent: {payload}")
-        response = requests.post(url, json=payload, headers=headers)
+        response = httpx.post(url, json=payload, headers=headers)
         logging.info(f"Response received: {response.text}")
 
         try:
@@ -226,9 +226,7 @@ class ShuttleAIModel(LLMBase):
             "Content-Type": "application/json",
         }
 
-        response = requests.post(
-            url, json=payload, headers=headers, stream=True
-        )
+        response = httpx.post(url, json=payload, headers=headers, stream=True)
 
         collected_content = []
         for line in response.iter_lines():

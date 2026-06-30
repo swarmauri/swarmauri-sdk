@@ -45,7 +45,7 @@ pipelines that need PDF content in memory without writing directly to disk.
 ## Features
 
 - Swarmauri `ToolBase` implementation registered as `DownloadPDFTool`.
-- Fetches PDF bytes with `requests`.
+- Fetches PDF bytes with `httpx`.
 - Returns PDF content as base64 for easy transport.
 - Avoids filesystem writes in the default flow.
 - Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
@@ -90,14 +90,14 @@ if "content" in result:
 ### Send PDF content to another API
 
 ```python
-import requests
+import httpx
 from swarmauri_tool_downloadpdf import DownloadPDFTool
 
 tool = DownloadPDFTool()
 result = tool("https://example.com/form.pdf")
 
 if "content" in result:
-    requests.post("https://api.example.com/upload", json=result)
+    httpx.post("https://api.example.com/upload", json=result)
 ```
 
 ### Use the tool in a Swarmauri collection
@@ -126,7 +126,7 @@ print(tools)
 
 ## More Documentation
 
-- [Requests documentation](https://requests.readthedocs.io/)
+- [HTTPX documentation](https://www.python-httpx.org/)
 - [Base64 encoding in Python](https://docs.python.org/3/library/base64.html)
 - [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
 

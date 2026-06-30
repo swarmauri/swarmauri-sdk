@@ -1,4 +1,4 @@
-import requests
+import httpx
 from typing import Dict
 from swarmauri.tools.concrete.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
@@ -94,7 +94,7 @@ class LinkedInArticleTool(ToolBase):
         }
 
         # Make the POST request to LinkedIn's API
-        response = requests.post(url, headers=headers, json=payload)
+        response = httpx.post(url, headers=headers, json=payload)
 
         if response.status_code == 201:
             return {

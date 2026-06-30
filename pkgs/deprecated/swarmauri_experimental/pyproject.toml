@@ -27,7 +27,7 @@ dependencies = [
     "numpy",
     "openai",
     "pydantic",
-    "requests",
+    "httpx",
     "tensorflow",
     "torch",
     "transformers>=4.45.0",

@@ -1,4 +1,4 @@
-import requests
+import httpx
 import hashlib
 from functools import wraps
 from uuid import uuid4
@@ -29,7 +29,7 @@ def remote_local_transport(cls):
                 "name": name,
                 **kwargs,
             }
-            response = requests.post(url, json=data)
+            response = httpx.post(url, json=data)
             if not response.ok:
                 raise Exception(
                     (
@@ -66,7 +66,7 @@ def method_wrapper(method):
         if getattr(self, "host"):
             print("[x] Executing remote call...")
             url = f"{self.path}".lower()
-            response = requests.post(
+            response = httpx.post(
                 url, json={"args": args[1:], "kwargs": kwargs}
             )
             if response.ok:

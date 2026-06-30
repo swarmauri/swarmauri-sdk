@@ -1,4 +1,4 @@
-import requests
+import httpx
 from bs4 import BeautifulSoup
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -31,7 +31,7 @@ class WebScrapingTool(ToolBase):
 
     name: str = "WebScrapingTool"
     description: str = (
-        "This is a web scraping tool that uses python's requests and "
+        "This is a web scraping tool that uses python's httpx and "
         "BeautifulSoup libraries to parse a URL using a CSS selector "
         "to target specific elements."
     )
@@ -52,8 +52,8 @@ class WebScrapingTool(ToolBase):
             message.
         """
         try:
-            response = requests.get(url)
-            # Raises HTTPError for bad requests (4xx or 5xx)
+            response = httpx.get(url)
+            # Raises HTTPError for bad responses (4xx or 5xx)
             response.raise_for_status()
 
             html_content = response.content
@@ -62,7 +62,7 @@ class WebScrapingTool(ToolBase):
             elements = soup.select(selector)
             extracted_text = "\n".join([element.text for element in elements])
             return {"extracted_text": extracted_text}
-        except requests.RequestException as e:
+        except httpx.HTTPError as e:
             return {"error": f"Request error: {str(e)}"}
         except Exception as e:
             return {"error": f"An error occurred: {str(e)}"}

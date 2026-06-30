@@ -8,7 +8,7 @@ import json
 from typing import Any, Mapping, Optional, Sequence, cast
 from uuid import uuid4
 
-import requests
+import httpx
 from pydantic import Field
 
 from swarmauri_base.billing import (
@@ -84,7 +84,7 @@ class AuthorizeNetBillingProvider(
                 **dict(payload),
             }
         }
-        response = requests.post(
+        response = httpx.post(
             self._endpoint,
             json=body,
             headers={"Content-Type": "application/json"},

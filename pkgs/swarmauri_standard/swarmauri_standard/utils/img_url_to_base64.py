@@ -1,11 +1,11 @@
 import base64
 from io import BytesIO
-import requests
+import httpx
 from PIL import Image
 
 
 def img_url_to_base64(img_url: str) -> str:
-    response = requests.get(img_url)
+    response = httpx.get(img_url)
     image = Image.open(BytesIO(response.content))
     buffered = BytesIO()
     image.save(buffered, format="PNG")

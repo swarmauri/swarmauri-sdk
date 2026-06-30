@@ -70,8 +70,7 @@ class JSONRequestsTool(ToolBase):
         ]
     )
 
-    # Reusable client for requests; allows injection of a custom transport for
-    # testing.
+    # Reusable HTTP client; allows injection of a custom transport for testing.
     client: httpx.Client = Field(default_factory=httpx.Client, exclude=True)
 
     def get(

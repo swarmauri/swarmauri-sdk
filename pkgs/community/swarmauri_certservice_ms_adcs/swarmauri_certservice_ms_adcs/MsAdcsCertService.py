@@ -5,24 +5,7 @@ import dataclasses
 import time
 from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Sequence
 
-import requests
-
-try:
-    # Optional auth helpers (install whichever your AD CS needs)
-    from requests_ntlm import HttpNtlmAuth  # type: ignore
-
-    _NTLM_OK = True
-except Exception:  # pragma: no cover - optional
-    _NTLM_OK = False
-
-try:
-    from requests_kerberos import HTTPKerberosAuth, DISABLED  # type: ignore
-
-    _KERB_OK = True
-except Exception:  # pragma: no cover - optional
-    _KERB_OK = False
-
-from requests.auth import HTTPBasicAuth
+import httpx
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -92,7 +75,7 @@ def _now() -> int:
 
 @dataclasses.dataclass(frozen=True)
 class _AuthCfg:
-    mode: Literal["ntlm", "kerberos", "basic", "none"] = "ntlm"
+    mode: Literal["ntlm", "kerberos", "basic", "none"] = "none"
     username: Optional[str] = None
     password: Optional[str] = None
     domain: Optional[str] = None
@@ -111,7 +94,7 @@ class MsAdcsCertService(CertServiceBase):
         *,
         default_template: Optional[str] = "User",
         auth: _AuthCfg = _AuthCfg(),
-        session: Optional[requests.Session] = None,
+        session: Optional[httpx.Client] = None,
         timeout_s: float = 15.0,
     ) -> None:
         super().__init__()
@@ -119,43 +102,29 @@ class MsAdcsCertService(CertServiceBase):
         self._tmpl = default_template
         self._auth_cfg = auth
         self._timeout = timeout_s
-        self._s = session or requests.Session()
+        self._s = session or httpx.Client(
+            verify=self._auth_cfg.verify_tls,
+            headers={"User-Agent": _DEF_USER_AGENT},
+        )
         self._configure_auth()
 
     # ---------------------------------------------------------------------
     # Auth
     def _configure_auth(self) -> None:
         if self._auth_cfg.mode == "ntlm":
-            if not _NTLM_OK:  # pragma: no cover - import guard
-                raise RuntimeError(
-                    (
-                        "NTLM auth requested but 'requests-ntlm' not installed. pip "  # noqa: E501
-                        "install requests-ntlm"
-                    )
-                )
-            user = self._auth_cfg.username or ""
-            pw = self._auth_cfg.password or ""
-            self._s.auth = HttpNtlmAuth(user, pw)
+            raise RuntimeError(
+                "NTLM auth requires an httpx-compatible auth adapter."
+            )
         elif self._auth_cfg.mode == "kerberos":
-            if not _KERB_OK:  # pragma: no cover - import guard
-                raise RuntimeError(
-                    (
-                        "Kerberos auth requested but 'requests-kerberos' not "
-                        "installed. pip install requests-kerberos"
-                    )
-                )
-            self._s.auth = HTTPKerberosAuth(
-                mutual_authentication=DISABLED,
-                delegate=self._auth_cfg.spnego_delegate,
+            raise RuntimeError(
+                "Kerberos auth requires an httpx-compatible auth adapter."
             )
         elif self._auth_cfg.mode == "basic":
             user = self._auth_cfg.username or ""
             pw = self._auth_cfg.password or ""
-            self._s.auth = HTTPBasicAuth(user, pw)
+            self._s.auth = httpx.BasicAuth(user, pw)
         else:
             self._s.auth = None
-        self._s.verify = self._auth_cfg.verify_tls
-        self._s.headers.update({"User-Agent": _DEF_USER_AGENT})
 
     # --------------------------------------------------------------
     # Capabilities

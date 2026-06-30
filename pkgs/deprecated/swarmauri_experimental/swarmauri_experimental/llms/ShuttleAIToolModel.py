@@ -9,7 +9,7 @@ from typing import (
     Optional,
     Union,
 )
-import requests
+import httpx
 import aiohttp
 import asyncio
 from pydantic import PrivateAttr
@@ -27,7 +27,7 @@ from swarmauri.schema_converters.concrete.ShuttleAISchemaConverter import (
 
 class ShuttleAIToolModel(LLMBase):
     api_key: str
-    _client: Optional[requests.Session] = PrivateAttr(default=None)
+    _client: Optional[httpx.Client] = PrivateAttr(default=None)
     allowed_models: List[str] = [
         "claude-instant-1.1",
         "gemini-1.0-pro-latest",
@@ -48,7 +48,7 @@ class ShuttleAIToolModel(LLMBase):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._client = requests.Session()
+        self._client = httpx.Client()
         self._client.headers.update(
             {"Authorization": f"Bearer {self.api_key}"}
         )
@@ -238,26 +238,23 @@ class ShuttleAIToolModel(LLMBase):
             if citations:
                 payload["citations"] = True
 
-        response = self._client.post(url, json=payload, stream=True)
-        response.raise_for_status()
-
         full_content = ""
-        for line in response.iter_lines():
-            if line:
-                try:
-                    chunk = json.loads(
-                        line.decode("utf-8").split("data: ", 1)[-1]
-                    )
-                    if (
-                        chunk.get("choices")
-                        and chunk["choices"][0].get("delta")
-                        and chunk["choices"][0]["delta"].get("content")
-                    ):
-                        content = chunk["choices"][0]["delta"]["content"]
-                        full_content += content
-                        yield content
-                except json.JSONDecodeError:
-                    continue
+        with self._client.stream("POST", url, json=payload) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        chunk = json.loads(line.split("data: ", 1)[-1])
+                        if (
+                            chunk.get("choices")
+                            and chunk["choices"][0].get("delta")
+                            and chunk["choices"][0]["delta"].get("content")
+                        ):
+                            content = chunk["choices"][0]["delta"]["content"]
+                            full_content += content
+                            yield content
+                    except json.JSONDecodeError:
+                        continue
 
         conversation.add_message(AgentMessage(content=full_content))
 

@@ -1,9 +1,9 @@
 from PIL import Image
-import requests
+import httpx
 from io import BytesIO
 
 
 def img_url_to_in_memory_img(img_url: str) -> Image.Image:
-    response = requests.get(img_url)
+    response = httpx.get(img_url)
     image = Image.open(BytesIO(response.content))
     return image

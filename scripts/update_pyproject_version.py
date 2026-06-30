@@ -1,4 +1,4 @@
-import requests
+import httpx
 from tomlkit import parse, dumps, inline_table
 from urllib.parse import urljoin
 
@@ -30,7 +30,7 @@ def fetch_remote_pyproject_version(git_url, branch="master", subdirectory=""):
             subdirectory += "/"
         pyproject_url = urljoin(base_url, f"{subdirectory}pyproject.toml")
 
-        response = requests.get(pyproject_url)
+        response = httpx.get(pyproject_url)
         response.raise_for_status()
         doc = parse(response.text)
         version = doc.get("tool", {}).get("poetry", {}).get("version")

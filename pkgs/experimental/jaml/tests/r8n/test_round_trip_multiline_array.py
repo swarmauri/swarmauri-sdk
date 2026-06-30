@@ -8,7 +8,7 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-    "requests>=2.32.3",
+    "httpx>=0.27",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
@@ -19,8 +19,8 @@ dev = [
 
 def test_round_trip_multiline_array_preserves_format():
     """
-    Test that round_trip_loads and round_trip_dumps correctly preserve the formatting
-    of a multi-line array, including newlines between items.
+    Test that round_trip_loads and round_trip_dumps correctly preserve the
+    formatting of a multi-line array, including newlines between items.
     """
     # Parse the JML into an AST preserving formatting, comments, etc.
     ast = round_trip_loads(MULTILINE_ARRAY_JML)
@@ -32,7 +32,7 @@ def test_round_trip_multiline_array_preserves_format():
     dev_start = unparsed_text.find("dev = [")
     assert dev_start != -1, "Could not find 'dev = [' in unparsed text"
 
-    # Extract the content of the array between the opening '[' and the closing ']'
+    # Extract the content of the array between the opening '[' and closing ']'
     array_start = dev_start + len("dev = [")
     array_end = unparsed_text.find("]", array_start)
     assert array_end != -1, (
@@ -42,13 +42,13 @@ def test_round_trip_multiline_array_preserves_format():
     array_content = unparsed_text[array_start:array_end]
     # Assert that there is at least one newline inside the array content.
     assert "\n" in array_content, (
-        "Multiline array formatting (newlines) was not preserved in unparsed text"
+        "Multiline array formatting was not preserved in unparsed text"
     )
 
 
 def test_plain_loads_multiline_array():
     """
-    Test that loads() converts a multi-line array into the expected plain Python dict.
+    Test that loads() converts a multi-line array into the expected dict.
     """
     plain_data = loads(MULTILINE_ARRAY_JML)
 
@@ -60,7 +60,7 @@ def test_plain_loads_multiline_array():
                 "pytest-xdist>=3.6.1",
                 "pytest-json-report>=1.5.0",
                 "python-dotenv",
-                "requests>=2.32.3",
+                "httpx>=0.27",
                 "flake8>=7.0",
                 "pytest-timeout>=2.3.1",
                 "ruff>=0.9.9",

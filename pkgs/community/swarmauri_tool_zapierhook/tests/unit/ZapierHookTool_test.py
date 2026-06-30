@@ -2,7 +2,7 @@ from unittest.mock import patch
 import json
 
 import pytest
-import requests
+import httpx
 from swarmauri_tool_zapierhook.ZapierHookTool import (
     ZapierHookTool as Tool,
 )
@@ -63,7 +63,7 @@ def test_serialization(zapier_hook_tool):
         ),  # Invalid case: 500 Internal Server Error
     ],
 )
-@patch("requests.post")
+@patch("httpx.post")
 @pytest.mark.unit
 def test_call(
     mock_post,
@@ -83,10 +83,14 @@ def test_call(
 
     # Set the side effect to raise HTTPError for non-200 responses
     if response_status != 200:
-        mock_response.raise_for_status.side_effect = requests.HTTPError()
+        mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "error",
+            request=httpx.Request("POST", "dummy_zap_url"),
+            response=httpx.Response(response_status),
+        )
 
     if should_raise:
-        with pytest.raises(requests.HTTPError):
+        with pytest.raises(httpx.HTTPStatusError):
             zapier_hook_tool(payload)
     else:
         result = zapier_hook_tool(payload)

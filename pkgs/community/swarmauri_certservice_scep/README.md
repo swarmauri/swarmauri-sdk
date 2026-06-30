@@ -46,7 +46,7 @@ A: The service docstring references SCEP from RFC 8894, PKCS#10 CSR creation fro
 - PKCS#10 CSR creation from PEM private keys in `KeyRef.material`.
 - DNS subject alternative name support.
 - Challenge password support through the constructor or per-call argument.
-- SCEP `PKIOperation` HTTP submission through `requests`.
+- SCEP `PKIOperation` HTTP submission through `httpx`.
 - PEM and DER certificate loading for verification and parsing.
 - Basic certificate metadata extraction for issuer, subject, serial, validity, and CA status.
 - Python 3.10, 3.11, 3.12, 3.13, and 3.14 support.

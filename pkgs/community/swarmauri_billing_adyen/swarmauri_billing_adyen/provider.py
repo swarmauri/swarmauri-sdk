@@ -9,7 +9,7 @@ import json
 from typing import Any, Mapping, Optional, Sequence
 from uuid import uuid4
 
-import requests
+import httpx
 from pydantic import Field
 
 from swarmauri_base.billing import (
@@ -59,12 +59,12 @@ class AdyenBillingProvider(
     component_name: str = "adyen"
     merchant_account: str | None = Field(
         default=None,
-        description="Adyen merchant account used for Checkout requests.",
+        description="Adyen merchant account used for Checkout httpx.",
     )
     environment: str = Field(default="test", description="Adyen environment")
     live_url_prefix: str | None = Field(
         default=None,
-        description="Adyen live URL prefix for production requests.",
+        description="Adyen live URL prefix for production httpx.",
     )
     api_version: str = Field(
         default="v71", description="Adyen Checkout API version"
@@ -85,7 +85,7 @@ class AdyenBillingProvider(
     def _post(
         self, path: str, payload: Mapping[str, Any]
     ) -> Mapping[str, Any]:
-        response = requests.post(
+        response = httpx.post(
             f"{self._checkout_url}/{path.lstrip('/')}",
             headers={
                 "X-API-Key": self.api_key,

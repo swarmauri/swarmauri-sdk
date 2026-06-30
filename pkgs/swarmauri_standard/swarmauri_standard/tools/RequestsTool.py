@@ -1,5 +1,5 @@
 # Import necessary modules
-import requests
+import httpx
 from typing import Optional, Dict, Any, Literal, List
 from pydantic import Field
 from swarmauri_standard.tools.Parameter import Parameter
@@ -10,7 +10,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 @ComponentBase.register_type(ToolBase, "JSONRequestsTool")
 class JSONRequestsTool(ToolBase):
     """
-    A tool that leverages the `requests` library to perform HTTP operations.
+    A tool that leverages the `httpx` library to perform HTTP operations.
 
     Attributes:
         name (str): The name of the tool.
@@ -20,7 +20,7 @@ class JSONRequestsTool(ToolBase):
     name: str = "JSONRequestsTool"
     input_type: Literal["JSONRequestsTool"] = "JSONRequestsTool"
     description: Optional[str] = (
-        "A tool for making HTTP requests using the `requests` library."
+        "A tool for making HTTP requests using the `httpx` library."
     )
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
@@ -75,7 +75,7 @@ class JSONRequestsTool(ToolBase):
         url: str,
         params: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """
         Perform an HTTP GET request.
 
@@ -87,9 +87,9 @@ class JSONRequestsTool(ToolBase):
             in the request.
 
         Returns:
-            requests.Response: The response object from the GET request.
+            httpx.Response: The response object from the GET request.
         """
-        response = requests.get(url, params=params, headers=headers)
+        response = httpx.get(url, params=params, headers=headers)
         # Raise an HTTPError for bad responses (4xx and 5xx)
         response.raise_for_status()
         return response
@@ -100,7 +100,7 @@ class JSONRequestsTool(ToolBase):
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """
         Perform an HTTP POST request.
 
@@ -114,9 +114,9 @@ class JSONRequestsTool(ToolBase):
             in the request.
 
         Returns:
-            requests.Response: The response object from the POST request.
+            httpx.Response: The response object from the POST request.
         """
-        response = requests.post(url, data=data, json=json, headers=headers)
+        response = httpx.post(url, data=data, json=json, headers=headers)
         # Raise an HTTPError for bad responses (4xx and 5xx)
         response.raise_for_status()
         return response
@@ -127,7 +127,7 @@ class JSONRequestsTool(ToolBase):
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
         headers: Optional[Dict[str, str]] = None,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """
         Perform an HTTP PUT request.
 
@@ -141,16 +141,16 @@ class JSONRequestsTool(ToolBase):
             in the request.
 
         Returns:
-            requests.Response: The response object from the PUT request.
+            httpx.Response: The response object from the PUT request.
         """
-        response = requests.put(url, data=data, json=json, headers=headers)
+        response = httpx.put(url, data=data, json=json, headers=headers)
         # Raise an HTTPError for bad responses (4xx and 5xx)
         response.raise_for_status()
         return response
 
     def delete(
         self, url: str, headers: Optional[Dict[str, str]] = None
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """
         Perform an HTTP DELETE request.
 
@@ -160,9 +160,9 @@ class JSONRequestsTool(ToolBase):
             in the request.
 
         Returns:
-            requests.Response: The response object from the DELETE request.
+            httpx.Response: The response object from the DELETE request.
         """
-        response = requests.delete(url, headers=headers)
+        response = httpx.delete(url, headers=headers)
         # Raise an HTTPError for bad responses (4xx and 5xx)
         response.raise_for_status()
         return response
@@ -180,7 +180,7 @@ class JSONRequestsTool(ToolBase):
             method.
 
         Returns:
-            requests.Response: The response object from the HTTP request.
+            httpx.Response: The response object from the HTTP request.
         """
         method = method.lower()
         if method == "get":

@@ -123,7 +123,7 @@ print(tools)
 ## More Documentation
 
 - [Zapier Webhooks documentation](https://zapier.com/apps/webhook/help)
-- [Requests documentation](https://requests.readthedocs.io/)
+- [HTTPX documentation](https://www.python-httpx.org/)
 - [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
 
 ## Best Practices

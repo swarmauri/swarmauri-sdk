@@ -72,7 +72,7 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-    "requests>=2.32.3",
+    "httpx>=0.27",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",

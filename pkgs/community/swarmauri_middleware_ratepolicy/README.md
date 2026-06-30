@@ -101,7 +101,7 @@ retry.dispatch({"task": "sync"}, unstable)
 ### Wrap an external API call
 
 ```python
-import requests
+import httpx
 from swarmauri_middleware_ratepolicy import RetryPolicyMiddleware
 
 retry = RetryPolicyMiddleware(max_retries=4, initial_wait=0.25)
@@ -112,7 +112,7 @@ class RequestWrapper:
 
 response = retry.dispatch(
     RequestWrapper("https://api.example.com/data"),
-    lambda req: requests.get(req.url, timeout=5),
+    lambda req: httpx.get(req.url, timeout=5),
 )
 
 print(response.status_code)

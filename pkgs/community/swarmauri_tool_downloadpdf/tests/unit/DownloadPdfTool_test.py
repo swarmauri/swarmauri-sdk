@@ -1,7 +1,7 @@
 import base64
 import pytest
 from unittest.mock import patch, MagicMock
-import requests
+import httpx
 from swarmauri_tool_downloadpdf.DownloadPdfTool import (
     DownloadPDFTool as Tool,
 )
@@ -18,9 +18,9 @@ def test_resource():
     tool = Tool()
     url = "http://example.com/sample.pdf"
 
-    with patch("requests.get") as mock_get:
+    with patch("httpx.get") as mock_get:
         mock_response = MagicMock()
-        mock_response.iter_content = lambda chunk_size: [b"test data"]
+        mock_response.iter_bytes = lambda chunk_size: [b"test data"]
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
@@ -48,9 +48,9 @@ def test_call():
     tool = Tool()
     url = "http://example.com/sample.pdf"
 
-    with patch("requests.get") as mock_get:
+    with patch("httpx.get") as mock_get:
         mock_response = MagicMock()
-        mock_response.iter_content = lambda chunk_size: [b"test data"]
+        mock_response.iter_bytes = lambda chunk_size: [b"test data"]
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
@@ -64,24 +64,24 @@ def test_call():
         }, "Functionality test failed."
 
     with patch(
-        "requests.get",
-        side_effect=requests.exceptions.RequestException("Error"),
+        "httpx.get",
+        side_effect=httpx.HTTPError("Error"),
     ):
         result = tool(url)
         assert (
             "message" in result and "content" in result
         ) or "error" in result, "Error handling test failed."
 
-    with patch("requests.get") as mock_get:
+    with patch("httpx.get") as mock_get:
         mock_response = MagicMock()
-        mock_response.iter_content = lambda chunk_size: [b"test data"]
+        mock_response.iter_bytes = lambda chunk_size: [b"test data"]
         mock_response.raise_for_status = MagicMock()
         mock_get.return_value = mock_response
 
         # Test network request failure handling
         with patch(
-            "requests.get",
-            side_effect=requests.exceptions.RequestException("Error"),
+            "httpx.get",
+            side_effect=httpx.HTTPError("Error"),
         ):
             result = tool(url)
             assert (

@@ -1,7 +1,10 @@
-from requests import Response
+import httpx
 
 from swarmauri_canon_http import HttpClient
-from tests.parity.httpx.helpers import RecordingConnection, patch_http_connections
+from tests.parity.httpx.helpers import (
+    RecordingConnection,
+    patch_http_connections,
+)
 from tests.parity.requests.helpers import build_prepared_request
 
 
@@ -11,15 +14,14 @@ def test_requests_prepared_request_exposes_request_metadata():
     )
 
     assert prepared.method == "POST"
-    assert prepared.path_url == "/api"
-    assert prepared.body == b'{"ok": true}'
+    assert prepared.url.path == "/api"
+    assert prepared.content == b'{"ok":true}'
 
 
 def test_requests_response_object_has_status_helpers():
-    response = Response()
-    response.status_code = 404
+    response = httpx.Response(404)
 
-    assert response.ok is False
+    assert response.is_success is False
 
 
 def test_canon_sync_request_returns_primitive_tuple(monkeypatch):

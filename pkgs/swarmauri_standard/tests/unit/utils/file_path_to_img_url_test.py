@@ -1,6 +1,6 @@
 import pytest
 import os
-import requests
+import httpx
 from swarmauri_standard.utils.file_path_to_img_url import file_path_to_img_url
 from dotenv import load_dotenv
 
@@ -37,7 +37,7 @@ def test_file_path_to_img_url():
     assert image_url.startswith("http"), "Expected URL to start with 'http'"
 
     # Optionally, check if the URL is accessible
-    response = requests.get(image_url)
+    response = httpx.get(image_url)
     assert response.status_code == 200, (
         f"Failed to access the uploaded image at {image_url}"
     )

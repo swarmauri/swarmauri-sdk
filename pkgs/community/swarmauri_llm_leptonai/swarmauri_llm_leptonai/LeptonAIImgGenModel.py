@@ -1,5 +1,5 @@
 import asyncio
-import requests
+import httpx
 from io import BytesIO
 from PIL import Image
 from typing import List, Literal
@@ -29,11 +29,6 @@ class LeptonAIImgGenModel(ImageGenBase):
 
     def _send_request(self, prompt: str, **kwargs) -> bytes:
         """Send a request to Lepton AI's API for image generation."""
-        client = requests.Session()
-        client.headers.update(
-            {"Authorization": f"Bearer {self.api_key.get_secret_value()}"}
-        )
-
         payload = {
             "prompt": prompt,
             "height": kwargs.get("height", 1024),
@@ -45,7 +40,13 @@ class LeptonAIImgGenModel(ImageGenBase):
             "use_refiner": kwargs.get("use_refiner", False),
         }
 
-        response = client.post(f"{self.base_url}/run", json=payload)
+        response = httpx.post(
+            f"{self.base_url}/run",
+            headers={
+                "Authorization": f"Bearer {self.api_key.get_secret_value()}"
+            },
+            json=payload,
+        )
         response.raise_for_status()
         return response.content
 

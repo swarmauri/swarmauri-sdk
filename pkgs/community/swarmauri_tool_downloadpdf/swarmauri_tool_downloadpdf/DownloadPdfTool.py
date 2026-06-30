@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-import requests
+import httpx
 from typing import Dict, Literal, List
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -48,14 +48,14 @@ class DownloadPDFTool(ToolBase):
         """
         try:
             # Send a GET request to the specified URL
-            response = requests.get(url, stream=True)
+            response = httpx.get(url)
 
             # Raise an HTTPError if the status code is not 200 (OK)
             response.raise_for_status()
 
             # Read PDF content into memory
             pdf_content = BytesIO()
-            for chunk in response.iter_content(chunk_size=8192):
+            for chunk in response.iter_bytes(chunk_size=8192):
                 pdf_content.write(chunk)
 
             pdf_content.seek(0)
@@ -67,8 +67,8 @@ class DownloadPDFTool(ToolBase):
                 "content": encoded_pdf,
             }
 
-        except requests.exceptions.RequestException as e:
-            # Handle requests-related errors
+        except httpx.HTTPError as e:
+            # Handle HTTP client errors
             return {"error": f"Failed to download PDF: {e}"}
 
         except IOError as e:

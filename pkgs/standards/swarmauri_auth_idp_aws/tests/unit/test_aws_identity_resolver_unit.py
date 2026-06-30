@@ -71,7 +71,7 @@ def test_lookup_user_min(
             assert name == "identitystore"
             return FakeIdentityStore()
 
-    monkeypatch.setattr("requests.get", lambda *args, **kwargs: FakeResponse())
+    monkeypatch.setattr("httpx.get", lambda *args, **kwargs: FakeResponse())
     monkeypatch.setattr(
         "boto3.Session", lambda **kwargs: FakeSession(**kwargs)
     )

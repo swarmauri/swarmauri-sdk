@@ -1,5 +1,5 @@
 import json
-import requests
+import httpx
 from typing import Dict, List, Literal
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
@@ -56,7 +56,7 @@ class ZapierHookTool(ToolBase):
         """
         headers = {"Content-Type": self.content_type}
 
-        response = requests.post(
+        response = httpx.post(
             self.zap_url,
             json={"data": payload},
             headers=headers,

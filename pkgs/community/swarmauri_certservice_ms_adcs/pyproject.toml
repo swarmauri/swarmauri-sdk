@@ -29,7 +29,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "requests>=2.32.3",
+    "httpx>=0.27",
     "cryptography",
     "swarmauri_core",
     "swarmauri_base",
@@ -56,8 +56,8 @@ keywords = [
 ]
 
 [project.optional-dependencies]
-ntlm = ["requests-ntlm"]
-kerberos = ["requests-kerberos"]
+ntlm = []
+kerberos = []
 perf = ["pytest-benchmark>=4.0.0"]
 
 [tool.uv.sources]
@@ -99,7 +99,7 @@ dev = [
     "pytest-xdist>=3.6.1",
     "pytest-json-report>=1.5.0",
     "python-dotenv",
-    "requests>=2.32.3",
+    "httpx>=0.27",
     "flake8>=7.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",

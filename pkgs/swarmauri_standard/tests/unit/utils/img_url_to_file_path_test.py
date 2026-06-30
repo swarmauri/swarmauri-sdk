@@ -1,5 +1,5 @@
 import os
-import requests
+import httpx
 from PIL import Image
 from io import BytesIO
 from unittest.mock import patch
@@ -13,13 +13,11 @@ def test_img_url_to_file_path(tmp_path):
     img.save(buffered, format="PNG")
     img_data = buffered.getvalue()
 
-    # Mock the response from requests.get to return our image data
-    mock_response = requests.models.Response()
-    mock_response.status_code = 200
-    mock_response._content = img_data
+    # Mock the response from httpx.get to return our image data
+    mock_response = httpx.Response(200, content=img_data)
 
     with patch(
-        "swarmauri_standard.utils.img_url_to_file_path.requests.get"
+        "swarmauri_standard.utils.img_url_to_file_path.httpx.get"
     ) as mock_get:
         mock_get.return_value = mock_response
 

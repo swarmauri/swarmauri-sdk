@@ -1,5 +1,5 @@
 import pytest
-import requests
+import httpx
 
 from swarmauri_certservice_scep import ScepCertService
 from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
@@ -23,7 +23,7 @@ async def test_sign_cert_rfc8894(monkeypatch) -> None:
         assert data == b"csr"
         return DummyResp()
 
-    monkeypatch.setattr(requests, "post", fake_post)
+    monkeypatch.setattr(httpx, "post", fake_post)
     ca_key = KeyRef(
         kid="k",
         version=1,

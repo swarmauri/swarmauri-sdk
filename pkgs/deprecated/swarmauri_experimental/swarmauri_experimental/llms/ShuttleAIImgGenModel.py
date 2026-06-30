@@ -1,6 +1,6 @@
 import os
 import asyncio
-import requests
+import httpx
 from typing import List, Literal, Dict
 from pydantic import Field, ConfigDict
 from swarmauri.llms.base.LLMBase import LLMBase
@@ -59,7 +59,7 @@ class ShuttleAIImgGenModel(LLMBase):
         url = f"{self.base_url}/images/generations"
         payload = {"model": model, "prompt": prompt, **kwargs}
 
-        response = requests.post(url, json=payload, headers=self._headers)
+        response = httpx.post(url, json=payload, headers=self._headers)
         if response.status_code != 200:
             raise Exception(
                 (

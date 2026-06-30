@@ -17,7 +17,7 @@
 # Swarmauri Tool Web Scraping
 
 `swarmauri_tool_webscraping` is a Swarmauri web-content extraction tool that
-fetches a page with `requests`, parses HTML with BeautifulSoup, and extracts
+fetches a page with `httpx`, parses HTML with BeautifulSoup, and extracts
 text using a CSS selector. It is useful for headline capture, policy checks,
 lightweight data extraction, and agent workflows that need webpage content on
 demand.
@@ -122,7 +122,7 @@ print(tools)
 
 ## More Documentation
 
-- [Requests documentation](https://requests.readthedocs.io/)
+- [HTTPX documentation](https://www.python-httpx.org/)
 - [Beautiful Soup documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
 - [MDN CSS selectors reference](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_selectors)
 

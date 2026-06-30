@@ -18,7 +18,7 @@ def test_img_url_to_in_memory_img():
     mock_response = httpx.Response(200, content=img_data)
 
     with patch(
-        "swarmauri_standard.utils.img_url_to_in_memory_img.requests.get"
+        "swarmauri_standard.utils.img_url_to_in_memory_img.httpx.get"
     ) as mock_get:
         mock_get.return_value = mock_response
 

@@ -1,4 +1,4 @@
-import requests
+import httpx
 from typing import Dict
 from swarmauri.tools.concrete.ToolBase import ToolBase
 from swarmauri.tools.concrete.Parameter import Parameter
@@ -48,7 +48,7 @@ class OutlookSendMailTool(ToolBase):
             "client_secret": self.client_secret,
             "grant_type": "client_credentials",
         }
-        response = requests.post(self.token_url, data=data)
+        response = httpx.post(self.token_url, data=data)
         response.raise_for_status()
         return response.json().get("access_token")
 
@@ -71,7 +71,7 @@ class OutlookSendMailTool(ToolBase):
         send_mail_endpoint = (
             f"{self.graph_endpoint}/users/{self.client_id}/sendMail"
         )
-        response = requests.post(
+        response = httpx.post(
             send_mail_endpoint, json=email_data, headers=headers
         )
         if response.status_code == 202:
