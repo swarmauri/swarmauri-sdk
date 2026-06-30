@@ -41,10 +41,9 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         dest="griffe_packages",
         default=None,
         help=(
-            "Package name to inspect with Griffe. "(
-                "Can be provided multiple times. Defaults to the package "
-                "defined in pyproject.toml."
-            )
+            "Package name to inspect with Griffe. "
+            "Can be provided multiple times. Defaults to the package "
+            "defined in pyproject.toml."
         ),
     )
     group.addoption(
