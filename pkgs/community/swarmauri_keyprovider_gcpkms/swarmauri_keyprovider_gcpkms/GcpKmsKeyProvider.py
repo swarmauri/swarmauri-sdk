@@ -10,6 +10,7 @@ from typing import Any, Dict, Iterable, Literal, Mapping, Optional, Tuple
 import google.auth
 from google.auth.transport.urllib3 import Request as GARequest
 import httpx
+import urllib3
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa
@@ -139,7 +140,7 @@ class GcpKmsKeyProvider(KeyProviderBase):
 
         creds, _ = google.auth.default(scopes=[SCOPE])
         self._creds = creds
-        self._ga_req = GARequest()
+        self._ga_req = GARequest(urllib3.PoolManager())
 
     def supports(self) -> Mapping[str, Iterable[str]]:
         return {

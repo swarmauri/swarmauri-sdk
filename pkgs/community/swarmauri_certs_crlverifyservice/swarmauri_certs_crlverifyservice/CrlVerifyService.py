@@ -23,8 +23,8 @@ from swarmauri_base.certs.CertServiceBase import CertServiceBase
 class CrlVerifyService(CertServiceBase):
     """Certificate Revocation List (CRL) verification service.
 
-    Implements ``verify_cert`` and ``parse_cert`` against CRLs, following RFC
-    5280. This service does not issue or sign certificates (CSR,
+    Implements ``verify_cert`` and ``parse_cert`` against CRLs, following
+    RFC 5280. This service does not issue or sign certificates (CSR,
     self-signed, and sign-cert methods remain ``NotImplemented``).
 
     Capabilities:
