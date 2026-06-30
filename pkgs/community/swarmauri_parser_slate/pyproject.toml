@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_slate"
-version = "0.3.1.dev5"
+version = "0.3.1.dev6"
 description = "Page-by-page PDF text parser for Swarmauri using slate3k over local file-path inputs."
 license = "Apache-2.0"
 readme = "README.md"

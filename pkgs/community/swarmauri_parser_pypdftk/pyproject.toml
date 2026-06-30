@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_parser_pypdftk"
-version = "0.9.1.dev5"
+version = "0.9.1.dev6"
 description = "PDF AcroForm field parser for Swarmauri using PyPDFTK and the native pdftk toolchain."
 license = "Apache-2.0"
 readme = "README.md"
