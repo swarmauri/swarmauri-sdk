@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_qrcodegenerator"
-version = "0.10.1.dev7"
+version = "0.10.1.dev8"
 description = "Swarmauri utility tool for generating QR codes and returning base64-encoded image bytes."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_psutil"
-version = "0.10.1.dev7"
+version = "0.10.1.dev8"
 description = "Swarmauri operations tool for retrieving CPU, memory, disk, network, and sensor telemetry via psutil."
 license = "Apache-2.0"
 readme = "README.md"

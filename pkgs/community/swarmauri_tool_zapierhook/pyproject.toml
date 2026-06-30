@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_zapierhook"
-version = "0.9.1.dev7"
+version = "0.9.1.dev8"
 description = "Swarmauri integration tool for posting payloads to Zapier catch-hook webhooks."
 license = "Apache-2.0"
 readme = "README.md"
