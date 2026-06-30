@@ -9,13 +9,14 @@ from typing import Dict, Iterable, Literal, Optional, Sequence, Tuple
 
 from pydantic import Field
 
-# --- deps: runtime checks (clear error if missing) ----------------------------
+# --- deps: runtime checks (clear error if missing) ---
 try:
     import pkcs11  # python-pkcs11
     from pkcs11 import Attribute, Mechanism, ObjectClass, PKCS11Error
 except Exception as e:  # pragma: no cover
     raise ImportError(
-        "Pkcs11CertService requires 'python-pkcs11'. Install with: pip install python-pkcs11"
+        "Pkcs11CertService requires 'python-pkcs11'. "
+        "Install with: pip install python-pkcs11"
     ) from e
 
 try:
@@ -30,22 +31,24 @@ try:
     )
 except Exception as e:  # pragma: no cover
     raise ImportError(
-        "Pkcs11CertService requires 'cryptography'. Install with: pip install cryptography"
+        "Pkcs11CertService requires 'cryptography'. "
+        "Install with: pip install cryptography"
     ) from e
 
 try:
-    # asn1crypto for flexible CSR/Cert assembly with injected external signatures
+    # asn1crypto handles CSR/Cert assembly with external signatures.
     from asn1crypto import algos as asn1_algos
     from asn1crypto import csr as asn1_csr
     from asn1crypto import keys as asn1_keys
     from asn1crypto import x509 as asn1_x509
 except Exception as e:  # pragma: no cover
     raise ImportError(
-        "Pkcs11CertService requires 'asn1crypto'. Install with: pip install asn1crypto"
+        "Pkcs11CertService requires 'asn1crypto'. "
+        "Install with: pip install asn1crypto"
     ) from e
 
 
-# --- your framework surfaces ---------------------------------------------------
+# --- your framework surfaces ---
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.certs.CertServiceBase import CertServiceBase
 from swarmauri_core.certs.ICertService import (
@@ -58,7 +61,7 @@ from swarmauri_core.crypto.types import (
 )  # kid, version, material/public, tags, export_policy
 
 
-# ---------- helpers ------------------------------------------------------------
+# ---------- helpers ----------
 def _pem_or_der_to_asn1_pub(pub_bytes: bytes) -> asn1_keys.PublicKeyInfo:
     """Accept PEM or DER public key bytes; return asn1crypto PublicKeyInfo."""
     if b"-----BEGIN" in pub_bytes:
@@ -296,7 +299,7 @@ def _coerce_pem(data: bytes, hdr: bytes, ftr: bytes) -> bytes:
     return hdr + base64.encodebytes(data) + ftr
 
 
-# ---------- PKCS#11 session & signatures --------------------------------------
+# ---------- PKCS#11 session & signatures ----------
 class _Pkcs11Session:
     """Context manager to open + close an HSM session."""
 
@@ -465,7 +468,7 @@ def _parse_keyref_pkcs11_attrs(
     return uri, label, key_id
 
 
-# ---------- service ------------------------------------------------------------
+# ---------- service ----------
 @ComponentBase.register_type(CertServiceBase, "Pkcs11CertService")
 class Pkcs11CertService(CertServiceBase):
     """PKCS#11-backed X.509 certificate service.
@@ -534,7 +537,7 @@ class Pkcs11CertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, object]] = None,
     ) -> bytes:
-        """Build a PKCS#10 CSR and sign it with the subject private key (RFC 2986)."""
+        """Build a PKCS#10 CSR and sign with the subject key (RFC 2986)."""
         if not key.public:
             raise ValueError(
                 "KeyRef.public (PEM/DER) is required to create a CSR"
@@ -613,7 +616,7 @@ class Pkcs11CertService(CertServiceBase):
         output_der: bool = False,
         opts: Optional[Dict[str, object]] = None,
     ) -> bytes:
-        """Create a self-signed certificate using the HSM private key (RFC 5280)."""
+        """Create a self-signed cert using the HSM key (RFC 5280)."""
         if not key.public:
             raise ValueError("KeyRef.public (PEM/DER) is required")
 

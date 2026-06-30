@@ -33,6 +33,9 @@ swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[tool.ruff.lint]
+ignore = ["E501"]
+
 [tool.pytest.ini_options]
 markers = [
     "test: standard test",

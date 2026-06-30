@@ -380,7 +380,10 @@ def _execute_example(example: ReadmeExample) -> str | None:
         summary = "".join(
             traceback.format_exception_only(exc.__class__, exc)
         ).strip()
-        return f"{example.path}:{example.line} ({example.display_name}) raised {summary}"
+        return (
+            f"{example.path}:{example.line} "
+            f"({example.display_name}) raised {summary}"
+        )
     return None
 
 

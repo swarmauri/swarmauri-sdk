@@ -285,7 +285,8 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
                     (
                         "Available tool: SkillExecutionTool. Use this single "
                         "tool "
-                    )(
+                    ),
+                    (
                         "to run skill-local argv command arrays when execution "  # noqa: E501
                         "is "
                         "needed."

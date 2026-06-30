@@ -23,11 +23,11 @@ classifiers = [
 
 [tool.poetry]
 packages = [
-    { include = "ptree_dag.templates" }
+    { include = "ptree_dag" }
 ]
 include = [
   { path = "ptree_dag/templates/**", format = ["sdist", "wheel"] },
-  { path = "ptree_dag/_truthy", format = ["sdist", "wheel"]  }
+  { path = "ptree_dag/__truthy.py", format = ["sdist", "wheel"]  }
 ]
 
 [tool.pytest.ini_options]

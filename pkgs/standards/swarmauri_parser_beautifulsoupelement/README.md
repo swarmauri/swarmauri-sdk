@@ -59,9 +59,9 @@ from swarmauri_parser_beautifulsoupelement import BeautifulSoupElementParser
 parser = BeautifulSoupElementParser(element="p")
 
 # HTML content to parse
-html_content = "<div><p>First paragraph
-</p><p>Second paragraph
-</p></div>"
+html_content = (
+    "<div><p>First paragraph</p><p>Second paragraph</p></div>"
+)
 
 # Parse the content (input must be a string)
 documents = parser.parse(html_content)

@@ -1,6 +1,16 @@
 from __future__ import annotations
 from typing import Tuple, Any
-from .ir import *
+from .ir import (
+    Builtin,
+    Choice,
+    Schema,
+    SeqOf,
+    Sequence,
+    SetOf,
+    SetType,
+    Tag,
+    TypeRef,
+)
 
 
 # ---- DER low-level TLV ----
@@ -71,7 +81,7 @@ def _expect_tag(
             return False
         if tag != exp.num:
             return False
-        # For EXPLICIT the constructed bit is checked in the caller when unwrapping
+        # For EXPLICIT, the caller checks constructed while unwrapping.
         return True
     if builtin_kind:
         if cls != 0:
@@ -127,7 +137,7 @@ def _dec_oid(v: bytes) -> str:
 def decode_value(schema: Schema, tnode: Any, buf: bytes, i: int = 0):
     node, tagwrap = _unwrap_tag(tnode)
 
-    # EXPLICIT tagging: outer TLV has the tag, inner contains the actual type TLV
+    # EXPLICIT tagging: outer TLV has the tag, inner contains the type TLV.
     if tagwrap and tagwrap.mode == "explicit":
         cls, cons, tag, inner, end = _read_tlv(buf, i)
         if not cons:
@@ -169,7 +179,7 @@ def decode_value(schema: Schema, tnode: Any, buf: bytes, i: int = 0):
         if kind == "OBJECT IDENTIFIER":
             return _dec_oid(val), end
         if kind == "BIT STRING":
-            # Simple bitstring as bytes (ignoring unused-bits count for brevity)
+            # Simple bitstring bytes, ignoring unused-bits count for brevity.
             return val, end
         raise NotImplementedError(f"Builtin not implemented: {kind}")
 
@@ -196,7 +206,7 @@ def decode_value(schema: Schema, tnode: Any, buf: bytes, i: int = 0):
                 # required but no more content
                 res[fld.name] = None
                 continue
-            # try decode this field; if it fails and optional, skip without advancing
+            # Try this field; if optional and it fails, skip without advancing.
             try:
                 val, j2 = decode_value(schema, fld.type, content, j)
                 res[fld.name] = val

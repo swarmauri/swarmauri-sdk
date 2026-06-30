@@ -39,6 +39,7 @@ keywords = [
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
+swarmauri_tests_pylicense = { workspace = true }
 
 [project.entry-points."swarmauri.storage_adapters"]
 S3FSStorageAdapter = "swarmauri_storage_s3fs.s3fs_storage_adapter:S3FSStorageAdapter"
@@ -84,4 +85,5 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "swarmauri_tests_pylicense",
 ]

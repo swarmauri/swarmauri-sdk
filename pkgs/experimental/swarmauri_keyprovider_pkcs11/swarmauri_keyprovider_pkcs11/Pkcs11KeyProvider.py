@@ -65,7 +65,8 @@ class Pkcs11KeyProvider(KeyProviderBase):
         super().__init__()
         if not _PKCS11_OK:
             raise ImportError(
-                "python-pkcs11 is required. Install with: pip install python-pkcs11"
+                "python-pkcs11 is required. "
+                "Install with: pip install python-pkcs11"
             )
 
         try:

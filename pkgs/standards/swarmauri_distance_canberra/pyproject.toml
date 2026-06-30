@@ -49,3 +49,8 @@ CanberraDistance = "swarmauri_distance_canberra:CanberraDistance"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9.9",
+]

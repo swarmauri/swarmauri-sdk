@@ -1,7 +1,22 @@
 from __future__ import annotations
 from typing import Any
 from lark import Transformer, Token
-from .ir import *
+from .ir import (
+    Builtin,
+    Choice,
+    Constraint,
+    Field,
+    Module,
+    Schema,
+    SeqOf,
+    Sequence,
+    SetOf,
+    SetType,
+    Tag,
+    TypeAssignment,
+    TypeRef,
+    ValueAssignment,
+)
 
 
 def _tok_to_int(t: Any) -> int:

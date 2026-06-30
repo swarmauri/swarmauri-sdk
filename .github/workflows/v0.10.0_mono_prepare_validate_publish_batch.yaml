@@ -137,6 +137,10 @@ jobs:
       - name: Install dependencies for testing
         run: pip install uv pytest toml
 
+      - name: Install libsodium for sodium package
+        if: ${{ matrix.package_name == 'swarmauri_crypto_sodium' }}
+        run: sudo apt-get update && sudo apt-get install -y libsodium-dev
+
       - name: Bump Version Placeholder
         run: |
           MEMBER="${{ matrix.member }}"
@@ -306,7 +310,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
-      max-parallel: 5
+      max-parallel: 1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -321,6 +325,10 @@ jobs:
 
       - name: Install build tooling
         run: pip install uv pytest toml
+
+      - name: Install libsodium for sodium package
+        if: ${{ matrix.package_name == 'swarmauri_crypto_sodium' }}
+        run: sudo apt-get update && sudo apt-get install -y libsodium-dev
 
       - name: Build
         run: |
@@ -338,7 +346,18 @@ jobs:
           echo "Publishing workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+          for attempt in 1 2 3 4 5; do
+            if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"; then
+              exit 0
+            fi
+            if [ "$attempt" = "5" ]; then
+              echo "Publish failed after ${attempt} attempts."
+              exit 1
+            fi
+            sleep_seconds=$((attempt * 30))
+            echo "Publish failed; retrying in ${sleep_seconds}s."
+            sleep "$sleep_seconds"
+          done
 
       - name: Prepare release variables
         id: prepare_release

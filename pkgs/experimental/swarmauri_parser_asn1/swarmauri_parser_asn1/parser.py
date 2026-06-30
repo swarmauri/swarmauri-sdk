@@ -7,7 +7,8 @@ from .transformer import Asn1ToIR
 from .der_codec import decode_value
 from .ir import Schema
 
-# If swarmauri SDK is present, these imports work; otherwise they are only needed when used via SDK.
+# If swarmauri SDK is present, these imports work; otherwise they are only
+# needed when used via SDK.
 try:
     from swarmauri_core.parsers import ParserBase
     from swarmauri.documents import Document

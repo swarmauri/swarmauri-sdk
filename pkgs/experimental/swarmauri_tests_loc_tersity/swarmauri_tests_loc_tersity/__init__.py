@@ -22,7 +22,9 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--loc-root",
         action="store",
         default=None,
-        help="Root directory to scan for .py files (defaults to package root).",
+        help=(
+            "Root directory to scan for .py files (defaults to package root)."
+        ),
     )
     group.addoption(
         "--loc-max-lines",
