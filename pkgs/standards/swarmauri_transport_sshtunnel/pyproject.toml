@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_sshtunnel"
-version = "0.1.2.dev4"
+version = "0.1.2.dev5"
 description = "SSH tunnel transport for forwarding Swarmauri traffic through bastions." 
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
