@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_cohere"
-version = "0.1.1.dev5"
+version = "0.1.1.dev6"
 description = "Provider-specific Swarmauri imports for Cohere Command chat, streaming, async, batch, preamble, and tool-use workflows."
 license = "Apache-2.0"
 readme = "README.md"
