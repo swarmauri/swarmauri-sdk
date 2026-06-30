@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.9.1.dev8"
+version = "0.9.1.dev9"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
