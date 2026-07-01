@@ -306,7 +306,7 @@ jobs:
     needs: [commit, set-matrix, pypi_approval_gate]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
-    timeout-minutes: 15
+    timeout-minutes: 360
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
@@ -342,6 +342,7 @@ jobs:
       - name: Publish
         id: publish
         run: |
+          set -o pipefail
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Publishing workspace member: $MEMBER"
@@ -370,17 +371,27 @@ jobs:
             exit 0
           fi
 
-          for attempt in 1 2 3 4 5; do
-            if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"; then
+          max_attempts=16
+          for attempt in $(seq 1 "$max_attempts"); do
+            publish_log=$(mktemp)
+            if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}" 2>&1 | tee "$publish_log"; then
               echo "published=true" >> "$GITHUB_OUTPUT"
+              rm -f "$publish_log"
               exit 0
             fi
-            if [ "$attempt" = "5" ]; then
+            if [ "$attempt" = "$max_attempts" ]; then
               echo "Publish failed after ${attempt} attempts."
+              rm -f "$publish_log"
               exit 1
             fi
-            sleep_seconds=$((attempt * 30))
-            echo "Publish failed; retrying in ${sleep_seconds}s."
+            if grep -Eiq "429|Too many new projects created|Too Many Requests" "$publish_log"; then
+              sleep_seconds=900
+              echo "PyPI rate limit detected; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
+            else
+              sleep_seconds=$((attempt * 30))
+              echo "Publish failed; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
+            fi
+            rm -f "$publish_log"
             sleep "$sleep_seconds"
           done
 
