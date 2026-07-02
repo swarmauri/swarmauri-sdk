@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_standard"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows."
 keywords = [
     "swarmauri",

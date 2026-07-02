@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_base"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure."
 keywords = [
     "swarmauri",
