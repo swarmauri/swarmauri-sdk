@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_distance_chi_squared"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Deprecated standalone compatibility package for chi-squared distance."
 license = "Apache-2.0"
 readme = "README.md"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_skill"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Skill-aware agent wrapper for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
