@@ -1275,62 +1275,6 @@ workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
 
-
-[[packages]]
-name = "swarmauri_agent_skill"
-path = "standards/swarmauri_agent_skill"
-distribution = "swarmauri_agent_skill"
-layer = "40-standards"
-family = "agents"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.agents"]
-
-[[packages]]
-name = "swarmauri_skill_dummy_filesystem"
-path = "standards/swarmauri_skill_dummy_filesystem"
-distribution = "swarmauri_skill_dummy_filesystem"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_dummy_local"
-path = "standards/swarmauri_skill_dummy_local"
-distribution = "swarmauri_skill_dummy_local"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_filesystem"
-path = "standards/swarmauri_skill_filesystem"
-distribution = "swarmauri_skill_filesystem"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_local"
-path = "standards/swarmauri_skill_local"
-distribution = "swarmauri_skill_local"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
 [[packages]]
 name = "swarmauri_signing_ca"
 path = "standards/swarmauri_signing_ca"
@@ -1481,6 +1425,54 @@ path = "standards/swarmauri_signing_xmld"
 layer = "40-standards"
 order = 0
 family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_filesystem"
+path = "standards/swarmauri_skill_dummy_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_local"
+path = "standards/swarmauri_skill_dummy_local"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_filesystem"
+path = "standards/swarmauri_skill_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_local"
+path = "standards/swarmauri_skill_local"
+layer = "40-standards"
+order = 0
+family = "skill"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1754,13 +1746,14 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_skill_execution"
 path = "standards/swarmauri_tool_skill_execution"
-distribution = "swarmauri_tool_skill_execution"
 layer = "40-standards"
+order = 0
 family = "tool"
 role = "atomic-concrete"
 maturity = "standard"
-order = 0
-entry_points = ["swarmauri.tools"]
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
 
 [[packages]]
 name = "swarmauri_transport_asgi"
@@ -2025,6 +2018,19 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_agent_skill"
+path = "standards/swarmauri_agent_skill"
+layer = "40-standards"
+order = 1
+family = "agent"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_tool_skill_execution at 40.0"
+composes = ["swarmauri_tool_skill_execution"]
 
 [[packages]]
 name = "swarmauri_certs_composite"
@@ -2966,6 +2972,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_folium"
 path = "community/swarmauri_tool_folium"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_getmethodsignature"
+path = "community/swarmauri_tool_getmethodsignature"
 layer = "50-community"
 order = 0
 family = "tool"
