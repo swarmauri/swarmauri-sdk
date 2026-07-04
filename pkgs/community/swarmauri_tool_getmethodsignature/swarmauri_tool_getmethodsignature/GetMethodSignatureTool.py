@@ -1,4 +1,5 @@
 import ast
+import inspect
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import Field
@@ -22,6 +23,7 @@ def _extract_signature(
     args = node.args
     params: List[Dict[str, Optional[str]]] = []
 
+    posonly_count = len(args.posonlyargs)
     posargs: List[ast.arg] = list(args.posonlyargs) + list(args.args)
     defaults: List[ast.expr] = list(args.defaults)
     offset = len(posargs) - len(defaults)
@@ -29,11 +31,17 @@ def _extract_signature(
         default = None
         if idx >= offset:
             default = _unparse(defaults[idx - offset])
+        kind = (
+            inspect.Parameter.POSITIONAL_ONLY.name
+            if idx < posonly_count
+            else inspect.Parameter.POSITIONAL_OR_KEYWORD.name
+        )
         params.append(
             {
                 "name": arg.arg,
                 "annotation": _unparse(arg.annotation),
                 "default": default,
+                "kind": kind,
             }
         )
 
@@ -43,6 +51,7 @@ def _extract_signature(
                 "name": args.vararg.arg,
                 "annotation": _unparse(args.vararg.annotation),
                 "default": None,
+                "kind": inspect.Parameter.VAR_POSITIONAL.name,
             }
         )
 
@@ -52,6 +61,7 @@ def _extract_signature(
                 "name": kw_arg.arg,
                 "annotation": _unparse(kw_arg.annotation),
                 "default": _unparse(kw_default),
+                "kind": inspect.Parameter.KEYWORD_ONLY.name,
             }
         )
 
@@ -61,6 +71,7 @@ def _extract_signature(
                 "name": args.kwarg.arg,
                 "annotation": _unparse(args.kwarg.annotation),
                 "default": None,
+                "kind": inspect.Parameter.VAR_KEYWORD.name,
             }
         )
 
@@ -69,7 +80,11 @@ def _extract_signature(
     args_str = ast.unparse(args)
     ret_str = f" -> {return_type}" if return_type is not None else ""
     prefix = "async def " if is_async else "def "
-    signature = f"{prefix}{node.name}({args_str}){ret_str}"
+    type_params = getattr(node, "type_params", None)
+    type_params_str = ""
+    if type_params:
+        type_params_str = "[" + ", ".join(ast.unparse(tp) for tp in type_params) + "]"
+    signature = f"{prefix}{node.name}{type_params_str}({args_str}){ret_str}"
 
     return {
         "name": node.name,
