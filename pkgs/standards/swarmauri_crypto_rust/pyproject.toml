@@ -63,6 +63,7 @@ build-backend = "maturin"
 python-source = "python"
 module-name = "swarmauri_crypto_rust._rust_crypto"
 features = ["pyo3/extension-module"]
+compatibility = "pypi"
 
 [dependency-groups]
 dev = [
