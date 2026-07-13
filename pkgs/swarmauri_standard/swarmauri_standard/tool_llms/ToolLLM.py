@@ -60,10 +60,10 @@ class ToolLLM(ToolLLMBase):
         return [
             m.model_dump(include=message_properties, exclude_none=True)
             for m in messages
-            if m.role != "tool"
         ]
 
     def _process_tool_calls(
+        self,
         tool_calls: List[Any],
         toolkit: Toolkit,
         messages: List[Type[MessageBase]],
@@ -105,6 +105,21 @@ class ToolLLM(ToolLLMBase):
                     }
                 )
         return messages
+
+    @staticmethod
+    def _get_function_messages(
+        messages: List[Dict[str, Any]],
+    ) -> List[FunctionMessage]:
+        """Create conversation messages from provider tool results."""
+        return [
+            FunctionMessage(
+                tool_call_id=message["tool_call_id"],
+                name=message["name"],
+                content=message["content"],
+            )
+            for message in messages
+            if message["role"] == "tool"
+        ]
 
     def predict(
         self,
@@ -156,20 +171,19 @@ class ToolLLM(ToolLLMBase):
         tool_calls = tool_response["choices"][0]["message"].get(
             "tool_calls", []
         )
+        if tool_calls:
+            conversation.add_message(
+                AgentMessage(
+                    content=tool_response["choices"][0]["message"].get(
+                        "content"
+                    ),
+                    tool_calls=tool_calls,
+                )
+            )
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
-        tool_messages = [
-            FunctionMessage(
-                tool_call_id=m["tool_call_id"],
-                name=m["name"],
-                content=m["content"],
-            )
-            for m in messages
-            if m["role"] == "tool"
-        ]
-
-        conversation.add_messages(tool_messages)
+        conversation.add_messages(self._get_function_messages(messages))
 
         if multiturn:
             payload["messages"] = messages
@@ -240,20 +254,19 @@ class ToolLLM(ToolLLMBase):
         tool_calls = tool_response["choices"][0]["message"].get(
             "tool_calls", []
         )
+        if tool_calls:
+            conversation.add_message(
+                AgentMessage(
+                    content=tool_response["choices"][0]["message"].get(
+                        "content"
+                    ),
+                    tool_calls=tool_calls,
+                )
+            )
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
 
         # Add tool messages to Conversation to enable Conversation hooks
-        tool_messages = [
-            FunctionMessage(
-                tool_call_id=m["tool_call_id"],
-                name=m["name"],
-                content=m["content"],
-            )
-            for m in messages
-            if m["role"] == "tool"
-        ]
-
-        conversation.add_messages(tool_messages)
+        conversation.add_messages(self._get_function_messages(messages))
 
         if multiturn:
             payload["messages"] = messages
@@ -326,7 +339,19 @@ class ToolLLM(ToolLLMBase):
             "tool_calls", []
         )
 
+        if tool_calls:
+            conversation.add_message(
+                AgentMessage(
+                    content=tool_response["choices"][0]["message"].get(
+                        "content"
+                    ),
+                    tool_calls=tool_calls,
+                )
+            )
+
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
+
+        conversation.add_messages(self._get_function_messages(messages))
 
         payload["messages"] = messages
         payload["stream"] = True
@@ -406,7 +431,19 @@ class ToolLLM(ToolLLMBase):
             "tool_calls", []
         )
 
+        if tool_calls:
+            conversation.add_message(
+                AgentMessage(
+                    content=tool_response["choices"][0]["message"].get(
+                        "content"
+                    ),
+                    tool_calls=tool_calls,
+                )
+            )
+
         messages = self._process_tool_calls(tool_calls, toolkit, messages)
+
+        conversation.add_messages(self._get_function_messages(messages))
 
         payload["messages"] = messages
         payload["stream"] = True

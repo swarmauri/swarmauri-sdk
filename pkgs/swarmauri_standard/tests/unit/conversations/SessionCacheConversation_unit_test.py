@@ -1,6 +1,7 @@
 import pytest
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 from swarmauri_standard.conversations.SessionCacheConversation import (
@@ -170,3 +171,28 @@ def test_add_messages():
     assert conversation.history[2].content == "agent1"
     assert conversation.history[3].content == "human2"
     assert conversation.history[4].content == "agent2"
+
+
+@pytest.mark.unit
+def test_history_includes_function_messages():
+    conversation = SessionCacheConversation(max_size=4)
+    function_message = FunctionMessage(
+        name="calculator", content="3", tool_call_id="call-1"
+    )
+    conversation.add_messages(
+        [
+            HumanMessage(content="Add one and two"),
+            AgentMessage(
+                content=None,
+                tool_calls=[
+                    {"id": "call-1", "function": {"name": "calculator"}}
+                ],
+            ),
+            function_message,
+            AgentMessage(content="The answer is three"),
+        ]
+    )
+
+    assert function_message in conversation.history
+    assert function_message in conversation.session
+    assert conversation.history[-1].content == "The answer is three"

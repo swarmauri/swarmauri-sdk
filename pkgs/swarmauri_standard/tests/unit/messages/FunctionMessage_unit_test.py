@@ -1,4 +1,5 @@
 import pytest
+from swarmauri_base.DynamicBase import DynamicBase
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 
 
@@ -59,3 +60,11 @@ def test_tool_call_id():
         name="test_name", content="test", tool_call_id="test_tool_call_id"
     )
     assert message.tool_call_id == "test_tool_call_id"
+
+
+@pytest.mark.unit
+def test_registered_as_function_message():
+    registered_type = DynamicBase._registry["MessageBase"]["subtypes"][
+        "FunctionMessage"
+    ]
+    assert registered_type is FunctionMessage
