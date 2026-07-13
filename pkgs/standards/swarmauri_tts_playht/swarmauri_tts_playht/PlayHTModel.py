@@ -8,11 +8,11 @@ from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ComponentBase import ComponentBase
 
-from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+from .retry import retry_on_status_codes
 
 
-@ComponentBase.register_type(TTSBase, "PlayhtTTS")
-class PlayhtTTS(TTSBase):
+@ComponentBase.register_type(TTSBase, "PlayHTModel")
+class PlayHTModel(TTSBase):
     """
     A class for Play.ht text-to-speech (TTS) synthesis using various voice
     models.
@@ -29,8 +29,7 @@ class PlayhtTTS(TTSBase):
         api_key (str): API key for authenticating with Play.ht's API.
         user_id (str): User ID for authenticating with Play.ht's API.
         name (str): Name of the TTS model to use (default: "Play3.0-mini").
-        type (Literal["PlayhtTTS"]): Fixed type attribute to indicate this is a
-        "PlayhtTTS".
+        type (Literal["PlayHTModel"]): Fixed component type.
         output_format (str): Format of the output audio file, e.g., "mp3".
 
     Provider resourses: https://docs.play.ht/reference/api-getting-started
@@ -48,8 +47,9 @@ class PlayhtTTS(TTSBase):
     api_key: SecretStr
     user_id: str
     name: str = "Play3.0-mini"
-    type: Literal["PlayhtTTS"] = "PlayhtTTS"
+    type: Literal["PlayHTModel"] = "PlayHTModel"
     output_format: str = "mp3"
+    timeout: float = 600.0
     _voice_id: str = PrivateAttr(default=None)
     _prebuilt_voices: Dict[
         Literal["Play3.0-mini", "PlayHT2.0-turbo", "PlayHT1.0", "PlayHT2.0"],
@@ -60,7 +60,7 @@ class PlayhtTTS(TTSBase):
 
     def __init__(self, **data) -> None:
         """
-        Initialize the PlayhtTTS with API credentials and voice settings.
+        Initialize the PlayHTModel with API credentials and voice settings.
         """
         super().__init__(**data)
         self._headers = {
@@ -69,7 +69,8 @@ class PlayhtTTS(TTSBase):
             "AUTHORIZATION": self.api_key.get_secret_value(),
             "X-USER-ID": self.user_id,
         }
-        self.allowed_models = self.allowed_models or self.get_allowed_models()
+        if not self.allowed_models:
+            self.allowed_models = self.get_allowed_models()
         self.__prebuilt_voices = self._fetch_prebuilt_voices()
         self.allowed_voices = self._get_allowed_voices(self.name)
         self._validate_voice_in_allowed_voices()
@@ -108,20 +109,25 @@ class PlayhtTTS(TTSBase):
 
         self._headers["accept"] = "application/json"
 
-        with httpx.Client(base_url=self._BASE_URL, timeout=30) as client:
+        with httpx.Client(
+            base_url=self._BASE_URL, timeout=self.timeout
+        ) as client:
             voice_response = client.get("/voices", headers=self._headers)
+            voice_response.raise_for_status()
 
         for item in json.loads(voice_response.text):
             voice_engine = item.get("voice_engine")
-            if voice_engine in self.allowed_models:
-                if voice_engine not in prebuilt_voices:
-                    prebuilt_voices[voice_engine] = []
+            if voice_engine not in self.allowed_models:
+                continue
+            if voice_engine not in prebuilt_voices:
+                prebuilt_voices[voice_engine] = []
             prebuilt_voices[voice_engine].append(
                 {item.get("id"): item.get("name")}
             )
 
         cloned_voice_response = self.get_cloned_voices()
-        if cloned_voice_response:
+        if isinstance(cloned_voice_response, list):
+            prebuilt_voices.setdefault("PlayHT2.0", [])
             for item in cloned_voice_response:
                 prebuilt_voices["PlayHT2.0"].append(
                     {item.get("id"): item.get("name")}
@@ -159,9 +165,10 @@ class PlayhtTTS(TTSBase):
             str: Voice ID for the specified voice name.
         """
         if self.name in self.allowed_models:
-            for item in self.__prebuilt_voices.get(
-                self.name, self.__prebuilt_voices.get("PlayHT2.0")
-            ):
+            voices = list(self.__prebuilt_voices.get(self.name, []))
+            if self.name != "PlayHT2.0":
+                voices.extend(self.__prebuilt_voices.get("PlayHT2.0", []))
+            for item in voices:
                 if voice_name in item.values():
                     return list(item.keys())[0]
 
@@ -188,11 +195,12 @@ class PlayhtTTS(TTSBase):
         }
 
         try:
+            headers = {**self._headers, "accept": "audio/mpeg"}
             with httpx.Client(
-                base_url=self._BASE_URL, timeout=30
+                base_url=self._BASE_URL, timeout=self.timeout
             ) as self._client:
                 response = self._client.post(
-                    "/tts/stream", json=payload, headers=self._headers
+                    "/tts/stream", json=payload, headers=headers
                 )
                 response.raise_for_status()
 
@@ -223,11 +231,12 @@ class PlayhtTTS(TTSBase):
         }
 
         try:
+            headers = {**self._headers, "accept": "audio/mpeg"}
             async with httpx.AsyncClient(
-                base_url=self._BASE_URL, timeout=30
+                base_url=self._BASE_URL, timeout=self.timeout
             ) as async_client:
                 response = await async_client.post(
-                    "/tts/stream", json=payload, headers=self._headers
+                    "/tts/stream", json=payload, headers=headers
                 )
                 response.raise_for_status()
             with open(audio_path, "wb") as f:
@@ -288,25 +297,28 @@ class PlayhtTTS(TTSBase):
         Returns:
             dict: Response from the Play.ht API.
         """
-        files = {
-            "sample_file": (
-                sample_file_path.split("/")[-1],
-                open(sample_file_path, "rb"),
-                "audio/mp4",
-            )
-        }
         payload = {"voice_name": voice_name}
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
-                response = client.post(
-                    "/cloned-voices/instant",
-                    data=payload,
-                    files=files,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+            with open(sample_file_path, "rb") as sample_file:
+                files = {
+                    "sample_file": (
+                        os.path.basename(sample_file_path),
+                        sample_file,
+                        "audio/mp4",
+                    )
+                }
+                with httpx.Client(
+                    base_url=self._BASE_URL, timeout=self.timeout
+                ) as client:
+                    response = client.post(
+                        "/cloned-voices/instant",
+                        data=payload,
+                        files=files,
+                        headers=self._headers,
+                    )
+                    response.raise_for_status()
 
             return response.json()
         except httpx.RequestError as e:
@@ -341,7 +353,9 @@ class PlayhtTTS(TTSBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(
+                base_url=self._BASE_URL, timeout=self.timeout
+            ) as client:
                 response = client.post(
                     "/cloned-voices/instant",
                     data=payload,
@@ -367,7 +381,9 @@ class PlayhtTTS(TTSBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(
+                base_url=self._BASE_URL, timeout=self.timeout
+            ) as client:
                 response = client.delete(
                     "/cloned-voices", json=payload, headers=self._headers
                 )
@@ -388,7 +404,9 @@ class PlayhtTTS(TTSBase):
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(base_url=self._BASE_URL) as client:
+            with httpx.Client(
+                base_url=self._BASE_URL, timeout=self.timeout
+            ) as client:
                 response = client.get("/cloned-voices", headers=self._headers)
                 response.raise_for_status()
 
@@ -425,7 +443,7 @@ class PlayhtTTS(TTSBase):
             bytes: bytes of the audio.
         """
         raise NotImplementedError(
-            "Stream method not implemented for PlayhtTTS"
+            "Stream method not implemented for PlayHTModel"
         )
 
     async def astream(self, text: str) -> bytes:
@@ -439,5 +457,5 @@ class PlayhtTTS(TTSBase):
             bytes: bytes of the audio.
         """
         raise NotImplementedError(
-            "AStream method not implemented for PlayhtTTS"
+            "AStream method not implemented for PlayHTModel"
         )

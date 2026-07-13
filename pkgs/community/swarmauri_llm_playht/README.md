@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_llm_playht/">
@@ -14,9 +14,13 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri PlayHT Voice Generation
+# Swarmauri PlayHT Legacy Compatibility
 
-`swarmauri_llm_playht` provides the provider-specific Swarmauri import package for `PlayHTModel`. Despite the older `llm` package name, the runtime is a PlayHT text-to-speech and voice-management adapter that synthesizes speech, enumerates available voices, and supports cloned-voice workflows through the PlayHT API.
+`swarmauri_llm_playht` preserves the historic `PlayHTModel` import while the
+provider now lives in the standalone `swarmauri_tts_playht` package. The model
+is a `TTSBase` component and is no longer registered as an LLM.
+
+New applications should install and import `swarmauri_tts_playht` directly.
 
 The adapter targets PlayHT's API under `https://api.play.ht/api/v2`, supports the repo-tracked model families `Play3.0-mini`, `PlayHT2.0-turbo`, `PlayHT1.0`, and `PlayHT2.0`, and writes generated audio to a local output file.
 
@@ -60,6 +64,8 @@ Yes. The adapter includes methods to get cloned voices, clone a voice from a fil
 - Batch and async batch synthesis workflows.
 - Prebuilt voice discovery and validation for the selected voice engine.
 - Cloned voice management helpers for create, list, and delete operations.
+- A `swarmauri-playht` CLI for positional, piped, file-based, and interactive
+  prompts through the stateless `TextToSpeechAgent`.
 - Compatibility with Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
 ## Installation
@@ -75,6 +81,36 @@ pip install swarmauri_llm_playht
 ## Usage
 
 Set `PLAYHT_API_KEY` and `PLAYHT_USER_ID` in your environment before creating the model.
+
+### Command Line
+
+Set the credentials in your environment, then pass the text to synthesize:
+
+```bash
+export PLAYHT_API_KEY="your-api-key"
+export PLAYHT_USER_ID="your-user-id"
+swarmauri-playht "Welcome to Swarmauri." --output welcome.mp3
+```
+
+Run the command without text for an interactive prompt:
+
+```bash
+swarmauri-playht --output greeting.mp3
+```
+
+The CLI also accepts piped input or a UTF-8 prompt file:
+
+```bash
+echo "Turn this text into speech." | swarmauri-playht -o piped.mp3
+swarmauri-playht --prompt-file script.txt --voice Adolfo -o narration.mp3
+swarmauri-playht "Generate through the agent." \
+  --voice-model PlayHT2.0-turbo -o agent.mp3
+```
+
+Use `swarmauri-playht --help` to see model, voice, timeout, and credential
+options. Every command uses a fresh `TextToSpeechAgent` execution with no
+conversation, memory, or system context. Environment variables are preferred
+over credential flags so secrets do not remain in shell history.
 
 ### Text To Speech
 
