@@ -385,7 +385,7 @@ jobs:
               exit 1
             fi
             if grep -Eiq "429|Too many new projects created|Too Many Requests" "$publish_log"; then
-              sleep_seconds=900
+              sleep_seconds=3600
               echo "PyPI rate limit detected; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
             else
               sleep_seconds=$((attempt * 30))
