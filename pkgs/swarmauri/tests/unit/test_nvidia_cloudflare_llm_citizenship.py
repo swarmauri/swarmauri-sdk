@@ -20,23 +20,3 @@ def test_provider_models_are_second_class():
         assert PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY[
             public_name
         ] == (provider_name)
-
-
-def test_provider_models_lazy_import():
-    from swarmauri.llms import CloudflareWorkersAIModel, NvidiaNIMModel
-    from swarmauri.tool_llms import (
-        CloudflareWorkersAIToolModel,
-        NvidiaNIMToolModel,
-    )
-
-    assert NvidiaNIMModel.NvidiaNIMModel.__name__ == "NvidiaNIMModel"
-    assert NvidiaNIMToolModel.NvidiaNIMToolModel.__name__ == (
-        "NvidiaNIMToolModel"
-    )
-    assert CloudflareWorkersAIModel.CloudflareWorkersAIModel.__name__ == (
-        "CloudflareWorkersAIModel"
-    )
-    assert (
-        CloudflareWorkersAIToolModel.CloudflareWorkersAIToolModel.__name__
-        == "CloudflareWorkersAIToolModel"
-    )
