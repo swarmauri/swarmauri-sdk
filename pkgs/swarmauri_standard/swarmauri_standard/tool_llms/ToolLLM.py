@@ -1,6 +1,16 @@
 import asyncio
 import json
-from typing import Any, AsyncIterator, Dict, Iterator, List, Type
+from typing import (
+    Any,
+    AsyncIterator,
+    ClassVar,
+    Dict,
+    FrozenSet,
+    Iterator,
+    List,
+    Optional,
+    Type,
+)
 
 import httpx
 from swarmauri_base.ComponentBase import ComponentBase
@@ -20,10 +30,15 @@ from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
 from swarmauri_standard.toolkits.Toolkit import Toolkit
+from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type()
 class ToolLLM(ToolLLMBase):
+    capabilities: ClassVar[FrozenSet[str]] = frozenset(
+        {"chat_completions", "tools", "streaming"}
+    )
+
     def __init__(self, **data: dict[str, Any]) -> None:
         """
         Initialize the OpenAIToolModel class with the provided data.
@@ -32,11 +47,67 @@ class ToolLLM(ToolLLMBase):
             **data: Arbitrary keyword arguments containing initialization data.
         """
         super().__init__(**data)
-        self._headers = {
-            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
-            "Content-Type": "application/json",
-        }
+        self._headers = self._build_headers()
         self.allowed_models = self.allowed_models or self.get_allowed_models()
+
+    def _build_headers(self) -> Dict[str, str]:
+        """Build request headers, allowing provider subclasses to override."""
+        headers = {"Content-Type": "application/json"}
+        if self.api_key is not None:
+            headers["Authorization"] = (
+                f"Bearer {self.api_key.get_secret_value()}"
+            )
+        return headers
+
+    def _build_endpoint(self) -> str:
+        """Return the complete inference endpoint."""
+        if not self.BASE_URL:
+            raise ValueError("BASE_URL must identify an inference endpoint")
+        return self.BASE_URL
+
+    def _build_payload(
+        self,
+        messages: List[Dict[str, Any]],
+        *,
+        toolkit: Optional[Toolkit],
+        tool_choice: Optional[dict[str, Any]],
+        temperature: float,
+        max_tokens: int,
+        stream: bool = False,
+    ) -> Dict[str, Any]:
+        """Build an OpenAI-compatible tool-calling payload."""
+        payload: Dict[str, Any] = {
+            "model": self.name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if toolkit is not None:
+            payload["tools"] = self._schema_convert_tools(toolkit.tools)
+            payload["tool_choice"] = tool_choice or "auto"
+        if stream:
+            payload["stream"] = True
+        return payload
+
+    def _parse_response(self, response_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Return the first provider message from a completion response."""
+        return response_data["choices"][0]["message"]
+
+    def _parse_stream_chunk(self, line: str) -> Optional[str]:
+        """Parse text from one server-sent completion event."""
+        if not line.startswith("data: "):
+            return None
+        payload = line[6:].strip()
+        if not payload or payload == "[DONE]":
+            return None
+        try:
+            chunk = json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+        choices = chunk.get("choices") or []
+        if not choices:
+            return None
+        return (choices[0].get("delta") or {}).get("content")
 
     def get_schema_converter(self) -> Type["SchemaConverterBase"]:
         return OpenAISchemaConverter()
@@ -121,6 +192,7 @@ class ToolLLM(ToolLLMBase):
             if message["role"] == "tool"
         ]
 
+    @retry_on_status_codes()
     def predict(
         self,
         conversation: Conversation,
@@ -146,37 +218,33 @@ class ToolLLM(ToolLLMBase):
             calls.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools)
-            if toolkit
-            else None,
-            "tool_choice": tool_choice or "auto",
-        }
+        payload = self._build_payload(
+            formatted_messages,
+            toolkit=toolkit,
+            tool_choice=tool_choice,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
 
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
-                self.BASE_URL, headers=self._headers, json=payload
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
             )
             response.raise_for_status()
             tool_response = response.json()
 
+        provider_message = self._parse_response(tool_response)
         messages = [
             formatted_messages[-1],
-            tool_response["choices"][0]["message"],
+            provider_message,
         ]
-        tool_calls = tool_response["choices"][0]["message"].get(
-            "tool_calls", []
-        )
+        tool_calls = provider_message.get("tool_calls", [])
         if tool_calls:
             conversation.add_message(
                 AgentMessage(
-                    content=tool_response["choices"][0]["message"].get(
-                        "content"
-                    ),
+                    content=provider_message.get("content"),
                     tool_calls=tool_calls,
                 )
             )
@@ -192,18 +260,19 @@ class ToolLLM(ToolLLMBase):
 
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
                 )
                 response.raise_for_status()
 
-            agent_response = response.json()
+            agent_response = self._parse_response(response.json())
 
-            agent_message = AgentMessage(
-                content=agent_response["choices"][0]["message"]["content"]
-            )
+            agent_message = AgentMessage(content=agent_response.get("content"))
             conversation.add_message(agent_message)
         return conversation
 
+    @retry_on_status_codes()
     async def apredict(
         self,
         conversation: Conversation,
@@ -229,37 +298,33 @@ class ToolLLM(ToolLLMBase):
             calls.
         """
         formatted_messages = self._format_messages(conversation.history)
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools)
-            if toolkit
-            else None,
-            "tool_choice": tool_choice or "auto",
-        }
+        payload = self._build_payload(
+            formatted_messages,
+            toolkit=toolkit,
+            tool_choice=tool_choice,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                self.BASE_URL, headers=self._headers, json=payload
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
             )
             response.raise_for_status()
             tool_response = response.json()
 
+        provider_message = self._parse_response(tool_response)
         messages = [
             formatted_messages[-1],
-            tool_response["choices"][0]["message"],
+            provider_message,
         ]
-        tool_calls = tool_response["choices"][0]["message"].get(
-            "tool_calls", []
-        )
+        tool_calls = provider_message.get("tool_calls", [])
         if tool_calls:
             conversation.add_message(
                 AgentMessage(
-                    content=tool_response["choices"][0]["message"].get(
-                        "content"
-                    ),
+                    content=provider_message.get("content"),
                     tool_calls=tool_calls,
                 )
             )
@@ -275,15 +340,15 @@ class ToolLLM(ToolLLMBase):
 
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
                 )
                 response.raise_for_status()
 
-            agent_response = response.json()
+            agent_response = self._parse_response(response.json())
 
-            agent_message = AgentMessage(
-                content=agent_response["choices"][0]["message"]["content"]
-            )
+            agent_message = AgentMessage(content=agent_response.get("content"))
             conversation.add_message(agent_message)
         return conversation
 
@@ -312,39 +377,32 @@ class ToolLLM(ToolLLMBase):
 
         formatted_messages = self._format_messages(conversation.history)
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools)
-            if toolkit
-            else [],
-            "tool_choice": tool_choice or "auto",
-        }
+        payload = self._build_payload(
+            formatted_messages,
+            toolkit=toolkit,
+            tool_choice=tool_choice,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
 
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
-                self.BASE_URL, headers=self._headers, json=payload
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
             )
             response.raise_for_status()
 
         tool_response = response.json()
 
-        messages = [
-            formatted_messages[-1],
-            tool_response["choices"][0]["message"],
-        ]
-        tool_calls = tool_response["choices"][0]["message"].get(
-            "tool_calls", []
-        )
+        provider_message = self._parse_response(tool_response)
+        messages = [formatted_messages[-1], provider_message]
+        tool_calls = provider_message.get("tool_calls", [])
 
         if tool_calls:
             conversation.add_message(
                 AgentMessage(
-                    content=tool_response["choices"][0]["message"].get(
-                        "content"
-                    ),
+                    content=provider_message.get("content"),
                     tool_calls=tool_calls,
                 )
             )
@@ -358,25 +416,20 @@ class ToolLLM(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        with httpx.Client(timeout=self.timeout) as client:
-            response = client.post(
-                self.BASE_URL, headers=self._headers, json=payload
-            )
-            response.raise_for_status()
-
         message_content = ""
-
-        for line in response.iter_lines():
-            json_str = line.replace("data: ", "")
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
+        with httpx.Client(timeout=self.timeout) as client:
+            with client.stream(
+                "POST",
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    delta = self._parse_stream_chunk(line)
+                    if delta is not None:
                         message_content += delta
                         yield delta
-            except json.JSONDecodeError:
-                pass
 
         conversation.add_message(AgentMessage(content=message_content))
 
@@ -404,39 +457,32 @@ class ToolLLM(ToolLLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "tools": self._schema_convert_tools(toolkit.tools)
-            if toolkit
-            else [],
-            "tool_choice": tool_choice or "auto",
-        }
+        payload = self._build_payload(
+            formatted_messages,
+            toolkit=toolkit,
+            tool_choice=tool_choice,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                self.BASE_URL, headers=self._headers, json=payload
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
             )
             response.raise_for_status()
 
         tool_response = response.json()
 
-        messages = [
-            formatted_messages[-1],
-            tool_response["choices"][0]["message"],
-        ]
-        tool_calls = tool_response["choices"][0]["message"].get(
-            "tool_calls", []
-        )
+        provider_message = self._parse_response(tool_response)
+        messages = [formatted_messages[-1], provider_message]
+        tool_calls = provider_message.get("tool_calls", [])
 
         if tool_calls:
             conversation.add_message(
                 AgentMessage(
-                    content=tool_response["choices"][0]["message"].get(
-                        "content"
-                    ),
+                    content=provider_message.get("content"),
                     tool_calls=tool_calls,
                 )
             )
@@ -450,24 +496,20 @@ class ToolLLM(ToolLLMBase):
         payload.pop("tools", None)
         payload.pop("tool_choice", None)
 
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            agent_response = await client.post(
-                self.BASE_URL, headers=self._headers, json=payload
-            )
-            agent_response.raise_for_status()
-
         message_content = ""
-        async for line in agent_response.aiter_lines():
-            json_str = line.replace("data: ", "")
-            try:
-                if json_str:
-                    chunk = json.loads(json_str)
-                    if chunk["choices"][0]["delta"]:
-                        delta = chunk["choices"][0]["delta"]["content"]
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with client.stream(
+                "POST",
+                self._build_endpoint(),
+                headers=self._build_headers(),
+                json=payload,
+            ) as agent_response:
+                agent_response.raise_for_status()
+                async for line in agent_response.aiter_lines():
+                    delta = self._parse_stream_chunk(line)
+                    if delta is not None:
                         message_content += delta
                         yield delta
-            except json.JSONDecodeError:
-                pass
         conversation.add_message(AgentMessage(content=message_content))
 
     def batch(
@@ -552,4 +594,8 @@ class ToolLLM(ToolLLMBase):
         Returns:
             List[str]: List of allowed models.
         """
-        pass
+        return self._get_models()
+
+    def _get_models(self) -> List[str]:
+        """Provider hook for model discovery without placeholder names."""
+        return []

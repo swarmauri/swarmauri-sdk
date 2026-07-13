@@ -1,6 +1,17 @@
 import asyncio
 import json
-from typing import Any, AsyncGenerator, Dict, Generator, List, Optional, Type
+from typing import (
+    Any,
+    AsyncGenerator,
+    ClassVar,
+    Dict,
+    FrozenSet,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+)
 
 import httpx
 from swarmauri_base.ComponentBase import ComponentBase
@@ -32,6 +43,16 @@ class LLM(LLMBase):
         timeout (float): Timeout for API requests in seconds.
     """
 
+    capabilities: ClassVar[FrozenSet[str]] = frozenset(
+        {
+            "chat_completions",
+            "structured_output",
+            "multimodal_input",
+            "streaming",
+            "stream_usage",
+        }
+    )
+
     def __init__(self, **data) -> None:
         """
         Initialize the LLM class with the provided data.
@@ -43,11 +64,7 @@ class LLM(LLMBase):
         """
         super().__init__(**data)
 
-        # Set up headers for API requests
-        self._headers = {
-            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
-            "Content-Type": "application/json",
-        }
+        self._headers = self._build_headers()
 
         # Load allowed models and set default if needed
         if not self.allowed_models:
@@ -55,6 +72,80 @@ class LLM(LLMBase):
 
         if not self.name and self.allowed_models:
             self.name = self.allowed_models[0]
+
+    def _build_headers(self) -> Dict[str, str]:
+        """Build request headers, allowing provider subclasses to override."""
+        headers = {"Content-Type": "application/json"}
+        if self.api_key is not None:
+            headers["Authorization"] = (
+                f"Bearer {self.api_key.get_secret_value()}"
+            )
+        return headers
+
+    def _build_endpoint(self) -> str:
+        """Return the complete inference endpoint.
+
+        ``BASE_URL`` remains a complete endpoint for backward compatibility.
+        Provider subclasses may assemble an endpoint from provider fields.
+        """
+        if not self.BASE_URL:
+            raise ValueError("BASE_URL must identify an inference endpoint")
+        return self.BASE_URL
+
+    def _build_payload(
+        self,
+        messages: List[Dict[str, Any]],
+        *,
+        temperature: float,
+        max_tokens: int,
+        top_p: float,
+        enable_json: bool,
+        stop: Optional[List[str]],
+        stream: bool = False,
+    ) -> Dict[str, Any]:
+        """Build an OpenAI-compatible chat-completions payload."""
+        payload: Dict[str, Any] = {
+            "model": self.name,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "stop": stop or [],
+        }
+        if enable_json:
+            payload["response_format"] = {"type": "json_object"}
+        if stream:
+            payload["stream"] = True
+            if self.include_usage and "stream_usage" in self.capabilities:
+                payload["stream_options"] = {"include_usage": True}
+        return payload
+
+    def _parse_response(
+        self, response_data: Dict[str, Any]
+    ) -> Tuple[str, Dict[str, Any]]:
+        """Parse content and usage from a chat-completions response."""
+        content = response_data["choices"][0]["message"].get("content")
+        return content or "", response_data.get("usage") or {}
+
+    def _parse_stream_chunk(
+        self, line: str
+    ) -> Tuple[Optional[str], Dict[str, Any]]:
+        """Parse one server-sent chat-completions event."""
+        if not line.startswith("data: "):
+            return None, {}
+        payload = line[6:].strip()
+        if not payload or payload == "[DONE]":
+            return None, {}
+        try:
+            chunk = json.loads(payload)
+        except json.JSONDecodeError:
+            return None, {}
+        usage = chunk.get("usage") or {}
+        choices = chunk.get("choices") or []
+        if not choices:
+            return None, usage
+        content = (choices[0].get("delta") or {}).get("content")
+        return content, usage
 
     def _format_messages(
         self,
@@ -72,10 +163,9 @@ class LLM(LLMBase):
         """
         formatted_messages = []
         for message in messages:
-            if message.role != "assistant":
-                formatted_message = message.model_dump(
-                    include=["content", "role", "name"], exclude_none=True
-                )
+            formatted_message = message.model_dump(
+                include=["content", "role", "name"], exclude_none=True
+            )
 
             # Handle multi-modal content
             if isinstance(formatted_message["content"], list):
@@ -118,7 +208,7 @@ class LLM(LLMBase):
 
         return usage
 
-    @retry_on_status_codes((429, 529), max_retries=3)
+    @retry_on_status_codes()
     def predict(
         self,
         conversation: Conversation,
@@ -146,32 +236,28 @@ class LLM(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        # Prepare the payload
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "stop": stop or [],
-        }
-
-        # Add JSON response format if requested
-        if enable_json:
-            payload["response_format"] = {"type": "json_object"}
+        payload = self._build_payload(
+            formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            enable_json=enable_json,
+            stop=stop,
+        )
 
         # Make the API request and measure time
         with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
                 response = client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
                 )
                 response.raise_for_status()
 
         # Parse the response
         response_data = response.json()
-        message_content = response_data["choices"][0]["message"]["content"]
-        usage_data = response_data.get("usage", {})
+        message_content, usage_data = self._parse_response(response_data)
 
         # Prepare usage data if tracking is enabled
         if self.include_usage:
@@ -183,7 +269,7 @@ class LLM(LLMBase):
             conversation.add_message(AgentMessage(content=message_content))
         return conversation
 
-    @retry_on_status_codes((429, 529), max_retries=3)
+    @retry_on_status_codes()
     async def apredict(
         self,
         conversation: Conversation,
@@ -212,32 +298,28 @@ class LLM(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        # Prepare the payload
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "stop": stop or [],
-        }
-
-        # Add JSON response format if requested
-        if enable_json:
-            payload["response_format"] = {"type": "json_object"}
+        payload = self._build_payload(
+            formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            enable_json=enable_json,
+            stop=stop,
+        )
 
         # Make the async API request and measure time
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
                 )
                 response.raise_for_status()
 
         # Parse the response
         response_data = response.json()
-        message_content = response_data["choices"][0]["message"]["content"]
-        usage_data = response_data.get("usage", {})
+        message_content, usage_data = self._parse_response(response_data)
 
         # Prepare usage data if tracking is enabled
         if self.include_usage:
@@ -250,7 +332,7 @@ class LLM(LLMBase):
 
         return conversation
 
-    @retry_on_status_codes((429, 529), max_retries=3)
+    @retry_on_status_codes()
     def stream(
         self,
         conversation: Conversation,
@@ -278,69 +360,38 @@ class LLM(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        # Prepare the payload with stream flag
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "stream": True,
-            "stop": stop or [],
-        }
-
-        if enable_json:
-            payload["response_format"] = {"type": "json_object"}
-
-        if self.include_usage:
-            payload["stream_options"] = {"include_usage": True}
+        payload = self._build_payload(
+            formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            enable_json=enable_json,
+            stop=stop,
+            stream=True,
+        )
 
         # Start timing for prompt processing
         with DurationManager() as prompt_timer:
             with httpx.Client(timeout=self.timeout) as client:
-                response = client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
-
-        # Process the streaming response
-        message_content = ""
-        usage_data = {}
-
-        with DurationManager() as completion_timer:
-            for line in response.iter_lines():
-                if line.startswith("data: "):
-                    json_str = line.replace(
-                        "data: ", ""
-                    )  # Remove 'data: ' prefix
-
-                    if json_str.strip() == "[DONE]":
-                        break
-
-                    try:
-                        if json_str:
-                            chunk = json.loads(json_str)
-                            if (
-                                "choices" in chunk
-                                and chunk["choices"]
-                                and "delta" in chunk["choices"][0]
-                            ):
-                                delta = chunk["choices"][0]["delta"]
-                                if "content" in delta:
-                                    content = delta["content"]
-                                    message_content += content
-                                    yield content
-
-                            # Collect usage data if available
-                            if (
-                                self.include_usage
-                                and "usage" in chunk
-                                and chunk["usage"] is not None
-                            ):
-                                usage_data = chunk["usage"]
-
-                    except json.JSONDecodeError:
-                        pass
+                with client.stream(
+                    "POST",
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
+                ) as response:
+                    response.raise_for_status()
+                    message_content = ""
+                    usage_data: Dict[str, Any] = {}
+                    with DurationManager() as completion_timer:
+                        for line in response.iter_lines():
+                            content, chunk_usage = self._parse_stream_chunk(
+                                line
+                            )
+                            if chunk_usage:
+                                usage_data = chunk_usage
+                            if content is not None:
+                                message_content += content
+                                yield content
 
         # Add the complete message to the conversation
         if self.include_usage:
@@ -353,7 +404,7 @@ class LLM(LLMBase):
         else:
             conversation.add_message(AgentMessage(content=message_content))
 
-    @retry_on_status_codes((429, 529), max_retries=3)
+    @retry_on_status_codes()
     async def astream(
         self,
         conversation: Conversation,
@@ -381,67 +432,38 @@ class LLM(LLMBase):
         """
         formatted_messages = self._format_messages(conversation.history)
 
-        # Prepare the payload with stream flag
-        payload = {
-            "model": self.name,
-            "messages": formatted_messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "stream": True,
-            "stop": stop or [],
-        }
-
-        if enable_json:
-            payload["response_format"] = {"type": "json_object"}
-
-        if self.include_usage:
-            payload["stream_options"] = {"include_usage": True}
+        payload = self._build_payload(
+            formatted_messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            enable_json=enable_json,
+            stop=stop,
+            stream=True,
+        )
 
         # Start timing for prompt processing
         with DurationManager() as prompt_timer:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.post(
-                    self.BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
-
-        # Process the streaming response asynchronously
-        message_content = ""
-        usage_data = {}
-
-        with DurationManager() as completion_timer:
-            async for line in response.aiter_lines():
-                if line.startswith("data: "):
-                    json_str = line[6:]  # Remove 'data: ' prefix
-
-                    if json_str.strip() == "[DONE]":
-                        break
-
-                    try:
-                        if json_str:
-                            chunk = json.loads(json_str)
-                            if (
-                                "choices" in chunk
-                                and chunk["choices"]
-                                and "delta" in chunk["choices"][0]
-                            ):
-                                delta = chunk["choices"][0]["delta"]
-                                if "content" in delta:
-                                    content = delta["content"]
-                                    message_content += content
-                                    yield content
-
-                            # Collect usage data if available
-                            if (
-                                self.include_usage
-                                and "usage" in chunk
-                                and chunk["usage"] is not None
-                            ):
-                                usage_data = chunk["usage"]
-
-                    except json.JSONDecodeError:
-                        pass
+                async with client.stream(
+                    "POST",
+                    self._build_endpoint(),
+                    headers=self._build_headers(),
+                    json=payload,
+                ) as response:
+                    response.raise_for_status()
+                    message_content = ""
+                    usage_data: Dict[str, Any] = {}
+                    with DurationManager() as completion_timer:
+                        async for line in response.aiter_lines():
+                            content, chunk_usage = self._parse_stream_chunk(
+                                line
+                            )
+                            if chunk_usage:
+                                usage_data = chunk_usage
+                            if content is not None:
+                                message_content += content
+                                yield content
 
         # Add the complete message to the conversation
         if self.include_usage:
@@ -542,10 +564,13 @@ class LLM(LLMBase):
         """
         Returns a list of allowed models for this LLM provider.
 
-        This default implementation returns a static list. Provider-specific
-        subclasses should override this to query their respective APIs.
+        Provider-specific subclasses should override this to query their APIs.
 
         Returns:
             List[str]: List of allowed model names.
         """
-        return ["gpt-4", "gpt-3.5-turbo", "claude-3-5-sonnet-20240229"]
+        return self._get_models()
+
+    def _get_models(self) -> List[str]:
+        """Provider hook for model discovery without placeholder names."""
+        return []
