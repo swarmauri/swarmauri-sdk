@@ -1,6 +1,15 @@
 import json
 from abc import abstractmethod
-from typing import Any, Dict, List, Literal, Optional, Type
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    FrozenSet,
+    List,
+    Literal,
+    Optional,
+    Type,
+)
 
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.tool_llms.IToolPredict import IToolPredict
@@ -19,25 +28,31 @@ class ToolLLMBase(IToolPredict, ComponentBase):
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ToolLLMBase"] = "ToolLLMBase"
-    api_key: Optional[SecretStr] = None
-    allowed_models: List[str] = []
+    api_key: Optional[SecretStr] = Field(default=None, exclude=True)
+    allowed_models: List[str] = Field(default_factory=list)
     timeout: float = 600.0
+    max_retries: int = Field(default=3, ge=1)
+    retry_delay: float = Field(default=2.0, ge=0)
     BASE_URL: str = None
-    _headers: Dict[str, str] = PrivateAttr(default=None)
+    _headers: Dict[str, str] = PrivateAttr(default_factory=dict)
+
+    capabilities: ClassVar[FrozenSet[str]] = frozenset()
+    retryable_status_codes: ClassVar[FrozenSet[int]] = frozenset(
+        {408, 409, 425, 429, 500, 502, 503, 504, 529}
+    )
 
     @model_validator(mode="after")
-    @classmethod
-    def _validate_name_in_allowed_models(cls, values):
-        name = values.name
-        allowed_models = values.allowed_models
-        if name and name not in allowed_models:
+    def _validate_name_in_allowed_models(self):
+        name = self.name
+        allowed_models = self.allowed_models
+        if name and allowed_models and name not in allowed_models:
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "
                     f"{allowed_models}"
                 )
             )
-        return values
+        return self
 
     def add_allowed_model(self, model: str) -> None:
         """
