@@ -101,6 +101,8 @@ members = [
     "community/swarmauri_tool_entityrecognition",
     "community/swarmauri_tool_folium",
     "community/swarmauri_tool_getmethodsignature",
+    "community/swarmauri_tool_queryimagevectorstore",
+    "community/swarmauri_tool_queryknowledgebase",
     "community/swarmauri_tool_gmail",
     "community/swarmauri_tool_jupyterclearoutput",
     "community/swarmauri_tool_jupyterdisplay",
@@ -626,6 +628,8 @@ swarmauri_tool_downloadpdf = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_tool_folium = { workspace = true }
 swarmauri_tool_getmethodsignature = { workspace = true }
+swarmauri_tool_queryimagevectorstore = { workspace = true }
+swarmauri_tool_queryknowledgebase = { workspace = true }
 swarmauri_tool_githubloader = { workspace = true }
 swarmauri_tool_gmail = { workspace = true }
 swarmauri_tool_httploaded = { workspace = true }

@@ -2994,6 +2994,30 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_queryimagevectorstore"
+path = "community/swarmauri_tool_queryimagevectorstore"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryknowledgebase"
+path = "community/swarmauri_tool_queryknowledgebase"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_gmail"
 path = "community/swarmauri_tool_gmail"
 layer = "50-community"

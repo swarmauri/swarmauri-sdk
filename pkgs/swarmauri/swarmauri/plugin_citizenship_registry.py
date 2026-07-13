@@ -738,6 +738,12 @@ class PluginCitizenshipRegistry:
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.tools.QueryImageVectorStoreTool": (
+            "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"
+        ),
+        "swarmauri.tools.QueryKnowledgeBaseTool": (
+            "swarmauri_tool_queryknowledgebase.QueryKnowledgeBaseTool"
+        ),
         "swarmauri.image_gens.LeptonAIImgGenModel": (
             "swarmauri_llm_leptonai.LeptonAIImgGenModel"
         ),
