@@ -1,0 +1,53 @@
+name: Publish Package
+description: Build and publish a package, skip if version already exists on PyPI
+inputs:
+  package-dir:
+    description: Path to package directory
+    required: true
+  token:
+    description: PyPI API token
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install tools
+      shell: bash
+      run: pip install build twine
+
+    - name: Get package info
+      id: pkg
+      shell: bash
+      working-directory: ${{ inputs.package-dir }}
+      run: |
+        NAME=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); p=d.get('project') or d.get('tool',{}).get('poetry',{}); print(p['name'])")
+        VERSION=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); p=d.get('project') or d.get('tool',{}).get('poetry',{}); print(p['version'])")
+        echo "name=$NAME" >> "$GITHUB_OUTPUT"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+    - name: Check version exists
+      id: check
+      shell: bash
+      run: |
+        name=$(echo "${{ steps.pkg.outputs.name }}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
+        version="${{ steps.pkg.outputs.version }}"
+        code=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/${name}/${version}/json")
+        if [ "$code" = "200" ]; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Build
+      if: steps.check.outputs.exists != 'true'
+      shell: bash
+      working-directory: ${{ inputs.package-dir }}
+      run: python -m build
+
+    - name: Publish
+      if: steps.check.outputs.exists != 'true'
+      shell: bash
+      working-directory: ${{ inputs.package-dir }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ inputs.token }}
+      run: twine upload dist/*
