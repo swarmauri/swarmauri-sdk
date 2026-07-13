@@ -759,6 +759,12 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_anthropic.AnthropicToolModel"
         ),
         "swarmauri.llms.CerebrasModel": "swarmauri_llm_cerebras.CerebrasModel",
+        "swarmauri.llms.CloudflareWorkersAIModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIModel"
+        ),
+        "swarmauri.llms.CloudflareWorkersAIToolModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIToolModel"
+        ),
         "swarmauri.llms.CohereModel": "swarmauri_llm_cohere.CohereModel",
         "swarmauri.llms.CohereToolModel": (
             "swarmauri_llm_cohere.CohereToolModel"
@@ -793,6 +799,12 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.MistralToolModel": (
             "swarmauri_llm_mistral.MistralToolModel"
         ),
+        "swarmauri.llms.NvidiaNIMModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMModel"
+        ),
+        "swarmauri.llms.NvidiaNIMToolModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
+        ),
         "swarmauri.llms.OpenAIAudio": "swarmauri_llm_openai.OpenAIAudio",
         "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
         "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
@@ -822,6 +834,12 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.tool_llms.MistralToolModel": (
             "swarmauri_llm_mistral.MistralToolModel"
+        ),
+        "swarmauri.tool_llms.CloudflareWorkersAIToolModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIToolModel"
+        ),
+        "swarmauri.tool_llms.NvidiaNIMToolModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
         ),
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}

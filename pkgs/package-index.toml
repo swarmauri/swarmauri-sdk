@@ -2587,6 +2587,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_cloudflare"
+path = "community/swarmauri_llm_cloudflare"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_cohere"
 path = "community/swarmauri_llm_cohere"
 layer = "50-community"
@@ -2697,6 +2709,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_llm_mistral"
 path = "community/swarmauri_llm_mistral"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_nvidia_nim"
+path = "community/swarmauri_llm_nvidia_nim"
 layer = "50-community"
 order = 0
 family = "llm"
