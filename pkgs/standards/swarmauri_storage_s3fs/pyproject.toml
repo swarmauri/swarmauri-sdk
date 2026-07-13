@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_s3fs"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "s3fs-backed S3 storage adapter for SwarmauriSDK"
 readme = "README.md"
