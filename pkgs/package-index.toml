@@ -763,7 +763,2610 @@ order_reason = "single-capability package by default"
 name = "swarmauri_evaluator_constanttime"
 path = "standards/swarmauri_evaluator_constanttime"
 layer = "40-standards"
-order =…16910 tokens truncated…bscraping"
+order = 0
+family = "evaluator"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_evaluator_externalimports"
+path = "standards/swarmauri_evaluator_externalimports"
+layer = "40-standards"
+order = 0
+family = "evaluator"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_evaluator_subprocess"
+path = "standards/swarmauri_evaluator_subprocess"
+layer = "40-standards"
+order = 0
+family = "evaluator"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_evaluatorpool_accessibility"
+path = "standards/swarmauri_evaluatorpool_accessibility"
+layer = "40-standards"
+order = 0
+family = "evaluatorpool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swm_example_package"
+path = "standards/swm_example_package"
+layer = "40-standards"
+order = 0
+family = "example"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_gitfilter_gh_release"
+path = "standards/swarmauri_gitfilter_gh_release"
+layer = "40-standards"
+order = 0
+family = "gitfilter"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_gitfilter_minio"
+path = "standards/swarmauri_gitfilter_minio"
+layer = "40-standards"
+order = 0
+family = "gitfilter"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_gitfilter_s3fs"
+path = "standards/swarmauri_gitfilter_s3fs"
+layer = "40-standards"
+order = 0
+family = "gitfilter"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_file"
+path = "standards/swarmauri_keyprovider_file"
+layer = "40-standards"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_inmemory"
+path = "standards/swarmauri_keyprovider_inmemory"
+layer = "40-standards"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_local"
+path = "standards/swarmauri_keyprovider_local"
+layer = "40-standards"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_ssh"
+path = "standards/swarmauri_keyprovider_ssh"
+layer = "40-standards"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swamauri_metric_wasserstein"
+path = "standards/swamauri_metric_wasserstein"
+layer = "40-standards"
+order = 0
+family = "metric"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_bulkhead"
+path = "standards/swarmauri_middleware_bulkhead"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_cachecontrol"
+path = "standards/swarmauri_middleware_cachecontrol"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_cors"
+path = "standards/swarmauri_middleware_cors"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_exceptionhandling"
+path = "standards/swarmauri_middleware_exceptionhandling"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_gzipcompression"
+path = "standards/swarmauri_middleware_gzipcompression"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_httpsig"
+path = "standards/swarmauri_middleware_httpsig"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_jsonrpc"
+path = "standards/swarmauri_middleware_jsonrpc"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_jwksverifier"
+path = "standards/swarmauri_middleware_jwksverifier"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_jwt"
+path = "standards/swarmauri_middleware_jwt"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_llamaguard"
+path = "standards/swarmauri_middleware_llamaguard"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_logging"
+path = "standards/swarmauri_middleware_logging"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_ratelimit"
+path = "standards/swarmauri_middleware_ratelimit"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_securityheaders"
+path = "standards/swarmauri_middleware_securityheaders"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_session"
+path = "standards/swarmauri_middleware_session"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_stdio"
+path = "standards/swarmauri_middleware_stdio"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_time"
+path = "standards/swarmauri_middleware_time"
+layer = "40-standards"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_mre_crypto_age"
+path = "standards/swarmauri_mre_crypto_age"
+layer = "40-standards"
+order = 0
+family = "mre_crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_mre_crypto_ecdh_es_kw"
+path = "standards/swarmauri_mre_crypto_ecdh_es_kw"
+layer = "40-standards"
+order = 0
+family = "mre_crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_mre_crypto_keyring"
+path = "standards/swarmauri_mre_crypto_keyring"
+layer = "40-standards"
+order = 0
+family = "mre_crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_mre_crypto_pgp"
+path = "standards/swarmauri_mre_crypto_pgp"
+layer = "40-standards"
+order = 0
+family = "mre_crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_mre_crypto_shamir"
+path = "standards/swarmauri_mre_crypto_shamir"
+layer = "40-standards"
+order = 0
+family = "mre_crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_beautifulsoupelement"
+path = "standards/swarmauri_parser_beautifulsoupelement"
+layer = "40-standards"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_keywordextractor"
+path = "standards/swarmauri_parser_keywordextractor"
+layer = "40-standards"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_pop_cwt"
+path = "standards/swarmauri_pop_cwt"
+layer = "40-standards"
+order = 0
+family = "pop"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_pop_dpop"
+path = "standards/swarmauri_pop_dpop"
+layer = "40-standards"
+order = 0
+family = "pop"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_pop_x509"
+path = "standards/swarmauri_pop_x509"
+layer = "40-standards"
+order = 0
+family = "pop"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_prompt_j2prompttemplate"
+path = "standards/swarmauri_prompt_j2prompttemplate"
+layer = "40-standards"
+order = 0
+family = "prompt"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_publisher_rabbitmq"
+path = "standards/swarmauri_publisher_rabbitmq"
+layer = "40-standards"
+order = 0
+family = "publisher"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_publisher_redis"
+path = "standards/swarmauri_publisher_redis"
+layer = "40-standards"
+order = 0
+family = "publisher"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_publisher_webhook"
+path = "standards/swarmauri_publisher_webhook"
+layer = "40-standards"
+order = 0
+family = "publisher"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_ca"
+path = "standards/swarmauri_signing_ca"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_cms"
+path = "standards/swarmauri_signing_cms"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_ecdsa"
+path = "standards/swarmauri_signing_ecdsa"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_ed25519"
+path = "standards/swarmauri_signing_ed25519"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_hmac"
+path = "standards/swarmauri_signing_hmac"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_openpgp"
+path = "standards/swarmauri_signing_openpgp"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_pep458"
+path = "standards/swarmauri_signing_pep458"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_pgp"
+path = "standards/swarmauri_signing_pgp"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_rsa"
+path = "standards/swarmauri_signing_rsa"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_secp256k1"
+path = "standards/swarmauri_signing_secp256k1"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_sigv4"
+path = "standards/swarmauri_signing_sigv4"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_ssh"
+path = "standards/swarmauri_signing_ssh"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_xmld"
+path = "standards/swarmauri_signing_xmld"
+layer = "40-standards"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_filesystem"
+path = "standards/swarmauri_skill_dummy_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_local"
+path = "standards/swarmauri_skill_dummy_local"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_filesystem"
+path = "standards/swarmauri_skill_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_local"
+path = "standards/swarmauri_skill_local"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_file"
+path = "standards/swarmauri_storage_file"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_github"
+path = "standards/swarmauri_storage_github"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_github_release"
+path = "standards/swarmauri_storage_github_release"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_memory"
+path = "standards/swarmauri_storage_memory"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_minio"
+path = "standards/swarmauri_storage_minio"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_s3"
+path = "standards/swarmauri_storage_s3"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_s3_over_sftp"
+path = "standards/swarmauri_storage_s3_over_sftp"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_storage_s3fs"
+path = "standards/swarmauri_storage_s3fs"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_dpopboundjwt"
+path = "standards/swarmauri_tokens_dpopboundjwt"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_introspection"
+path = "standards/swarmauri_tokens_introspection"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_paseto_v4"
+path = "standards/swarmauri_tokens_paseto_v4"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_remoteoidc"
+path = "standards/swarmauri_tokens_remoteoidc"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_rotatingjwt"
+path = "standards/swarmauri_tokens_rotatingjwt"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_sshcert"
+path = "standards/swarmauri_tokens_sshcert"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_sshsig"
+path = "standards/swarmauri_tokens_sshsig"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tokens_tlsboundjwt"
+path = "standards/swarmauri_tokens_tlsboundjwt"
+layer = "40-standards"
+order = 0
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_containerfeedchars"
+path = "standards/swarmauri_tool_containerfeedchars"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_containermakepr"
+path = "standards/swarmauri_tool_containermakepr"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_containernewsession"
+path = "standards/swarmauri_tool_containernewsession"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_githubloader"
+path = "standards/swarmauri_tool_githubloader"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_httploaded"
+path = "standards/swarmauri_tool_httploaded"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_matplotlib"
+path = "standards/swarmauri_tool_matplotlib"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_skill_execution"
+path = "standards/swarmauri_tool_skill_execution"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_asgi"
+path = "standards/swarmauri_transport_asgi"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_h2"
+path = "standards/swarmauri_transport_h2"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_h2mux"
+path = "standards/swarmauri_transport_h2mux"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_meshsidecarhttp2"
+path = "standards/swarmauri_transport_meshsidecarhttp2"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_mtlsunicast"
+path = "standards/swarmauri_transport_mtlsunicast"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_quic"
+path = "standards/swarmauri_transport_quic"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_sseoutbound"
+path = "standards/swarmauri_transport_sseoutbound"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_sshtunnel"
+path = "standards/swarmauri_transport_sshtunnel"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_stdio"
+path = "standards/swarmauri_transport_stdio"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_tcpunicast"
+path = "standards/swarmauri_transport_tcpunicast"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_tls_unicast"
+path = "standards/swarmauri_transport_tls_unicast"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_udp"
+path = "standards/swarmauri_transport_udp"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_uds_unicast"
+path = "standards/swarmauri_transport_uds_unicast"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_wsjsonrpcmux"
+path = "standards/swarmauri_transport_wsjsonrpcmux"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_gif"
+path = "standards/swarmauri_xmp_gif"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_jpeg"
+path = "standards/swarmauri_xmp_jpeg"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_mp4"
+path = "standards/swarmauri_xmp_mp4"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_pdf"
+path = "standards/swarmauri_xmp_pdf"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_png"
+path = "standards/swarmauri_xmp_png"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_svg"
+path = "standards/swarmauri_xmp_svg"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_tiff"
+path = "standards/swarmauri_xmp_tiff"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_xmp_webp"
+path = "standards/swarmauri_xmp_webp"
+layer = "40-standards"
+order = 0
+family = "xmp"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_agent_skill"
+path = "standards/swarmauri_agent_skill"
+layer = "40-standards"
+order = 1
+family = "agent"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_tool_skill_execution at 40.0"
+composes = ["swarmauri_tool_skill_execution"]
+
+[[packages]]
+name = "swarmauri_certs_composite"
+path = "standards/swarmauri_certs_composite"
+layer = "40-standards"
+order = 1
+family = "certs"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "composite signal from metadata for swarmauri_certs_composite"
+
+[[packages]]
+name = "swarmauri_certs_x509"
+path = "standards/swarmauri_certs_x509"
+layer = "40-standards"
+order = 1
+family = "certs"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_keyprovider_inmemory", "swarmauri_keyprovider_local"]
+
+[[packages]]
+name = "swarmauri_crypto_composite"
+path = "standards/swarmauri_crypto_composite"
+layer = "40-standards"
+order = 1
+family = "crypto"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "composite signal from metadata for swarmauri_crypto_composite"
+
+[[packages]]
+name = "swarmauri_gitfilter_file"
+path = "standards/swarmauri_gitfilter_file"
+layer = "40-standards"
+order = 1
+family = "gitfilter"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_storage_file at 40.0"
+composes = ["swarmauri_storage_file"]
+
+[[packages]]
+name = "swarmauri_keyprovider_hierarchical"
+path = "standards/swarmauri_keyprovider_hierarchical"
+layer = "40-standards"
+order = 1
+family = "keyprovider"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_keyprovider_local at 40.0"
+composes = ["swarmauri_keyprovider_local"]
+
+[[packages]]
+name = "swarmauri_keyprovider_remote_jwks"
+path = "standards/swarmauri_keyprovider_remote_jwks"
+layer = "40-standards"
+order = 1
+family = "keyprovider"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_keyprovider_local at 40.0"
+composes = ["swarmauri_keyprovider_local"]
+
+[[packages]]
+name = "swarmauri_keyproviders_mirrored"
+path = "standards/swarmauri_keyproviders_mirrored"
+layer = "40-standards"
+order = 1
+family = "keyproviders"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_keyprovider_local at 40.0"
+composes = ["swarmauri_keyprovider_local"]
+
+[[packages]]
+name = "swarmauri_signing_jws"
+path = "standards/swarmauri_signing_jws"
+layer = "40-standards"
+order = 1
+family = "signing"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "composite signal from metadata for swarmauri_signing_jws"
+composes = ["swarmauri_signing_ecdsa", "swarmauri_signing_ed25519", "swarmauri_signing_hmac", "swarmauri_signing_rsa"]
+
+[[packages]]
+name = "swarmauri_signing_pdf"
+path = "standards/swarmauri_signing_pdf"
+layer = "40-standards"
+order = 1
+family = "signing"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_signing_cms at 40.0"
+composes = ["swarmauri_signing_cms"]
+
+[[packages]]
+name = "swarmauri_tokens_composite"
+path = "standards/swarmauri_tokens_composite"
+layer = "40-standards"
+order = 1
+family = "tokens"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "composite signal from metadata for swarmauri_tokens_composite"
+
+[[packages]]
+name = "swarmauri_vectorstore_doc2vec"
+path = "standards/swarmauri_vectorstore_doc2vec"
+layer = "40-standards"
+order = 1
+family = "vectorstore"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_embedding_doc2vec at 40.0"
+composes = ["swarmauri_embedding_doc2vec"]
+
+[[packages]]
+name = "swarmauri_middleware_auth"
+path = "standards/swarmauri_middleware_auth"
+layer = "40-standards"
+order = 2
+family = "middleware"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
+composes = ["swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_signing_dpop"
+path = "standards/swarmauri_signing_dpop"
+layer = "40-standards"
+order = 2
+family = "signing"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
+composes = ["swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_tokens_jwt"
+path = "standards/swarmauri_tokens_jwt"
+layer = "40-standards"
+order = 2
+family = "tokens"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
+composes = ["swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_toolkit_containertoolkit"
+path = "standards/swarmauri_toolkit_containertoolkit"
+layer = "40-standards"
+order = 2
+family = "toolkit"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "orchestrator signal from metadata for swarmauri_toolkit_containertoolkit"
+composes = ["swarmauri_tool_containerfeedchars", "swarmauri_tool_containermakepr", "swarmauri_tool_containernewsession"]
+
+[[packages]]
+name = "swarmauri_toolkit_runtime"
+path = "standards/swarmauri_toolkit_runtime"
+layer = "40-standards"
+order = 2
+family = "toolkit"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "orchestrator signal from metadata for swarmauri_toolkit_runtime"
+
+[[packages]]
+name = "swarmauri_transport_https_unicast"
+path = "standards/swarmauri_transport_https_unicast"
+layer = "40-standards"
+order = 2
+family = "transport"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
+composes = ["swarmauri_certs_x509verify", "swarmauri_cipher_suite_tls13", "swarmauri_middleware_httpsig", "swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_billing_adyen"
+path = "community/swarmauri_billing_adyen"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_authorize_net"
+path = "community/swarmauri_billing_authorize_net"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_braintree"
+path = "community/swarmauri_billing_braintree"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_paypal"
+path = "community/swarmauri_billing_paypal"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_paystack"
+path = "community/swarmauri_billing_paystack"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_razorpay"
+path = "community/swarmauri_billing_razorpay"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_billing_square"
+path = "community/swarmauri_billing_square"
+layer = "50-community"
+order = 0
+family = "billing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_acme"
+path = "community/swarmauri_certs_acme"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_azure"
+path = "community/swarmauri_certs_azure"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_cfssl"
+path = "community/swarmauri_certs_cfssl"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_crlverifyservice"
+path = "community/swarmauri_certs_crlverifyservice"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_csronly"
+path = "community/swarmauri_certs_csronly"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certs_ocspverify"
+path = "community/swarmauri_certs_ocspverify"
+layer = "50-community"
+order = 0
+family = "certs"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certservice_aws_kms"
+path = "community/swarmauri_certservice_aws_kms"
+layer = "50-community"
+order = 0
+family = "certservice"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certservice_gcpkms"
+path = "community/swarmauri_certservice_gcpkms"
+layer = "50-community"
+order = 0
+family = "certservice"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certservice_ms_adcs"
+path = "community/swarmauri_certservice_ms_adcs"
+layer = "50-community"
+order = 0
+family = "certservice"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certservice_scep"
+path = "community/swarmauri_certservice_scep"
+layer = "50-community"
+order = 0
+family = "certservice"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_certservice_stepca"
+path = "community/swarmauri_certservice_stepca"
+layer = "50-community"
+order = 0
+family = "certservice"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_embedding_mlm"
+path = "community/swarmauri_embedding_mlm"
+layer = "50-community"
+order = 0
+family = "embedding"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swm_example_community_package"
+path = "community/swm_example_community_package"
+layer = "50-community"
+order = 0
+family = "example"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_aws_kms"
+path = "community/swarmauri_keyprovider_aws_kms"
+layer = "50-community"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_gcpkms"
+path = "community/swarmauri_keyprovider_gcpkms"
+layer = "50-community"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_keyprovider_vaulttransit"
+path = "community/swarmauri_keyprovider_vaulttransit"
+layer = "50-community"
+order = 0
+family = "keyprovider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_ai21"
+path = "community/swarmauri_llm_ai21"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_anthropic"
+path = "community/swarmauri_llm_anthropic"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_cerebras"
+path = "community/swarmauri_llm_cerebras"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_cohere"
+path = "community/swarmauri_llm_cohere"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_deepinfra"
+path = "community/swarmauri_llm_deepinfra"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_deepseek"
+path = "community/swarmauri_llm_deepseek"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_falai"
+path = "community/swarmauri_llm_falai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_gemini"
+path = "community/swarmauri_llm_gemini"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_groq"
+path = "community/swarmauri_llm_groq"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_hyperbolic"
+path = "community/swarmauri_llm_hyperbolic"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_leptonai"
+path = "community/swarmauri_llm_leptonai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_llamacpp"
+path = "community/swarmauri_llm_llamacpp"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_mistral"
+path = "community/swarmauri_llm_mistral"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_openai"
+path = "community/swarmauri_llm_openai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_perplexity"
+path = "community/swarmauri_llm_perplexity"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_playht"
+path = "community/swarmauri_llm_playht"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_whisper"
+path = "community/swarmauri_llm_whisper"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_measurement_mutualinformation"
+path = "community/swarmauri_measurement_mutualinformation"
+layer = "50-community"
+order = 0
+family = "measurement"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_measurement_tokencountestimator"
+path = "community/swarmauri_measurement_tokencountestimator"
+layer = "50-community"
+order = 0
+family = "measurement"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_metric_hamming"
+path = "community/swarmauri_metric_hamming"
+layer = "50-community"
+order = 0
+family = "metric"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_circuitbreaker"
+path = "community/swarmauri_middleware_circuitbreaker"
+layer = "50-community"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_middleware_ratepolicy"
+path = "community/swarmauri_middleware_ratepolicy"
+layer = "50-community"
+order = 0
+family = "middleware"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_ocr_pytesseract"
+path = "community/swarmauri_ocr_pytesseract"
+layer = "50-community"
+order = 0
+family = "ocr"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_bertembedding"
+path = "community/swarmauri_parser_bertembedding"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_entityrecognition"
+path = "community/swarmauri_parser_entityrecognition"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_fitzpdf"
+path = "community/swarmauri_parser_fitzpdf"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_pypdf2"
+path = "community/swarmauri_parser_pypdf2"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_pypdftk"
+path = "community/swarmauri_parser_pypdftk"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_slate"
+path = "community/swarmauri_parser_slate"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_parser_textblob"
+path = "community/swarmauri_parser_textblob"
+layer = "50-community"
+order = 0
+family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_signing_dsse"
+path = "community/swarmauri_signing_dsse"
+layer = "50-community"
+order = 0
+family = "signing"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_state_clipboard"
+path = "community/swarmauri_state_clipboard"
+layer = "50-community"
+order = 0
+family = "state"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tests_griffe"
+path = "community/swarmauri_tests_griffe"
+layer = "50-community"
+order = 0
+family = "tests"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_captchagenerator"
+path = "community/swarmauri_tool_captchagenerator"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_dalechallreadability"
+path = "community/swarmauri_tool_dalechallreadability"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_downloadpdf"
+path = "community/swarmauri_tool_downloadpdf"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_entityrecognition"
+path = "community/swarmauri_tool_entityrecognition"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_folium"
+path = "community/swarmauri_tool_folium"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_getmethodsignature"
+path = "community/swarmauri_tool_getmethodsignature"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryimagevectorstore"
+path = "community/swarmauri_tool_queryimagevectorstore"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryknowledgebase"
+path = "community/swarmauri_tool_queryknowledgebase"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_gmail"
+path = "community/swarmauri_tool_gmail"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterclearoutput"
+path = "community/swarmauri_tool_jupyterclearoutput"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterdisplay"
+path = "community/swarmauri_tool_jupyterdisplay"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterdisplayhtml"
+path = "community/swarmauri_tool_jupyterdisplayhtml"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexecuteandconvert"
+path = "community/swarmauri_tool_jupyterexecuteandconvert"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexecutecell"
+path = "community/swarmauri_tool_jupyterexecutecell"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexecutenotebook"
+path = "community/swarmauri_tool_jupyterexecutenotebook"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexecutenotebookwithparameters"
+path = "community/swarmauri_tool_jupyterexecutenotebookwithparameters"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexporthtml"
+path = "community/swarmauri_tool_jupyterexporthtml"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexportlatex"
+path = "community/swarmauri_tool_jupyterexportlatex"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexportmarkdown"
+path = "community/swarmauri_tool_jupyterexportmarkdown"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterexportpython"
+path = "community/swarmauri_tool_jupyterexportpython"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterfromdict"
+path = "community/swarmauri_tool_jupyterfromdict"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupytergetiopubmessage"
+path = "community/swarmauri_tool_jupytergetiopubmessage"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupytergetshellmessage"
+path = "community/swarmauri_tool_jupytergetshellmessage"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterreadnotebook"
+path = "community/swarmauri_tool_jupyterreadnotebook"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterruncell"
+path = "community/swarmauri_tool_jupyterruncell"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupytershutdownkernel"
+path = "community/swarmauri_tool_jupytershutdownkernel"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterstartkernel"
+path = "community/swarmauri_tool_jupyterstartkernel"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupytervalidatenotebook"
+path = "community/swarmauri_tool_jupytervalidatenotebook"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_jupyterwritenotebook"
+path = "community/swarmauri_tool_jupyterwritenotebook"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_lexicaldensity"
+path = "community/swarmauri_tool_lexicaldensity"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_psutil"
+path = "community/swarmauri_tool_psutil"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_qrcodegenerator"
+path = "community/swarmauri_tool_qrcodegenerator"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_searchword"
+path = "community/swarmauri_tool_searchword"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_sentencecomplexity"
+path = "community/swarmauri_tool_sentencecomplexity"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_sentimentanalysis"
+path = "community/swarmauri_tool_sentimentanalysis"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_smogindex"
+path = "community/swarmauri_tool_smogindex"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_textlength"
+path = "community/swarmauri_tool_textlength"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_webscraping"
 path = "community/swarmauri_tool_webscraping"
 layer = "50-community"
 order = 0
