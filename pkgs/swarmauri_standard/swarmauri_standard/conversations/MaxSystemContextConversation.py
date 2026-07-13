@@ -3,6 +3,7 @@ from pydantic import Field, ConfigDict, field_validator
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.exceptions.IndexErrorWithContext import (
     IndexErrorWithContext,
 )
@@ -60,16 +61,19 @@ class MaxSystemContextConversation(
         alternating = True
         count = 0
         for message in self._history[user_start_index:]:
+            if isinstance(message, FunctionMessage):
+                res.append(message)
+                continue
             if count > self.max_size:  # max size
                 break
-            if (
-                alternating
-                and isinstance(message, HumanMessage)
-                or not alternating
-                and isinstance(message, AgentMessage)
-            ):
+            if alternating and isinstance(message, HumanMessage):
                 res.append(message)
-                alternating = not alternating
+                alternating = False
+                count += 1
+            elif not alternating and isinstance(message, AgentMessage):
+                res.append(message)
+                if not message.tool_calls:
+                    alternating = True
                 count += 1
             elif not alternating and isinstance(message, HumanMessage):
                 # If we find two 'user' messages in a row when expecting an

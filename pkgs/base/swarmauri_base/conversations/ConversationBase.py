@@ -1,5 +1,6 @@
-from typing import List, Union, Literal
-from pydantic import Field, PrivateAttr, ConfigDict
+from typing import List, Literal, Union
+
+from pydantic import ConfigDict, Field
 
 from swarmauri_core.conversations.IConversation import IConversation
 from swarmauri_base.ComponentBase import (
@@ -17,8 +18,9 @@ class ConversationBase(IConversation, ComponentBase):
     operations.
     """
 
-    _history: List[SubclassUnion[MessageBase]] = PrivateAttr(
-        default_factory=list
+    messages: List[SubclassUnion[MessageBase]] = Field(
+        default_factory=list,
+        description="Messages retained by the conversation.",
     )
     resource: ResourceTypes = Field(default=ResourceTypes.CONVERSATION)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
@@ -29,10 +31,20 @@ class ConversationBase(IConversation, ComponentBase):
         """
         Provides read-only access to the conversation history.
         """
-        return self._history
+        return self.messages
+
+    @property
+    def _history(self) -> List[SubclassUnion[MessageBase]]:
+        """Return the stored messages for legacy conversation subclasses."""
+        return self.messages
+
+    @_history.setter
+    def _history(self, messages: List[SubclassUnion[MessageBase]]) -> None:
+        """Replace stored messages for legacy conversation subclasses."""
+        self.messages = messages
 
     def add_message(self, message: SubclassUnion[MessageBase]):
-        self._history.append(message)
+        self.messages.append(message)
 
     def remove_message(self, message: SubclassUnion[MessageBase]):
         """
@@ -41,18 +53,18 @@ class ConversationBase(IConversation, ComponentBase):
         @param message: Message to remove from the history
         @return None
         """
-        if self._history and message in self._history:
-            self._history.remove(message)
+        if self.messages and message in self.messages:
+            self.messages.remove(message)
         return None
 
     def add_messages(self, messages: List[SubclassUnion[MessageBase]]):
         for message in messages:
-            self._history.append(message)
+            self.messages.append(message)
 
     def get_last(self) -> Union[SubclassUnion[MessageBase], None]:
-        if self._history:
-            return self._history[-1]
+        if self.messages:
+            return self.messages[-1]
         return None
 
     def clear_history(self):
-        self._history.clear()
+        self.messages.clear()

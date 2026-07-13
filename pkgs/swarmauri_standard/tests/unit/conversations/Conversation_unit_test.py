@@ -1,6 +1,7 @@
 import pytest
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_base.ComponentBase import ResourceTypes
 
 
@@ -23,6 +24,20 @@ def test_serialization():
         conversation.id
         == Conversation.model_validate_json(conversation.model_dump_json()).id
     )
+
+
+@pytest.mark.unit
+def test_serialization_preserves_function_messages():
+    conversation = Conversation()
+    function_message = FunctionMessage(
+        name="calculator", content="3", tool_call_id="call-1"
+    )
+    conversation.add_message(function_message)
+
+    restored = Conversation.model_validate_json(conversation.model_dump_json())
+
+    assert isinstance(restored.history[0], FunctionMessage)
+    assert restored.history[0].tool_call_id == "call-1"
 
 
 @pytest.mark.unit
