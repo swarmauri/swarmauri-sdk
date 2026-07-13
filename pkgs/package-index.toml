@@ -2575,6 +2575,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_azureopenai"
+path = "community/swarmauri_llm_azureopenai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_cerebras"
 path = "community/swarmauri_llm_cerebras"
 layer = "50-community"
@@ -2770,6 +2782,18 @@ composes = ["swarmauri_tts_playht"]
 [[packages]]
 name = "swarmauri_llm_whisper"
 path = "community/swarmauri_llm_whisper"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_xai"
+path = "community/swarmauri_llm_xai"
 layer = "50-community"
 order = 0
 family = "llm"

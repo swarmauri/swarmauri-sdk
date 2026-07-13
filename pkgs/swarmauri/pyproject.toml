@@ -82,6 +82,7 @@ full = [
 llms = [
     "swarmauri_llm_ai21",
     "swarmauri_llm_anthropic",
+    "swarmauri_llm_azureopenai",
     "swarmauri_llm_cerebras",
     "swarmauri_llm_cloudflare",
     "swarmauri_llm_cohere",
@@ -99,6 +100,7 @@ llms = [
     "swarmauri_llm_perplexity",
     "swarmauri_llm_playht",
     "swarmauri_llm_whisper",
+    "swarmauri_llm_xai",
 ]
 
 [tool.uv.sources]
@@ -107,6 +109,7 @@ swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_llm_ai21 = { workspace = true }
 swarmauri_llm_anthropic = { workspace = true }
+swarmauri_llm_azureopenai = { workspace = true }
 swarmauri_llm_cerebras = { workspace = true }
 swarmauri_llm_cloudflare = { workspace = true }
 swarmauri_llm_cohere = { workspace = true }
@@ -124,6 +127,7 @@ swarmauri_llm_openai = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
 swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }
+swarmauri_llm_xai = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }
 swarmauri_embedding_doc2vec = { workspace = true }
 #swarmauri_embedding_tfidf = { workspace = true }

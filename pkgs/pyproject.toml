@@ -63,6 +63,7 @@ members = [
     "community/swarmauri_keyprovider_vaulttransit",
     "community/swarmauri_llm_ai21",
     "community/swarmauri_llm_anthropic",
+    "community/swarmauri_llm_azureopenai",
     "community/swarmauri_llm_cerebras",
     "community/swarmauri_llm_cloudflare",
     "community/swarmauri_llm_cohere",
@@ -80,6 +81,7 @@ members = [
     "community/swarmauri_llm_perplexity",
     "community/swarmauri_llm_playht",
     "community/swarmauri_llm_whisper",
+    "community/swarmauri_llm_xai",
     "community/swarmauri_matrix_hamming74",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
@@ -519,6 +521,7 @@ swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_llm_ai21 = { workspace = true }
 swarmauri_llm_anthropic = { workspace = true }
+swarmauri_llm_azureopenai = { workspace = true }
 swarmauri_llm_cerebras = { workspace = true }
 swarmauri_llm_cloudflare = { workspace = true }
 swarmauri_llm_cohere = { workspace = true }
@@ -536,6 +539,7 @@ swarmauri_llm_openai = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
 swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }
+swarmauri_llm_xai = { workspace = true }
 swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
