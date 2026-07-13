@@ -165,9 +165,10 @@ class PlayHTModel(TTSBase):
             str: Voice ID for the specified voice name.
         """
         if self.name in self.allowed_models:
-            for item in self.__prebuilt_voices.get(
-                self.name, self.__prebuilt_voices.get("PlayHT2.0")
-            ):
+            voices = list(self.__prebuilt_voices.get(self.name, []))
+            if self.name != "PlayHT2.0":
+                voices.extend(self.__prebuilt_voices.get("PlayHT2.0", []))
+            for item in voices:
                 if voice_name in item.values():
                     return list(item.keys())[0]
 
@@ -296,27 +297,28 @@ class PlayHTModel(TTSBase):
         Returns:
             dict: Response from the Play.ht API.
         """
-        files = {
-            "sample_file": (
-                sample_file_path.split("/")[-1],
-                open(sample_file_path, "rb"),
-                "audio/mp4",
-            )
-        }
         payload = {"voice_name": voice_name}
         self._headers["accept"] = "application/json"
 
         try:
-            with httpx.Client(
-                base_url=self._BASE_URL, timeout=self.timeout
-            ) as client:
-                response = client.post(
-                    "/cloned-voices/instant",
-                    data=payload,
-                    files=files,
-                    headers=self._headers,
-                )
-                response.raise_for_status()
+            with open(sample_file_path, "rb") as sample_file:
+                files = {
+                    "sample_file": (
+                        os.path.basename(sample_file_path),
+                        sample_file,
+                        "audio/mp4",
+                    )
+                }
+                with httpx.Client(
+                    base_url=self._BASE_URL, timeout=self.timeout
+                ) as client:
+                    response = client.post(
+                        "/cloned-voices/instant",
+                        data=payload,
+                        files=files,
+                        headers=self._headers,
+                    )
+                    response.raise_for_status()
 
             return response.json()
         except httpx.RequestError as e:
