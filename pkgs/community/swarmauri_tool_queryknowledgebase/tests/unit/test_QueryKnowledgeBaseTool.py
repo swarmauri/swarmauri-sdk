@@ -24,7 +24,10 @@ class KnowledgeBase:
 
 def test_retrieves_ranked_structured_results():
     store = KnowledgeBase(
-        [Document("alpha", {"tag": "a"}, 0.9), Document("beta", {"tag": "b"}, 0.8)]
+        [
+            Document("alpha", {"tag": "a"}, 0.9),
+            Document("beta", {"tag": "b"}, 0.8),
+        ]
     )
     result = QueryKnowledgeBaseTool(knowledge_base=store)("topic", top_k=2)
     assert [item["content"] for item in result] == ["alpha", "beta"]
@@ -50,11 +53,15 @@ def test_filters_metadata_and_refills_top_k():
 @pytest.mark.parametrize("query,top_k", [("", 5), ("ok", 0), ("ok", 101)])
 def test_rejects_invalid_inputs(query, top_k):
     with pytest.raises(ValueError):
-        QueryKnowledgeBaseTool(knowledge_base=KnowledgeBase([]))(query, top_k=top_k)
+        QueryKnowledgeBaseTool(knowledge_base=KnowledgeBase([]))(
+            query, top_k=top_k
+        )
 
 
 def test_serialization_excludes_runtime_adapter():
     tool = QueryKnowledgeBaseTool(knowledge_base=KnowledgeBase([]))
-    restored = QueryKnowledgeBaseTool.model_validate_json(tool.model_dump_json())
+    restored = QueryKnowledgeBaseTool.model_validate_json(
+        tool.model_dump_json()
+    )
     assert restored.id == tool.id
     assert restored.knowledge_base is None
