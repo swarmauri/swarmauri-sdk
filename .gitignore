@@ -62,3 +62,5 @@ __pycache__/
 .ruff_cache/
 .tox/
 .nox/
+
+mnt/data/nginx-proxy-manager/
