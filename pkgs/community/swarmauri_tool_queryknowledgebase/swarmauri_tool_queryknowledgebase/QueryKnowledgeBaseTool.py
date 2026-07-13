@@ -72,7 +72,9 @@ class QueryKnowledgeBaseTool(ToolBase):
         if self.knowledge_base is None or not callable(
             getattr(self.knowledge_base, "retrieve", None)
         ):
-            raise ValueError("knowledge_base must provide retrieve(query, top_k)")
+            raise ValueError(
+                "knowledge_base must provide retrieve(query, top_k)"
+            )
         if not query.strip():
             raise ValueError("query must not be blank")
         if not 1 <= top_k <= 100:
