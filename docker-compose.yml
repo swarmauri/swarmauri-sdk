@@ -1,0 +1,26 @@
+services:
+  docs:
+    build:
+      context: ./docs
+    container_name: swarmauri-docs
+    restart: unless-stopped
+    networks:
+      - proxy
+
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - ./mnt/data/npm/data:/data
+      - ./mnt/data/npm/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    driver: bridge
