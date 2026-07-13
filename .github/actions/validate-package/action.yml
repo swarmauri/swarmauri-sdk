@@ -1,0 +1,15 @@
+name: Validate Package
+description: Validate package with pytest
+inputs:
+  path:
+    description: Package path
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install package
+      shell: bash
+      run: pip install -e "${{ inputs.path }}[dev]"
+    - name: Run tests
+      shell: bash
+      run: pytest "${{ inputs.path }}"
