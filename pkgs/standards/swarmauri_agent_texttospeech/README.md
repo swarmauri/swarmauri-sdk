@@ -32,7 +32,13 @@ pip install swarmauri_agent_texttospeech
 Install a TTS provider package alongside the agent. For PlayHT:
 
 ```bash
-uv add swarmauri_llm_playht
+uv add swarmauri_tts_playht
+```
+
+Or with `pip`:
+
+```bash
+pip install swarmauri_tts_playht
 ```
 
 ## Usage
@@ -41,11 +47,12 @@ uv add swarmauri_llm_playht
 import os
 
 from swarmauri_agent_texttospeech import TextToSpeechAgent
-from swarmauri_standard.tts.PlayhtTTS import PlayhtTTS
+from swarmauri_tts_playht import PlayHTModel
 
-tts = PlayhtTTS(
+tts = PlayHTModel(
     api_key=os.environ["PLAYHT_API_KEY"],
     user_id=os.environ["PLAYHT_USER_ID"],
+    name="Play3.0-mini",
     voice="Adolfo",
 )
 agent = TextToSpeechAgent(tts=tts, output_path="greeting.mp3")

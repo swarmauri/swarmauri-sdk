@@ -64,6 +64,33 @@ Every CLI invocation uses `TextToSpeechAgent`. It adds no conversation, memory,
 system context, or text-generating LLM. `--model` remains available as an alias
 for `--voice-model`.
 
+The supported command-line voice engines are `Play3.0-mini`,
+`PlayHT2.0-turbo`, `PlayHT1.0`, and `PlayHT2.0`. Text can also come from a UTF-8
+file or standard input:
+
+```bash
+swarmauri-playht --prompt-file announcement.txt --output announcement.mp3
+echo "Welcome to Swarmauri." | swarmauri-playht --output welcome.mp3
+```
+
+Use the same stateless workflow from Python:
+
+```python
+import os
+
+from swarmauri_agent_texttospeech import TextToSpeechAgent
+from swarmauri_tts_playht import PlayHTModel
+
+tts = PlayHTModel(
+    api_key=os.environ["PLAYHT_API_KEY"],
+    user_id=os.environ["PLAYHT_USER_ID"],
+    name="PlayHT2.0-turbo",
+    voice="Adolfo",
+)
+agent = TextToSpeechAgent(tts=tts, output_path="welcome.mp3")
+audio_path = agent.exec("Welcome to Swarmauri.")
+```
+
 ## Contributing
 
 This package is part of the
