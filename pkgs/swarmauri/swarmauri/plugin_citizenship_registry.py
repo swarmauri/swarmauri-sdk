@@ -758,6 +758,12 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.AnthropicToolModel": (
             "swarmauri_llm_anthropic.AnthropicToolModel"
         ),
+        "swarmauri.llms.AzureOpenAIModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIModel"
+        ),
+        "swarmauri.llms.AzureOpenAIToolModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIToolModel"
+        ),
         "swarmauri.llms.CerebrasModel": "swarmauri_llm_cerebras.CerebrasModel",
         "swarmauri.llms.CloudflareWorkersAIModel": (
             "swarmauri_llm_cloudflare.CloudflareWorkersAIModel"
@@ -817,11 +823,16 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.WhisperLargeModel": (
             "swarmauri_llm_whisper.WhisperLargeModel"
         ),
+        "swarmauri.llms.XAIModel": "swarmauri_llm_xai.XAIModel",
+        "swarmauri.llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
         "swarmauri.tool_llms.OpenAIToolModel": (
             "swarmauri_llm_openai.OpenAIToolModel"
         ),
         "swarmauri.tool_llms.AnthropicToolModel": (
             "swarmauri_llm_anthropic.AnthropicToolModel"
+        ),
+        "swarmauri.tool_llms.AzureOpenAIToolModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIToolModel"
         ),
         "swarmauri.tool_llms.CohereToolModel": (
             "swarmauri_llm_cohere.CohereToolModel"
@@ -841,6 +852,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.tool_llms.NvidiaNIMToolModel": (
             "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
         ),
+        "swarmauri.tool_llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 

@@ -23,7 +23,7 @@ fail validation because they make composition order ambiguous.
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
 | `40-standards` | 183 | 183 | first-party split standard packages |
-| `50-community` | 111 | 111 | community and provider-specific packages |
+| `50-community` | 113 | 113 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
 | `80-facades` | 1 | 1 | aggregate user-facing facade packages |
@@ -272,6 +272,7 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_keyprovider_vaulttransit](community/swarmauri_keyprovider_vaulttransit/) | `community/swarmauri_keyprovider_vaulttransit` | `keyprovider` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `community/swarmauri_llm_ai21` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `community/swarmauri_llm_anthropic` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `community/swarmauri_llm_azureopenai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `community/swarmauri_llm_cerebras` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `community/swarmauri_llm_cloudflare` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `community/swarmauri_llm_cohere` | `llm` | `atomic-concrete` | `community` | yes |
@@ -289,6 +290,7 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `community/swarmauri_llm_perplexity` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `community/swarmauri_llm_playht` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `community/swarmauri_llm_whisper` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `community/swarmauri_llm_xai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_measurement_mutualinformation](community/swarmauri_measurement_mutualinformation/) | `community/swarmauri_measurement_mutualinformation` | `measurement` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_measurement_tokencountestimator](community/swarmauri_measurement_tokencountestimator/) | `community/swarmauri_measurement_tokencountestimator` | `measurement` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_metric_hamming](community/swarmauri_metric_hamming/) | `community/swarmauri_metric_hamming` | `metric` | `atomic-concrete` | `community` | yes |
@@ -678,6 +680,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_keyprovider_vaulttransit](community/swarmauri_keyprovider_vaulttransit/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -695,6 +698,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `llm` | `atomic-concrete` | `inferred` | 1 | single-capability package by default |
 | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_measurement_mutualinformation](community/swarmauri_measurement_mutualinformation/) | `measurement` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_measurement_tokencountestimator](community/swarmauri_measurement_tokencountestimator/) | `measurement` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_metric_hamming](community/swarmauri_metric_hamming/) | `metric` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1195,6 +1199,7 @@ fail validation because they make composition order ambiguous.
 |---|---|---|---|---|---|---|
 | `50.0` | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `50-community` | `community/swarmauri_llm_ai21` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `50-community` | `community/swarmauri_llm_anthropic` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `50-community` | `community/swarmauri_llm_azureopenai` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `50-community` | `community/swarmauri_llm_cerebras` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `50-community` | `community/swarmauri_llm_cloudflare` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `50-community` | `community/swarmauri_llm_cohere` | `atomic-concrete` | `community` | yes |
@@ -1212,6 +1217,7 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `50-community` | `community/swarmauri_llm_perplexity` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `50-community` | `community/swarmauri_llm_playht` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `50-community` | `community/swarmauri_llm_whisper` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `50-community` | `community/swarmauri_llm_xai` | `atomic-concrete` | `community` | yes |
 
 ### `matrix`
 
