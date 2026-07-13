@@ -63,14 +63,12 @@ dependencies = [
 "typing_extensions",
 "swarmauri_core",
 "swarmauri_base",
-"swarmauri_tts_playht",
 ]
 
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
-swarmauri_tts_playht = { workspace = true }
 
 
 [dependency-groups]

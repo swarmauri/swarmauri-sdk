@@ -64,6 +64,18 @@ order_source = "inferred"
 order_reason = "foundation layers are atomic by policy"
 
 [[packages]]
+name = "swarmauri_agent_texttospeech"
+path = "standards/swarmauri_agent_texttospeech"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_auth_idp_apple"
 path = "standards/swarmauri_auth_idp_apple"
 layer = "40-standards"
@@ -2160,6 +2172,19 @@ order_source = "inferred"
 order_reason = "composite signal from metadata for swarmauri_tokens_composite"
 
 [[packages]]
+name = "swarmauri_tts_playht"
+path = "standards/swarmauri_tts_playht"
+layer = "40-standards"
+order = 1
+family = "tts"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_agent_texttospeech at 40.0"
+composes = ["swarmauri_agent_texttospeech"]
+
+[[packages]]
 name = "swarmauri_vectorstore_doc2vec"
 path = "standards/swarmauri_vectorstore_doc2vec"
 layer = "40-standards"
@@ -2716,6 +2741,7 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+composes = ["swarmauri_tts_playht"]
 
 [[packages]]
 name = "swarmauri_llm_whisper"
@@ -2984,30 +3010,6 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_getmethodsignature"
 path = "community/swarmauri_tool_getmethodsignature"
-layer = "50-community"
-order = 0
-family = "tool"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
-name = "swarmauri_tool_queryimagevectorstore"
-path = "community/swarmauri_tool_queryimagevectorstore"
-layer = "50-community"
-order = 0
-family = "tool"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
-name = "swarmauri_tool_queryknowledgebase"
-path = "community/swarmauri_tool_queryknowledgebase"
 layer = "50-community"
 order = 0
 family = "tool"
@@ -3296,6 +3298,30 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_qrcodegenerator"
 path = "community/swarmauri_tool_qrcodegenerator"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryimagevectorstore"
+path = "community/swarmauri_tool_queryimagevectorstore"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryknowledgebase"
+path = "community/swarmauri_tool_queryknowledgebase"
 layer = "50-community"
 order = 0
 family = "tool"
