@@ -1,13 +1,15 @@
 from abc import abstractmethod
-from typing import Optional, List, Literal
+from collections.abc import AsyncIterator, Iterator, Mapping
+from typing import Any, List, Literal, Optional
+
 from pydantic import ConfigDict, model_validator, Field
 
-from swarmauri_core.llms.IPredict import IPredict
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
 
 
 @ComponentBase.register_model()
-class TTSBase(IPredict, ComponentBase):
+class TTSBase(ITextToSpeech, ComponentBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(
         default=ResourceTypes.TTS.value, frozen=True
@@ -16,10 +18,9 @@ class TTSBase(IPredict, ComponentBase):
     type: Literal["TTSBase"] = "TTSBase"
 
     @model_validator(mode="after")
-    @classmethod
-    def _validate_name_in_allowed_models(cls, values):
-        name = values.name
-        allowed_models = values.allowed_models
+    def _validate_name_in_allowed_models(self):
+        name = self.name
+        allowed_models = self.allowed_models
         if name and name not in allowed_models:
             raise ValueError(
                 (
@@ -27,7 +28,7 @@ class TTSBase(IPredict, ComponentBase):
                     f"{allowed_models}"
                 )
             )
-        return values
+        return self
 
     def add_allowed_model(self, model: str) -> None:
         """
@@ -54,27 +55,31 @@ class TTSBase(IPredict, ComponentBase):
         self.allowed_models.remove(model)
 
     @abstractmethod
-    def predict(self, *args, **kwargs):
+    def predict(self, text: str, audio_path: str = "output.mp3") -> str:
         raise NotImplementedError("predict() not implemented in subclass yet.")
 
     @abstractmethod
-    async def apredict(self, *args, **kwargs):
+    async def apredict(self, text: str, audio_path: str = "output.mp3") -> str:
         raise NotImplementedError(
             "apredict() not implemented in subclass yet."
         )
 
     @abstractmethod
-    def stream(self, *args, **kwargs):
+    def stream(self, text: str, **kwargs: Any) -> Iterator[bytes]:
         raise NotImplementedError("stream() not implemented in subclass yet.")
 
     @abstractmethod
-    async def astream(self, *args, **kwargs):
+    async def astream(self, text: str, **kwargs: Any) -> AsyncIterator[bytes]:
         raise NotImplementedError("astream() not implemented in subclass yet.")
 
     @abstractmethod
-    def batch(self, *args, **kwargs):
+    def batch(self, text_path_dict: Mapping[str, str]) -> list[str]:
         raise NotImplementedError("batch() not implemented in subclass yet.")
 
     @abstractmethod
-    async def abatch(self, *args, **kwargs):
+    async def abatch(
+        self,
+        text_path_dict: Mapping[str, str],
+        max_concurrent: int = 5,
+    ) -> list[str]:
         raise NotImplementedError("abatch() not implemented in subclass yet.")

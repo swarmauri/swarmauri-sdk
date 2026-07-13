@@ -197,6 +197,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
         "swarmauri.agents.SkillAgent": "swarmauri_agent_skill.SkillAgent",
+        "swarmauri.agents.TextToSpeechAgent": (
+            "swarmauri_agent_texttospeech.TextToSpeechAgent"
+        ),
         "swarmauri.agents.SimpleConversationAgent": (
             "swarmauri_standard.agents.SimpleConversationAgent"
         ),
@@ -353,6 +356,7 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
         "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
+        "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
         "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
@@ -798,7 +802,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.PerplexityModel": (
             "swarmauri_llm_perplexity.PerplexityModel"
         ),
-        "swarmauri.llms.PlayHTModel": "swarmauri_llm_playht.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": (
             "swarmauri_llm_whisper.WhisperLargeModel"
         ),
