@@ -28,6 +28,8 @@ variables you provide, and registers itself as the `J2PromptTemplate`
   Jinja2 templates with fallback lookup.
 - Ship with helpful filters (`split`, `make_singular`, `make_plural`) for prompt
   engineering tasks.
+- Render in Jinja's sandbox by default so template source cannot traverse the
+  Python object graph or invoke unsafe callables.
 - Call the instance directly (`template({...})`) or use `generate_prompt()` to
   render with the stored variables.
 
@@ -81,6 +83,29 @@ print(prompt({"animal": "fox"}))  # Hello, foxes!
 file is located relative to the provided `templates_dir`. If the loader cannot
 find it immediately, the class searches recursively before falling back to the
 template's own directory.
+
+### Template trust and sandboxing
+
+`J2PromptTemplate` uses `SandboxedEnvironment` by default. Use this mode for
+template strings and files that may come from users, registries, generated
+artifacts, or any source that is not fully controlled by the application.
+
+Applications that intentionally rely on unrestricted Jinja behavior can opt
+in explicitly:
+
+```python
+trusted = J2PromptTemplate(
+    template="{{ trusted_helper() }}",
+    trusted_templates=True,
+)
+```
+
+Trusted mode allows templates to access the same Python capabilities as a
+normal Jinja `Environment`; never enable it for untrusted template source.
+Precompiled templates created by a normal Jinja environment are rejected in
+the default mode because they cannot be retroactively sandboxed. The sandbox
+limits Python object access, but applications should still apply time and
+resource limits when rendering adversarial templates.
 
 ## Want to help?
 
