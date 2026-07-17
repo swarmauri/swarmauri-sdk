@@ -2,11 +2,21 @@ import os
 from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 from jinja2 import Environment, FileSystemLoader, Template
+from jinja2.exceptions import SecurityError
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from pydantic import ConfigDict, FilePath
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import (
     PromptTemplateBase,
 )
+
+
+class _StrictSandboxedEnvironment(ImmutableSandboxedEnvironment):
+    """Sandbox that denies every callable reached from template source."""
+
+    def is_safe_callable(self, obj: Any) -> bool:
+        del obj
+        return False
 
 
 @ComponentBase.register_type(PromptTemplateBase, "J2PromptTemplate")
@@ -34,8 +44,9 @@ class J2PromptTemplate(PromptTemplateBase):
     # Optional templates_dir attribute (can be a single path or a list of
     # paths)
     templates_dir: Optional[Union[str, List[str]]] = None
-    # Whether to enable code generation specific features like linguistic
-    # filters
+    # Unrestricted Jinja execution is available only as an explicit opt-in for
+    # applications whose template source is fully trusted.
+    trusted_templates: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
     type: Literal["J2PromptTemplate"] = "J2PromptTemplate"
@@ -57,7 +68,12 @@ class J2PromptTemplate(PromptTemplateBase):
                 loader = FileSystemLoader(self.templates_dir)
         else:
             loader = None
-        env = Environment(loader=loader, autoescape=False)
+        environment_type = (
+            Environment
+            if self.trusted_templates
+            else _StrictSandboxedEnvironment
+        )
+        env = environment_type(loader=loader, autoescape=False)
 
         # Add basic filters
         env.filters["split"] = self.split_whitespace
@@ -151,7 +167,12 @@ class J2PromptTemplate(PromptTemplateBase):
             else:
                 directory = os.getcwd()
         template_name = os.path.basename(template_path_str)
-        fallback_env = Environment(
+        environment_type = (
+            Environment
+            if self.trusted_templates
+            else _StrictSandboxedEnvironment
+        )
+        fallback_env = environment_type(
             loader=FileSystemLoader([directory]), autoescape=False
         )
         fallback_env.filters["split"] = self.split_whitespace
@@ -186,6 +207,14 @@ class J2PromptTemplate(PromptTemplateBase):
         variables = variables or self.variables
         env = self.get_env()
         if isinstance(self.template, Template):
+            if not self.trusted_templates and not isinstance(
+                self.template.environment, _StrictSandboxedEnvironment
+            ):
+                raise SecurityError(
+                    "Precompiled templates not created by the strict "
+                    "Jinja sandbox "
+                    "require trusted_templates=True"
+                )
             tmpl = self.template
         else:
             tmpl = env.from_string(self.template)
