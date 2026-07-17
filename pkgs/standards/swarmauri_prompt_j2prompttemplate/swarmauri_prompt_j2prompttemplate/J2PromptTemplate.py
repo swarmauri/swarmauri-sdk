@@ -3,12 +3,20 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Union
 
 from jinja2 import Environment, FileSystemLoader, Template
 from jinja2.exceptions import SecurityError
-from jinja2.sandbox import SandboxedEnvironment
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from pydantic import ConfigDict, FilePath
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.prompt_templates.PromptTemplateBase import (
     PromptTemplateBase,
 )
+
+
+class _StrictSandboxedEnvironment(ImmutableSandboxedEnvironment):
+    """Sandbox that denies every callable reached from template source."""
+
+    def is_safe_callable(self, obj: Any) -> bool:
+        del obj
+        return False
 
 
 @ComponentBase.register_type(PromptTemplateBase, "J2PromptTemplate")
@@ -61,7 +69,9 @@ class J2PromptTemplate(PromptTemplateBase):
         else:
             loader = None
         environment_type = (
-            Environment if self.trusted_templates else SandboxedEnvironment
+            Environment
+            if self.trusted_templates
+            else _StrictSandboxedEnvironment
         )
         env = environment_type(loader=loader, autoescape=False)
 
@@ -158,7 +168,9 @@ class J2PromptTemplate(PromptTemplateBase):
                 directory = os.getcwd()
         template_name = os.path.basename(template_path_str)
         environment_type = (
-            Environment if self.trusted_templates else SandboxedEnvironment
+            Environment
+            if self.trusted_templates
+            else _StrictSandboxedEnvironment
         )
         fallback_env = environment_type(
             loader=FileSystemLoader([directory]), autoescape=False
@@ -196,11 +208,11 @@ class J2PromptTemplate(PromptTemplateBase):
         env = self.get_env()
         if isinstance(self.template, Template):
             if not self.trusted_templates and not isinstance(
-                self.template.environment, SandboxedEnvironment
+                self.template.environment, _StrictSandboxedEnvironment
             ):
                 raise SecurityError(
-                    "Precompiled templates from an unrestricted Jinja "
-                    "environment "
+                    "Precompiled templates not created by the strict "
+                    "Jinja sandbox "
                     "require trusted_templates=True"
                 )
             tmpl = self.template
