@@ -67,6 +67,7 @@ class ResourceTypes(Enum):
     EMBEDDING = "Embedding"
     EXCEPTION = "Exception"
     IMAGE_GEN = "ImageGen"
+    VIDEO_LIP_SYNC = "VideoLipSync"
     LLM = "LLM"
     MESSAGE = "Message"
     MEASUREMENT = "Measurement"
