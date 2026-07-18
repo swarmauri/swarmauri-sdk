@@ -73,6 +73,9 @@ class InterfaceRegistry:
             "swarmauri_base.schema_converters.SchemaConverterBase"
         ),
         "swarmauri.skills": "swarmauri_base.skills.SkillBase",
+        "swarmauri.similarities": (
+            "swarmauri_base.similarities.SimilarityBase"
+        ),
         "swarmauri.service_registries": (
             "swarmauri_base.service_registries.ServiceRegistryBase"
         ),

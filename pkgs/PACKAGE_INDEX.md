@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 183 | 183 | first-party split standard packages |
+| `40-standards` | 184 | 184 | first-party split standard packages |
 | `50-community` | 113 | 113 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
@@ -174,6 +174,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_signing_sigv4](standards/swarmauri_signing_sigv4/) | `standards/swarmauri_signing_sigv4` | `signing` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_signing_ssh](standards/swarmauri_signing_ssh/) | `standards/swarmauri_signing_ssh` | `signing` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_signing_xmld](standards/swarmauri_signing_xmld/) | `standards/swarmauri_signing_xmld` | `signing` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_similarity_gzip](standards/swarmauri_similarity_gzip/) | `standards/swarmauri_similarity_gzip` | `similarity` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_skill_dummy_filesystem](standards/swarmauri_skill_dummy_filesystem/) | `standards/swarmauri_skill_dummy_filesystem` | `skill` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_skill_dummy_local](standards/swarmauri_skill_dummy_local/) | `standards/swarmauri_skill_dummy_local` | `skill` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_skill_filesystem](standards/swarmauri_skill_filesystem/) | `standards/swarmauri_skill_filesystem` | `skill` | `atomic-concrete` | `standard` | yes |
@@ -572,6 +573,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_signing_sigv4](standards/swarmauri_signing_sigv4/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_signing_ssh](standards/swarmauri_signing_ssh/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_signing_xmld](standards/swarmauri_signing_xmld/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_similarity_gzip](standards/swarmauri_similarity_gzip/) | `similarity` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_skill_dummy_filesystem](standards/swarmauri_skill_dummy_filesystem/) | `skill` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_skill_dummy_local](standards/swarmauri_skill_dummy_local/) | `skill` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_skill_filesystem](standards/swarmauri_skill_filesystem/) | `skill` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1379,6 +1381,12 @@ fail validation because they make composition order ambiguous.
 | `40.1` | [swarmauri_signing_pdf](standards/swarmauri_signing_pdf/) | `40-standards` | `standards/swarmauri_signing_pdf` | `composite-concrete` | `standard` | yes |
 | `40.2` | [swarmauri_signing_dpop](standards/swarmauri_signing_dpop/) | `40-standards` | `standards/swarmauri_signing_dpop` | `orchestrator` | `standard` | yes |
 | `50.0` | [swarmauri_signing_dsse](community/swarmauri_signing_dsse/) | `50-community` | `community/swarmauri_signing_dsse` | `atomic-concrete` | `community` | yes |
+
+### `similarity`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_similarity_gzip](standards/swarmauri_similarity_gzip/) | `40-standards` | `standards/swarmauri_similarity_gzip` | `atomic-concrete` | `standard` | yes |
 
 ### `skill`
 

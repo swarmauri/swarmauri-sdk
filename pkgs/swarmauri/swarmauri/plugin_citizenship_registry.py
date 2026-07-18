@@ -85,6 +85,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.signings.JwsSignerVerifier": (
             "swarmauri_signing_jws.JwsSignerVerifier"
         ),
+        "swarmauri.similarities.GzipSimilarity": (
+            "swarmauri_similarity_gzip.GzipSimilarity"
+        ),
         "swarmauri.cipher_suites.JwaCipherSuite": (
             "swarmauri_cipher_suite_jwa.JwaCipherSuite"
         ),
