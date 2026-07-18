@@ -361,6 +361,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
         "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
+        "swarmauri.video_lipsync.SyncLabsLipSync": (
+            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
+        ),
         "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (

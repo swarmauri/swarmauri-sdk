@@ -369,6 +369,7 @@ members = [
     "standards/swarmauri_transport_uds_unicast",
     "standards/swarmauri_transport_wsjsonrpcmux",
     "standards/swarmauri_tts_playht",
+    "standards/swarmauri_video_lipsync_synclabs",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
