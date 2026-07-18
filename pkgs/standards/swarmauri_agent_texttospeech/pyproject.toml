@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_texttospeech"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Stateless Swarmauri agent for converting independent text prompts into audio through any TTSBase provider."
 license = "Apache-2.0"
 readme = "README.md"
