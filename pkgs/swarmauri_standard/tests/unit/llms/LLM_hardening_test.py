@@ -44,9 +44,7 @@ def test_provider_hooks_and_capabilities_are_not_serialized():
         def _build_endpoint(self):
             return "https://override.test/chat"
 
-    llm = ProviderLLM(
-        **_llm().model_dump(exclude={"type"}), api_key="secret"
-    )
+    llm = ProviderLLM(**_llm().model_dump(exclude={"type"}), api_key="secret")
 
     assert llm._build_endpoint() == "https://override.test/chat"
     assert llm._build_headers() == {"X-Provider-Key": "secret"}
