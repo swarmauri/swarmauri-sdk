@@ -83,6 +83,7 @@ class ResourceTypes(Enum):
     TRACE = "Trace"
     UTIL = "Util"
     VECTOR_STORE = "VectorStore"
+    RETRIEVER = "Retriever"
     VECTOR = "Vector"
     VLM = "VLM"
     DATA_CONNECTOR = "DataConnector"
