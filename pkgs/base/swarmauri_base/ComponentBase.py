@@ -84,6 +84,7 @@ class ResourceTypes(Enum):
     TRACE = "Trace"
     UTIL = "Util"
     VECTOR_STORE = "VectorStore"
+    RETRIEVER = "Retriever"
     VECTOR = "Vector"
     VLM = "VLM"
     DATA_CONNECTOR = "DataConnector"
@@ -136,3 +137,5 @@ class ResourceTypes(Enum):
     OAuth21Login = "OAuth21Login"
     OIDC10AppClient = "OIDC10AppClient"
     OIDC10Login = "OIDC10Login"
+
+

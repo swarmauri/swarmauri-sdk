@@ -325,6 +325,7 @@ members = [
     "standards/swarmauri_signing_sigv4",
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_signing_xmld",
+    "standards/swarmauri_similarity_gzip",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
     "standards/swarmauri_storage_github_release",

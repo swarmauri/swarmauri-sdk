@@ -43,3 +43,23 @@ def test_get_key_provider_interface():
         InterfaceRegistry.get_interface_for_resource("swarmauri.key_providers")
         is KeyProviderBase
     )
+
+
+@pytest.mark.unit
+def test_get_retriever_interface():
+    from swarmauri_base.retrievers.RetrieverBase import RetrieverBase
+
+    assert (
+        InterfaceRegistry.get_interface_for_resource("swarmauri.retrievers")
+        is RetrieverBase
+    )
+
+
+@pytest.mark.unit
+def test_get_video_lipsync_interface():
+    from swarmauri_base.video_lipsync.LipSyncBase import LipSyncBase
+
+    assert (
+        InterfaceRegistry.get_interface_for_resource("swarmauri.video_lipsync")
+        is LipSyncBase
+    )

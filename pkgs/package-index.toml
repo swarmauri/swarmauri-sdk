@@ -1444,6 +1444,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_similarity_gzip"
+path = "standards/swarmauri_similarity_gzip"
+layer = "40-standards"
+order = 0
+family = "similarity"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_skill_dummy_filesystem"
 path = "standards/swarmauri_skill_dummy_filesystem"
 layer = "40-standards"
