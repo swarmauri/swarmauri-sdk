@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_queryknowledgebase"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "A Swarmauri tool for ranked knowledge-base retrieval with metadata filtering."
 license = "Apache-2.0"
 readme = "README.md"

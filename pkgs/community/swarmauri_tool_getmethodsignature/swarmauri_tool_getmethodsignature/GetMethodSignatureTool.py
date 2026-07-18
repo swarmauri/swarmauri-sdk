@@ -83,7 +83,9 @@ def _extract_signature(
     type_params = getattr(node, "type_params", None)
     type_params_str = ""
     if type_params:
-        type_params_str = "[" + ", ".join(ast.unparse(tp) for tp in type_params) + "]"
+        type_params_str = (
+            "[" + ", ".join(ast.unparse(tp) for tp in type_params) + "]"
+        )
     signature = f"{prefix}{node.name}{type_params_str}({args_str}){ret_str}"
 
     return {

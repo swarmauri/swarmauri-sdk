@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_sentimentanalysis"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Transformer-based sentiment analysis tool for Swarmauri with compact label-only dictionary output."
 license = "Apache-2.0"
 readme = "README.md"
