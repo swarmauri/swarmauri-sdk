@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from swarmauri_base.retrievers.RetrieverBase import RetrieverBase
 from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_redis.RedisDocumentRetriever import (
     RedisDocumentRetriever,
@@ -82,3 +83,8 @@ def test_retrieve_documents(retriever):
         assert results[0].content == "Test document 1"
         assert results[1].id == "doc2"
         assert results[1].content == "Test document 2"
+
+
+@pytest.mark.unit
+def test_retriever_family_compatibility():
+    assert issubclass(RedisDocumentRetriever, RetrieverBase)

@@ -38,3 +38,12 @@ def test_concrete_retriever_roundtrips_json():
 
 def test_retriever_mixin_is_not_a_component_base():
     assert not issubclass(RetrieverMixin, RetrieverBase)
+
+
+@pytest.mark.unit
+def test_document_store_retrieve_base_is_a_retriever():
+    from swarmauri_base.document_stores.DocumentStoreRetrieveBase import (
+        DocumentStoreRetrieveBase,
+    )
+
+    assert issubclass(DocumentStoreRetrieveBase, RetrieverBase)
