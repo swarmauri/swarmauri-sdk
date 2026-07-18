@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_https_unicast"
-version = "0.11.0.dev2"
+version = "0.11.0.dev3"
 description = "Policy-bound HTTPS unicast transport for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"

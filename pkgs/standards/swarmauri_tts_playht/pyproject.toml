@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tts_playht"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Standalone PlayHT text-to-speech provider, stateless agent integration, and CLI for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
