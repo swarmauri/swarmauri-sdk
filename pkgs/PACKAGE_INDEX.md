@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 183 | 183 | first-party split standard packages |
+| `40-standards` | 184 | 184 | first-party split standard packages |
 | `50-community` | 113 | 113 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
@@ -215,6 +215,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_transport_udp](standards/swarmauri_transport_udp/) | `standards/swarmauri_transport_udp` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `standards/swarmauri_transport_uds_unicast` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `standards/swarmauri_transport_wsjsonrpcmux` | `transport` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_video_lipsync_synclabs](standards/swarmauri_video_lipsync_synclabs/) | `standards/swarmauri_video_lipsync_synclabs` | `video` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `standards/swarmauri_xmp_gif` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `standards/swarmauri_xmp_jpeg` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `standards/swarmauri_xmp_mp4` | `xmp` | `atomic-concrete` | `standard` | yes |
@@ -613,6 +614,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_transport_udp](standards/swarmauri_transport_udp/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_video_lipsync_synclabs](standards/swarmauri_video_lipsync_synclabs/) | `video` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1559,6 +1561,12 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_vectorstore_redis](community/swarmauri_vectorstore_redis/) | `50-community` | `community/swarmauri_vectorstore_redis` | `atomic-concrete` | `community` | yes |
 | `50.1` | [swarmauri_vectorstore_mlm](community/swarmauri_vectorstore_mlm/) | `50-community` | `community/swarmauri_vectorstore_mlm` | `composite-concrete` | `community` | yes |
 | `90.1` | [swarmauri_vectorstore_tfidf](deprecated/swarmauri_vectorstore_tfidf/) | `90-deprecated` | `deprecated/swarmauri_vectorstore_tfidf` | `compat-composite` | `deprecated` | no |
+
+### `video`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_video_lipsync_synclabs](standards/swarmauri_video_lipsync_synclabs/) | `40-standards` | `standards/swarmauri_video_lipsync_synclabs` | `atomic-concrete` | `standard` | yes |
 
 ### `workflow`
 

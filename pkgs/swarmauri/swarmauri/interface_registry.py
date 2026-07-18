@@ -51,6 +51,9 @@ class InterfaceRegistry:
         "swarmauri.llms": "swarmauri_base.llms.LLMBase",
         "swarmauri.tool_llms": "swarmauri_base.tool_llms.ToolLLMBase",
         "swarmauri.tts": "swarmauri_base.tts.TTSBase",
+        "swarmauri.video_lipsync": (
+            "swarmauri_base.video_lipsync.LipSyncBase"
+        ),
         "swarmauri.ocrs": "swarmauri_base.ocrs.OCRBase",
         "swarmauri.stt": "swarmauri_base.stt.STTBase",
         "swarmauri.storage_adapters": (
