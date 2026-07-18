@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_ai21"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-specific Swarmauri import package for AI21 Studio Jamba chat completions with sync, async, streaming, batch, and usage workflows."
 license = "Apache-2.0"
 readme = "README.md"

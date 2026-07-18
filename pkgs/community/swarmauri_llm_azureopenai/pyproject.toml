@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_azureopenai"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-native Swarmauri chat and tool-calling adapters for Azure OpenAI."
 license = "Apache-2.0"
 readme = "README.md"

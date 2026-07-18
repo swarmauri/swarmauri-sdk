@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_ocr_pytesseract"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Local Tesseract OCR adapter for Swarmauri with sync, async, and batch image-to-text workflows."
 license = "Apache-2.0"
 readme = "README.md"

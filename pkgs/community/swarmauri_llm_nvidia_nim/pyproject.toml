@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_nvidia_nim"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Swarmauri chat and tool-calling adapters for NVIDIA NIM OpenAI-compatible deployments."
 license = "Apache-2.0"
 readme = "README.md"
