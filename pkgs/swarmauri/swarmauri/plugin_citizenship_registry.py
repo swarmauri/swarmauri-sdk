@@ -364,10 +364,10 @@ class PluginCitizenshipRegistry:
         "swarmauri.video_lipsync.SyncLabsLipSync": (
             "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
         ),
-        "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
-        "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
+        "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
+        "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
-            "swarmauri_standard.vlms.HyperbolicVLM"
+            "swarmauri_llm_hyperbolic.HyperbolicVLM"
         ),
         "swarmauri.measurements.CompletenessMeasurement": (
             "swarmauri_standard.measurements.CompletenessMeasurement"
@@ -1196,3 +1196,5 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
+
+
