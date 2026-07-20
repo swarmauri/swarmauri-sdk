@@ -361,6 +361,10 @@ class PluginCitizenshipRegistry:
         "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
         "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
+        "swarmauri.vlms.OpenAIVLM": "swarmauri_llm_openai.OpenAIVLM",
+        "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
+        "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
+        "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
         "swarmauri.video_lipsync.SyncLabsLipSync": (
             "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
         ),
@@ -1196,5 +1200,7 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
+
+
 
 
