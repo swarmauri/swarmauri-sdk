@@ -15,8 +15,10 @@ class AnthropicVLM(VLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [*AnthropicModel.allowed_models]
-    name: str = AnthropicModel.allowed_models[0]
+    allowed_models: List[str] = [
+        *AnthropicModel.model_fields["allowed_models"].default
+    ]
+    name: str = AnthropicModel.model_fields["name"].default
     type: Literal["AnthropicVLM"] = "AnthropicVLM"
     timeout: float = 600.0
 

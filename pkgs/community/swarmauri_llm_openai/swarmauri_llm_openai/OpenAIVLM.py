@@ -21,8 +21,10 @@ class OpenAIVLM(VLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [*OpenAIModel.allowed_models]
-    name: str = OpenAIModel.allowed_models[0]
+    allowed_models: List[str] = [
+        *OpenAIModel.model_fields["allowed_models"].default
+    ]
+    name: str = OpenAIModel.model_fields["name"].default
     type: Literal["OpenAIVLM"] = "OpenAIVLM"
     timeout: float = 600.0
 

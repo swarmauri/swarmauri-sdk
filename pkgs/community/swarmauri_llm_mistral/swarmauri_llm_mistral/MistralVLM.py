@@ -15,8 +15,10 @@ class MistralVLM(VLMBase):
     """
 
     api_key: SecretStr
-    allowed_models: List[str] = [*MistralModel.allowed_models]
-    name: str = MistralModel.allowed_models[0]
+    allowed_models: List[str] = [
+        *MistralModel.model_fields["allowed_models"].default
+    ]
+    name: str = MistralModel.model_fields["name"].default
     type: Literal["MistralVLM"] = "MistralVLM"
     timeout: float = 600.0
 
