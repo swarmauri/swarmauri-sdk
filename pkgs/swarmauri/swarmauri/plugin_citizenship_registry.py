@@ -361,13 +361,17 @@ class PluginCitizenshipRegistry:
         "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
         "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
+        "swarmauri.vlms.OpenAIVLM": "swarmauri_llm_openai.OpenAIVLM",
+        "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
+        "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
+        "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
         "swarmauri.video_lipsync.SyncLabsLipSync": (
             "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
         ),
-        "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
-        "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
+        "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
+        "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
-            "swarmauri_standard.vlms.HyperbolicVLM"
+            "swarmauri_llm_hyperbolic.HyperbolicVLM"
         ),
         "swarmauri.measurements.CompletenessMeasurement": (
             "swarmauri_standard.measurements.CompletenessMeasurement"
@@ -1196,3 +1200,7 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
+
+
+
+

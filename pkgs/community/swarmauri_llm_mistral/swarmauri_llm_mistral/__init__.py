@@ -1,7 +1,8 @@
 from .MistralModel import MistralModel
 from .MistralToolModel import MistralToolModel
+from .MistralVLM import MistralVLM
 
-__all__ = ["MistralModel", "MistralToolModel"]
+__all__ = ["MistralModel", "MistralToolModel", "MistralVLM"]
 
 try:
     from importlib.metadata import PackageNotFoundError, version
