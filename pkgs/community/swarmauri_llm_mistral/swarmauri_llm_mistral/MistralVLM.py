@@ -18,7 +18,7 @@ class MistralVLM(VLMBase):
     allowed_models: List[str] = [
         *MistralModel.model_fields["allowed_models"].default
     ]
-    name: str = MistralModel.model_fields["name"].default
+    name: str = MistralModel.model_fields["allowed_models"].default[0]
     type: Literal["MistralVLM"] = "MistralVLM"
     timeout: float = 600.0
 

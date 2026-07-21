@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.vlms.HyperbolicVLM import HyperbolicVLM
+from swarmauri_llm_hyperbolic.HyperbolicVLM import HyperbolicVLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from dotenv import load_dotenv

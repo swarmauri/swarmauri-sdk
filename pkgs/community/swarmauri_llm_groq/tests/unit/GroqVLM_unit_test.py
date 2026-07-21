@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri_standard.vlms.GroqVLM import GroqVLM
+from swarmauri_llm_groq.GroqVLM import GroqVLM
 from swarmauri_standard.conversations.Conversation import Conversation
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage

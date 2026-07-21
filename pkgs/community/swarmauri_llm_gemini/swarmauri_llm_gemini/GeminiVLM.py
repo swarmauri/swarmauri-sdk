@@ -18,7 +18,7 @@ class GeminiVLM(VLMBase):
     allowed_models: List[str] = [
         *GeminiProModel.model_fields["allowed_models"].default
     ]
-    name: str = GeminiProModel.model_fields["name"].default
+    name: str = GeminiProModel.model_fields["allowed_models"].default[0]
     type: Literal["GeminiVLM"] = "GeminiVLM"
     timeout: float = 600.0
 

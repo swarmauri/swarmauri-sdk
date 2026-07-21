@@ -24,7 +24,7 @@ class OpenAIVLM(VLMBase):
     allowed_models: List[str] = [
         *OpenAIModel.model_fields["allowed_models"].default
     ]
-    name: str = OpenAIModel.model_fields["name"].default
+    name: str = OpenAIModel.model_fields["allowed_models"].default[0]
     type: Literal["OpenAIVLM"] = "OpenAIVLM"
     timeout: float = 600.0
 

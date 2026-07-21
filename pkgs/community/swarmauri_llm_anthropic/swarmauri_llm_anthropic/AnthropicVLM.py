@@ -18,7 +18,7 @@ class AnthropicVLM(VLMBase):
     allowed_models: List[str] = [
         *AnthropicModel.model_fields["allowed_models"].default
     ]
-    name: str = AnthropicModel.model_fields["name"].default
+    name: str = AnthropicModel.model_fields["allowed_models"].default[0]
     type: Literal["AnthropicVLM"] = "AnthropicVLM"
     timeout: float = 600.0
 

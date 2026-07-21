@@ -1,6 +1,6 @@
 import pytest
 
-from swarmauri_standard.vlms.AnthropicVLM import AnthropicVLM
+from swarmauri_llm_anthropic.AnthropicVLM import AnthropicVLM
 
 
 @pytest.mark.unit

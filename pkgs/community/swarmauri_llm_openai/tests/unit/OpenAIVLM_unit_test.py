@@ -1,6 +1,6 @@
 import pytest
 
-from swarmauri_standard.vlms.OpenAIVLM import OpenAIVLM
+from swarmauri_llm_openai.OpenAIVLM import OpenAIVLM
 
 
 @pytest.mark.unit
