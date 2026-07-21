@@ -19,25 +19,21 @@ from swarmauri_core.skills.ISkill import ISkill
 
 @ComponentBase.register_model()
 class SkillBase(ISkill, ComponentBase):
-    """Portable Agent Skills model with Swarmauri compatibility extensions."""
+    """Portable Agent Skills model for one complete skill bundle."""
 
     name: str
     description: str
     instructions: str
     license: Optional[str] = None
     compatibility: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, str] = Field(default_factory=dict)
     allowed_tools: List[str] = Field(
         default_factory=list,
         validation_alias=AliasChoices("allowed-tools", "allowed_tools"),
     )
     assets: List[str] = Field(default_factory=list)
-    # Legacy Swarmauri extension fields retained during migration.
-    agents: List[str] = Field(default_factory=list)
     references: List[str] = Field(default_factory=list)
     scripts: List[str] = Field(default_factory=list)
-    tools: List[str] = Field(default_factory=list)
-    validation: List[str] = Field(default_factory=list)
     resource: Optional[str] = Field(default=ResourceTypes.SKILL.value)
     type: Literal["SkillBase"] = "SkillBase"
     model_config = ConfigDict(
@@ -47,16 +43,27 @@ class SkillBase(ISkill, ComponentBase):
     )
 
     _RESOURCE_FIELDS: ClassVar[tuple[str, ...]] = (
-        "agents",
         "references",
         "scripts",
-        "tools",
-        "validation",
         "assets",
     )
     _NAME_PATTERN: ClassVar[re.Pattern[str]] = re.compile(
-        r"^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        r"^(?!.*--)[a-z0-9]+(?:-[a-z0-9]+)*$"
     )
+
+    @field_validator("metadata", mode="before")
+    @classmethod
+    def _normalize_metadata(cls, value: Any) -> Dict[str, str]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("Skill metadata must be a mapping")
+        return {
+            str(key): " ".join(str(item) for item in raw)
+            if isinstance(raw, (list, tuple, set))
+            else str(raw)
+            for key, raw in value.items()
+        }
 
     @field_validator("name")
     @classmethod
@@ -92,10 +99,6 @@ class SkillBase(ISkill, ComponentBase):
             data["allowed-tools"] = data.pop("allowed_tools")
         if isinstance(data.get("allowed-tools"), str):
             data["allowed-tools"] = data["allowed-tools"].split()
-        # Legacy `tools` was historically used as a manifest. Treat it as an
-        # allowed-tools alias only when no standard field was provided.
-        if "allowed-tools" not in data and "tools" in data:
-            data["allowed-tools"] = data["tools"]
         return data
 
     @model_validator(mode="after")

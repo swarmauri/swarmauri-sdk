@@ -27,6 +27,7 @@ from swarmauri_base.skills.SkillBase import SkillBase
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.messages.IMessage import IMessage
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
@@ -47,8 +48,8 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     system_context: SystemMessage | str = SystemMessage(content="")
     skills: List[SubclassUnion[SkillBase]] = Field(default_factory=list)
     skill_metadata: List[SkillMetadata] = Field(default_factory=list)
+    skill_loader: ISkillLoader | None = None
     _skill_roots: List[str] = PrivateAttr(default_factory=list)
-    _skill_loader_cls: Any = PrivateAttr(default=None)
     skill_execution_tool: SubclassUnion[ToolBase] = Field(
         default_factory=SkillExecutionTool
     )
@@ -140,7 +141,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         metadata = loader_cls.discover(root_list)
         agent = cls(llm=llm, skill_metadata=metadata, **kwargs)
         agent._skill_roots = [str(root) for root in root_list]
-        agent._skill_loader_cls = loader_cls
+        agent.skill_loader = (
+            loader_cls() if isinstance(loader_cls, type) else loader_cls
+        )
         return agent
 
     @staticmethod
@@ -158,7 +161,7 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     def _activate_metadata(
         self, selected_metadata: Sequence[SkillMetadata]
     ) -> List[SkillBase]:
-        if not self._skill_loader_cls:
+        if not self.skill_loader:
             return [
                 skill
                 for skill in self.skills
@@ -168,12 +171,12 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         for metadata in selected_metadata:
             if metadata.name in loaded:
                 continue
-            if hasattr(self._skill_loader_cls, "from_name"):
-                skill = self._skill_loader_cls.from_name(
+            if hasattr(self.skill_loader, "from_name"):
+                skill = self.skill_loader.from_name(
                     metadata.name, roots=self._skill_roots
                 )
             else:
-                skill = self._skill_loader_cls.load(
+                skill = self.skill_loader.load(
                     metadata.location, skill_name=metadata.name
                 )
             loaded[metadata.name] = skill

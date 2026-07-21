@@ -13,16 +13,30 @@ class SkillMetadata(BaseModel):
     description: str
     license: Optional[str] = None
     compatibility: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, str] = Field(default_factory=dict)
     source: str
     location: str
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("metadata", mode="before")
+    @classmethod
+    def normalize_metadata(cls, value: Any) -> Dict[str, str]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("Skill metadata must be a mapping")
+        return {
+            str(key): " ".join(str(item) for item in raw)
+            if isinstance(raw, (list, tuple, set))
+            else str(raw)
+            for key, raw in value.items()
+        }
 
     @field_validator("name")
     @classmethod
     def validate_name(cls, value: str) -> str:
         if not 1 <= len(value) <= 64 or not re.fullmatch(
-            r"[a-z0-9]+(?:-[a-z0-9]+)*", value
+            r"^(?!.*--)[a-z0-9]+(?:-[a-z0-9]+)*$", value
         ):
             raise ValueError("Invalid Agent Skills name")
         return value

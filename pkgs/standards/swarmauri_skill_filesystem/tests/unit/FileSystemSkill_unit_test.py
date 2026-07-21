@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 from swarmauri_skill_filesystem import FileSystemSkill
 
 
@@ -16,14 +15,12 @@ def test_loads_golden_filesystem_fixture():
         "Use this filesystem fixture to verify skill package hydration."
     )
     assert skill.metadata == {
-        "tags": ["manifest", "filesystem"],
-        "triggers": ["manifest filesystem fixture"],
+        "tags": "manifest filesystem",
+        "triggers": "manifest filesystem fixture",
     }
-    assert skill.agents == ["agents/agent.yaml"]
     assert skill.references == ["references/guide.md"]
     assert skill.scripts == ["scripts/check.py"]
-    assert skill.tools == ["tools/tool.yaml"]
-    assert skill.validation == ["validation/validate.py"]
+    assert skill.assets == []
     assert skill.type == "FileSystemSkill"
     assert skill.root_path == str((FIXTURES / "golden-filesystem").resolve())
 
@@ -78,7 +75,7 @@ description: Manifest
     assert skill.description == "Manifest"
 
 
-def test_accepts_standard_resource_extensions(tmp_path):
+def test_preserves_additional_bundle_files(tmp_path):
     skill_dir = tmp_path / "demo"
     (skill_dir / "tools").mkdir(parents=True)
     (skill_dir / "SKILL.md").write_text(
@@ -89,7 +86,7 @@ description: Demo
 Body""",
         encoding="utf-8",
     )
-    (skill_dir / "tools" / "bad.txt").write_text("bad", encoding="utf-8")
+    (skill_dir / "tools" / "extra.txt").write_text("bad", encoding="utf-8")
 
     skill = FileSystemSkill.from_path(skill_dir)
-    assert skill.tools == ["tools/bad.txt"]
+    assert FileSystemSkill.load_resource(skill, "tools/extra.txt") == b"bad"
