@@ -1,15 +1,10 @@
-"""VLM compatibility shims for deprecated swarmauri_standard.vlms imports.
+"""Lazy compatibility shims for deprecated VLM import paths.
 
-Import path compatibility for models moved to provider-level
+Provider implementations live in their dedicated community packages.  The
+provider module is imported only when the corresponding shim is requested.
 """
 
-from .FalVLM import FalVLM
-from .GroqVLM import GroqVLM
-from .HyperbolicVLM import HyperbolicVLM
-from .OpenAIVLM import OpenAIVLM
-from .GeminiVLM import GeminiVLM
-from .AnthropicVLM import AnthropicVLM
-from .MistralVLM import MistralVLM
+from importlib import import_module
 
 __all__ = [
     "FalVLM",
@@ -21,3 +16,16 @@ __all__ = [
     "MistralVLM",
 ]
 
+
+def __getattr__(name: str):
+    """Load only the requested provider compatibility shim."""
+    if name not in __all__:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module = import_module(f"{__name__}.{name}")
+    value = getattr(module, name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(__all__))
