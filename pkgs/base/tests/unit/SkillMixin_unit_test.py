@@ -53,3 +53,50 @@ def test_local_skill_mixin_resolves_named_skill(tmp_path):
 def test_local_skill_mixin_raises_when_missing(tmp_path):
     with pytest.raises(FileNotFoundError):
         MixinSkill.from_name("missing", roots=[tmp_path])
+
+
+def test_discover_returns_metadata_without_activating_resources(tmp_path):
+    skill_dir = tmp_path / "demo"
+    _write_skill(skill_dir)
+    (skill_dir / "references").mkdir()
+    (skill_dir / "references" / "guide.md").write_text("ref", encoding="utf-8")
+
+    records = MixinSkill.discover(skill_dir)
+
+    assert len(records) == 1
+    assert records[0].name == "demo"
+    assert records[0].description == "Demo skill"
+    assert records[0].location == str(skill_dir.resolve())
+    assert not hasattr(records[0], "instructions")
+
+
+def test_load_resource_is_lazy_and_root_contained(tmp_path):
+    skill_dir = tmp_path / "demo"
+    _write_skill(skill_dir)
+    (skill_dir / "assets").mkdir()
+    (skill_dir / "assets" / "data.bin").write_bytes(b"payload")
+    skill = MixinSkill.from_path(skill_dir)
+
+    assert skill.assets == ["assets/data.bin"]
+    assert skill.read_resource("assets/data.bin") == b"payload"
+    with pytest.raises(ValueError, match="escapes"):
+        skill.read_resource("../outside")
+
+
+def test_skillbase_accepts_standard_metadata_and_bom():
+    skill = SkillBase.from_markdown(
+        "\ufeff---\n"
+        "name: data-analysis\n"
+        "description: Analyze data and report findings.\n"
+        "license: Apache-2.0\n"
+        "compatibility: Requires Python 3.12\n"
+        "allowed-tools: Read Bash\n"
+        "assets: [assets/template.csv]\n"
+        "---\n"
+        "Instructions"
+    )
+
+    assert skill.license == "Apache-2.0"
+    assert skill.compatibility == "Requires Python 3.12"
+    assert skill.allowed_tools == ["Read", "Bash"]
+    assert skill.assets == ["assets/template.csv"]

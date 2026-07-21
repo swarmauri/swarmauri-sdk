@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from pathlib import Path
 from typing import (
     Any,
     Dict,
@@ -14,7 +13,7 @@ from typing import (
     Union,
 )
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, PrivateAttr
 
 from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.agents.AgentBase import AgentBase
@@ -25,8 +24,10 @@ from swarmauri_base.agents.AgentSystemContextMixin import (
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillBase import SkillBase
+from swarmauri_base.skills.SkillMetadata import SkillMetadata
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.messages.IMessage import IMessage
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
@@ -46,6 +47,9 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     )
     system_context: SystemMessage | str = SystemMessage(content="")
     skills: List[SubclassUnion[SkillBase]] = Field(default_factory=list)
+    skill_metadata: List[SkillMetadata] = Field(default_factory=list)
+    skill_loader: ISkillLoader | None = None
+    _skill_roots: List[str] = PrivateAttr(default_factory=list)
     skill_execution_tool: SubclassUnion[ToolBase] = Field(
         default_factory=SkillExecutionTool
     )
@@ -57,6 +61,10 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
 
     def model_post_init(self, __context: Any) -> None:
         self.skills = [self._hydrate_skill(item) for item in self.skills]
+        if not self.skill_metadata:
+            self.skill_metadata = [
+                self._metadata_for_skill(skill) for skill in self.skills
+            ]
 
     @staticmethod
     def _hydrate_skill(value: Any) -> Any:
@@ -120,38 +128,93 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
             )
         return results
 
+    @classmethod
+    def from_skill_roots(
+        cls,
+        llm: LLMBase,
+        roots: Iterable[str],
+        loader_cls: Any,
+        **kwargs: Any,
+    ) -> "SkillAgent":
+        """Discover metadata now and activate only selected skills later."""
+        root_list = list(roots)
+        metadata = loader_cls.discover(root_list)
+        agent = cls(llm=llm, skill_metadata=metadata, **kwargs)
+        agent._skill_roots = [str(root) for root in root_list]
+        agent.skill_loader = (
+            loader_cls() if isinstance(loader_cls, type) else loader_cls
+        )
+        return agent
+
+    @staticmethod
+    def _metadata_for_skill(skill: SkillBase) -> SkillMetadata:
+        return SkillMetadata(
+            name=skill.name,
+            description=skill.description,
+            license=skill.license,
+            compatibility=skill.compatibility,
+            metadata=skill.metadata,
+            source="loaded",
+            location=str(getattr(skill, "root_path", "")),
+        )
+
+    def _activate_metadata(
+        self, selected_metadata: Sequence[SkillMetadata]
+    ) -> List[SkillBase]:
+        if not self.skill_loader:
+            return [
+                skill
+                for skill in self.skills
+                if skill.name in {item.name for item in selected_metadata}
+            ]
+        loaded = {skill.name: skill for skill in self.skills}
+        for metadata in selected_metadata:
+            if metadata.name in loaded:
+                continue
+            if hasattr(self.skill_loader, "from_name"):
+                skill = self.skill_loader.from_name(
+                    metadata.name, roots=self._skill_roots
+                )
+            else:
+                skill = self.skill_loader.load(
+                    metadata.location, skill_name=metadata.name
+                )
+            loaded[metadata.name] = skill
+            self.skills.append(skill)
+        return [loaded[item.name] for item in selected_metadata]
+
     def select_skills(
         self,
         input_data: Union[str, IMessage],
         skill_names: Optional[Sequence[str]] = None,
     ) -> List[SkillBase]:
+        catalog = self.skill_metadata
         if skill_names:
-            selected = [
-                skill
-                for skill in self.skills
-                if skill.name in set(skill_names)
+            requested = set(skill_names)
+            selected_metadata = [
+                item for item in catalog if item.name in requested
             ]
             missing = sorted(
-                set(skill_names) - {skill.name for skill in selected}
+                requested - {item.name for item in selected_metadata}
             )
             if missing:
                 raise ValueError(
                     f"Unknown skill name(s): {', '.join(missing)}"
                 )
-            return selected
+            return self._activate_metadata(selected_metadata)
 
-        if len(self.skills) == 1:
-            return list(self.skills)
+        if len(catalog) == 1:
+            return self._activate_metadata(catalog)
 
         input_text = self._input_text(input_data).lower()
-        selected = [
-            skill
-            for skill in self.skills
-            if self._skill_matches_input(skill, input_text)
+        selected_metadata = [
+            item
+            for item in catalog
+            if self._skill_matches_input(item, input_text)
         ]
-        if not selected and self.require_skill:
+        if not selected_metadata and self.require_skill:
             raise ValueError("No matching skill found for input")
-        return selected
+        return self._activate_metadata(selected_metadata)
 
     def _exec_one(
         self,
@@ -251,6 +314,21 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         toolkit.add_tool(self.skill_execution_tool)
         return toolkit
 
+    def load_skill_resource(
+        self, skill_name: str, relative_path: str
+    ) -> bytes:
+        """Load one selected skill resource without eager context injection."""
+        for skill in self.skills:
+            if skill.name == skill_name:
+                reader = getattr(skill, "read_resource", None)
+                if reader is None:
+                    raise ValueError(
+                        f"Skill '{skill_name}' does not support "
+                        "filesystem resources"
+                    )
+                return reader(relative_path)
+        raise ValueError(f"Unknown skill name: {skill_name}")
+
     def _llm_kwargs(
         self,
         selected_skills: Iterable[SkillBase],
@@ -300,38 +378,15 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     def _build_resource_context(cls, skill: SkillBase) -> str:
         lines = ["## Skill Resources"]
         has_resources = False
-        for field_name in SkillBase._RESOURCE_FIELDS:
-            values = list(getattr(skill, field_name))
+        for field_name in ("references", "scripts", "assets"):
+            values = list(getattr(skill, field_name, []))
             if not values:
                 continue
             has_resources = True
             lines.append(f"- {field_name}: {', '.join(values)}")
-            if field_name in {"agents", "references"}:
-                for value in values:
-                    content = cls._read_resource_content(skill, value)
-                    if content:
-                        lines.append(f"\n### {field_name}/{value}\n{content}")
         if not has_resources:
             lines.append("- none")
         return "\n".join(lines)
-
-    @staticmethod
-    def _read_resource_content(skill: SkillBase, resource_path: str) -> str:
-        root_path = getattr(skill, "root_path", None)
-        if not root_path:
-            return ""
-        root = Path(root_path).expanduser().resolve()
-        path = (root / resource_path).resolve()
-        try:
-            path.relative_to(root)
-        except ValueError:
-            return ""
-        if (
-            path.suffix.lower() not in {".md", ".yaml", ".yml"}
-            or not path.is_file()
-        ):
-            return ""
-        return path.read_text(encoding="utf-8").strip()
 
     @classmethod
     def _skill_matches_input(cls, skill: SkillBase, input_text: str) -> bool:
