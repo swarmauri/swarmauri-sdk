@@ -141,9 +141,14 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         metadata = loader_cls.discover(root_list)
         agent = cls(llm=llm, skill_metadata=metadata, **kwargs)
         agent._skill_roots = [str(root) for root in root_list]
-        agent.skill_loader = (
-            loader_cls() if isinstance(loader_cls, type) else loader_cls
-        )
+        if isinstance(loader_cls, type) and issubclass(loader_cls, SkillBase):
+            # Shipped filesystem/local skill classes expose classmethod loader
+            # APIs but cannot be instantiated without skill fields.
+            agent.skill_loader = loader_cls
+        elif isinstance(loader_cls, type):
+            agent.skill_loader = loader_cls()
+        else:
+            agent.skill_loader = loader_cls
         return agent
 
     @staticmethod

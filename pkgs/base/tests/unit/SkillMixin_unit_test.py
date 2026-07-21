@@ -100,3 +100,21 @@ def test_skillbase_accepts_standard_metadata_and_bom():
     assert skill.compatibility == "Requires Python 3.12"
     assert skill.allowed_tools == ["Read", "Bash"]
     assert skill.assets == ["assets/template.csv"]
+
+
+def test_discover_merges_skill_yaml_manifest(tmp_path):
+    skill_dir = tmp_path / "demo"
+    _write_skill(skill_dir)
+    (skill_dir / "skill.yaml").write_text(
+        """name: demo
+description: Manifest description
+metadata:
+  triggers: manifest-trigger
+""",
+        encoding="utf-8",
+    )
+
+    record = MixinSkill.discover(skill_dir)[0]
+
+    assert record.description == "Manifest description"
+    assert record.metadata == {"triggers": "manifest-trigger"}

@@ -18,33 +18,46 @@ class FileSystemSkillMixin(BaseModel, SkillLoaderBase):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     @classmethod
-    def discover(cls, source: str | Path) -> List[SkillMetadata]:
+    def discover(cls, source: str | Path | Any) -> List[SkillMetadata]:
+        if not isinstance(source, (str, Path)):
+            records: List[SkillMetadata] = []
+            for item in source:
+                records.extend(cls.discover(item))
+            return records
+
         root = cls.resolve_root(source)
         skill_md = root / "SKILL.md"
         if not skill_md.is_file():
+            records: List[SkillMetadata] = []
+            if root.is_dir():
+                for child in sorted(root.iterdir()):
+                    if child.is_dir() and (child / "SKILL.md").is_file():
+                        records.extend(cls.discover(child))
+            if records:
+                return records
             raise FileNotFoundError(
                 f"Skill package requires SKILL.md: {skill_md}"
             )
-        frontmatter, _ = SkillBase.split_frontmatter(
-            skill_md.read_text(encoding="utf-8-sig")
+        markdown = skill_md.read_text(encoding="utf-8-sig")
+        manifest = cls._read_manifest(root / "skill.yaml")
+        if not manifest:
+            manifest = cls._read_manifest(root / "skill.yml")
+        data = cls._data_from_markdown(markdown, manifest, {})
+        record = SkillMetadata(
+            name=data.get("name", ""),
+            description=data.get("description", ""),
+            license=data.get("license"),
+            compatibility=data.get("compatibility"),
+            metadata=data.get("metadata") or {},
+            source="filesystem",
+            location=str(root),
         )
-        records = [
-            SkillMetadata(
-                name=frontmatter.get("name", ""),
-                description=frontmatter.get("description", ""),
-                license=frontmatter.get("license"),
-                compatibility=frontmatter.get("compatibility"),
-                metadata=frontmatter.get("metadata") or {},
-                source="filesystem",
-                location=str(root),
-            )
-        ]
-        if records[0].name != root.name:
+        if record.name != root.name:
             raise ValueError(
-                f"Skill name '{records[0].name}' must match "
-                f"directory '{root.name}'"
+                f"Skill name '{record.name}' must match directory "
+                f"'{root.name}'"
             )
-        return records
+        return [record]
 
     @classmethod
     def load(
@@ -109,7 +122,7 @@ class FileSystemSkillMixin(BaseModel, SkillLoaderBase):
         overrides: Dict[str, Any],
     ) -> Dict[str, Any]:
         frontmatter, instructions = SkillBase.split_frontmatter(markdown)
-        data = cls.merge_skill_data(frontmatter, manifest, overrides)
+        data = SkillBase.merge_skill_data(frontmatter, manifest, overrides)
         data.setdefault("instructions", instructions.strip())
         return data
 
