@@ -1,5 +1,4 @@
 import pytest
-
 from typing import List
 
 from swarmauri_base.retrievers.RetrieverMixin import RetrieverMixin

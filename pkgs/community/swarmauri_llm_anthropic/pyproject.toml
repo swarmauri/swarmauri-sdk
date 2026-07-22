@@ -80,6 +80,8 @@ AnthropicModel = "swarmauri_llm_anthropic.AnthropicModel:AnthropicModel"
 
 [project.entry-points.'swarmauri.tool_llms']
 AnthropicToolModel = "swarmauri_llm_anthropic.AnthropicToolModel:AnthropicToolModel"
+[project.entry-points.'swarmauri.vlms']
+AnthropicVLM = "swarmauri_llm_anthropic.AnthropicVLM:AnthropicVLM"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -97,3 +99,5 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+

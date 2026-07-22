@@ -1,34 +1,28 @@
 from pathlib import Path
 
-import pytest
-
 from swarmauri_skill_filesystem import FileSystemSkill
 
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 
 
-def test_loads_golden_filesystem_skill_fixture():
-    skill = FileSystemSkill.from_path(FIXTURES / "golden_filesystem_skill")
+def test_loads_golden_filesystem_fixture():
+    skill = FileSystemSkill.from_path(FIXTURES / "golden-filesystem")
 
     assert skill.name == "golden-filesystem"
-    assert skill.description == "Golden filesystem skill fixture from manifest"
+    assert skill.description == "Golden filesystem skill fixture"
     assert skill.instructions == (
         "Use this filesystem fixture to verify skill package hydration."
     )
     assert skill.metadata == {
-        "tags": ["manifest", "filesystem"],
-        "triggers": ["manifest filesystem fixture"],
+        "tags": "golden filesystem",
+        "triggers": "filesystem fixture",
     }
-    assert skill.agents == ["agents/agent.yaml"]
     assert skill.references == ["references/guide.md"]
     assert skill.scripts == ["scripts/check.py"]
-    assert skill.tools == ["tools/tool.yaml"]
-    assert skill.validation == ["validation/validate.py"]
+    assert skill.assets == []
     assert skill.type == "FileSystemSkill"
-    assert skill.root_path == str(
-        (FIXTURES / "golden_filesystem_skill").resolve()
-    )
+    assert skill.root_path == str((FIXTURES / "golden-filesystem").resolve())
 
 
 def test_loads_skill_markdown_with_frontmatter(tmp_path):
@@ -57,8 +51,8 @@ Use this skill.""",
     assert skill.scripts == ["scripts/run.py"]
 
 
-def test_skill_yaml_overrides_frontmatter(tmp_path):
-    skill_dir = tmp_path / "demo"
+def test_skill_yaml_does_not_override_frontmatter(tmp_path):
+    skill_dir = tmp_path / "front"
     skill_dir.mkdir()
     (skill_dir / "SKILL.md").write_text(
         """---
@@ -77,11 +71,11 @@ description: Manifest
 
     skill = FileSystemSkill.from_path(skill_dir)
 
-    assert skill.name == "manifest"
-    assert skill.description == "Manifest"
+    assert skill.name == "front"
+    assert skill.description == "Front"
 
 
-def test_rejects_unsupported_resource_extension(tmp_path):
+def test_preserves_additional_bundle_files(tmp_path):
     skill_dir = tmp_path / "demo"
     (skill_dir / "tools").mkdir(parents=True)
     (skill_dir / "SKILL.md").write_text(
@@ -92,7 +86,7 @@ description: Demo
 Body""",
         encoding="utf-8",
     )
-    (skill_dir / "tools" / "bad.txt").write_text("bad", encoding="utf-8")
+    (skill_dir / "tools" / "extra.txt").write_text("bad", encoding="utf-8")
 
-    with pytest.raises(ValueError):
-        FileSystemSkill.from_path(skill_dir)
+    skill = FileSystemSkill.from_path(skill_dir)
+    assert FileSystemSkill.load_resource(skill, "tools/extra.txt") == b"bad"

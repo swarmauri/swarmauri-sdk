@@ -3,7 +3,7 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-from swarmauri_standard.vlms.FalVLM import FalVLM
+from swarmauri_llm_falai.FalVLM import FalVLM
 
 load_dotenv()
 API_KEY = os.getenv("FAL_API_KEY")

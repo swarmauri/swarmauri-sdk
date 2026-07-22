@@ -1,6 +1,7 @@
 from .FalAIVisionModel import FalAIVisionModel
+from .FalVLM import FalVLM
 
-__all__ = ["FalAIVisionModel"]
+__all__ = ["FalAIVisionModel", "FalVLM"]
 
 try:
     from importlib.metadata import PackageNotFoundError, version
