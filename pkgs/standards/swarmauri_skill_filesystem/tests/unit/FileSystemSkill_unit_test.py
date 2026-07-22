@@ -10,13 +10,13 @@ def test_loads_golden_filesystem_fixture():
     skill = FileSystemSkill.from_path(FIXTURES / "golden-filesystem")
 
     assert skill.name == "golden-filesystem"
-    assert skill.description == "Golden filesystem skill fixture from manifest"
+    assert skill.description == "Golden filesystem skill fixture"
     assert skill.instructions == (
         "Use this filesystem fixture to verify skill package hydration."
     )
     assert skill.metadata == {
-        "tags": "manifest filesystem",
-        "triggers": "manifest filesystem fixture",
+        "tags": "golden filesystem",
+        "triggers": "filesystem fixture",
     }
     assert skill.references == ["references/guide.md"]
     assert skill.scripts == ["scripts/check.py"]
@@ -51,8 +51,8 @@ Use this skill.""",
     assert skill.scripts == ["scripts/run.py"]
 
 
-def test_skill_yaml_overrides_frontmatter(tmp_path):
-    skill_dir = tmp_path / "manifest"
+def test_skill_yaml_does_not_override_frontmatter(tmp_path):
+    skill_dir = tmp_path / "front"
     skill_dir.mkdir()
     (skill_dir / "SKILL.md").write_text(
         """---
@@ -71,8 +71,8 @@ description: Manifest
 
     skill = FileSystemSkill.from_path(skill_dir)
 
-    assert skill.name == "manifest"
-    assert skill.description == "Manifest"
+    assert skill.name == "front"
+    assert skill.description == "Front"
 
 
 def test_preserves_additional_bundle_files(tmp_path):
