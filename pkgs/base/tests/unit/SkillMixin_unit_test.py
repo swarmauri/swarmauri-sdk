@@ -116,5 +116,23 @@ metadata:
 
     record = MixinSkill.discover(skill_dir)[0]
 
-    assert record.description == "Manifest description"
+    assert record.description == "Demo skill"
     assert record.metadata == {"triggers": "manifest-trigger"}
+
+
+def test_filesystem_loader_uses_manifest_only_for_missing_fields(tmp_path):
+    skill_dir = tmp_path / "demo"
+    _write_skill(skill_dir)
+    (skill_dir / "skill.yaml").write_text(
+        """license: Apache-2.0
+compatibility: Requires git
+""",
+        encoding="utf-8",
+    )
+
+    skill = MixinSkill.from_path(skill_dir)
+
+    assert skill.name == "demo"
+    assert skill.description == "Demo skill"
+    assert skill.license == "Apache-2.0"
+    assert skill.compatibility == "Requires git"

@@ -122,7 +122,17 @@ class FileSystemSkillMixin(BaseModel, SkillLoaderBase):
         overrides: Dict[str, Any],
     ) -> Dict[str, Any]:
         frontmatter, instructions = SkillBase.split_frontmatter(markdown)
-        data = SkillBase.merge_skill_data(frontmatter, manifest, overrides)
+        data = dict(frontmatter)
+        data.update(
+            {key: value for key, value in manifest.items() if key not in data}
+        )
+        data.update(
+            {
+                key: value
+                for key, value in overrides.items()
+                if value is not None
+            }
+        )
         data.setdefault("instructions", instructions.strip())
         return data
 
