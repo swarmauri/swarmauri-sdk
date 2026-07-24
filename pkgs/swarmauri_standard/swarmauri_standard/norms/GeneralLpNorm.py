@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, Optional, Sequence, TypeVar, Union
+from typing import Callable, Literal, Optional, Sequence, TypeVar
 
 import numpy as np
 from pydantic import Field, validator
@@ -74,9 +74,7 @@ class GeneralLpNorm(NormBase):
 
     def _convert_to_array(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> np.ndarray:
         """
         Convert the input to a numpy array for computation.
@@ -117,9 +115,7 @@ class GeneralLpNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the Lp norm of the input.
@@ -157,9 +153,7 @@ class GeneralLpNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the non-negativity property.
@@ -188,9 +182,7 @@ class GeneralLpNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the definiteness property.
@@ -229,12 +221,8 @@ class GeneralLpNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the triangle inequality.
@@ -295,9 +283,7 @@ class GeneralLpNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """

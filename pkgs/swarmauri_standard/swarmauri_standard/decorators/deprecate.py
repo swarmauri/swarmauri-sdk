@@ -7,7 +7,7 @@ def _construct_deprecation_message(
     item_name: str,
     since: str,
     removed_in: str,
-    alternative: str = None,
+    alternative: str | None = None,
 ) -> str:
     """
     Helper function to construct a deprecation message.
@@ -33,7 +33,7 @@ def _construct_deprecation_message(
 
 
 def deprecated_import_path(
-    item_name: str, since: str, removed_in: str, alternative: str = None
+    item_name: str, since: str, removed_in: str, alternative: str | None = None
 ):
     """
     A decorator to trigger a DeprecationWarning at import time for a deprecated
@@ -92,7 +92,9 @@ def deprecated_import_path(
     return decorator
 
 
-def deprecated_class(since: str, removed_in: str, alternative: str = None):
+def deprecated_class(
+    since: str, removed_in: str, alternative: str | None = None
+):
     """
     Class decorator that marks the class as deprecated. A DeprecationWarning
     is raised whenever an instance of the class is created.
@@ -120,7 +122,9 @@ def deprecated_class(since: str, removed_in: str, alternative: str = None):
     return decorator
 
 
-def deprecated_method(since: str, removed_in: str, alternative: str = None):
+def deprecated_method(
+    since: str, removed_in: str, alternative: str | None = None
+):
     """
     Method (or function) decorator that raises a DeprecationWarning whenever
     the decorated method is called.

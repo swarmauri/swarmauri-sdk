@@ -1,4 +1,4 @@
-from typing import List, Union, Any, Literal
+from typing import List, Any, Literal
 import re
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -15,7 +15,7 @@ class DelimiterBasedChunker(ChunkerBase):
     delimiters: List[str] = [".", "!", "?"]
     type: Literal["DelimiterBasedChunker"] = "DelimiterBasedChunker"
 
-    def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[str]:
+    def chunk_text(self, text: str | Any, *args, **kwargs) -> List[str]:
         """
         Chunks the given text based on the delimiters specified during
         initialization.

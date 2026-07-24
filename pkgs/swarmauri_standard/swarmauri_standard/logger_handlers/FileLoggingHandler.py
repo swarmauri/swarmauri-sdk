@@ -1,4 +1,4 @@
-from typing import Optional, Union, Literal
+from typing import Optional, Literal
 import logging
 import os
 from logging.handlers import RotatingFileHandler
@@ -31,7 +31,7 @@ class FileLoggingHandler(HandlerBase):
 
     type: Literal["FileLoggingHandler"] = "FileLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     file_path: str = "logs/app.log"
     file_mode: str = "a"
     encoding: str = "utf-8"

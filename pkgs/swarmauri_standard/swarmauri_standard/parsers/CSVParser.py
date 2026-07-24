@@ -1,6 +1,6 @@
 import csv
 from io import StringIO
-from typing import List, Union, Any, Literal
+from typing import List, Any, Literal
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
@@ -22,7 +22,7 @@ class CSVParser(ParserBase):
 
     type: Literal["CSVParser"] = "CSVParser"
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: str | Any) -> List[IDocument]:
         """
         Parses the given CSV data into a list of Document instances.
 

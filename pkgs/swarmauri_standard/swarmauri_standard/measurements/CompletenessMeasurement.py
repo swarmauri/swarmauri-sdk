@@ -1,4 +1,4 @@
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal
 import pandas as pd
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -23,7 +23,7 @@ class CompletenessMeasurement(MeasurementBase):
     unit: str = "%"  # Percentage as the unit of measurement
 
     def calculate_completeness(
-        self, data: Union[pd.DataFrame, List, Dict]
+        self, data: pd.DataFrame | List | Dict
     ) -> float:
         """
         Calculates the completeness score for different data types.
@@ -57,9 +57,7 @@ class CompletenessMeasurement(MeasurementBase):
 
         return (non_missing_values / total_values) * 100
 
-    def __call__(
-        self, data: Union[pd.DataFrame, List, Dict], **kwargs
-    ) -> float:
+    def __call__(self, data: pd.DataFrame | List | Dict, **kwargs) -> float:
         """
         Calculates and returns the completeness score for the provided data.
 

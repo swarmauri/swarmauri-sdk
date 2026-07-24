@@ -9,7 +9,6 @@ from typing import (
     List,
     Literal,
     Optional,
-    Union,
 )
 
 import httpx
@@ -177,7 +176,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversation: Conversation,
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Conversation:
@@ -249,7 +248,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversation: Conversation,
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Conversation:
@@ -320,7 +319,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversation: Conversation,
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -403,7 +402,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversation: Conversation,
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -482,7 +481,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversations: List[Conversation],
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> List[Conversation]:
@@ -518,7 +517,7 @@ class OpenAIToolModel(LLMBase):
         self,
         conversations: List[Conversation],
         toolkit: Optional[Any] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         max_concurrent: int = 5,

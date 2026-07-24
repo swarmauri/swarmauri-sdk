@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Literal, Sequence, Union
+from typing import Dict, List, Literal, Sequence
 
 import numpy as np
 from pydantic import Field
@@ -169,9 +169,9 @@ class SobolevMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate Sobolev distances between collections of functions or
         vectors.

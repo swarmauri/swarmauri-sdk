@@ -87,6 +87,38 @@ dev = [
 "pytest-benchmark>=4.0.0",
 ]
 
+
+[tool.ruff]
+extend = "../pyproject.toml"
+
+[tool.ruff.lint]
+# Legacy compatibility baseline. These rules conflict with public CamelCase
+# import paths, Pydantic model fields, provider boundary behavior, or tests
+# that intentionally exercise exceptional and dynamic execution paths.
+ignore = [
+    "ASYNC230",
+    "B017",
+    "B018",
+    "BLE001",
+    "DTZ001",
+    "DTZ003",
+    "DTZ005",
+    "DTZ006",
+    "E501",
+    "LOG015",
+    "N999",
+    "PERF402",
+    "RUF012",
+    "RUF034",
+    "S102",
+    "SIM102",
+    "SIM115",
+    "SIM117",
+    "TRY002",
+    "TRY004",
+    "TRY203",
+    "UP007",
+]
 [tool.pytest.ini_options]
 timeout = 5
 asyncio_mode = "auto"

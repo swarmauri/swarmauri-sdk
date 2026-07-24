@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, TypeVar, Union
+from typing import Literal, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -30,9 +30,7 @@ class FrobeniusRealInnerProduct(InnerProductBase):
 
     type: Literal["FrobeniusRealInnerProduct"] = "FrobeniusRealInnerProduct"
 
-    def compute(
-        self, a: Union[NDArray, Matrix], b: Union[NDArray, Matrix]
-    ) -> float:
+    def compute(self, a: NDArray | Matrix, b: NDArray | Matrix) -> float:
         """
         Compute the Frobenius inner product between two real matrices.
 
@@ -86,7 +84,7 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         return float(result)
 
     def check_conjugate_symmetry(
-        self, a: Union[NDArray, Matrix], b: Union[NDArray, Matrix]
+        self, a: NDArray | Matrix, b: NDArray | Matrix
     ) -> bool:
         """
         Check if the Frobenius inner product satisfies conjugate symmetry
@@ -130,9 +128,9 @@ class FrobeniusRealInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a1: Union[NDArray, Matrix],
-        a2: Union[NDArray, Matrix],
-        b: Union[NDArray, Matrix],
+        a1: NDArray | Matrix,
+        a2: NDArray | Matrix,
+        b: NDArray | Matrix,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -183,7 +181,7 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         )
         return bool(is_linear)
 
-    def check_positivity(self, a: Union[NDArray, Matrix]) -> bool:
+    def check_positivity(self, a: NDArray | Matrix) -> bool:
         """
         Check if the Frobenius inner product satisfies the positivity property.
 

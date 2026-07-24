@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -43,7 +43,7 @@ class RotatingFileLoggingHandler(HandlerBase):
 
     type: Literal["RotatingFileLoggingHandler"] = "RotatingFileLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     filename: str = "app.log"
     maxBytes: int = 10485760  # 10 MB default
     backupCount: int = 5

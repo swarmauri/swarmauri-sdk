@@ -8,13 +8,18 @@ import inspect
 
 
 def retry_on_status_codes(
-    status_codes: List[int] = [429], max_retries: int = 3, retry_delay: int = 2
+    status_codes: List[int] | None = None,
+    max_retries: int = 3,
+    retry_delay: int = 2,
 ):
     """
     A decorator to retry both sync and async functions when specific status
     codes are encountered,
     with exponential backoff.
     """
+
+    if status_codes is None:
+        status_codes = [429]
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)

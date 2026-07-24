@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, Optional, TypeVar, Union
+from typing import Callable, Literal, Optional, TypeVar
 
 import numpy as np
 from pydantic import ConfigDict
@@ -75,8 +75,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the weighted trace inner product between two matrices.
@@ -158,8 +158,8 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:
@@ -227,9 +227,9 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -295,7 +295,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             logger.error(f"Error checking linearity: {str(e)}")
             return False
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.

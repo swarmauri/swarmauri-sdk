@@ -123,6 +123,4 @@ class AutomatedReadabilityIndexTool(ToolBase):
         Returns:
             bool: True if the input is valid, False otherwise.
         """
-        if isinstance(input_text, str):
-            return True
-        return False
+        return bool(isinstance(input_text, str))

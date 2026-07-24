@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, Dict, Literal
+from typing import Any, Optional, Dict, Literal
 
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
@@ -37,11 +37,11 @@ class RagAgent(
     """
 
     llm: SubclassUnion[LLMBase]
-    conversation: Union[
-        MaxSystemContextConversation, SessionCacheConversation
-    ] = MaxSystemContextConversation(system_context="")
+    conversation: MaxSystemContextConversation | SessionCacheConversation = (
+        MaxSystemContextConversation(system_context="")
+    )
     vector_store: SubclassUnion[VectorStoreBase]
-    system_context: Union[SystemMessage, str] = SystemMessage(content="")
+    system_context: SystemMessage | str = SystemMessage(content="")
     type: Literal["RagAgent"] = "RagAgent"
 
     def _create_preamble_context(self):
@@ -58,7 +58,7 @@ class RagAgent(
 
     def _prepare_context(
         self,
-        input_data: Union[str, IMessage],
+        input_data: str | IMessage,
         top_k: int,
         preamble: bool,
         fixed: bool,
@@ -98,12 +98,14 @@ class RagAgent(
 
     def exec(
         self,
-        input_data: Optional[Union[str, IMessage]] = "",
+        input_data: Optional[str | IMessage] = "",
         top_k: int = 5,
         preamble: bool = True,
         fixed: bool = False,
-        llm_kwargs: Optional[Dict] = {},
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         try:
@@ -115,16 +117,18 @@ class RagAgent(
             return self.conversation.get_last().content
         except Exception as e:
             print(f"RagAgent error: {e}")
-            raise e
+            raise
 
     async def aexec(
         self,
-        input_data: Optional[Union[str, IMessage]] = "",
+        input_data: Optional[str | IMessage] = "",
         top_k: int = 5,
         preamble: bool = True,
         fixed: bool = False,
-        llm_kwargs: Optional[Dict] = {},
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         try:
@@ -138,4 +142,4 @@ class RagAgent(
             return self.conversation.get_last().content
         except Exception as e:
             print(f"RagAgent error: {e}")
-            raise e
+            raise

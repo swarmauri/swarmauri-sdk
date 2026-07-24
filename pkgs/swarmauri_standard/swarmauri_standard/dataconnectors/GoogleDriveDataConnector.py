@@ -17,7 +17,7 @@ class GoogleDriveDataConnector(DataConnectorBase):
     Google Drive resources.
     """
 
-    def __init__(self, credentials_path: str = None):
+    def __init__(self, credentials_path: str | None = None):
         """
         Initialize the Google Drive Data Connector.
 
@@ -136,7 +136,9 @@ class GoogleDriveDataConnector(DataConnectorBase):
             logging.error(f"Authentication failed: {e}")
             raise ValueError(f"Authentication failed: {e}")
 
-    def fetch_data(self, query: str = None, **kwargs) -> List[DocumentBase]:
+    def fetch_data(
+        self, query: str | None = None, **kwargs
+    ) -> List[DocumentBase]:
         """
         Fetch documents from Google Drive based on a query.
 

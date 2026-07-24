@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Any, Literal, Optional, TextIO, Union
+from typing import Any, Literal, Optional, TextIO
 
 from swarmauri_base import FullUnion
 from swarmauri_base.ObserveBase import ObserveBase
@@ -31,13 +31,13 @@ class StreamLoggingHandler(HandlerBase):
 
     type: Literal["StreamLoggingHandler"] = "StreamLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     stream: Optional[TextIO] = None
 
     def __init__(
         self,
         level: int = logging.INFO,
-        formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None,
+        formatter: Optional[str | FullUnion[FormatterBase]] = None,
         stream: Optional[TextIO] = None,
         **kwargs: Any,
     ):

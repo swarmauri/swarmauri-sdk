@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -128,7 +128,7 @@ class CohereEmbedding(EmbeddingBase):
         except httpx.HTTPError as e:
             raise RuntimeError(f"API request failed: {str(e)}")
 
-    def infer_vector(self, data: Union[List[str], List[str]]) -> List[Vector]:
+    def infer_vector(self, data: List[str] | List[str]) -> List[Vector]:
         """
         Generate embeddings for the given list of texts or images.
 

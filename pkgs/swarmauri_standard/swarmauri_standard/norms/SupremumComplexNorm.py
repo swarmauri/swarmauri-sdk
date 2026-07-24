@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Union
+from typing import Literal
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -36,9 +36,7 @@ class SupremumComplexNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> complex:
         """
         Compute the supremum norm of the input.
@@ -127,9 +125,7 @@ class SupremumComplexNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the norm satisfies the non-negativity property.
@@ -160,9 +156,7 @@ class SupremumComplexNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the input is the zero vector.
@@ -210,12 +204,8 @@ class SupremumComplexNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the norm satisfies the triangle inequality.
@@ -295,9 +285,7 @@ class SupremumComplexNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: complex,
     ) -> bool:
         """

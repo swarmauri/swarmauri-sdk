@@ -1,5 +1,5 @@
 import re
-from typing import List, Union, Any, Literal, Pattern
+from typing import List, Any, Literal, Pattern
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_base.ComponentBase import ComponentBase
@@ -14,7 +14,7 @@ class RegExParser(ParserBase):
     pattern: Pattern = re.compile(r"\d+")
     type: Literal["RegExParser"] = "RegExParser"
 
-    def parse(self, data: Union[str, Any]) -> List[Document]:
+    def parse(self, data: str | Any) -> List[Document]:
         """
         Parses the input data using the specified regular expression pattern
         and

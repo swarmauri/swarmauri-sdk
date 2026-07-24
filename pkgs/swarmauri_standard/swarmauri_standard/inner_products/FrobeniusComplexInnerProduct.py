@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -39,8 +39,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the Frobenius inner product between two matrices.
@@ -99,8 +99,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the Frobenius inner product satisfies the conjugate symmetry
@@ -144,9 +144,9 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -214,7 +214,7 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             logger.error(f"Error checking linearity: {str(e)}")
             raise
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the Frobenius inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
@@ -264,7 +264,7 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             logger.error(f"Error checking positivity: {str(e)}")
             raise
 
-    def norm(self, a: Union[Vector, Matrix, Callable]) -> float:
+    def norm(self, a: Vector | Matrix | Callable) -> float:
         """
         Compute the Frobenius norm of a matrix.
 

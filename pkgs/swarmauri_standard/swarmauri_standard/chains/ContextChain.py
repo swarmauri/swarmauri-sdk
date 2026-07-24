@@ -23,11 +23,13 @@ class ContextChain(IChain, ChainContextBase):
         key: str,
         method: SubclassUnion[ToolBase],
         args: Tuple = (),
-        kwargs: Dict[str, Any] = {},
+        kwargs: Dict[str, Any] | None = None,
         ref: Optional[str] = None,
     ):
         # Directly store args, kwargs, and optionally a return_key without
         # resolving them
+        if kwargs is None:
+            kwargs = {}
         step = ChainStep(
             key=key, method=method, args=args, kwargs=kwargs, ref=ref
         )

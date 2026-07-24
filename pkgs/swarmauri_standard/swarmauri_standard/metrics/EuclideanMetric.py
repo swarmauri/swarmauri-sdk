@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import List, Literal, Sequence, Union
+from typing import List, Literal, Sequence
 
 
 from swarmauri_base.ComponentBase import ComponentBase
@@ -128,9 +128,9 @@ class EuclideanMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate Euclidean distances between collections of points.
 

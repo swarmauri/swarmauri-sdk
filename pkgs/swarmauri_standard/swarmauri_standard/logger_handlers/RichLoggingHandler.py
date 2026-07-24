@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, Literal, Optional
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -40,7 +40,7 @@ class RichLoggingHandler(HandlerBase):
 
     type: Literal["RichLoggingHandler"] = "RichLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     show_time: bool = True
     show_path: bool = False
     show_level: bool = True

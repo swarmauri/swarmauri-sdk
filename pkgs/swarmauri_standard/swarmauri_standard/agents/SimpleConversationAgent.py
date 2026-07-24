@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict, Literal, List, Union
+from typing import Any, Optional, Dict, Literal, List
 
 from swarmauri_standard.messages.HumanMessage import contentItem
 from swarmauri_standard.messages.HumanMessage import HumanMessage
@@ -17,9 +17,11 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     def exec(
         self,
-        input_data: Optional[Union[str, List[contentItem]]] = "",
-        llm_kwargs: Optional[Dict] = {},
+        input_data: Optional[str | List[contentItem]] = "",
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if input_data:
             human_message = HumanMessage(content=input_data)
             self.conversation.add_message(human_message)
@@ -29,9 +31,11 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     async def aexec(
         self,
-        input_data: Optional[Union[str, List[contentItem]]] = "",
-        llm_kwargs: Optional[Dict] = {},
+        input_data: Optional[str | List[contentItem]] = "",
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if input_data:
             human_message = HumanMessage(content=input_data)
             self.conversation.add_message(human_message)

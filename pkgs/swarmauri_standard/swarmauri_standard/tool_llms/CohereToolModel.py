@@ -10,7 +10,6 @@ from typing import (
     List,
     Literal,
     Type,
-    Union,
 )
 
 import httpx
@@ -126,9 +125,7 @@ class CohereToolModel(ToolLLMBase):
             return []
         return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _extract_text_content(
-        self, content: Union[str, List[contentItem]]
-    ) -> str:
+    def _extract_text_content(self, content: str | List[contentItem]) -> str:
         """
         Extract text content from either a string or a list of content items.
 
@@ -291,8 +288,8 @@ class CohereToolModel(ToolLLMBase):
         self,
         message: str,
         chat_history: List[Dict[str, str]],
-        tools: List[Dict[str, Any]] = None,
-        tool_results: List[Dict[str, Any]] = None,
+        tools: List[Dict[str, Any]] | None = None,
+        tool_results: List[Dict[str, Any]] | None = None,
         temperature: float = 0.3,
         force_single_step: bool = True,
     ) -> Dict[str, Any]:

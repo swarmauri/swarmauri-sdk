@@ -82,7 +82,6 @@ jobs:
     needs: package-info
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,15 +115,15 @@ jobs:
           MEMBER="${{ github.event.inputs.member }}"
           PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Running Ruff format on $MEMBER"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format --check .
 
-      - name: Ruff lint check & fix
+      - name: Ruff lint check
         run: |
           cd pkgs
           MEMBER="${{ github.event.inputs.member }}"
           PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
-          echo "::notice::Running Ruff lint check & fix on $MEMBER"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+          echo "::notice::Running Ruff lint check on $MEMBER"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check .
 
       - name: Run tests
         run: |
@@ -165,7 +164,7 @@ jobs:
     name: Commit Changes
     needs: test
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() }}
+    if: ${{ !cancelled() && needs.test.result == 'success' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

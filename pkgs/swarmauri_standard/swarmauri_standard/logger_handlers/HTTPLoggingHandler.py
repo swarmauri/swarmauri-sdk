@@ -2,7 +2,7 @@ import http.client
 from logging.handlers import HTTPHandler
 import logging
 import urllib.parse
-from typing import Dict, Literal, Optional, Union
+from typing import Dict, Literal, Optional
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -31,7 +31,7 @@ class HTTPLoggingHandler(HandlerBase):
 
     # Handler configuration
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
 
     def compile_handler(self) -> logging.Handler:
         """

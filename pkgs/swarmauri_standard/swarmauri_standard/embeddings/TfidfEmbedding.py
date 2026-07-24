@@ -54,7 +54,7 @@ class TfidfEmbedding(EmbeddingBase):
                 df[token] += 1
 
         # Build a sorted vocabulary for consistent vector ordering.
-        self._features = sorted(list(df.keys()))
+        self._features = sorted(df.keys())
 
         # Compute idf for each term using the formula: log(N / df)
         self._idf = {

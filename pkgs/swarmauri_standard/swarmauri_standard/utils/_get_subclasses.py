@@ -37,7 +37,7 @@ def get_classes_from_module(module_name: str):
         )
     except AttributeError as e:
         print(f"Error accessing class in {full_module_path}: {e}")
-        raise e
+        raise
 
 
 def get_class_from_module(module_name: str, class_name: str):
@@ -75,4 +75,4 @@ def get_class_from_module(module_name: str, class_name: str):
         raise ModuleNotFoundError(f"Resource '{module_name}' is not found.")
     except AttributeError as e:
         print(f"Error accessing class in {full_module_path}: {e}")
-        raise e
+        raise

@@ -10,7 +10,7 @@ import httpx
 
 
 RetryCodes = Union[Collection[int], Callable[[Any], Collection[int]]]
-RetryValue = Union[int, float, Callable[[Any], Union[int, float]]]
+RetryValue = Union[int, float, Callable[[Any], int | float]]
 
 
 def _resolve(value: Any, instance: Any, fallback: Any) -> Any:
