@@ -1,0 +1,54 @@
+[project]
+name = "swarmauri_tests_component"
+version = "0.1.0.dev1"
+description = "Pytest-generated conformance proofs for Swarmauri components."
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "pytest",
+    "component",
+    "conformance",
+    "serialization",
+    "plugin testing",
+    "experimental",
+]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/swarmauri_tests_component"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "pytest>=8.0",
+    "swarmauri_base",
+]
+
+[project.entry-points.pytest11]
+swarmauri_tests_component = "swarmauri_tests_component"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9.9",
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+markers = ["component: generated Swarmauri component conformance proofs"]

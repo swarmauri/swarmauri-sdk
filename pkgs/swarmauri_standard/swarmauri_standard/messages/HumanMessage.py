@@ -36,7 +36,7 @@ class HumanMessage(MessageBase):
             for item in content:
                 image_data = item.get("image_url", {})
                 url = image_data.get("url")
-                if url and not is_url(url):
+                if url and not (is_url(url) or url.startswith("data:")):
                     image_data["url"] = (
                         f"data:image/jpeg;base64,{encode_file(url)}"
                     )
