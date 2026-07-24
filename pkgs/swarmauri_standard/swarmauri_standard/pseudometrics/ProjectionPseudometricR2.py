@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Sequence, TypeVar, Union, Tuple
+from typing import Callable, List, Literal, Sequence, TypeVar, Tuple
 
 import logging
 
@@ -75,7 +75,7 @@ class ProjectionPseudometricR2(PseudometricBase):
         )
 
     def _validate_and_extract_coordinates(
-        self, point: Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        self, point: VectorType | MatrixType | Sequence[T] | str | Callable
     ) -> Tuple[float, float]:
         """
         Validate input as a 2D point and extract its coordinates.
@@ -171,8 +171,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def distance(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> float:
         """
         Calculate the projection pseudometric distance between two 2D points.
@@ -218,12 +218,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def distances(
         self,
-        xs: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
-        ys: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
+        xs: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
+        ys: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
     ) -> List[List[float]]:
         """
         Calculate the pairwise projection distances between two collections of
@@ -286,8 +282,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def check_non_negativity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the projection pseudometric satisfies the non-negativity
@@ -318,8 +314,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def check_symmetry(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -354,9 +350,9 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
+        z: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -394,8 +390,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
     def check_weak_identity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the projection pseudometric satisfies the weak identity

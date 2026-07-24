@@ -1,5 +1,5 @@
 import ast
-from typing import List, Union, Any, Literal
+from typing import List, Any, Literal
 from swarmauri_standard.documents.Document import Document
 from swarmauri_base.parsers.ParserBase import ParserBase
 from swarmauri_core.documents.IDocument import IDocument
@@ -19,7 +19,7 @@ class PythonParser(ParserBase):
 
     type: Literal["PythonParser"] = "PythonParser"
 
-    def parse(self, data: Union[str, Any]) -> List[IDocument]:
+    def parse(self, data: str | Any) -> List[IDocument]:
         """
         Parses the given Python source code to extract structural elements.
 
@@ -38,9 +38,7 @@ class PythonParser(ParserBase):
         tree = ast.parse(data)
 
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) or isinstance(
-                node, ast.ClassDef
-            ):
+            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                 element_name = node.name
                 docstring = ast.get_docstring(node)
 

@@ -96,7 +96,7 @@ class ContextualFormatterImpl(logging.Formatter):
         self,
         fmt: Optional[str] = None,
         datefmt: Optional[str] = None,
-        context_keys: List[str] = None,
+        context_keys: List[str] | None = None,
         context_as_prefix: bool = False,
         context_separator: str = " ",
         context_prefix: str = "[",

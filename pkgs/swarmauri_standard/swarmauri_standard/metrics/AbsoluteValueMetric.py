@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Sequence, Union
+from typing import List, Literal, Sequence
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -70,9 +70,9 @@ class AbsoluteValueMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate distances between collections of scalar values.
 

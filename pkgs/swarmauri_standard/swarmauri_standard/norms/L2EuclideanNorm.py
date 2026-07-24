@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable, Literal, Sequence, TypeVar, Union
+from typing import Callable, Literal, Sequence, TypeVar
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
@@ -39,9 +39,7 @@ class L2EuclideanNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the Euclidean (L2) norm of the input.
@@ -106,9 +104,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the non-negativity property.
@@ -137,9 +133,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the definiteness property.
@@ -204,12 +198,8 @@ class L2EuclideanNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the triangle inequality.
@@ -298,9 +288,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """

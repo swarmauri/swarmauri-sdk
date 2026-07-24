@@ -176,6 +176,6 @@ class FleschKincaidTool(ToolBase):
         Returns:
             bool: True if the input is valid, False otherwise.
         """
-        if "input_text" in data and isinstance(data["input_text"], str):
-            return True
-        return False
+        return bool(
+            "input_text" in data and isinstance(data["input_text"], str)
+        )

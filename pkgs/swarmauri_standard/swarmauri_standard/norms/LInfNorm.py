@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, Optional, Sequence, TypeVar, Union
+from typing import Callable, Literal, Optional, Sequence, TypeVar
 
 import numpy as np
 from pydantic import Field, field_validator
@@ -70,9 +70,7 @@ class LInfNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the L-infinity norm of the input.
@@ -188,9 +186,7 @@ class LInfNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the non-negativity property.
@@ -218,9 +214,7 @@ class LInfNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the definiteness property.
@@ -274,12 +268,8 @@ class LInfNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the L-infinity norm satisfies the triangle inequality.
@@ -371,9 +361,7 @@ class LInfNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """

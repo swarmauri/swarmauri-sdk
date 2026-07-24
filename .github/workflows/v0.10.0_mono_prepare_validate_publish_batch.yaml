@@ -124,7 +124,6 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -163,16 +162,16 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format --check .
 
-      - name: Ruff lint check & fix
+      - name: Ruff lint check
         run: |
           cd pkgs
           MEMBER="${{ matrix.member }}"
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check .
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -209,7 +208,7 @@ jobs:
     name: Commit Changes
     needs: [set-matrix, test]
     runs-on: ubuntu-latest
-    if: ${{ !cancelled() && always() && needs.set-matrix.outputs.has_members == 'true' }}
+    if: ${{ !cancelled() && needs.test.result == 'success' && needs.set-matrix.outputs.has_members == 'true' }}
     timeout-minutes: 15
     outputs:
       checkout_ref: ${{ steps.commit_and_push.outputs.checkout_ref }}

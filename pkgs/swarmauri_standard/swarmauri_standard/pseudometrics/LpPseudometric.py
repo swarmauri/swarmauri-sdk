@@ -117,11 +117,8 @@ class LpPseudometric(PseudometricBase):
                 )
 
         # Validate coordinates if provided
-        if coordinates is not None:
-            if any(c < 0 for c in coordinates):
-                raise ValueError(
-                    "Coordinates must contain non-negative indices"
-                )
+        if coordinates is not None and any(c < 0 for c in coordinates):
+            raise ValueError("Coordinates must contain non-negative indices")
 
         self.p = p
         self.domain = domain

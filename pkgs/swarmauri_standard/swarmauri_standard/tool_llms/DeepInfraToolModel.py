@@ -9,7 +9,6 @@ from typing import (
     Literal,
     Optional,
     Type,
-    Union,
 )
 
 import httpx
@@ -167,7 +166,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -261,7 +260,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -355,7 +354,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -454,7 +453,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -550,7 +549,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversations: List[IConversation],
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> List[IConversation]:
@@ -585,7 +584,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversations: List[IConversation],
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         max_concurrent: int = 5,

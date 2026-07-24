@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, List, Literal, Sequence, TypeVar, Union
+from typing import Callable, List, Literal, Sequence, TypeVar
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
@@ -41,8 +41,8 @@ class ZeroPseudometric(PseudometricBase):
 
     def distance(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> float:
         """
         Calculate the pseudometric distance between two objects, always
@@ -70,12 +70,8 @@ class ZeroPseudometric(PseudometricBase):
 
     def distances(
         self,
-        xs: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
-        ys: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
+        xs: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
+        ys: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
     ) -> List[List[float]]:
         """
         Calculate the pairwise distances between two collections of objects.
@@ -108,8 +104,8 @@ class ZeroPseudometric(PseudometricBase):
 
     def check_non_negativity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the distance function satisfies the non-negativity property.
@@ -139,8 +135,8 @@ class ZeroPseudometric(PseudometricBase):
 
     def check_symmetry(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -174,9 +170,9 @@ class ZeroPseudometric(PseudometricBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
+        z: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -214,8 +210,8 @@ class ZeroPseudometric(PseudometricBase):
 
     def check_weak_identity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the distance function satisfies the weak identity property.

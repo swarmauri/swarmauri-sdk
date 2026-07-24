@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Union
+from typing import List, Literal
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -102,9 +102,9 @@ class LevenshteinMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate Levenshtein distances between collections of strings.
 

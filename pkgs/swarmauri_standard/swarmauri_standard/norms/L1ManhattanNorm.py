@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Sequence, Union
+from typing import Literal, Sequence
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -30,9 +30,7 @@ class L1ManhattanNorm(NormBase):
 
     type: Literal["L1ManhattanNorm"] = "L1ManhattanNorm"
 
-    def compute(
-        self, x: Union[IVector, IMatrix, Sequence, str, float]
-    ) -> float:
+    def compute(self, x: IVector | IMatrix | Sequence | str | float) -> float:
         """
         Compute the L1 (Manhattan) norm of the input.
 
@@ -99,7 +97,7 @@ class L1ManhattanNorm(NormBase):
             )
 
     def check_non_negativity(
-        self, x: Union[IVector, IMatrix, Sequence, str, float]
+        self, x: IVector | IMatrix | Sequence | str | float
     ) -> bool:
         """
         Check if the L1 norm satisfies the non-negativity property.
@@ -128,7 +126,7 @@ class L1ManhattanNorm(NormBase):
             return False
 
     def check_definiteness(
-        self, x: Union[IVector, IMatrix, Sequence, str, float]
+        self, x: IVector | IMatrix | Sequence | str | float
     ) -> bool:
         """
         Check if the L1 norm satisfies the definiteness property.
@@ -163,8 +161,8 @@ class L1ManhattanNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[IVector, IMatrix, Sequence, str, float],
-        y: Union[IVector, IMatrix, Sequence, str, float],
+        x: IVector | IMatrix | Sequence | str | float,
+        y: IVector | IMatrix | Sequence | str | float,
     ) -> bool:
         """
         Check if the L1 norm satisfies the triangle inequality.
@@ -223,7 +221,7 @@ class L1ManhattanNorm(NormBase):
             raise
 
     def check_absolute_homogeneity(
-        self, x: Union[IVector, IMatrix, Sequence, str, float], scalar: float
+        self, x: IVector | IMatrix | Sequence | str | float, scalar: float
     ) -> bool:
         """
         Check if the L1 norm satisfies the absolute homogeneity property.
@@ -272,9 +270,7 @@ class L1ManhattanNorm(NormBase):
             logger.error(f"Error checking absolute homogeneity: {e}")
             raise
 
-    def _is_zero(
-        self, x: Union[IVector, IMatrix, Sequence, str, float]
-    ) -> bool:
+    def _is_zero(self, x: IVector | IMatrix | Sequence | str | float) -> bool:
         """
         Check if all elements in the input are zero.
 

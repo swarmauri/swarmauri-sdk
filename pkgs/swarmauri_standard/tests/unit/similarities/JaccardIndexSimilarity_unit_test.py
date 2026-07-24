@@ -50,16 +50,16 @@ def test_serialization(jaccard_similarity):
     "set_a, set_b, expected",
     [
         (
-            set([1, 2, 3]),
-            set([2, 3, 4]),
+            {1, 2, 3},
+            {2, 3, 4},
             0.5,
         ),  # 2 common elements, 4 total unique
-        (set([1, 2, 3, 4]), set([1, 2, 3, 4]), 1.0),  # Identical sets
-        (set([1, 2, 3]), set([4, 5, 6]), 0.0),  # No common elements
-        (set([]), set([]), 1.0),  # Both empty sets
-        (set([1, 2]), set([]), 0.0),  # One empty set
-        (set(["a", "b", "c"]), set(["b", "c", "d"]), 0.5),  # String elements
-        (set([1, 2, 3]), set([1, 2, 3, 4, 5]), 0.6),  # Subset relation
+        ({1, 2, 3, 4}, {1, 2, 3, 4}, 1.0),  # Identical sets
+        ({1, 2, 3}, {4, 5, 6}, 0.0),  # No common elements
+        (set(), set(), 1.0),  # Both empty sets
+        ({1, 2}, set(), 0.0),  # One empty set
+        ({"a", "b", "c"}, {"b", "c", "d"}, 0.5),  # String elements
+        ({1, 2, 3}, {1, 2, 3, 4, 5}, 0.6),  # Subset relation
     ],
 )
 def test_similarity(
@@ -87,10 +87,10 @@ def test_similarity(
 def test_similarity_type_error(jaccard_similarity):
     """Test that TypeError is raised when inputs are not sets."""
     with pytest.raises(TypeError):
-        jaccard_similarity.similarity("not a set", set([1, 2, 3]))
+        jaccard_similarity.similarity("not a set", {1, 2, 3})
 
     with pytest.raises(TypeError):
-        jaccard_similarity.similarity(set([1, 2, 3]), "not a set")
+        jaccard_similarity.similarity({1, 2, 3}, "not a set")
 
     with pytest.raises(TypeError):
         jaccard_similarity.similarity([1, 2, 3], [4, 5, 6])
@@ -99,12 +99,12 @@ def test_similarity_type_error(jaccard_similarity):
 @pytest.mark.unit
 def test_similarities(jaccard_similarity):
     """Test the similarities method with multiple comparison sets."""
-    reference_set = set([1, 2, 3])
+    reference_set = {1, 2, 3}
     comparison_sets = [
-        set([1, 2, 3, 4]),  # Expected: 0.75
-        set([3, 4, 5]),  # Expected: 0.2
-        set([1, 2, 3]),  # Expected: 1.0
-        set([4, 5, 6]),  # Expected: 0.0
+        {1, 2, 3, 4},  # Expected: 0.75
+        {3, 4, 5},  # Expected: 0.2
+        {1, 2, 3},  # Expected: 1.0
+        {4, 5, 6},  # Expected: 0.0
     ]
 
     expected_results = [0.75, 0.2, 1.0, 0.0]
@@ -121,21 +121,19 @@ def test_similarities_type_error(jaccard_similarity):
     Test that TypeError is raised when inputs to similarities are not sets.
     """
     with pytest.raises(TypeError):
-        jaccard_similarity.similarities("not a set", [set([1, 2, 3])])
+        jaccard_similarity.similarities("not a set", [{1, 2, 3}])
 
     with pytest.raises(TypeError):
-        jaccard_similarity.similarities(
-            set([1, 2, 3]), [set([1, 2]), "not a set"]
-        )
+        jaccard_similarity.similarities({1, 2, 3}, [{1, 2}, "not a set"])
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "set_a, set_b, expected",
     [
-        (set([1, 2, 3]), set([2, 3, 4]), 0.5),
-        (set([1, 2, 3, 4]), set([1, 2, 3, 4]), 0.0),
-        (set([1, 2, 3]), set([4, 5, 6]), 1.0),
+        ({1, 2, 3}, {2, 3, 4}, 0.5),
+        ({1, 2, 3, 4}, {1, 2, 3, 4}, 0.0),
+        ({1, 2, 3}, {4, 5, 6}, 1.0),
     ],
 )
 def test_dissimilarity(
@@ -168,8 +166,8 @@ def test_check_bounded(jaccard_similarity):
 @pytest.mark.unit
 def test_check_symmetry(jaccard_similarity):
     """Test that the similarity measure correctly reports it is symmetric."""
-    set_a = set([1, 2, 3])
-    set_b = set([3, 4, 5])
+    set_a = {1, 2, 3}
+    set_b = {3, 4, 5}
     assert jaccard_similarity.check_symmetry(set_a, set_b) is True
 
 
@@ -178,17 +176,17 @@ def test_check_symmetry_type_error(jaccard_similarity):
     """Test that TypeError is raised when inputs to check_symmetry are not
     sets."""
     with pytest.raises(TypeError):
-        jaccard_similarity.check_symmetry("not a set", set([1, 2, 3]))
+        jaccard_similarity.check_symmetry("not a set", {1, 2, 3})
 
     with pytest.raises(TypeError):
-        jaccard_similarity.check_symmetry(set([1, 2, 3]), "not a set")
+        jaccard_similarity.check_symmetry({1, 2, 3}, "not a set")
 
 
 @pytest.mark.unit
 def test_symmetry_property(jaccard_similarity):
     """Test that the similarity measure is actually symmetric."""
-    set_a = set([1, 2, 3])
-    set_b = set([3, 4, 5])
+    set_a = {1, 2, 3}
+    set_b = {3, 4, 5}
 
     similarity_ab = jaccard_similarity.similarity(set_a, set_b)
     similarity_ba = jaccard_similarity.similarity(set_b, set_a)

@@ -10,7 +10,6 @@ from typing import (
     Literal,
     Optional,
     Type,
-    Union,
 )
 
 import httpx
@@ -122,9 +121,7 @@ class CohereToolModel(LLMBase):
             return []
         return [CohereSchemaConverter().convert(tools[tool]) for tool in tools]
 
-    def _extract_text_content(
-        self, content: Union[str, List[contentItem]]
-    ) -> str:
+    def _extract_text_content(self, content: str | List[contentItem]) -> str:
         """
         Extract text content from either a string or a list of content items.
 

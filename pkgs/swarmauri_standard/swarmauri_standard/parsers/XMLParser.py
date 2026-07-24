@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from typing import List, Union, Any, Literal
+from typing import List, Any, Literal
 from pydantic import Field
 
 from swarmauri_standard.documents.Document import Document
@@ -19,7 +19,7 @@ class XMLParser(ParserBase):
     element_tag: str = Field(default="root")
     type: Literal["XMLParser"] = "XMLParser"
 
-    def parse(self, data: Union[str, Any]) -> List[Document]:
+    def parse(self, data: str | Any) -> List[Document]:
         """
         Parses XML data and converts elements with the specified tag into
         IDocument instances.

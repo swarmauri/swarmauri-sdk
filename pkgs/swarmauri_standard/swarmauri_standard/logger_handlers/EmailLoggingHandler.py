@@ -1,7 +1,7 @@
 import logging
 import logging.handlers
 from email.utils import formataddr
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -22,11 +22,11 @@ class EmailLoggingHandler(HandlerBase):
     type: Literal["EmailLoggingHandler"] = "EmailLoggingHandler"
 
     # SMTP configuration
-    mailhost: Union[str, tuple[str, int]] = (
+    mailhost: str | tuple[str, int] = (
         "localhost"  # Can be a host string or (host, port) tuple
     )
     credentials: Optional[tuple[str, str]] = None  # (username, password) tuple
-    secure: Optional[Union[bool, tuple[str, str, str]]] = None  # Use TLS/SSL
+    secure: Optional[bool | tuple[str, str, str]] = None  # Use TLS/SSL
     timeout: Optional[float] = None  # Connection timeout in seconds
 
     # Email content configuration
@@ -40,7 +40,7 @@ class EmailLoggingHandler(HandlerBase):
 
     # Email formatting
     html: bool = False
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
 
     def compile_handler(self) -> logging.Handler:
         """

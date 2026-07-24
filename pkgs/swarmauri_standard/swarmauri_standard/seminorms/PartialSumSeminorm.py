@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Optional, Sequence, Union
+from typing import Literal, Optional, Sequence
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -84,9 +84,7 @@ class PartialSumSeminorm(SeminormBase):
             f"end_idx={end_idx}, indices={indices}"
         )
 
-    def _extract_partial_data(
-        self, x: Union[Sequence, np.ndarray]
-    ) -> np.ndarray:
+    def _extract_partial_data(self, x: Sequence | np.ndarray) -> np.ndarray:
         """
         Extract the partial data from the input based on configured indices.
 

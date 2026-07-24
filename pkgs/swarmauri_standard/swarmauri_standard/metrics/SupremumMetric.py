@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 from pydantic import Field
@@ -108,8 +108,8 @@ class SupremumMetric(MetricBase):
 
     def _calculate_supremum(
         self,
-        x: Union[List, Tuple, np.ndarray],
-        y: Union[List, Tuple, np.ndarray],
+        x: List | Tuple | np.ndarray,
+        y: List | Tuple | np.ndarray,
     ) -> float:
         """
         Helper method to calculate the supremum distance between two sequences.
@@ -136,9 +136,9 @@ class SupremumMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate distances between collections of points.
 

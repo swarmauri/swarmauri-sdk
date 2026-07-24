@@ -1,4 +1,4 @@
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional
 from pydantic import Field, BaseModel, ConfigDict
 
 from swarmauri_standard.messages.HumanMessage import contentItem
@@ -18,7 +18,7 @@ class UsageData(BaseModel):
 
 @ComponentBase.register_type(MessageBase, "AgentMessage")
 class AgentMessage(MessageBase):
-    content: Optional[Union[str, List[contentItem]]] = None
+    content: Optional[str | List[contentItem]] = None
     role: str = Field(default="assistant")
     tool_calls: Optional[List[Any]] = None
     name: Optional[str] = None

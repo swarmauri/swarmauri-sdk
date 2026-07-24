@@ -43,12 +43,8 @@ class LevenshteinDistance(DistanceBase):
            float: The computed Levenshtein distance between vector_a and
            vector_b.
         """
-        string_a = "".join(
-            [chr(int(round(value))) for value in vector_a.value]
-        )
-        string_b = "".join(
-            [chr(int(round(value))) for value in vector_b.value]
-        )
+        string_a = "".join([chr(round(value)) for value in vector_a.value])
+        string_b = "".join([chr(round(value)) for value in vector_b.value])
 
         return self.levenshtein(string_a, string_b)
 
@@ -90,12 +86,8 @@ class LevenshteinDistance(DistanceBase):
         return matrix[size_x - 1, size_y - 1]
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
-        string_a = "".join(
-            [chr(int(round(value))) for value in vector_a.value]
-        )
-        string_b = "".join(
-            [chr(int(round(value))) for value in vector_b.value]
-        )
+        string_a = "".join([chr(round(value)) for value in vector_a.value])
+        string_b = "".join([chr(round(value)) for value in vector_b.value])
         return 1 - self.levenshtein(string_a, string_b) / max(
             len(vector_a), len(vector_b)
         )

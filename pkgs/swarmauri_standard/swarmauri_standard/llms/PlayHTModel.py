@@ -174,7 +174,7 @@ class PlayHTModel(LLMBase):
                 self.name, self.__prebuilt_voices.get("PlayHT2.0")
             ):
                 if voice_name in item.values():
-                    return list(item.keys())[0]
+                    return next(iter(item.keys()))
 
         raise ValueError(
             f"Voice name {voice_name} not found in allowed voices."

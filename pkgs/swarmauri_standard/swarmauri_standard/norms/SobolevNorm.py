@@ -5,7 +5,6 @@ from typing import (
     Literal,
     Sequence,
     TypeVar,
-    Union,
 )
 
 import numpy as np
@@ -80,9 +79,7 @@ class SobolevNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the Sobolev norm of the input.
@@ -148,7 +145,7 @@ class SobolevNorm(NormBase):
         """
         # Check if the function has the necessary attributes for computing
         # derivatives
-        if not hasattr(func, "derivative") and not hasattr(func, "__call__"):
+        if not hasattr(func, "derivative") and not callable(func):
             raise ValueError(
                 "Function must support derivative computation for Sobolev norm"
             )
@@ -223,7 +220,7 @@ class SobolevNorm(NormBase):
             raise ValueError(f"Failed to evaluate function norm: {str(e)}")
 
     def _compute_l2_norm(
-        self, x: Union[VectorType, MatrixType, SequenceType]
+        self, x: VectorType | MatrixType | SequenceType
     ) -> float:
         """
         Compute the L2 norm of a non-callable input.
@@ -260,9 +257,7 @@ class SobolevNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the non-negativity property.
@@ -287,9 +282,7 @@ class SobolevNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the definiteness property.
@@ -326,12 +319,8 @@ class SobolevNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Sobolev norm satisfies the triangle inequality.
@@ -428,9 +417,7 @@ class SobolevNorm(NormBase):
     # Fix for check_absolute_homogeneity
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """
@@ -510,9 +497,7 @@ class SobolevNorm(NormBase):
     # Fix for _is_zero
     def _is_zero(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the input is effectively zero.

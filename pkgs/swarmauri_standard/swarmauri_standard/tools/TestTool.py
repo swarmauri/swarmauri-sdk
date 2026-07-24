@@ -1,6 +1,6 @@
 import platform
 import subprocess as sp
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Literal
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
@@ -32,7 +32,7 @@ class TestTool(ToolBase):
     def __call__(self, program: str) -> Dict[str, str]:
         os_name = platform.system()
         # Define mappings for each OS
-        commands: Dict[str, Union[str, List[str]]] = {}
+        commands: Dict[str, str | List[str]] = {}
         if os_name == "Windows":
             # On Windows, the commands are used directly.
             commands = {

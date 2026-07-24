@@ -1,7 +1,7 @@
 import logging
 import socket
 from logging.handlers import SysLogHandler
-from typing import Literal, Optional, Tuple, Union
+from typing import Literal, Optional, Tuple
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -26,7 +26,7 @@ class SysLogLoggingHandler(HandlerBase):
 
     # The address can be a tuple of (host, port) for remote syslog servers
     # or a string representing a Unix domain socket path for local servers
-    address: Union[Tuple[str, int], str] = ("localhost", 514)
+    address: Tuple[str, int] | str = ("localhost", 514)
 
     # Syslog facility code (defaults to LOG_USER)
     facility: int = SysLogHandler.LOG_USER
@@ -35,7 +35,7 @@ class SysLogLoggingHandler(HandlerBase):
     socktype: int = socket.SOCK_DGRAM
 
     # Optional formatter for the logs
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
 
     def compile_handler(self) -> logging.Handler:
         """

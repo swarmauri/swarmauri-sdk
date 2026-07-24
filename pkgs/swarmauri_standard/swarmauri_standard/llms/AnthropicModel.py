@@ -230,54 +230,52 @@ class AnthropicModel(LLMBase):
         message_content = ""
         usage_data = {"input_tokens": 0, "output_tokens": 0}
 
-        with DurationManager() as prompt_timer:
-            with self._client.stream(
-                "POST", "/messages", json=payload
-            ) as response:
-                response.raise_for_status()
-                with DurationManager() as completion_timer:
-                    for line in response.iter_lines():
-                        if line:
-                            try:
-                                # Handle the case where line might be bytes or
-                                # str
-                                line_text = (
-                                    line
-                                    if isinstance(line, str)
-                                    else line.decode("utf-8")
-                                )
-                                if line_text.startswith("data: "):
-                                    line_text = line_text.removeprefix(
-                                        "data: "
-                                    )
+        with (
+            DurationManager() as prompt_timer,
+            self._client.stream("POST", "/messages", json=payload) as response,
+        ):
+            response.raise_for_status()
+            with DurationManager() as completion_timer:
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            # Handle the case where line might be bytes or
+                            # str
+                            line_text = (
+                                line
+                                if isinstance(line, str)
+                                else line.decode("utf-8")
+                            )
+                            if line_text.startswith("data: "):
+                                line_text = line_text.removeprefix("data: ")
 
-                                if not line_text or line_text == "[DONE]":
-                                    continue
-
-                                event = json.loads(line_text)
-                                if event["type"] == "message_start":
-                                    usage_data["input_tokens"] = event[
-                                        "message"
-                                    ]["usage"]["input_tokens"]
-                                elif event["type"] == "content_block_start":
-                                    continue
-                                elif event["type"] == "content_block_delta":
-                                    delta = event["delta"]["text"]
-                                    message_content += delta
-                                    yield delta
-                                elif event["type"] == "message_delta":
-                                    if "usage" in event:
-                                        usage_data["output_tokens"] = event[
-                                            "usage"
-                                        ]["output_tokens"]
-                                elif event["type"] == "message_stop":
-                                    if (
-                                        "message" in event
-                                        and "usage" in event["message"]
-                                    ):
-                                        usage_data = event["message"]["usage"]
-                            except (json.JSONDecodeError, KeyError):
+                            if not line_text or line_text == "[DONE]":
                                 continue
+
+                            event = json.loads(line_text)
+                            if event["type"] == "message_start":
+                                usage_data["input_tokens"] = event["message"][
+                                    "usage"
+                                ]["input_tokens"]
+                            elif event["type"] == "content_block_start":
+                                continue
+                            elif event["type"] == "content_block_delta":
+                                delta = event["delta"]["text"]
+                                message_content += delta
+                                yield delta
+                            elif event["type"] == "message_delta":
+                                if "usage" in event:
+                                    usage_data["output_tokens"] = event[
+                                        "usage"
+                                    ]["output_tokens"]
+                            elif event["type"] == "message_stop":
+                                if (
+                                    "message" in event
+                                    and "usage" in event["message"]
+                                ):
+                                    usage_data = event["message"]["usage"]
+                        except (json.JSONDecodeError, KeyError):
+                            continue
 
         if self.include_usage:
             usage = self._prepare_usage_data(

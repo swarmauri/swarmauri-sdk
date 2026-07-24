@@ -15,7 +15,7 @@ class TextContent(TypedDict):
 
 class ImageUrlContent(TypedDict):
     type: str
-    image_url: Union[str, Dict]
+    image_url: str | Dict
 
 
 contentItem = Union[TextContent, ImageUrlContent]
@@ -23,15 +23,15 @@ contentItem = Union[TextContent, ImageUrlContent]
 
 @ComponentBase.register_type(MessageBase, "HumanMessage")
 class HumanMessage(MessageBase):
-    content: Optional[Union[str, List[contentItem]]]
+    content: Optional[str | List[contentItem]]
     role: str = Field(default="user")
     name: Optional[str] = None
     type: Literal["HumanMessage"] = "HumanMessage"
 
     @field_validator("content", mode="before")
     def validate_content(
-        cls, content: Optional[Union[str, List[contentItem]]]
-    ) -> Optional[Union[str, List[contentItem]]]:
+        cls, content: Optional[str | List[contentItem]]
+    ) -> Optional[str | List[contentItem]]:
         if isinstance(content, list):
             for item in content:
                 image_data = item.get("image_url", {})

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Literal, Union, Optional
+from typing import Any, Dict, List, Literal, Optional
 import pandas as pd
 from pydantic import Field
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
@@ -28,9 +28,7 @@ class MiscMeasurement(MeasurementBase):
             "max_length": None,
         }
 
-    def calculate_sum(
-        self, data: Union[pd.Series, List[Union[int, float]]]
-    ) -> float:
+    def calculate_sum(self, data: pd.Series | List[int | float]) -> float:
         """
         Calculate the sum of numerical values.
 
@@ -48,9 +46,7 @@ class MiscMeasurement(MeasurementBase):
         self.value = result
         return result
 
-    def calculate_minimum(
-        self, data: Union[pd.Series, List[Union[int, float]]]
-    ) -> float:
+    def calculate_minimum(self, data: pd.Series | List[int | float]) -> float:
         """
         Find the minimum value in the data.
 
@@ -68,9 +64,7 @@ class MiscMeasurement(MeasurementBase):
         self.value = result
         return result
 
-    def calculate_maximum(
-        self, data: Union[pd.Series, List[Union[int, float]]]
-    ) -> float:
+    def calculate_maximum(self, data: pd.Series | List[int | float]) -> float:
         """
         Find the maximum value in the data.
 
@@ -88,7 +82,7 @@ class MiscMeasurement(MeasurementBase):
         self.value = result
         return result
 
-    def calculate_min_length(self, data: Union[pd.Series, List[str]]) -> int:
+    def calculate_min_length(self, data: pd.Series | List[str]) -> int:
         """
         Find the minimum string length in the data.
 
@@ -106,7 +100,7 @@ class MiscMeasurement(MeasurementBase):
         self.value = result
         return result
 
-    def calculate_max_length(self, data: Union[pd.Series, List[str]]) -> int:
+    def calculate_max_length(self, data: pd.Series | List[str]) -> int:
         """
         Find the maximum string length in the data.
 
@@ -125,7 +119,7 @@ class MiscMeasurement(MeasurementBase):
         return result
 
     def calculate_all_numeric(
-        self, data: Union[pd.Series, List[Union[int, float]]]
+        self, data: pd.Series | List[int | float]
     ) -> Dict[str, float]:
         """
         Calculate all numerical metrics (sum, minimum, maximum) at once.
@@ -144,7 +138,7 @@ class MiscMeasurement(MeasurementBase):
         return results
 
     def calculate_all_string(
-        self, data: Union[pd.Series, List[str]]
+        self, data: pd.Series | List[str]
     ) -> Dict[str, int]:
         """
         Calculate all string metrics (min_length, max_length) at once.
@@ -161,7 +155,7 @@ class MiscMeasurement(MeasurementBase):
         self.value = results
         return results
 
-    def __call__(self, data: Any, **kwargs) -> Dict[str, Union[float, int]]:
+    def __call__(self, data: Any, **kwargs) -> Dict[str, float | int]:
         """
         Main entry point for calculating measurements. Determines the type of
         data

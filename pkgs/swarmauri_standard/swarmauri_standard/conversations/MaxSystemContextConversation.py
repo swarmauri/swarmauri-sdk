@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Literal
+from typing import Optional, List, Literal
 from pydantic import Field, ConfigDict, field_validator
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
@@ -28,9 +28,7 @@ class MaxSystemContextConversation(
     )
 
     @field_validator("system_context", mode="before")
-    def set_system_context(
-        cls, value: Union[str, SystemMessage]
-    ) -> SystemMessage:
+    def set_system_context(cls, value: str | SystemMessage) -> SystemMessage:
         if isinstance(value, str):
             return SystemMessage(content=value)
         return value

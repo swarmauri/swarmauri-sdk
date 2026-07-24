@@ -36,8 +36,8 @@ class SorensenDiceDistance(DistanceBase):
             vector_b.
         """
         # Convert vectors to binary sets
-        set_a = set([i for i, val in enumerate(vector_a) if val])
-        set_b = set([i for i, val in enumerate(vector_b) if val])
+        set_a = {i for i, val in enumerate(vector_a) if val}
+        set_b = {i for i, val in enumerate(vector_b) if val}
 
         # Calculate the intersection size
         intersection_size = len(set_a.intersection(set_b))

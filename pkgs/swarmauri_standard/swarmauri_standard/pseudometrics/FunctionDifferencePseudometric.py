@@ -9,7 +9,6 @@ from typing import (
     Optional,
     Sequence,
     TypeVar,
-    Union,
 )
 
 
@@ -20,7 +19,7 @@ from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 # Configure logging
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T", bound=Union[int, float, complex])
+T = TypeVar("T", bound=int | float | complex)
 
 
 @ComponentBase.register_type(
