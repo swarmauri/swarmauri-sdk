@@ -19,6 +19,7 @@ from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import (
     SchemaConverterBase,
 )
+from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
@@ -45,7 +46,7 @@ class ToolLLMBase(IToolPredict, ComponentBase):
     def _validate_name_in_allowed_models(self):
         name = self.name
         allowed_models = self.allowed_models
-        if name and allowed_models and name not in allowed_models:
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "

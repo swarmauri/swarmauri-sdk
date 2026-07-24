@@ -78,6 +78,7 @@ members = [
     "community/swarmauri_llm_mistral",
     "community/swarmauri_llm_nvidia_nim",
     "community/swarmauri_llm_openai",
+    "community/swarmauri_llm_openrouter",
     "community/swarmauri_llm_perplexity",
     "community/swarmauri_llm_playht",
     "community/swarmauri_llm_whisper",
@@ -538,6 +539,7 @@ swarmauri_llm_llamacpp = { workspace = true }
 swarmauri_llm_mistral = { workspace = true }
 swarmauri_llm_nvidia_nim = { workspace = true }
 swarmauri_llm_openai = { workspace = true }
+swarmauri_llm_openrouter = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
 swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }

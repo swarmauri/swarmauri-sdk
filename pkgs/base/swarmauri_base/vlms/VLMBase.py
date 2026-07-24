@@ -3,6 +3,7 @@ from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field, model_validator
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.utils.allowed_models import is_model_allowed
 from swarmauri_core.vlms.IPredictVision import IPredictVision
 
 
@@ -20,7 +21,7 @@ class VLMBase(IPredictVision, ComponentBase):
     def _validate_name_in_allowed_models(cls, values):
         name = values.name
         allowed_models = values.allowed_models
-        if name and name not in allowed_models:
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "

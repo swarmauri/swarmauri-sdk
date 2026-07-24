@@ -6,6 +6,7 @@ from typing import Any, Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.utils.allowed_models import is_model_allowed
 from swarmauri_core.video_lipsync.ILipSync import ILipSync
 
 
@@ -22,7 +23,7 @@ class LipSyncBase(ILipSync, ComponentBase):
 
     @model_validator(mode="after")
     def _validate_name_in_allowed_models(self) -> "LipSyncBase":
-        if self.name and self.name not in self.allowed_models:
+        if self.name and not is_model_allowed(self.name, self.allowed_models):
             raise ValueError(
                 f"Model name {self.name} is not allowed. "
                 f"Choose from {self.allowed_models}"

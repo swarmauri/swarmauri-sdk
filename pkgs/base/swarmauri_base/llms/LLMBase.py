@@ -5,6 +5,7 @@ from pydantic import Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.llms.IPredict import IPredict
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
@@ -35,7 +36,7 @@ class LLMBase(IPredict, ComponentBase):
     def _validate_name_in_allowed_models(self):
         name = self.name
         allowed_models = self.allowed_models
-        if name and allowed_models and name not in allowed_models:
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "

@@ -762,6 +762,9 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_leptonai.LeptonAIImgGenModel"
         ),
         "swarmauri.llms.AI21StudioModel": "swarmauri_llm_ai21.AI21StudioModel",
+        "swarmauri.image_gens.OpenRouterImgGenModel": (
+            "swarmauri_llm_openrouter.OpenRouterImgGenModel"
+        ),
         "swarmauri.llms.AnthropicModel": (
             "swarmauri_llm_anthropic.AnthropicModel"
         ),
@@ -824,6 +827,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.OpenAIAudio": "swarmauri_llm_openai.OpenAIAudio",
         "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
         "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
+        "swarmauri.llms.OpenRouterModel": (
+            "swarmauri_llm_openrouter.OpenRouterModel"
+        ),
         "swarmauri.llms.OpenAIToolModel": (
             "swarmauri_llm_openai.OpenAIToolModel"
         ),
@@ -837,6 +843,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
         "swarmauri.tool_llms.OpenAIToolModel": (
             "swarmauri_llm_openai.OpenAIToolModel"
+        ),
+        "swarmauri.tool_llms.OpenRouterToolModel": (
+            "swarmauri_llm_openrouter.OpenRouterToolModel"
         ),
         "swarmauri.tool_llms.AnthropicToolModel": (
             "swarmauri_llm_anthropic.AnthropicToolModel"
@@ -863,6 +872,7 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
         ),
         "swarmauri.tool_llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
+        "swarmauri.vlms.OpenRouterVLM": "swarmauri_llm_openrouter.OpenRouterVLM",
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 

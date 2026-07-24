@@ -5,6 +5,7 @@ from typing import Any, List, Literal, Optional
 from pydantic import ConfigDict, model_validator, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.utils.allowed_models import is_model_allowed
 from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
 
 
@@ -21,7 +22,7 @@ class TTSBase(ITextToSpeech, ComponentBase):
     def _validate_name_in_allowed_models(self):
         name = self.name
         allowed_models = self.allowed_models
-        if name and name not in allowed_models:
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "

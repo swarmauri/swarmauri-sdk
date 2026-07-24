@@ -55,15 +55,18 @@ def test_provider_hooks_and_capabilities_are_not_serialized():
     assert "secret" not in llm.model_dump_json()
 
 
-def test_model_name_is_allowed_when_provider_discovers_models_later():
-    llm = LLM(
-        api_key="secret",
-        BASE_URL="https://provider.test/v1/chat/completions",
-        name="runtime-model",
-    )
+def test_empty_allowed_models_denies_runtime_model():
+    with pytest.raises(ValueError, match="runtime-model"):
+        LLM(
+            api_key="secret",
+            BASE_URL="https://provider.test/v1/chat/completions",
+            name="runtime-model",
+        )
 
-    assert llm.name == "runtime-model"
-    assert llm.allowed_models == []
+
+def test_glob_allowed_models_permits_provider_namespace():
+    llm = _llm(name="provider/runtime-model", allowed_models=["provider/**"])
+    assert llm.name == "provider/runtime-model"
 
 
 def test_payload_and_stream_parser_are_provider_override_points():
