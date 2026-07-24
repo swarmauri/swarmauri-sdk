@@ -132,6 +132,7 @@ members = [
     "community/swarmauri_tool_lexicaldensity",
     "community/swarmauri_tool_psutil",
     "community/swarmauri_tool_qrcodegenerator",
+    "community/swarmauri_tool_scrollfile",
     "community/swarmauri_tool_searchword",
     "community/swarmauri_tool_sentencecomplexity",
     "community/swarmauri_tool_sentimentanalysis",
@@ -672,6 +673,7 @@ swarmauri_tool_lexicaldensity = { workspace = true }
 swarmauri_tool_matplotlib = { workspace = true }
 swarmauri_tool_psutil = { workspace = true }
 swarmauri_tool_qrcodegenerator = { workspace = true }
+swarmauri_tool_scrollfile = { workspace = true }
 swarmauri_tool_searchword = { workspace = true }
 swarmauri_tool_sentencecomplexity = { workspace = true }
 swarmauri_tool_skill_execution = { workspace = true }

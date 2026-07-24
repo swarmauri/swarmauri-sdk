@@ -1,0 +1,66 @@
+[project]
+name = "swarmauri_tool_scrollfile"
+version = "0.1.0"
+description = "Bounded UTF-8 file navigation tool for Swarmauri agents and workflows."
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.15"
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+keywords = [
+    "swarmauri",
+    "agent tool",
+    "file navigation",
+    "pagination",
+    "large files",
+    "text files",
+    "line reader",
+    "scroll file",
+]
+dependencies = [
+    "pydantic",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+]
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]
+timeout = 300
+
+[project.entry-points.'swarmauri.tools']
+ScrollFileTool = "swarmauri_tool_scrollfile:ScrollFileTool"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
