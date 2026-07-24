@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_jupyterreadnotebook"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Swarmauri notebook-ingestion tool for reading and validating Jupyter notebooks with nbformat."
 license = "Apache-2.0"
 readme = "README.md"

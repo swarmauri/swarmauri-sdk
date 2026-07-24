@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_billing_razorpay"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Razorpay-backed Swarmauri billing provider for payment links, orders, capture, refunds, subscriptions, invoices, transfers, and webhooks."
 license = "Apache-2.0"
 readme = "README.md"

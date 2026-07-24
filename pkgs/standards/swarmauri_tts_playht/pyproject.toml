@@ -1,0 +1,69 @@
+[project]
+name = "swarmauri_tts_playht"
+version = "0.11.0.dev2"
+description = "Standalone PlayHT text-to-speech provider, stateless agent integration, and CLI for Swarmauri."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_agent_texttospeech",
+]
+keywords = [
+    "swarmauri",
+    "playht",
+    "play.ht",
+    "text to speech",
+    "tts provider",
+    "speech synthesis",
+    "audio generation",
+    "voice cloning",
+    "stateless agent",
+    "command line interface",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_agent_texttospeech = { workspace = true }
+
+[project.entry-points.'swarmauri.tts']
+PlayHTModel = "swarmauri_tts_playht:PlayHTModel"
+
+[project.scripts]
+swarmauri-playht = "swarmauri_tts_playht.cli:main"
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.9.9",
+]

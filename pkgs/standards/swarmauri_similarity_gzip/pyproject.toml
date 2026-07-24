@@ -1,0 +1,56 @@
+[project]
+name = "swarmauri_similarity_gzip"
+version = "0.1.0.dev1"
+description = "Gzip-based compression similarity for Swarmauri."
+license = "Apache-2.0"
+readme = { file = "README.md", content-type = "text/markdown" }
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = [
+    "swarmauri",
+    "similarity",
+    "compression",
+    "gzip",
+    "normalized-compression-distance",
+    "language-comparison",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing",
+]
+dependencies = [
+    "swarmauri_base",
+    "swarmauri_core",
+]
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_core = { workspace = true }
+
+[project.entry-points."swarmauri.similarities"]
+GzipSimilarity = "swarmauri_similarity_gzip:GzipSimilarity"
+
+[tool.pytest.ini_options]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+]

@@ -1,0 +1,34 @@
+[project]
+name = "swarmauri_tool_queryknowledgebase"
+version = "0.11.0.dev2"
+description = "A Swarmauri tool for ranked knowledge-base retrieval with metadata filtering."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "tool", "knowledge base", "retrieval", "RAG", "metadata filtering"]
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = ["swarmauri_base", "swarmauri_standard"]
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[project.entry-points."swarmauri.tools"]
+QueryKnowledgeBaseTool = "swarmauri_tool_queryknowledgebase:QueryKnowledgeBaseTool"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]

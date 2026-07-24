@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_mistral"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-specific Swarmauri import package for Mistral chat, tool-calling, streaming, async, and batch LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"
@@ -82,6 +82,8 @@ MistralModel = "swarmauri_llm_mistral.MistralModel:MistralModel"
 
 [project.entry-points.'swarmauri.tool_llms']
 MistralToolModel = "swarmauri_llm_mistral.MistralToolModel:MistralToolModel"
+[project.entry-points.'swarmauri.vlms']
+MistralVLM = "swarmauri_llm_mistral.MistralVLM:MistralVLM"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -99,3 +101,5 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+

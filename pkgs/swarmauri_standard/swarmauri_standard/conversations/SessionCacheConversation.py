@@ -9,6 +9,7 @@ from swarmauri_base.conversations.ConversationSystemContextMixin import (
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_base.ComponentBase import ComponentBase
 
 
@@ -83,6 +84,9 @@ class SessionCacheConversation(
         count = 0
 
         for message in self._history[-self.max_size :]:
+            if isinstance(message, FunctionMessage):
+                res.append(message)
+                continue
             if isinstance(message, HumanMessage) and alternating:
                 res.append(message)
                 alternating = (
@@ -91,9 +95,8 @@ class SessionCacheConversation(
                 count += 1
             elif isinstance(message, AgentMessage) and not alternating:
                 res.append(message)
-                alternating = (
-                    not alternating
-                )  # Switch to expecting HumanMessage
+                if not message.tool_calls:
+                    alternating = True  # Switch to expecting HumanMessage
                 count += 1
 
             if count >= self.max_size:

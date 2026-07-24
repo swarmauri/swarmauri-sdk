@@ -51,6 +51,9 @@ class InterfaceRegistry:
         "swarmauri.llms": "swarmauri_base.llms.LLMBase",
         "swarmauri.tool_llms": "swarmauri_base.tool_llms.ToolLLMBase",
         "swarmauri.tts": "swarmauri_base.tts.TTSBase",
+        "swarmauri.video_lipsync": (
+            "swarmauri_base.video_lipsync.LipSyncBase"
+        ),
         "swarmauri.ocrs": "swarmauri_base.ocrs.OCRBase",
         "swarmauri.stt": "swarmauri_base.stt.STTBase",
         "swarmauri.storage_adapters": (
@@ -72,7 +75,11 @@ class InterfaceRegistry:
         "swarmauri.schema_converters": (
             "swarmauri_base.schema_converters.SchemaConverterBase"
         ),
+        "swarmauri.retrievers": ("swarmauri_base.retrievers.RetrieverBase"),
         "swarmauri.skills": "swarmauri_base.skills.SkillBase",
+        "swarmauri.similarities": (
+            "swarmauri_base.similarities.SimilarityBase"
+        ),
         "swarmauri.service_registries": (
             "swarmauri_base.service_registries.ServiceRegistryBase"
         ),

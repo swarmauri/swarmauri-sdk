@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_llamacpp"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-specific Swarmauri import package for local llama.cpp OpenAI-compatible chat, streaming, async, and batch LLM workflows."
 license = "Apache-2.0"
 readme = "README.md"

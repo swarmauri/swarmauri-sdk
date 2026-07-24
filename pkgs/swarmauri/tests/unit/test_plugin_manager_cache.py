@@ -1,10 +1,25 @@
 import time
 
+import pytest
+
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 from swarmauri.plugin_manager import (
     discover_and_register_plugins,
     invalidate_entry_point_cache,
 )
+
+
+@pytest.fixture(autouse=True)
+def restore_plugin_registries():
+    """Prevent cache tests from leaking registry mutations."""
+    first = PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY.copy()
+    second = PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY.copy()
+    third = PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.copy()
+    yield
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = first
+    PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY = second
+    PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY = third
+    invalidate_entry_point_cache()
 
 
 def test_discovery_cache_performance_happy_vs_worst():

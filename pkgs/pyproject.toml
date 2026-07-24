@@ -63,7 +63,9 @@ members = [
     "community/swarmauri_keyprovider_vaulttransit",
     "community/swarmauri_llm_ai21",
     "community/swarmauri_llm_anthropic",
+    "community/swarmauri_llm_azureopenai",
     "community/swarmauri_llm_cerebras",
+    "community/swarmauri_llm_cloudflare",
     "community/swarmauri_llm_cohere",
     "community/swarmauri_llm_deepinfra",
     "community/swarmauri_llm_deepseek",
@@ -74,10 +76,13 @@ members = [
     "community/swarmauri_llm_leptonai",
     "community/swarmauri_llm_llamacpp",
     "community/swarmauri_llm_mistral",
+    "community/swarmauri_llm_nvidia_nim",
     "community/swarmauri_llm_openai",
+    "community/swarmauri_llm_openrouter",
     "community/swarmauri_llm_perplexity",
     "community/swarmauri_llm_playht",
     "community/swarmauri_llm_whisper",
+    "community/swarmauri_llm_xai",
     "community/swarmauri_matrix_hamming74",
     "community/swarmauri_measurement_mutualinformation",
     "community/swarmauri_measurement_tokencountestimator",
@@ -100,6 +105,9 @@ members = [
     "community/swarmauri_tool_downloadpdf",
     "community/swarmauri_tool_entityrecognition",
     "community/swarmauri_tool_folium",
+    "community/swarmauri_tool_getmethodsignature",
+    "community/swarmauri_tool_queryimagevectorstore",
+    "community/swarmauri_tool_queryknowledgebase",
     "community/swarmauri_tool_gmail",
     "community/swarmauri_tool_jupyterclearoutput",
     "community/swarmauri_tool_jupyterdisplay",
@@ -189,6 +197,7 @@ members = [
     "plugins/media_signer",
     "plugins/zdx",
     "standards/swarmauri_agent_skill",
+    "standards/swarmauri_agent_texttospeech",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_aws",
     "standards/swarmauri_auth_idp_azure",
@@ -317,6 +326,7 @@ members = [
     "standards/swarmauri_signing_sigv4",
     "standards/swarmauri_signing_ssh",
     "standards/swarmauri_signing_xmld",
+    "standards/swarmauri_similarity_gzip",
     "standards/swarmauri_storage_file",
     "standards/swarmauri_storage_github",
     "standards/swarmauri_storage_github_release",
@@ -359,6 +369,8 @@ members = [
     "standards/swarmauri_transport_udp",
     "standards/swarmauri_transport_uds_unicast",
     "standards/swarmauri_transport_wsjsonrpcmux",
+    "standards/swarmauri_tts_playht",
+    "standards/swarmauri_video_lipsync_synclabs",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
@@ -406,6 +418,7 @@ swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_agent_skill = { workspace = true }
+swarmauri_agent_texttospeech = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
 swarmauri_auth_idp_azure = { workspace = true }
@@ -511,7 +524,9 @@ swarmauri_keyprovider_vaulttransit = { workspace = true }
 swarmauri_keyproviders_mirrored = { workspace = true }
 swarmauri_llm_ai21 = { workspace = true }
 swarmauri_llm_anthropic = { workspace = true }
+swarmauri_llm_azureopenai = { workspace = true }
 swarmauri_llm_cerebras = { workspace = true }
+swarmauri_llm_cloudflare = { workspace = true }
 swarmauri_llm_cohere = { workspace = true }
 swarmauri_llm_deepinfra = { workspace = true }
 swarmauri_llm_deepseek = { workspace = true }
@@ -522,10 +537,13 @@ swarmauri_llm_hyperbolic = { workspace = true }
 swarmauri_llm_leptonai = { workspace = true }
 swarmauri_llm_llamacpp = { workspace = true }
 swarmauri_llm_mistral = { workspace = true }
+swarmauri_llm_nvidia_nim = { workspace = true }
 swarmauri_llm_openai = { workspace = true }
+swarmauri_llm_openrouter = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
 swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }
+swarmauri_llm_xai = { workspace = true }
 swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
@@ -624,6 +642,9 @@ swarmauri_tool_dalechallreadability = { workspace = true }
 swarmauri_tool_downloadpdf = { workspace = true }
 swarmauri_tool_entityrecognition = { workspace = true }
 swarmauri_tool_folium = { workspace = true }
+swarmauri_tool_getmethodsignature = { workspace = true }
+swarmauri_tool_queryimagevectorstore = { workspace = true }
+swarmauri_tool_queryknowledgebase = { workspace = true }
 swarmauri_tool_githubloader = { workspace = true }
 swarmauri_tool_gmail = { workspace = true }
 swarmauri_tool_httploaded = { workspace = true }
@@ -678,6 +699,7 @@ swarmauri_transport_stdio = { workspace = true }
 swarmauri_transport_tcpunicast = { workspace = true }
 swarmauri_transport_tls_unicast = { workspace = true }
 swarmauri_transport_wsjsonrpcmux = { workspace = true }
+swarmauri_tts_playht = { workspace = true }
 swarmauri_typing = { workspace = true }
 swarmauri_vectorstore_annoy = { workspace = true }
 swarmauri_vectorstore_cloudweaviate = { workspace = true }

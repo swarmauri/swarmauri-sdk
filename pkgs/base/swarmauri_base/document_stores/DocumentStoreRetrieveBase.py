@@ -4,12 +4,13 @@ from typing import List, Literal
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.retrievers.RetrieverBase import RetrieverBase
 from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
 from swarmauri_core.documents.IDocument import IDocument
 
 
 @ComponentBase.register_model()
-class DocumentStoreRetrieveBase(IDocumentRetrieve, ComponentBase):
+class DocumentStoreRetrieveBase(IDocumentRetrieve, RetrieverBase):
     resource: ResourceTypes = Field(default=ResourceTypes.DOCUMENT_STORE.value)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["DocumentStoreRetrieveBase"] = "DocumentStoreRetrieveBase"

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_groq"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-specific Swarmauri import package for Groq OpenAI-compatible chat, tool use, vision-language, streaming, and audio transcription workflows."
 license = "Apache-2.0"
 readme = "README.md"

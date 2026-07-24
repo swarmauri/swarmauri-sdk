@@ -85,6 +85,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.signings.JwsSignerVerifier": (
             "swarmauri_signing_jws.JwsSignerVerifier"
         ),
+        "swarmauri.similarities.GzipSimilarity": (
+            "swarmauri_similarity_gzip.GzipSimilarity"
+        ),
         "swarmauri.cipher_suites.JwaCipherSuite": (
             "swarmauri_cipher_suite_jwa.JwaCipherSuite"
         ),
@@ -197,6 +200,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
         "swarmauri.agents.SkillAgent": "swarmauri_agent_skill.SkillAgent",
+        "swarmauri.agents.TextToSpeechAgent": (
+            "swarmauri_agent_texttospeech.TextToSpeechAgent"
+        ),
         "swarmauri.agents.SimpleConversationAgent": (
             "swarmauri_standard.agents.SimpleConversationAgent"
         ),
@@ -353,11 +359,19 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
         "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
+        "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",
-        "swarmauri.vlms.FalVLM": "swarmauri_standard.vlms.FalVLM",
-        "swarmauri.vlms.GroqVLM": "swarmauri_standard.vlms.GroqVLM",
+        "swarmauri.vlms.OpenAIVLM": "swarmauri_llm_openai.OpenAIVLM",
+        "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
+        "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
+        "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
+        "swarmauri.video_lipsync.SyncLabsLipSync": (
+            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
+        ),
+        "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
+        "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
-            "swarmauri_standard.vlms.HyperbolicVLM"
+            "swarmauri_llm_hyperbolic.HyperbolicVLM"
         ),
         "swarmauri.measurements.CompletenessMeasurement": (
             "swarmauri_standard.measurements.CompletenessMeasurement"
@@ -738,17 +752,38 @@ class PluginCitizenshipRegistry:
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.tools.QueryImageVectorStoreTool": (
+            "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"
+        ),
+        "swarmauri.tools.QueryKnowledgeBaseTool": (
+            "swarmauri_tool_queryknowledgebase.QueryKnowledgeBaseTool"
+        ),
         "swarmauri.image_gens.LeptonAIImgGenModel": (
             "swarmauri_llm_leptonai.LeptonAIImgGenModel"
         ),
         "swarmauri.llms.AI21StudioModel": "swarmauri_llm_ai21.AI21StudioModel",
+        "swarmauri.image_gens.OpenRouterImgGenModel": (
+            "swarmauri_llm_openrouter.OpenRouterImgGenModel"
+        ),
         "swarmauri.llms.AnthropicModel": (
             "swarmauri_llm_anthropic.AnthropicModel"
         ),
         "swarmauri.llms.AnthropicToolModel": (
             "swarmauri_llm_anthropic.AnthropicToolModel"
         ),
+        "swarmauri.llms.AzureOpenAIModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIModel"
+        ),
+        "swarmauri.llms.AzureOpenAIToolModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIToolModel"
+        ),
         "swarmauri.llms.CerebrasModel": "swarmauri_llm_cerebras.CerebrasModel",
+        "swarmauri.llms.CloudflareWorkersAIModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIModel"
+        ),
+        "swarmauri.llms.CloudflareWorkersAIToolModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIToolModel"
+        ),
         "swarmauri.llms.CohereModel": "swarmauri_llm_cohere.CohereModel",
         "swarmauri.llms.CohereToolModel": (
             "swarmauri_llm_cohere.CohereToolModel"
@@ -783,24 +818,40 @@ class PluginCitizenshipRegistry:
         "swarmauri.llms.MistralToolModel": (
             "swarmauri_llm_mistral.MistralToolModel"
         ),
+        "swarmauri.llms.NvidiaNIMModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMModel"
+        ),
+        "swarmauri.llms.NvidiaNIMToolModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
+        ),
         "swarmauri.llms.OpenAIAudio": "swarmauri_llm_openai.OpenAIAudio",
         "swarmauri.llms.OpenAIAudioTTS": "swarmauri_llm_openai.OpenAIAudioTTS",
         "swarmauri.llms.OpenAIModel": "swarmauri_llm_openai.OpenAIModel",
+        "swarmauri.llms.OpenRouterModel": (
+            "swarmauri_llm_openrouter.OpenRouterModel"
+        ),
         "swarmauri.llms.OpenAIToolModel": (
             "swarmauri_llm_openai.OpenAIToolModel"
         ),
         "swarmauri.llms.PerplexityModel": (
             "swarmauri_llm_perplexity.PerplexityModel"
         ),
-        "swarmauri.llms.PlayHTModel": "swarmauri_llm_playht.PlayHTModel",
         "swarmauri.llms.WhisperLargeModel": (
             "swarmauri_llm_whisper.WhisperLargeModel"
         ),
+        "swarmauri.llms.XAIModel": "swarmauri_llm_xai.XAIModel",
+        "swarmauri.llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
         "swarmauri.tool_llms.OpenAIToolModel": (
             "swarmauri_llm_openai.OpenAIToolModel"
         ),
+        "swarmauri.tool_llms.OpenRouterToolModel": (
+            "swarmauri_llm_openrouter.OpenRouterToolModel"
+        ),
         "swarmauri.tool_llms.AnthropicToolModel": (
             "swarmauri_llm_anthropic.AnthropicToolModel"
+        ),
+        "swarmauri.tool_llms.AzureOpenAIToolModel": (
+            "swarmauri_llm_azureopenai.AzureOpenAIToolModel"
         ),
         "swarmauri.tool_llms.CohereToolModel": (
             "swarmauri_llm_cohere.CohereToolModel"
@@ -814,6 +865,14 @@ class PluginCitizenshipRegistry:
         "swarmauri.tool_llms.MistralToolModel": (
             "swarmauri_llm_mistral.MistralToolModel"
         ),
+        "swarmauri.tool_llms.CloudflareWorkersAIToolModel": (
+            "swarmauri_llm_cloudflare.CloudflareWorkersAIToolModel"
+        ),
+        "swarmauri.tool_llms.NvidiaNIMToolModel": (
+            "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
+        ),
+        "swarmauri.tool_llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
+        "swarmauri.vlms.OpenRouterVLM": "swarmauri_llm_openrouter.OpenRouterVLM",
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 
@@ -1151,3 +1210,7 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
+
+
+
+

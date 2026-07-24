@@ -5,10 +5,25 @@ import sys
 import time
 import types
 
+import pytest
+
 from importlib.metadata import EntryPoint
 
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 from swarmauri.plugin_manager import invalidate_entry_point_cache
+
+
+@pytest.fixture(autouse=True)
+def restore_plugin_registries():
+    """Prevent performance tests from leaking registry mutations."""
+    first = PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY.copy()
+    second = PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY.copy()
+    third = PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY.copy()
+    yield
+    PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = first
+    PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY = second
+    PluginCitizenshipRegistry.THIRD_CLASS_REGISTRY = third
+    invalidate_entry_point_cache()
 
 
 def test_startup_and_first_class_registration_performance() -> None:

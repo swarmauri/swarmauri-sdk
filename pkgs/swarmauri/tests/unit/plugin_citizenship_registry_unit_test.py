@@ -111,3 +111,16 @@ def test_update_and_delete_entry():
         "swarmauri.chains.TestChain"
         not in PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY
     )
+
+
+@pytest.mark.unit
+def test_query_tools_are_second_class():
+    assert PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY[
+        "swarmauri.tools.QueryImageVectorStoreTool"
+    ] == ("swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool")
+    assert (
+        PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY[
+            "swarmauri.tools.QueryKnowledgeBaseTool"
+        ]
+        == "swarmauri_tool_queryknowledgebase.QueryKnowledgeBaseTool"
+    )

@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Type
+from uuid import uuid4
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
@@ -199,7 +200,10 @@ class GeminiToolModel(ToolLLMBase):
                     # Create a FunctionMessage for each tool call result
                     tool_messages.append(
                         FunctionMessage(
-                            name=func_name, content=json.dumps(func_result)
+                            name=func_name,
+                            content=json.dumps(func_result),
+                            tool_call_id=tool_call["functionCall"].get("id")
+                            or f"gemini-{uuid4()}",
                         )
                     )
                 except Exception as e:

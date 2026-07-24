@@ -64,6 +64,18 @@ order_source = "inferred"
 order_reason = "foundation layers are atomic by policy"
 
 [[packages]]
+name = "swarmauri_agent_texttospeech"
+path = "standards/swarmauri_agent_texttospeech"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_auth_idp_apple"
 path = "standards/swarmauri_auth_idp_apple"
 layer = "40-standards"
@@ -1275,62 +1287,6 @@ workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
 
-
-[[packages]]
-name = "swarmauri_agent_skill"
-path = "standards/swarmauri_agent_skill"
-distribution = "swarmauri_agent_skill"
-layer = "40-standards"
-family = "agents"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.agents"]
-
-[[packages]]
-name = "swarmauri_skill_dummy_filesystem"
-path = "standards/swarmauri_skill_dummy_filesystem"
-distribution = "swarmauri_skill_dummy_filesystem"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_dummy_local"
-path = "standards/swarmauri_skill_dummy_local"
-distribution = "swarmauri_skill_dummy_local"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_filesystem"
-path = "standards/swarmauri_skill_filesystem"
-distribution = "swarmauri_skill_filesystem"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
-[[packages]]
-name = "swarmauri_skill_local"
-path = "standards/swarmauri_skill_local"
-distribution = "swarmauri_skill_local"
-layer = "40-standards"
-family = "skills"
-role = "atomic-concrete"
-maturity = "standard"
-order = 0
-entry_points = ["swarmauri.skills"]
-
 [[packages]]
 name = "swarmauri_signing_ca"
 path = "standards/swarmauri_signing_ca"
@@ -1481,6 +1437,66 @@ path = "standards/swarmauri_signing_xmld"
 layer = "40-standards"
 order = 0
 family = "signing"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_similarity_gzip"
+path = "standards/swarmauri_similarity_gzip"
+layer = "40-standards"
+order = 0
+family = "similarity"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_filesystem"
+path = "standards/swarmauri_skill_dummy_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_dummy_local"
+path = "standards/swarmauri_skill_dummy_local"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_filesystem"
+path = "standards/swarmauri_skill_filesystem"
+layer = "40-standards"
+order = 0
+family = "skill"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_skill_local"
+path = "standards/swarmauri_skill_local"
+layer = "40-standards"
+order = 0
+family = "skill"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1754,13 +1770,14 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_skill_execution"
 path = "standards/swarmauri_tool_skill_execution"
-distribution = "swarmauri_tool_skill_execution"
 layer = "40-standards"
+order = 0
 family = "tool"
 role = "atomic-concrete"
 maturity = "standard"
-order = 0
-entry_points = ["swarmauri.tools"]
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
 
 [[packages]]
 name = "swarmauri_transport_asgi"
@@ -1931,6 +1948,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_video_lipsync_synclabs"
+path = "standards/swarmauri_video_lipsync_synclabs"
+layer = "40-standards"
+order = 0
+family = "video"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_xmp_gif"
 path = "standards/swarmauri_xmp_gif"
 layer = "40-standards"
@@ -2025,6 +2054,19 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_agent_skill"
+path = "standards/swarmauri_agent_skill"
+layer = "40-standards"
+order = 1
+family = "agent"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_tool_skill_execution at 40.0"
+composes = ["swarmauri_tool_skill_execution"]
 
 [[packages]]
 name = "swarmauri_certs_composite"
@@ -2152,6 +2194,19 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "composite signal from metadata for swarmauri_tokens_composite"
+
+[[packages]]
+name = "swarmauri_tts_playht"
+path = "standards/swarmauri_tts_playht"
+layer = "40-standards"
+order = 1
+family = "tts"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_agent_texttospeech at 40.0"
+composes = ["swarmauri_agent_texttospeech"]
 
 [[packages]]
 name = "swarmauri_vectorstore_doc2vec"
@@ -2544,8 +2599,32 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_azureopenai"
+path = "community/swarmauri_llm_azureopenai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_cerebras"
 path = "community/swarmauri_llm_cerebras"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_cloudflare"
+path = "community/swarmauri_llm_cloudflare"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2676,6 +2755,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_nvidia_nim"
+path = "community/swarmauri_llm_nvidia_nim"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_openai"
 path = "community/swarmauri_llm_openai"
 layer = "50-community"
@@ -2710,10 +2801,23 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+composes = ["swarmauri_tts_playht"]
 
 [[packages]]
 name = "swarmauri_llm_whisper"
 path = "community/swarmauri_llm_whisper"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_xai"
+path = "community/swarmauri_llm_xai"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2966,6 +3070,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_folium"
 path = "community/swarmauri_tool_folium"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_getmethodsignature"
+path = "community/swarmauri_tool_getmethodsignature"
 layer = "50-community"
 order = 0
 family = "tool"
@@ -3254,6 +3370,30 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_qrcodegenerator"
 path = "community/swarmauri_tool_qrcodegenerator"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryimagevectorstore"
+path = "community/swarmauri_tool_queryimagevectorstore"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_queryknowledgebase"
+path = "community/swarmauri_tool_queryknowledgebase"
 layer = "50-community"
 order = 0
 family = "tool"

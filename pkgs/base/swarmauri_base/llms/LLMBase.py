@@ -1,42 +1,49 @@
 from abc import abstractmethod
-from typing import Dict, List, Literal, Optional
+from typing import ClassVar, Dict, FrozenSet, List, Literal, Optional
 
 from pydantic import Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.llms.IPredict import IPredict
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
 class LLMBase(IPredict, ComponentBase):
-    allowed_models: List[str] = []
+    allowed_models: List[str] = Field(default_factory=list)
     resource: Optional[str] = Field(
         default=ResourceTypes.LLM.value, frozen=True
     )
     type: Literal["LLMBase"] = "LLMBase"
 
-    api_key: Optional[SecretStr] = None
+    api_key: Optional[SecretStr] = Field(default=None, exclude=True)
     name: str = ""
     timeout: float = 600.0
     include_usage: bool = True
+    max_retries: int = Field(default=3, ge=1)
+    retry_delay: float = Field(default=2.0, ge=0)
+
+    capabilities: ClassVar[FrozenSet[str]] = frozenset()
+    retryable_status_codes: ClassVar[FrozenSet[int]] = frozenset(
+        {408, 409, 425, 429, 500, 502, 503, 504, 529}
+    )
 
     # Base URL to be overridden by subclasses
     BASE_URL: Optional[str] = None
-    _headers: Dict[str, str] = PrivateAttr(default=None)
+    _headers: Dict[str, str] = PrivateAttr(default_factory=dict)
 
     @model_validator(mode="after")
-    @classmethod
-    def _validate_name_in_allowed_models(cls, values):
-        name = values.name
-        allowed_models = values.allowed_models
-        if name and name not in allowed_models:
+    def _validate_name_in_allowed_models(self):
+        name = self.name
+        allowed_models = self.allowed_models
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
                 (
                     f"Model name {name} is not allowed. Choose from "
                     f"{allowed_models}"
                 )
             )
-        return values
+        return self
 
     def add_allowed_model(self, model: str) -> None:
         """

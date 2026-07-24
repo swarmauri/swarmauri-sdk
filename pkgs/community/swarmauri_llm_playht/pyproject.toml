@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_playht"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "Provider-specific Swarmauri import package for PlayHT text-to-speech, voice management, async, and batch audio generation workflows."
 license = "Apache-2.0"
 readme = "README.md"
@@ -27,9 +27,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
+    "swarmauri_tts_playht",
 ]
 keywords = [
     "swarmauri",
@@ -50,9 +48,7 @@ keywords = [
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
+swarmauri_tts_playht = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]
@@ -73,9 +69,6 @@ log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
-
-[project.entry-points.'swarmauri.llms']
-PlayHTModel = "swarmauri_llm_playht.PlayHTModel:PlayHTModel"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

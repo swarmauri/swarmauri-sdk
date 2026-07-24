@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_certservice_aws_kms"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "AWS KMS backed Swarmauri certificate service for CSR signing, self-signed roots, X.509 parsing, and certificate verification."
 license = "Apache-2.0"
 readme = "README.md"
