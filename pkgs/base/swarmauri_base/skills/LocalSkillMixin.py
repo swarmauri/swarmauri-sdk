@@ -7,9 +7,10 @@ from pydantic import BaseModel, ConfigDict
 
 from swarmauri_base.skills.FileSystemSkillMixin import FileSystemSkillMixin
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 
-class LocalSkillMixin(BaseModel):
+class LocalSkillMixin(ISkillLoader, BaseModel):
     """Resolve skills from deterministic local skill roots."""
 
     skill_name: str | None = None

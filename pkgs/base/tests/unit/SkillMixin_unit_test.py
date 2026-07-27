@@ -1,13 +1,22 @@
 from typing import Literal
 
 import pytest
-from pydantic import ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 from swarmauri_base.skills import (
     FileSystemSkillMixin,
     LocalSkillMixin,
     SkillBase,
+    SkillLoaderBase,
 )
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
+
+
+def test_skill_loader_inheritance_contract():
+    assert SkillLoaderBase.__bases__ == (ISkillLoader, ComponentBase)
+    assert FileSystemSkillMixin.__bases__ == (ISkillLoader, BaseModel)
+    assert LocalSkillMixin.__bases__ == (ISkillLoader, BaseModel)
 
 
 class MixinSkill(LocalSkillMixin, FileSystemSkillMixin, SkillBase):

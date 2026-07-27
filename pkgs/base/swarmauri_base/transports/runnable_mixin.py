@@ -4,10 +4,12 @@ import asyncio
 import inspect
 from typing import Any, Optional
 
+from pydantic import BaseModel
+
 from swarmauri_core.transports.i_runnable import Handler, IRunnable, Role
 
 
-class RunnableMixin(IRunnable):
+class RunnableMixin(IRunnable, BaseModel):
     """Adds synchronous and asynchronous run helpers to a transport."""
 
     async def _run_async(

@@ -9,9 +9,10 @@ from pydantic import BaseModel, ConfigDict
 from swarmauri_base.skills.SkillBase import SkillBase
 from swarmauri_base.skills.SkillLoaderBase import SkillLoaderBase
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 
-class FileSystemSkillMixin(SkillLoaderBase, BaseModel):
+class FileSystemSkillMixin(ISkillLoader, BaseModel):
     """Load Agent Skills packages from a filesystem root."""
 
     root_path: str | None = None
@@ -25,7 +26,7 @@ class FileSystemSkillMixin(SkillLoaderBase, BaseModel):
                 records.extend(cls.discover(item))
             return records
 
-        root = cls.resolve_root(source)
+        root = SkillLoaderBase.resolve_root(source)
         skill_md = root / "SKILL.md"
         if not skill_md.is_file():
             records: List[SkillMetadata] = []
@@ -66,7 +67,7 @@ class FileSystemSkillMixin(SkillLoaderBase, BaseModel):
         skill_name: str | None = None,
         **overrides: Any,
     ):
-        root = cls.resolve_root(source)
+        root = SkillLoaderBase.resolve_root(source)
         skill_md = root / "SKILL.md"
         if not skill_md.is_file():
             raise FileNotFoundError(
@@ -102,8 +103,10 @@ class FileSystemSkillMixin(SkillLoaderBase, BaseModel):
         root_path = getattr(skill, "root_path", None)
         if not root_path:
             raise ValueError(f"Skill '{skill.name}' does not define root_path")
-        root = cls.resolve_root(root_path)
-        candidate = cls.ensure_contained(root, root / relative_path)
+        root = SkillLoaderBase.resolve_root(root_path)
+        candidate = SkillLoaderBase.ensure_contained(
+            root, root / relative_path
+        )
         if not candidate.is_file():
             raise FileNotFoundError(
                 f"Skill resource does not exist: {relative_path}"

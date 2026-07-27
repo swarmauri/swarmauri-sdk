@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 
-class SkillLoaderBase(ISkillLoader):
+class SkillLoaderBase(ISkillLoader, ComponentBase):
     """Shared provider-neutral loader helpers."""
 
     @staticmethod
