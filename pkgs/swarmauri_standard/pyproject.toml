@@ -117,7 +117,10 @@ ignore = [
     "TRY002",
     "TRY004",
     "TRY203",
+    "UP006",
     "UP007",
+    "UP035",
+    "UP045",
 ]
 [tool.pytest.ini_options]
 timeout = 5

@@ -75,18 +75,20 @@ class OpenRouterTransport:
         self, path: str, payload: dict[str, Any]
     ) -> AsyncIterator[dict]:
         """Yield asynchronously decoded server-sent event payloads."""
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            async with client.stream(
+        async with (
+            httpx.AsyncClient(timeout=self.timeout) as client,
+            client.stream(
                 "POST",
                 f"{self.base_url}/{path.lstrip('/')}",
                 headers=self.headers,
                 json=payload,
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    event = self._decode_sse_line(line)
-                    if event is not None:
-                        yield event
+            ) as response,
+        ):
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                event = self._decode_sse_line(line)
+                if event is not None:
+                    yield event
 
     @staticmethod
     def _decode_sse_line(line: str) -> dict[str, Any] | None:

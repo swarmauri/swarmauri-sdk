@@ -30,6 +30,7 @@ class OpenRouterToolModel(ToolLLMBase):
     api_key: SecretStr = Field(exclude=True)
     name: str = "openrouter/auto"
     type: Literal["OpenRouterToolModel"] = "OpenRouterToolModel"
+    BASE_URL: str = "https://openrouter.ai/api/v1"
     base_url: str = "https://openrouter.ai/api/v1"
     site_url: str | None = None
     app_name: str | None = None
@@ -59,6 +60,13 @@ class OpenRouterToolModel(ToolLLMBase):
     def get_schema_converter(self) -> Type[SchemaConverterBase]:
         """Return the OpenAI-compatible tool schema converter."""
         return OpenAISchemaConverter
+
+    def _schema_convert_tools(
+        self, tools: dict[str, Any]
+    ) -> list[dict[str, Any]]:
+        """Convert tools with an instantiated schema converter."""
+        converter = self.get_schema_converter()()
+        return [converter.convert(tool) for tool in tools.values()]
 
     def _payload(
         self, conversation: Any, toolkit: Any, tool_choice: Any, **kwargs: Any

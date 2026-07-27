@@ -183,6 +183,7 @@ members = [
     "experimental/swarmauri_crypto_sodium",
     "deprecated/swarmauri_experimental",
     "experimental/swarmauri_keyprovider_pkcs11",
+    "experimental/swarmauri_tests_component",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
@@ -621,6 +622,7 @@ swarmauri_storage_s3 = { workspace = true }
 swarmauri_storage_s3_over_sftp = { workspace = true }
 swarmauri_storage_s3fs = { workspace = true }
 swarmauri_tests_griffe = { workspace = true }
+swarmauri_tests_component = { workspace = true }
 swarmauri_tests_loc_tersity = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 swarmauri_tests_readme_examples = { workspace = true }
