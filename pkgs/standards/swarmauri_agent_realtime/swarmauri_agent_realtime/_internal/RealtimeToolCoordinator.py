@@ -1,4 +1,3 @@
-from typing import Optional
 
 from swarmauri_base.live_models.events.ToolCallEvent import ToolCallEvent
 from swarmauri_base.live_models.events.ToolCancellationEvent import (
@@ -11,7 +10,7 @@ from swarmauri_core.toolkits.IToolkit import IToolkit
 
 class RealtimeToolCoordinator:
     def __init__(
-        self, executor: ToolExecutorBase, toolkit: Optional[IToolkit]
+        self, executor: ToolExecutorBase, toolkit: IToolkit | None
     ) -> None:
         self.executor = executor
         self.toolkit = toolkit

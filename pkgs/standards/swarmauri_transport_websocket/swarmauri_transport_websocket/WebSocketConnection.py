@@ -2,7 +2,6 @@ import asyncio
 from typing import Any
 
 from pydantic import PrivateAttr
-
 from swarmauri_base.transports.websocket.WebSocketConnectionBase import (
     WebSocketConnectionBase,
 )

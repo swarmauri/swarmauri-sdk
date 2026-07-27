@@ -1,8 +1,8 @@
+from collections.abc import AsyncIterator, Iterator, Mapping
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncIterator, Iterator, Mapping, Optional
+from typing import Any
 
 import httpx
-
 from swarmauri_base.transports.http.HttpClientBase import HttpClientBase
 
 from .AsyncHttpxStreamResponse import AsyncHttpxStreamResponse
@@ -16,7 +16,7 @@ class HttpxClient(HttpClientBase):
         method: str,
         path: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> HttpxResponse:
@@ -35,7 +35,7 @@ class HttpxClient(HttpClientBase):
         method: str,
         path: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> HttpxResponse:
@@ -55,7 +55,7 @@ class HttpxClient(HttpClientBase):
         method: str,
         path: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> Iterator[HttpxStreamResponse]:
@@ -75,7 +75,7 @@ class HttpxClient(HttpClientBase):
         method: str,
         path: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> AsyncIterator[AsyncHttpxStreamResponse]:

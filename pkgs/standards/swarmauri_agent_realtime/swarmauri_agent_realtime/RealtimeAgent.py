@@ -9,12 +9,12 @@ from swarmauri_base.live_models.events.TurnCompleteEvent import (
     TurnCompleteEvent,
 )
 
-from .RealtimeAgentRunResult import RealtimeAgentRunResult
 from ._internal.RealtimeToolCoordinator import RealtimeToolCoordinator
 from ._internal.RealtimeTurnAccumulator import RealtimeTurnAccumulator
 from ._internal.SwarmauriConversationAdapter import (
     SwarmauriConversationAdapter,
 )
+from .RealtimeAgentRunResult import RealtimeAgentRunResult
 
 
 class RealtimeAgent(RealtimeAgentBase):

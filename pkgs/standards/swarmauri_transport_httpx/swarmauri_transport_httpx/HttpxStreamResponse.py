@@ -2,7 +2,6 @@ from collections.abc import Iterator
 from typing import Any
 
 from pydantic import PrivateAttr
-
 from swarmauri_base.transports.http.HttpStreamResponseBase import (
     HttpStreamResponseBase,
 )

@@ -2,7 +2,6 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from pydantic import PrivateAttr
-
 from swarmauri_base.transports.http.AsyncHttpStreamResponseBase import (
     AsyncHttpStreamResponseBase,
 )

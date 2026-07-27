@@ -8,6 +8,7 @@ from swarmauri_base.live_models.events.TurnCompleteEvent import (
     TurnCompleteEvent,
 )
 from swarmauri_base.live_models.events.UsageEvent import UsageEvent
+
 from swarmauri_agent_realtime._internal.RealtimeTurnAccumulator import (
     RealtimeTurnAccumulator,
 )

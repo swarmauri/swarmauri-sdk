@@ -1,7 +1,8 @@
 import asyncio
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from time import monotonic
-from typing import Any, AsyncIterator, Awaitable, Callable, Optional
+from typing import Any
 
 from .LiveSessionEntry import LiveSessionEntry
 
@@ -91,7 +92,7 @@ class LiveSessionPool:
     async def release(
         self, conversation_id: str, *, invalidate: bool = False
     ) -> None:
-        close_session: Optional[Any] = None
+        close_session: Any | None = None
         async with self._lock:
             entry = self._entries.get(conversation_id)
             if entry is None:

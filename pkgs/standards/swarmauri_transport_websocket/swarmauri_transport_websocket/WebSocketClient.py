@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from swarmauri_base.transports.websocket.WebSocketClientBase import (
     WebSocketClientBase,
@@ -12,8 +13,8 @@ class WebSocketClient(WebSocketClientBase):
         self,
         url: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
-        subprotocols: Optional[Sequence[str]] = None,
+        headers: Mapping[str, str] | None = None,
+        subprotocols: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> WebSocketConnection:
         from websockets.sync.client import connect
@@ -31,8 +32,8 @@ class WebSocketClient(WebSocketClientBase):
         self,
         url: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
-        subprotocols: Optional[Sequence[str]] = None,
+        headers: Mapping[str, str] | None = None,
+        subprotocols: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> WebSocketConnection:
         from websockets.asyncio.client import connect
