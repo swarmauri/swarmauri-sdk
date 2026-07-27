@@ -4,12 +4,11 @@ from contextlib import suppress
 from typing import Any
 
 from pydantic import PrivateAttr
-
-from swarmauri_base.live_models.LiveInputBase import LiveInputBase
-from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
 )
+from swarmauri_base.live_models.LiveInputBase import LiveInputBase
+from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
 from swarmauri_core.transports import IWebSocketConnection
 
 from .OpenAIRealtimeCodec import OpenAIRealtimeCodec

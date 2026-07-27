@@ -1,7 +1,6 @@
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import Field, SecretStr, model_validator
-
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 
 from .AmazonNovaEndpoints import AmazonNovaEndpoints
@@ -11,10 +10,10 @@ from .AmazonNovaModelCatalog import AmazonNovaModelCatalog
 
 class AmazonNovaProvider(ModelProviderBase):
     provider_name: Literal["amazon_nova"] = "amazon_nova"
-    access_key_id: Optional[SecretStr] = Field(default=None, exclude=True)
-    secret_access_key: Optional[SecretStr] = Field(default=None, exclude=True)
-    session_token: Optional[SecretStr] = Field(default=None, exclude=True)
-    profile: Optional[str] = None
+    access_key_id: SecretStr | None = Field(default=None, exclude=True)
+    secret_access_key: SecretStr | None = Field(default=None, exclude=True)
+    session_token: SecretStr | None = Field(default=None, exclude=True)
+    profile: str | None = None
     endpoints: AmazonNovaEndpoints = Field(default_factory=AmazonNovaEndpoints)
     catalog: AmazonNovaModelCatalog = Field(
         default_factory=AmazonNovaModelCatalog
@@ -31,7 +30,7 @@ class AmazonNovaProvider(ModelProviderBase):
         self.base_url = self.base_url or self.endpoints.runtime_url()
         return self
 
-    def connection_options(self) -> Dict[str, Any]:
+    def connection_options(self) -> dict[str, Any]:
         options = super().connection_options()
         options.update({"region": self.region, "profile": self.profile})
         for name in ("access_key_id", "secret_access_key", "session_token"):

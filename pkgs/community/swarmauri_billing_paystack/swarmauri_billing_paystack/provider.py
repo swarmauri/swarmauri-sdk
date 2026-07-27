@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from pydantic import Field, PrivateAttr, SecretStr
-
 from swarmauri_base.billing import (
     BillingProviderBase,
     CheckoutIntentRef,
     CheckoutRequest,
     HostedCheckoutMixin,
-    InvoicingMixin,
     InvoiceSpec,
+    InvoicingMixin,
     MarketplaceMixin,
     OnlinePaymentsMixin,
     PaymentIntentRequest,
@@ -26,8 +26,8 @@ from swarmauri_base.billing import (
     RefundsMixin,
     RiskMixin,
     SplitSpec,
-    SubscriptionSpec,
     SubscriptionsMixin,
+    SubscriptionSpec,
 )
 
 
@@ -189,7 +189,7 @@ class PaystackBillingProvider(
         return ref
 
     def _capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> PaymentRef:
         ref = PaymentRef(
             id=payment_id,
@@ -203,8 +203,8 @@ class PaystackBillingProvider(
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> PaymentRef:
         ref = PaymentRef(
             id=payment_id,

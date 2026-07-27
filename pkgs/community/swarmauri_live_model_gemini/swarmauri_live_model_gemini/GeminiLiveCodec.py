@@ -1,9 +1,7 @@
 import base64
 import json
-from typing import Any, Dict, List
+from typing import Any
 
-from swarmauri_base.live_models.LiveEventBase import LiveEventBase
-from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
 from swarmauri_base.live_models.events.InputTranscriptDeltaEvent import (
     InputTranscriptDeltaEvent,
@@ -26,6 +24,8 @@ from swarmauri_base.live_models.events.TurnCompleteEvent import (
     TurnCompleteEvent,
 )
 from swarmauri_base.live_models.events.UsageEvent import UsageEvent
+from swarmauri_base.live_models.LiveEventBase import LiveEventBase
+from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 
 
 class GeminiLiveCodec:
@@ -67,9 +67,9 @@ class GeminiLiveCodec:
             )
         return json.dumps(payload)
 
-    def decode(self, message: str | bytes) -> List[LiveEventBase]:
-        data: Dict[str, Any] = json.loads(message)
-        events: List[LiveEventBase] = []
+    def decode(self, message: str | bytes) -> list[LiveEventBase]:
+        data: dict[str, Any] = json.loads(message)
+        events: list[LiveEventBase] = []
         server = data.get("serverContent", {})
         model_turn = server.get("modelTurn", {})
         correlation = {"provider_event_id": data.get("id")}

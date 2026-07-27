@@ -1,8 +1,8 @@
-from typing import Any, Dict
+from typing import Any
 
 
 class GeminiToolSchemaConverter:
-    def convert(self, tool: Any) -> Dict[str, Any]:
+    def convert(self, tool: Any) -> dict[str, Any]:
         parameters = getattr(tool, "parameters", [])
         properties = {
             parameter.name: {

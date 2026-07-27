@@ -1,4 +1,5 @@
 import base64
+
 from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,

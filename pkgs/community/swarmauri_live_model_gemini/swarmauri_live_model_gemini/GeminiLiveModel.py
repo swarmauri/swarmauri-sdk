@@ -2,7 +2,6 @@ from typing import Any, Literal
 from urllib.parse import quote
 
 from pydantic import ConfigDict, Field
-
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )

@@ -1,5 +1,6 @@
 from typing import Any, Literal
 from urllib.parse import urlencode
+
 from pydantic import ConfigDict, Field
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
@@ -8,6 +9,7 @@ from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 from swarmauri_base.live_models.LiveModelBase import LiveModelBase
 from swarmauri_provider_openai import OpenAIProvider
 from swarmauri_transport_websocket import WebSocketClient
+
 from .OpenAIRealtimeConfigMapper import OpenAIRealtimeConfigMapper
 from .OpenAIRealtimeSession import OpenAIRealtimeSession
 

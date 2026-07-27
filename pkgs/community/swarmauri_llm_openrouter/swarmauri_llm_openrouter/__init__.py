@@ -2,12 +2,12 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from ._internal.catalog import OpenRouterModelCatalog
+from ._internal.routing import OpenRouterProviderPreferences
 from .OpenRouterImgGenModel import OpenRouterImgGenModel
 from .OpenRouterModel import OpenRouterModel
 from .OpenRouterToolModel import OpenRouterToolModel
 from .OpenRouterVLM import OpenRouterVLM
-from ._internal.catalog import OpenRouterModelCatalog
-from ._internal.routing import OpenRouterProviderPreferences
 
 __all__ = [
     "OpenRouterImgGenModel",

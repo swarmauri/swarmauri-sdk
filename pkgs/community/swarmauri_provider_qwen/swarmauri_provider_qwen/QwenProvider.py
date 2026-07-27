@@ -1,6 +1,8 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
+
 from pydantic import Field, model_validator
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
+
 from .QwenEndpoints import QwenEndpoints
 from .QwenErrorMapper import QwenErrorMapper
 from .QwenModelCatalog import QwenModelCatalog
@@ -18,7 +20,7 @@ class QwenProvider(ModelProviderBase):
         self.base_url = self.base_url or self.endpoints.base_url
         return self
 
-    def connection_options(self) -> Dict[str, Any]:
+    def connection_options(self) -> dict[str, Any]:
         options = super().connection_options()
         if self.api_key:
             options["api_key"] = self.api_key.get_secret_value()

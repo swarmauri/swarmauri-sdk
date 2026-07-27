@@ -1,8 +1,8 @@
-from typing import Any, Dict
+from typing import Any
 
 
 class AmazonNovaToolSchemaConverter:
-    def convert(self, tool: Any) -> Dict[str, Any]:
+    def convert(self, tool: Any) -> dict[str, Any]:
         return {
             "toolSpec": {
                 "name": tool.name,

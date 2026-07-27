@@ -2,11 +2,10 @@ import asyncio
 from contextlib import suppress
 
 from pydantic import PrivateAttr
-
-from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
 )
+from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
 
 from .NovaSonicCodec import NovaSonicCodec
 

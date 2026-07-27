@@ -1,9 +1,10 @@
 """Provide OpenRouter client-side tool-calling support."""
 
 import asyncio
+import builtins
 import json
 from collections.abc import AsyncIterator, Iterator
-from typing import Any, Literal, Type
+from typing import Any, Literal
 
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
@@ -57,7 +58,7 @@ class OpenRouterToolModel(ToolLLMBase):
         """Return an explicit live model-discovery client."""
         return OpenRouterModelCatalog(self._transport)
 
-    def get_schema_converter(self) -> Type[SchemaConverterBase]:
+    def get_schema_converter(self) -> builtins.type[SchemaConverterBase]:
         """Return the OpenAI-compatible tool schema converter."""
         return OpenAISchemaConverter
 

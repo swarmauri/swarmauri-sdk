@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_live_model_xai"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "xAI realtime bidirectional model adapter for Swarmauri."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

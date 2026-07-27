@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_provider_qwen"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Aggregated Qwen provider resources for Swarmauri models."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

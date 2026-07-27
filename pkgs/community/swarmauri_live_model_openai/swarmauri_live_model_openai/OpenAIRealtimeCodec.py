@@ -1,9 +1,7 @@
 import base64
 import json
-from typing import Any, Dict, List
+from typing import Any
 
-from swarmauri_base.live_models.LiveEventBase import LiveEventBase
-from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
 from swarmauri_base.live_models.events.InputTranscriptDeltaEvent import (
     InputTranscriptDeltaEvent,
@@ -23,10 +21,12 @@ from swarmauri_base.live_models.events.TurnCompleteEvent import (
     TurnCompleteEvent,
 )
 from swarmauri_base.live_models.events.UsageEvent import UsageEvent
+from swarmauri_base.live_models.LiveEventBase import LiveEventBase
+from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 
 
 class OpenAIRealtimeCodec:
-    def encode(self, input_data: LiveInputBase) -> List[str]:
+    def encode(self, input_data: LiveInputBase) -> list[str]:
         if input_data.kind == "text":
             return [
                 json.dumps(
@@ -100,8 +100,8 @@ class OpenAIRealtimeCodec:
             f"Unsupported OpenAI realtime input: {input_data.kind}"
         )
 
-    def decode(self, message: str | bytes) -> List[LiveEventBase]:
-        data: Dict[str, Any] = json.loads(message)
+    def decode(self, message: str | bytes) -> list[LiveEventBase]:
+        data: dict[str, Any] = json.loads(message)
         kind = data.get("type", "")
         correlation = {
             "provider_event_id": data.get("event_id"),
@@ -158,7 +158,7 @@ class OpenAIRealtimeCodec:
                 )
             ]
         if kind == "response.done":
-            events: List[LiveEventBase] = [
+            events: list[LiveEventBase] = [
                 TurnCompleteEvent(correlation=correlation)
             ]
             usage = data.get("response", {}).get("usage")

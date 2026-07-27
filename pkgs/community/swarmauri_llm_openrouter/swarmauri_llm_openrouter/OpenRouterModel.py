@@ -2,7 +2,7 @@
 
 import asyncio
 from collections.abc import AsyncIterator, Iterator
-from typing import Any, ClassVar, FrozenSet, Literal
+from typing import Any, ClassVar, Literal
 
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
@@ -32,7 +32,7 @@ class OpenRouterModel(LLMBase):
     app_name: str | None = None
     provider: OpenRouterProviderPreferences | None = None
     allowed_models: list[str] = Field(default_factory=list)
-    capabilities: ClassVar[FrozenSet[str]] = frozenset(
+    capabilities: ClassVar[frozenset[str]] = frozenset(
         {"predict", "apredict", "stream", "astream", "batch", "abatch"}
     )
     _transport: OpenRouterTransport = PrivateAttr()

@@ -1,5 +1,6 @@
 import base64
 import json
+
 from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
 from swarmauri_base.live_models.events.OutputTranscriptDeltaEvent import (
     OutputTranscriptDeltaEvent,
