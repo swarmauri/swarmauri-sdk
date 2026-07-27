@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_openrouter"
-version = "0.1.0.dev2"
+version = "0.1.0.dev3"
 description = "OpenRouter models for Swarmauri chat, tool-calling, vision-language, and image-generation workflows."
 license = "Apache-2.0"
 readme = "README.md"
