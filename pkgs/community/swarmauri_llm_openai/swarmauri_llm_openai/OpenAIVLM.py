@@ -4,7 +4,8 @@ from pydantic import SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.vlms.VLMBase import VLMBase
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.llms.OpenAIModel import OpenAIModel
+from swarmauri_provider_openai import OpenAIProvider
+from .OpenAIModel import OpenAIModel
 
 
 @ComponentBase.register_type(VLMBase, "OpenAIVLM")
@@ -20,7 +21,8 @@ class OpenAIVLM(VLMBase):
         timeout: Request timeout in seconds.
     """
 
-    api_key: SecretStr
+    api_key: Optional[SecretStr] = None
+    provider: Optional[OpenAIProvider] = None
     allowed_models: List[str] = [
         *OpenAIModel.model_fields["allowed_models"].default
     ]
@@ -31,6 +33,7 @@ class OpenAIVLM(VLMBase):
     def _delegate(self) -> OpenAIModel:
         return OpenAIModel(
             api_key=self.api_key,
+            provider=self.provider,
             name=self.name,
             timeout=self.timeout,
         )

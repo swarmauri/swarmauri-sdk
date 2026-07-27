@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.transports.i_http_client import IHttpClient
 
 
-class HttpClientMixin(IHttpClient, BaseModel):
-    """Pydantic mixin for HTTP client transports."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
+class HttpClientMixin(IHttpClient):
+    """Compatibility interface mixin for HTTP client transports."""

@@ -4,13 +4,14 @@ from typing import Any, List, Literal, Optional
 
 from pydantic import ConfigDict, model_validator, Field
 
+from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.utils.allowed_models import is_model_allowed
 from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
 
 
 @ComponentBase.register_model()
-class TTSBase(ITextToSpeech, ComponentBase):
+class TTSBase(ITextToSpeech, ModelBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(
         default=ResourceTypes.TTS.value, frozen=True

@@ -28,6 +28,8 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "swarmauri_transport_httpx",
+    "swarmauri_provider_openai",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
@@ -55,6 +57,8 @@ keywords = [
 ]
 
 [tool.uv.sources]
+swarmauri_transport_httpx = { workspace = true }
+swarmauri_provider_openai = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }

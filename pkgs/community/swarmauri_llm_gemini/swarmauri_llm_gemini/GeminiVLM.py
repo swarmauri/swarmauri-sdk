@@ -1,10 +1,11 @@
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from pydantic import SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.vlms.VLMBase import VLMBase
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.llms.GeminiProModel import GeminiProModel
+from swarmauri_provider_gemini import GeminiProvider
+from .GeminiProModel import GeminiProModel
 
 
 @ComponentBase.register_type(VLMBase, "GeminiVLM")
@@ -14,7 +15,8 @@ class GeminiVLM(VLMBase):
     multimodal image-first workflows.
     """
 
-    api_key: SecretStr
+    api_key: Optional[SecretStr] = None
+    provider: Optional[GeminiProvider] = None
     allowed_models: List[str] = [
         *GeminiProModel.model_fields["allowed_models"].default
     ]
@@ -25,6 +27,7 @@ class GeminiVLM(VLMBase):
     def _delegate(self) -> GeminiProModel:
         return GeminiProModel(
             api_key=self.api_key,
+            provider=self.provider,
             name=self.name,
             timeout=self.timeout,
         )

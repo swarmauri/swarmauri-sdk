@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 from typing import Dict, List, Optional, Tuple
 
-from swarmauri_base.transports.http_client_mixin import HttpClientMixin
 from swarmauri_base.transports.http_server_mixin import HttpServerMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
@@ -17,9 +16,7 @@ Bytes = bytes
 Headers = Dict[str, str]
 
 
-class H2Transport(
-    TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
-):
+class H2Transport(TransportBase, RunnableMixin, HttpServerMixin):
     """HTTP/2 transport adapter that layers HTTP semantics on top of
     ``H2MuxTransport``."""
 
@@ -81,7 +78,7 @@ class H2Transport(
     ) -> Tuple[int, Headers, Bytes]:
         owned = False
         if channel is None:
-            channel = await self._mux.open_channel()
+            channel = await self._mux.aopen_channel()
             owned = True
 
         header_block = [
@@ -141,17 +138,17 @@ class H2Transport(
                 ):
                     await self._mux._flush()
                     if owned:
-                        await self._mux.close_channel(channel)
+                        await self._mux.aclose_channel(channel)
                     return status or 200, response_headers, b"".join(payload)
                 elif (
                     isinstance(event, StreamReset)
                     and event.stream_id == channel
                 ):
                     if owned:
-                        await self._mux.close_channel(channel)
+                        await self._mux.aclose_channel(channel)
                     raise RuntimeError("HTTP/2 stream reset")
             await self._mux._flush()
 
         if owned:
-            await self._mux.close_channel(channel)
+            await self._mux.aclose_channel(channel)
         return status or 500, response_headers, b"".join(payload)

@@ -1,0 +1,21 @@
+[project]
+name = "swarmauri_provider_qwen"
+version = "0.1.0.dev1"
+description = "Aggregated Qwen provider resources for Swarmauri models."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = ["swarmauri_core", "swarmauri_base"]
+classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
+keywords = ["swarmauri", "provider", "qwen", "dashscope", "realtime"]
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+[project.entry-points."swarmauri.model_providers"]
+QwenProvider = "swarmauri_provider_qwen:QwenProvider"
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]

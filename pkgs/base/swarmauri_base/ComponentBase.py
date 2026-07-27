@@ -57,6 +57,9 @@ class ResourceTypes(Enum):
     UNIVERSAL_BASE = "ComponentBase"
     AGENT = "Agent"
     AGENT_FACTORY = "AgentFactory"
+    MODEL = "Model"
+    MODEL_PROVIDER = "ModelProvider"
+    LIVE_MODEL = "LiveModel"
     CHAIN = "Chain"
     CHAIN_METHOD = "ChainMethod"
     CHUNKER = "Chunker"
@@ -137,5 +140,3 @@ class ResourceTypes(Enum):
     OAuth21Login = "OAuth21Login"
     OIDC10AppClient = "OIDC10AppClient"
     OIDC10Login = "OIDC10Login"
-
-

@@ -64,6 +64,18 @@ order_source = "inferred"
 order_reason = "foundation layers are atomic by policy"
 
 [[packages]]
+name = "swarmauri_agent_realtime"
+path = "standards/swarmauri_agent_realtime"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_agent_texttospeech"
 path = "standards/swarmauri_agent_texttospeech"
 layer = "40-standards"
@@ -1792,8 +1804,8 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_transport_h2"
-path = "standards/swarmauri_transport_h2"
+name = "swarmauri_transport_h2mux"
+path = "standards/swarmauri_transport_h2mux"
 layer = "40-standards"
 order = 0
 family = "transport"
@@ -1804,8 +1816,8 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_transport_h2mux"
-path = "standards/swarmauri_transport_h2mux"
+name = "swarmauri_transport_httpx"
+path = "standards/swarmauri_transport_httpx"
 layer = "40-standards"
 order = 0
 family = "transport"
@@ -1926,6 +1938,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_transport_uds_unicast"
 path = "standards/swarmauri_transport_uds_unicast"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_websocket"
+path = "standards/swarmauri_transport_websocket"
 layer = "40-standards"
 order = 0
 family = "transport"
@@ -2194,6 +2218,19 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "composite signal from metadata for swarmauri_tokens_composite"
+
+[[packages]]
+name = "swarmauri_transport_h2"
+path = "standards/swarmauri_transport_h2"
+layer = "40-standards"
+order = 1
+family = "transport"
+role = "composite-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 1 because it depends on same-layer package swarmauri_transport_h2mux at 40.0"
+composes = ["swarmauri_transport_h2mux"]
 
 [[packages]]
 name = "swarmauri_tts_playht"
@@ -2683,18 +2720,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_llm_gemini"
-path = "community/swarmauri_llm_gemini"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_llm_groq"
 path = "community/swarmauri_llm_groq"
 layer = "50-community"
@@ -2767,18 +2792,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_llm_openai"
-path = "community/swarmauri_llm_openai"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_llm_perplexity"
 path = "community/swarmauri_llm_perplexity"
 layer = "50-community"
@@ -2806,18 +2819,6 @@ composes = ["swarmauri_tts_playht"]
 [[packages]]
 name = "swarmauri_llm_whisper"
 path = "community/swarmauri_llm_whisper"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
-name = "swarmauri_llm_xai"
-path = "community/swarmauri_llm_xai"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2977,6 +2978,66 @@ path = "community/swarmauri_parser_textblob"
 layer = "50-community"
 order = 0
 family = "parser"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_provider_amazon_nova"
+path = "community/swarmauri_provider_amazon_nova"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_provider_gemini"
+path = "community/swarmauri_provider_gemini"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_provider_openai"
+path = "community/swarmauri_provider_openai"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_provider_qwen"
+path = "community/swarmauri_provider_qwen"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_provider_xai"
+path = "community/swarmauri_provider_xai"
+layer = "50-community"
+order = 0
+family = "provider"
 role = "atomic-concrete"
 maturity = "community"
 workspace = true
@@ -3613,6 +3674,122 @@ workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
 composes = ["swarmauri_embedding_doc2vec"]
+
+[[packages]]
+name = "swarmauri_live_model_amazon_nova"
+path = "community/swarmauri_live_model_amazon_nova"
+layer = "50-community"
+order = 1
+family = "live"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_amazon_nova", "swarmauri_transport_h2"]
+
+[[packages]]
+name = "swarmauri_live_model_gemini"
+path = "community/swarmauri_live_model_gemini"
+layer = "50-community"
+order = 1
+family = "live"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_gemini", "swarmauri_transport_websocket"]
+
+[[packages]]
+name = "swarmauri_live_model_openai"
+path = "community/swarmauri_live_model_openai"
+layer = "50-community"
+order = 1
+family = "live"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_openai", "swarmauri_transport_websocket"]
+
+[[packages]]
+name = "swarmauri_live_model_qwen"
+path = "community/swarmauri_live_model_qwen"
+layer = "50-community"
+order = 1
+family = "live"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_qwen", "swarmauri_transport_websocket"]
+
+[[packages]]
+name = "swarmauri_live_model_xai"
+path = "community/swarmauri_live_model_xai"
+layer = "50-community"
+order = 1
+family = "live"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_xai", "swarmauri_transport_websocket"]
+
+[[packages]]
+name = "swarmauri_llm_gemini"
+path = "community/swarmauri_llm_gemini"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_gemini", "swarmauri_transport_httpx"]
+
+[[packages]]
+name = "swarmauri_llm_openai"
+path = "community/swarmauri_llm_openai"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_openai", "swarmauri_transport_httpx"]
+
+[[packages]]
+name = "swarmauri_llm_openrouter"
+path = "community/swarmauri_llm_openrouter"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "composite signal from metadata for swarmauri_llm_openrouter"
+
+[[packages]]
+name = "swarmauri_llm_xai"
+path = "community/swarmauri_llm_xai"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_provider_xai", "swarmauri_transport_httpx"]
 
 [[packages]]
 name = "swarmauri_matrix_hamming74"

@@ -14,9 +14,15 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["httpx>=0.27", "swarmauri_base", "swarmauri_standard"]
+dependencies = [
+    "swarmauri_transport_httpx",
+    "swarmauri_provider_xai",
+    "swarmauri_core","httpx>=0.27", "swarmauri_base", "swarmauri_standard"]
 
 [tool.uv.sources]
+swarmauri_transport_httpx = { workspace = true }
+swarmauri_provider_xai = { workspace = true }
+swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 

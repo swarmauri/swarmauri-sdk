@@ -1,0 +1,23 @@
+[project]
+name = "swarmauri_live_model_amazon_nova"
+version = "0.1.0.dev1"
+description = "Amazon Nova Sonic bidirectional HTTP/2 model adapter for Swarmauri."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_provider_amazon_nova", "swarmauri_transport_h2"]
+classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
+keywords = ["swarmauri", "amazon nova", "nova sonic", "audio", "http2"]
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_provider_amazon_nova = { workspace = true }
+swarmauri_transport_h2 = { workspace = true }
+[project.entry-points."swarmauri.live_models"]
+NovaSonicLiveModel = "swarmauri_live_model_amazon_nova:NovaSonicLiveModel"
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
