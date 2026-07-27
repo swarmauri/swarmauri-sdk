@@ -5,6 +5,7 @@ from .LiveEventBase import LiveEventBase
 from .LiveInputBase import LiveInputBase
 from .LiveModelBase import LiveModelBase
 from .LiveSessionBase import LiveSessionBase
+from .LiveSessionRuntime import LiveSessionRuntime
 from .LiveSessionState import LiveSessionState
 from .SyncLiveSessionBase import SyncLiveSessionBase
 from .events import *  # noqa: F403
@@ -21,6 +22,7 @@ __all__ = (
         "LiveInputBase",
         "LiveModelBase",
         "LiveSessionBase",
+        "LiveSessionRuntime",
         "LiveSessionState",
         "SyncLiveSessionBase",
     ]

@@ -8,6 +8,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.model_providers.IModelProvider import IModelProvider
 
 from .ModelCatalogBase import ModelCatalogBase
+from .ProviderConnectionConfigBase import ProviderConnectionConfigBase
 from .ProviderErrorMapperBase import ProviderErrorMapperBase
 
 
@@ -31,7 +32,6 @@ class ModelProviderBase(IModelProvider, ComponentBase):
         default=ResourceTypes.MODEL_PROVIDER.value, frozen=True
     )
     type: Literal["ModelProviderBase"] = "ModelProviderBase"
-
     model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
 
     def connection_options(self) -> Dict[str, Any]:
@@ -39,3 +39,14 @@ class ModelProviderBase(IModelProvider, ComponentBase):
         options.setdefault("timeout", self.timeout)
         options.setdefault("max_retries", self.max_retries)
         return options
+
+    def connection_config(
+        self,
+        capability: str,
+        model: Optional[str] = None,
+    ) -> ProviderConnectionConfigBase:
+        return ProviderConnectionConfigBase(
+            endpoint=self.base_url,
+            headers=dict(self.default_headers),
+            transport_options=self.connection_options(),
+        )

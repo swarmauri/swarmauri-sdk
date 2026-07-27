@@ -1,23 +1,3 @@
-from typing import Optional
-from pydantic import model_validator
-from swarmauri_provider_gemini import GeminiProvider
-from swarmauri_standard.llms.GeminiToolModel import (
-    GeminiToolModel as _GeminiToolModel,
-)
-
-
-class GeminiToolModel(_GeminiToolModel):
-    provider: Optional[GeminiProvider] = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def apply_provider(cls, data):
-        if isinstance(data, dict) and isinstance(
-            data.get("provider"), GeminiProvider
-        ):
-            provider = data["provider"]
-            data.setdefault("api_key", provider.api_key)
-        return data
-
+from swarmauri_standard.llms.GeminiToolModel import GeminiToolModel
 
 __all__ = ["GeminiToolModel"]

@@ -1,8 +1,12 @@
 import asyncio
 import json
 from contextlib import suppress
+
 from pydantic import PrivateAttr
+
 from swarmauri_base.live_models import LiveSessionBase
+from swarmauri_base.live_models.events import SessionErrorEvent
+
 from .QwenOmniRealtimeCodec import QwenOmniRealtimeCodec
 
 
@@ -20,16 +24,24 @@ class QwenOmniRealtimeSession(LiveSessionBase):
         session._receiver = asyncio.create_task(session._receive_loop())
         return session
 
-    async def _receive_loop(self):
-        async for message in self._connection.aiter_messages():
-            for event in self._codec.decode(message):
-                await self.emit(event)
+    async def _receive_loop(self) -> None:
+        try:
+            async for message in self._connection.aiter_messages():
+                for event in self._codec.decode(message):
+                    await self.emit(event)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            await self.emit(SessionErrorEvent(message=str(exc)))
+            await self.fail(exc)
+        else:
+            await self.finish()
 
     async def _asend_impl(self, input_data):
         await self._connection.asend(self._codec.encode(input_data))
 
     async def _aclose_impl(self):
-        if self._receiver:
+        if self._receiver and self._receiver is not asyncio.current_task():
             self._receiver.cancel()
             with suppress(asyncio.CancelledError):
                 await self._receiver

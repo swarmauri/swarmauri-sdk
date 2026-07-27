@@ -13,6 +13,7 @@ class IToolExecutor(ABC):
         *,
         call_id: Optional[str] = None,
         timeout: Optional[float] = None,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> Any: ...
 
     @abstractmethod
@@ -23,6 +24,7 @@ class IToolExecutor(ABC):
         *,
         call_id: Optional[str] = None,
         timeout: Optional[float] = None,
+        context: Optional[Mapping[str, Any]] = None,
     ) -> Any: ...
 
     @abstractmethod

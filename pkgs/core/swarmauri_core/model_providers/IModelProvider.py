@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Any, Mapping, Optional
+
 from .IModelCatalog import IModelCatalog
 from .IProviderErrorMapper import IProviderErrorMapper
 
@@ -15,3 +16,10 @@ class IModelProvider(ABC):
 
     @abstractmethod
     def connection_options(self) -> Mapping[str, Any]: ...
+
+    @abstractmethod
+    def connection_config(
+        self,
+        capability: str,
+        model: Optional[str] = None,
+    ) -> Any: ...

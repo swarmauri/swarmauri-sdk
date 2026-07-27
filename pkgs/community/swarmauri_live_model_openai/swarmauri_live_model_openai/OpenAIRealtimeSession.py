@@ -2,9 +2,13 @@ import asyncio
 import json
 from contextlib import suppress
 from typing import Any
+
 from pydantic import PrivateAttr
+
 from swarmauri_base.live_models import LiveInputBase, LiveSessionBase
+from swarmauri_base.live_models.events import SessionErrorEvent
 from swarmauri_core.transports import IWebSocketConnection
+
 from .OpenAIRealtimeCodec import OpenAIRealtimeCodec
 
 
@@ -17,7 +21,7 @@ class OpenAIRealtimeSession(LiveSessionBase):
 
     @classmethod
     async def create(
-        cls, connection: IWebSocketConnection, setup: dict | None = None
+        cls, connection, setup: dict | None = None
     ) -> "OpenAIRealtimeSession":
         session = cls()
         session._connection = connection
@@ -35,16 +39,20 @@ class OpenAIRealtimeSession(LiveSessionBase):
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            from swarmauri_base.live_models.events import SessionErrorEvent
-
             await self.emit(SessionErrorEvent(message=str(exc)))
+            await self.fail(exc)
+        else:
+            await self.finish()
 
     async def _asend_impl(self, input_data: LiveInputBase) -> None:
         for message in self._codec.encode(input_data):
             await self._connection.asend(message)
 
     async def _aclose_impl(self) -> None:
-        if self._receiver is not None:
+        if (
+            self._receiver is not None
+            and self._receiver is not asyncio.current_task()
+        ):
             self._receiver.cancel()
             with suppress(asyncio.CancelledError):
                 await self._receiver

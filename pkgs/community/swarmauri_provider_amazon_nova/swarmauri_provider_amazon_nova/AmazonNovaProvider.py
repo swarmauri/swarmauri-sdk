@@ -1,6 +1,9 @@
 from typing import Any, Dict, Literal, Optional
+
 from pydantic import Field, SecretStr, model_validator
+
 from swarmauri_base.model_providers import ModelProviderBase
+
 from .AmazonNovaEndpoints import AmazonNovaEndpoints
 from .AmazonNovaErrorMapper import AmazonNovaErrorMapper
 from .AmazonNovaModelCatalog import AmazonNovaModelCatalog
@@ -31,4 +34,8 @@ class AmazonNovaProvider(ModelProviderBase):
     def connection_options(self) -> Dict[str, Any]:
         options = super().connection_options()
         options.update({"region": self.region, "profile": self.profile})
+        for name in ("access_key_id", "secret_access_key", "session_token"):
+            secret = getattr(self, name)
+            if secret is not None:
+                options[name] = secret.get_secret_value()
         return options
