@@ -1,8 +1,22 @@
 """Verify the component conformance package's public and plugin surfaces."""
 
 from importlib.metadata import entry_points, version
+from pathlib import Path
 
-from swarmauri_tests_component import ComponentSpec, PROOFS
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+    import tomli as tomllib
+
+from swarmauri_tests_component import ComponentSpec, PROOFS, __version__
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _project_version() -> str:
+    """Read the package version used for the current test run."""
+    with (PACKAGE_ROOT / "pyproject.toml").open("rb") as pyproject:
+        return tomllib.load(pyproject)["project"]["version"]
 
 
 def test_public_contract_is_importable():
@@ -19,7 +33,9 @@ def test_public_contract_is_importable():
 
 def test_distribution_version_and_pytest_entry_point():
     """Publish valid version metadata and one loadable pytest11 entry point."""
-    assert version("swarmauri_tests_component") == "0.1.0.dev1"
+    project_version = _project_version()
+    assert version("swarmauri_tests_component") == project_version
+    assert __version__ == project_version
     matches = [
         entry
         for entry in entry_points(group="pytest11")

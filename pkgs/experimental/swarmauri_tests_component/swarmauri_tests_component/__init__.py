@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from importlib.metadata import version
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.DynamicBase import DynamicBase
 
 PLUGIN_NAME = __name__.split(".")[0]
+__version__ = version(PLUGIN_NAME)
 PROOFS = (
     "construction",
     "identity",
@@ -200,4 +202,4 @@ def pytest_collection_modifyitems(
             )
 
 
-__all__ = ["ComponentSpec", "PROOFS"]
+__all__ = ["ComponentSpec", "PROOFS", "__version__"]

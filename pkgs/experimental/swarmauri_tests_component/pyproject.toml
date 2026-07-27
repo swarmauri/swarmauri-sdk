@@ -44,6 +44,7 @@ swarmauri_base = { workspace = true }
 dev = [
     "pytest>=8.0",
     "ruff>=0.9.9",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [build-system]
