@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_queryimagevectorstore"
-version = "0.11.0.dev1"
+version = "0.11.0.dev2"
 description = "A Swarmauri tool for ranked image-vector retrieval from images or embeddings."
 license = "Apache-2.0"
 readme = "README.md"

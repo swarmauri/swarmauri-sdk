@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_live_model_openai"
-version = "0.1.0.dev2"
+version = "0.1.0.dev3"
 description = "OpenAI Realtime and persistent Responses WebSocket model adapters for Swarmauri."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
