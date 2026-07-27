@@ -33,6 +33,10 @@ class XAIModel(LLMBase):
     abatch = abatch_chat
 
     def __init__(self, **data: Any) -> None:
+        selected_name = data.get(
+            "name", self.__class__.model_fields["name"].default
+        )
+        data.setdefault("allowed_models", [selected_name])
         super().__init__(**data)
         if self.api_key is None:
             raise ValueError("api_key is required")

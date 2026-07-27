@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
 
@@ -10,8 +10,6 @@ from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
 class AppServerMixin(IAppServer, BaseModel):
     """Stores and validates an application callback for app-terminating
     transports."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     _app: Optional[HttpApp] = None
 

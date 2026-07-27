@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.transports import (
     CapabilityError,
     TransportBase,
@@ -16,6 +17,11 @@ from swarmauri_core.transports import (
     SecurityMode,
     TransportCapabilities,
 )
+from swarmauri_core.transports.ITransport import ITransport
+
+
+def test_transport_base_inheritance_contract() -> None:
+    assert TransportBase.__bases__ == (ITransport, ComponentBase)
 
 
 class DummyTransport(TransportBase):

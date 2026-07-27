@@ -2,13 +2,14 @@ from abc import abstractmethod
 from typing import List, Literal, Optional
 
 from pydantic import ConfigDict, Field, model_validator
+from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.utils.allowed_models import is_model_allowed
 from swarmauri_core.vlms.IPredictVision import IPredictVision
 
 
 @ComponentBase.register_model()
-class VLMBase(IPredictVision, ComponentBase):
+class VLMBase(IPredictVision, ModelBase):
     allowed_models: List[str] = []
     resource: Optional[str] = Field(
         default=ResourceTypes.VLM.value, frozen=True

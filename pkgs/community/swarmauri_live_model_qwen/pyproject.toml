@@ -1,0 +1,29 @@
+[project]
+name = "swarmauri_live_model_qwen"
+version = "0.1.0.dev1"
+description = "Qwen Omni Realtime multimodal model adapter for Swarmauri."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_provider_qwen", "swarmauri_transport_websocket"]
+classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
+keywords = ["swarmauri", "qwen omni", "realtime", "multimodal", "websocket"]
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_provider_qwen = { workspace = true }
+swarmauri_transport_websocket = { workspace = true }
+[project.entry-points."swarmauri.live_models"]
+QwenOmniRealtimeModel = "swarmauri_live_model_qwen:QwenOmniRealtimeModel"
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["BLE001", "N999"]

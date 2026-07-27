@@ -49,6 +49,10 @@ class InterfaceRegistry:
         "swarmauri.factories": "swarmauri_base.factories.FactoryBase",
         "swarmauri.image_gens": "swarmauri_base.image_gens.ImageGenBase",
         "swarmauri.llms": "swarmauri_base.llms.LLMBase",
+        "swarmauri.live_models": ("swarmauri_base.live_models.LiveModelBase"),
+        "swarmauri.model_providers": (
+            "swarmauri_base.model_providers.ModelProviderBase"
+        ),
         "swarmauri.tool_llms": "swarmauri_base.tool_llms.ToolLLMBase",
         "swarmauri.tts": "swarmauri_base.tts.TTSBase",
         "swarmauri.video_lipsync": (

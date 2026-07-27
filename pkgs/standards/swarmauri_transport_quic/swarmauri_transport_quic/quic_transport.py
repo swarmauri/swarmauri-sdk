@@ -161,17 +161,32 @@ class QuicTransport(TransportBase):
     # ------------------------------------------------------------------
     # Multiplexed channel management
     # ------------------------------------------------------------------
-    async def open_channel(self) -> ChannelHandle:
+    def open_channel(self) -> ChannelHandle:
+        return asyncio.run(self.aopen_channel())
+
+    async def aopen_channel(self) -> ChannelHandle:
         handle = self._next_channel
         self._next_channel += 1
         remote = self._peer_addr or self._default_remote
         self._channels[handle] = _QuicChannel(handle, asyncio.Queue(), remote)
         return handle
 
-    async def close_channel(self, handle: ChannelHandle) -> None:
+    def close_channel(self, handle: ChannelHandle) -> None:
+        asyncio.run(self.aclose_channel(handle))
+
+    async def aclose_channel(self, handle: ChannelHandle) -> None:
         self._channels.pop(int(handle), None)
 
-    async def send_on(
+    def send_on(
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: Optional[float] = None,
+    ) -> None:
+        asyncio.run(self.asend_on(handle, data, timeout=timeout))
+
+    async def asend_on(
         self,
         handle: ChannelHandle,
         data: bytes,
@@ -186,7 +201,15 @@ class QuicTransport(TransportBase):
         payload = int(channel.identifier).to_bytes(4, "big") + data
         await self._send_datagram(payload, channel.remote, timeout)
 
-    async def recv_on(
+    def receive_on(
+        self,
+        handle: ChannelHandle,
+        *,
+        timeout: Optional[float] = None,
+    ) -> bytes:
+        return asyncio.run(self.areceive_on(handle, timeout=timeout))
+
+    async def areceive_on(
         self, handle: ChannelHandle, *, timeout: Optional[float] = None
     ) -> bytes:
         channel = self._ensure_channel(handle)

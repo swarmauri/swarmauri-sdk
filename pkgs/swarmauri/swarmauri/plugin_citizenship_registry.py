@@ -752,6 +752,48 @@ class PluginCitizenshipRegistry:
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: Dict[str, str] = {
+        "swarmauri.model_providers.GeminiProvider": (
+            "swarmauri_provider_gemini.GeminiProvider"
+        ),
+        "swarmauri.model_providers.OpenAIProvider": (
+            "swarmauri_provider_openai.OpenAIProvider"
+        ),
+        "swarmauri.model_providers.XAIProvider": (
+            "swarmauri_provider_xai.XAIProvider"
+        ),
+        "swarmauri.model_providers.QwenProvider": (
+            "swarmauri_provider_qwen.QwenProvider"
+        ),
+        "swarmauri.model_providers.AmazonNovaProvider": (
+            "swarmauri_provider_amazon_nova.AmazonNovaProvider"
+        ),
+        "swarmauri.live_models.GeminiLiveModel": (
+            "swarmauri_live_model_gemini.GeminiLiveModel"
+        ),
+        "swarmauri.live_models.OpenAIRealtimeModel": (
+            "swarmauri_live_model_openai.OpenAIRealtimeModel"
+        ),
+        "swarmauri.live_models.OpenAIResponsesWSModel": (
+            "swarmauri_live_model_openai.OpenAIResponsesWSModel"
+        ),
+        "swarmauri.live_models.XAIRealtimeModel": (
+            "swarmauri_live_model_xai.XAIRealtimeModel"
+        ),
+        "swarmauri.live_models.QwenOmniRealtimeModel": (
+            "swarmauri_live_model_qwen.QwenOmniRealtimeModel"
+        ),
+        "swarmauri.live_models.NovaSonicLiveModel": (
+            "swarmauri_live_model_amazon_nova.NovaSonicLiveModel"
+        ),
+        "swarmauri.agents.RealtimeAgent": (
+            "swarmauri_agent_realtime.RealtimeAgent"
+        ),
+        "swarmauri.transports.HttpxClient": (
+            "swarmauri_transport_httpx.HttpxClient"
+        ),
+        "swarmauri.transports.WebSocketClient": (
+            "swarmauri_transport_websocket.WebSocketClient"
+        ),
         "swarmauri.tools.QueryImageVectorStoreTool": (
             "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"
         ),
@@ -872,7 +914,9 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
         ),
         "swarmauri.tool_llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
-        "swarmauri.vlms.OpenRouterVLM": "swarmauri_llm_openrouter.OpenRouterVLM",
+        "swarmauri.vlms.OpenRouterVLM": (
+            "swarmauri_llm_openrouter.OpenRouterVLM"
+        ),
     }
     THIRD_CLASS_REGISTRY: Dict[str, str] = {}
 
@@ -1210,7 +1254,3 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
-
-
-
-

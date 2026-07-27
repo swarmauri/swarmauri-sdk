@@ -14,6 +14,7 @@ from typing import (
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.tool_llms.IToolPredict import IToolPredict
 
+from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
 from swarmauri_base.schema_converters.SchemaConverterBase import (
@@ -23,7 +24,7 @@ from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
-class ToolLLMBase(IToolPredict, ComponentBase):
+class ToolLLMBase(IToolPredict, ModelBase):
     resource: Optional[str] = Field(
         default=ResourceTypes.TOOL_LLM.value, frozen=True
     )

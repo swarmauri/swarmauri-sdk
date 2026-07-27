@@ -1,5 +1,7 @@
-import pytest
 from typing import List
+
+import pytest
+from pydantic import BaseModel
 
 from swarmauri_base.retrievers.RetrieverMixin import RetrieverMixin
 from swarmauri_core.documents.IDocument import IDocument
@@ -17,7 +19,7 @@ def test_retriever_mixin_implements_retriever_contract():
 
 
 @pytest.mark.unit
-def test_vector_store_retrieve_mixin_preserves_legacy_contract():
+def test_vector_store_retrieve_mixin_uses_interface_and_basemodel():
     from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
         VectorStoreRetrieveMixin,
     )
@@ -25,5 +27,7 @@ def test_vector_store_retrieve_mixin_preserves_legacy_contract():
         IVectorStoreRetrieve,
     )
 
-    assert issubclass(VectorStoreRetrieveMixin, RetrieverMixin)
-    assert issubclass(VectorStoreRetrieveMixin, IVectorStoreRetrieve)
+    assert VectorStoreRetrieveMixin.__bases__ == (
+        IVectorStoreRetrieve,
+        BaseModel,
+    )

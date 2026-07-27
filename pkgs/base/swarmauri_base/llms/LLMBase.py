@@ -4,12 +4,13 @@ from typing import ClassVar, Dict, FrozenSet, List, Literal, Optional
 from pydantic import Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.llms.IPredict import IPredict
 
+from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
-class LLMBase(IPredict, ComponentBase):
+class LLMBase(IPredict, ModelBase):
     allowed_models: List[str] = Field(default_factory=list)
     resource: Optional[str] = Field(
         default=ResourceTypes.LLM.value, frozen=True

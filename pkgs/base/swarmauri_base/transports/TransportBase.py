@@ -33,7 +33,7 @@ def _require_caps(
 
 
 @ComponentBase.register_model()
-class TransportBase(ComponentBase, ITransport):
+class TransportBase(ITransport, ComponentBase):
     """Base class providing capability-safe server/client context managers."""
 
     allowed_protocols: list[str] = []

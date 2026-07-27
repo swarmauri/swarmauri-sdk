@@ -35,3 +35,9 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
 
 [tool.pytest.ini_options]
 markers = ["unit: Unit tests"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["N999"]
