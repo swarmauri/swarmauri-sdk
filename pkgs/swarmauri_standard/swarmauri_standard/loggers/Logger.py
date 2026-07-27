@@ -5,5 +5,3 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 @register_type()
 class Logger(LoggerBase):
     """Concrete implementation of LoggerBase"""
-
-    pass

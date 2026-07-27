@@ -68,7 +68,7 @@ class DiceSimilarity(SimilarityBase):
                 # Try to convert to a list and then to a Counter
                 return Counter(list(x))
             except Exception as e:
-                logger.error(f"Cannot convert input to Counter: {str(e)}")
+                logger.error(f"Cannot convert input to Counter: {e!s}")
                 raise TypeError(
                     f"Cannot convert input of type {type(x)} to Counter"
                 ) from e
@@ -141,7 +141,7 @@ class DiceSimilarity(SimilarityBase):
                 return 0.0
 
         except Exception as e:
-            logger.error(f"Error calculating Dice similarity: {str(e)}")
+            logger.error(f"Error calculating Dice similarity: {e!s}")
             raise
 
     def similarities(
@@ -183,7 +183,7 @@ class DiceSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Dice similarities: {str(e)}"
+                f"Error calculating multiple Dice similarities: {e!s}"
             )
             raise
 
@@ -214,7 +214,7 @@ class DiceSimilarity(SimilarityBase):
             # Dice dissimilarity is 1 minus the Dice similarity
             return 1.0 - self.similarity(x, y)
         except Exception as e:
-            logger.error(f"Error calculating Dice dissimilarity: {str(e)}")
+            logger.error(f"Error calculating Dice dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:
@@ -261,7 +261,5 @@ class DiceSimilarity(SimilarityBase):
             similarity_yx = self.similarity(y, x)
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(
-                f"Error checking symmetry of Dice similarity: {str(e)}"
-            )
+            logger.error(f"Error checking symmetry of Dice similarity: {e!s}")
             raise

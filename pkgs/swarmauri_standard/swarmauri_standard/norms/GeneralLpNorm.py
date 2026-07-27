@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, Optional, Sequence, TypeVar, Union
+from typing import Callable, Literal, Optional, Sequence, TypeVar
 
 import numpy as np
 from pydantic import Field, validator
@@ -74,9 +74,7 @@ class GeneralLpNorm(NormBase):
 
     def _convert_to_array(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> np.ndarray:
         """
         Convert the input to a numpy array for computation.
@@ -117,9 +115,7 @@ class GeneralLpNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the Lp norm of the input.
@@ -152,14 +148,12 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Computed Lp norm with p={self.p}: {norm_value}")
             return float(norm_value)
         except Exception as e:
-            logger.error(f"Error computing Lp norm: {str(e)}")
+            logger.error(f"Error computing Lp norm: {e!s}")
             raise
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the non-negativity property.
@@ -183,14 +177,12 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Non-negativity check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in non-negativity check: {str(e)}")
+            logger.error(f"Error in non-negativity check: {e!s}")
             return False
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the definiteness property.
@@ -224,17 +216,13 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Definiteness check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in definiteness check: {str(e)}")
+            logger.error(f"Error in definiteness check: {e!s}")
             return False
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Lp norm satisfies the triangle inequality.
@@ -268,11 +256,9 @@ class GeneralLpNorm(NormBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise TypeError(
-                    (
-                        "Inputs must have the same shape for triangle "
-                        "inequality "
-                        "check"
-                    )
+                    "Inputs must have the same shape for triangle "
+                    "inequality "
+                    "check"
                 )
 
             # Compute norms
@@ -290,14 +276,12 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Triangle inequality check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in triangle inequality check: {str(e)}")
+            logger.error(f"Error in triangle inequality check: {e!s}")
             return False
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """
@@ -343,5 +327,5 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Absolute homogeneity check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in absolute homogeneity check: {str(e)}")
+            logger.error(f"Error in absolute homogeneity check: {e!s}")
             return False

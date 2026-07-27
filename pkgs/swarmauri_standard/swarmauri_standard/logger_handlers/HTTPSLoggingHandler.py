@@ -2,7 +2,7 @@ import http.client
 import json
 import logging
 import ssl
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, Literal, Optional
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -37,7 +37,7 @@ class HTTPSLoggingHandler(HandlerBase):
     # Additional settings
     timeout: int = 5
     headers: Dict[str, str] = {"Content-Type": "application/json"}
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
 
     def compile_handler(self) -> logging.Handler:
         """
@@ -96,7 +96,7 @@ class _HTTPSHandler(logging.Handler):
         key_file: Optional[str] = None,
         verify_ssl: bool = True,
         timeout: int = 5,
-        headers: Dict[str, str] = None,
+        headers: Dict[str, str] | None = None,
     ):
         """
         Initialize the HTTPS handler.
@@ -205,10 +205,8 @@ class _HTTPSHandler(logging.Handler):
             # Check if the request was successful
             if response.status >= 400:
                 logging.getLogger("HTTPSLoggingHandler").warning(
-                    (
-                        f"Failed to send log record: HTTP {response.status} - "
-                        f"{response.reason}"
-                    )
+                    f"Failed to send log record: HTTP {response.status} - "
+                    f"{response.reason}"
                 )
 
             # Close the connection
@@ -218,5 +216,5 @@ class _HTTPSHandler(logging.Handler):
             # Handle any exceptions that occur during emission
             self.handleError(record)
             logging.getLogger("HTTPSLoggingHandler").error(
-                f"Error sending log record: {str(e)}"
+                f"Error sending log record: {e!s}"
             )

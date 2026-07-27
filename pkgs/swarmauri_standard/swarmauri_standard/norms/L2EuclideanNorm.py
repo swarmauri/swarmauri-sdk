@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import Callable, Literal, Sequence, TypeVar, Union
+from typing import Callable, Literal, Sequence, TypeVar
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.norms.NormBase import NormBase
@@ -39,9 +39,7 @@ class L2EuclideanNorm(NormBase):
 
     def compute(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> float:
         """
         Compute the Euclidean (L2) norm of the input.
@@ -84,10 +82,8 @@ class L2EuclideanNorm(NormBase):
             except (TypeError, ValueError) as e:
                 logger.error(f"Failed to compute L2 norm for sequence: {e}")
                 raise ValueError(
-                    (
-                        f"Cannot compute L2 norm for sequence with non-numeric "  # noqa: E501
-                        f"elements: {e}"
-                    )
+                    f"Cannot compute L2 norm for sequence with non-numeric "
+                    f"elements: {e}"
                 )
         elif isinstance(x, str):
             # For strings - use ASCII/Unicode values
@@ -106,9 +102,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_non_negativity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the non-negativity property.
@@ -137,9 +131,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_definiteness(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the definiteness property.
@@ -179,20 +171,16 @@ class L2EuclideanNorm(NormBase):
                     is_zero = len(x) == 0
                 else:
                     logger.warning(
-                        (
-                            f"Definiteness check not fully implemented for "
-                            f"type "
-                            f"{type(x)}"
-                        )
+                        f"Definiteness check not fully implemented for "
+                        f"type "
+                        f"{type(x)}"
                     )
                     return False
 
                 logger.debug(
-                    (
-                        f"Checking definiteness: norm = {norm_value}, all "
-                        f"elements "
-                        f"zero: {is_zero}"
-                    )
+                    f"Checking definiteness: norm = {norm_value}, all "
+                    f"elements "
+                    f"zero: {is_zero}"
                 )
                 return is_zero
             else:
@@ -204,12 +192,8 @@ class L2EuclideanNorm(NormBase):
 
     def check_triangle_inequality(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
-        y: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
+        y: VectorType | MatrixType | SequenceType | StringType | CallableType,
     ) -> bool:
         """
         Check if the Euclidean norm satisfies the triangle inequality.
@@ -239,10 +223,8 @@ class L2EuclideanNorm(NormBase):
             # Check if inputs are of the same type
             if type(x) is not type(y):
                 raise TypeError(
-                    (
-                        f"Inputs must be of the same type, got {type(x)} and "
-                        f"{type(y)}"
-                    )
+                    f"Inputs must be of the same type, got {type(x)} and "
+                    f"{type(y)}"
                 )
 
             # Compute norms
@@ -285,10 +267,8 @@ class L2EuclideanNorm(NormBase):
                 norm_z <= norm_x + norm_y + 1e-10
             )  # Adding small epsilon for floating-point comparison
             logger.debug(
-                (
-                    f"Triangle inequality check: norm(x+y)={norm_z}, "
-                    f"norm(x)+norm(y)={norm_x + norm_y}, result={result}"
-                )
+                f"Triangle inequality check: norm(x+y)={norm_z}, "
+                f"norm(x)+norm(y)={norm_x + norm_y}, result={result}"
             )
             return result
 
@@ -298,9 +278,7 @@ class L2EuclideanNorm(NormBase):
 
     def check_absolute_homogeneity(
         self,
-        x: Union[
-            VectorType, MatrixType, SequenceType, StringType, CallableType
-        ],
+        x: VectorType | MatrixType | SequenceType | StringType | CallableType,
         scalar: float,
     ) -> bool:
         """
@@ -351,10 +329,8 @@ class L2EuclideanNorm(NormBase):
                 scaled_x = x * scalar
             else:
                 raise TypeError(
-                    (
-                        f"Absolute homogeneity check not supported for type "
-                        f"{type(x)}"
-                    )
+                    f"Absolute homogeneity check not supported for type "
+                    f"{type(x)}"
                 )
 
             # Compute the norm of the scaled input
@@ -367,10 +343,8 @@ class L2EuclideanNorm(NormBase):
             )  # Using small epsilon for floating-point comparison
 
             logger.debug(
-                (
-                    f"Absolute homogeneity check: norm(a*x)={norm_scaled_x}, "
-                    f"|a|*norm(x)={expected}, result={result}"
-                )
+                f"Absolute homogeneity check: norm(a*x)={norm_scaled_x}, "
+                f"|a|*norm(x)={expected}, result={result}"
             )
             return result
 

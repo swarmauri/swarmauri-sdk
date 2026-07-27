@@ -1,5 +1,6 @@
+from typing import Any, Callable, Dict, List, Tuple
+
 from swarmauri_core.tracing.IChainTracer import IChainTracer
-from typing import Callable, List, Tuple, Dict, Any
 
 
 class ChainTracer(IChainTracer):

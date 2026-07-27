@@ -1,7 +1,7 @@
 """Unit tests for ``TomlMixin`` utilities."""
 
-import tomllib
 import pytest
+import tomllib
 
 from swarmauri_base.TomlMixin import TomlMixin
 

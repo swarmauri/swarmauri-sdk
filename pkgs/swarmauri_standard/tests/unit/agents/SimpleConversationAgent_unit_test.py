@@ -1,11 +1,13 @@
-import pytest
 import os
-from swarmauri_standard.llms.GroqModel import GroqModel
-from swarmauri_standard.conversations.Conversation import Conversation
+
+import pytest
+from dotenv import load_dotenv
+
 from swarmauri_standard.agents.SimpleConversationAgent import (
     SimpleConversationAgent,
 )
-from dotenv import load_dotenv
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.llms.GroqModel import GroqModel
 
 load_dotenv()
 

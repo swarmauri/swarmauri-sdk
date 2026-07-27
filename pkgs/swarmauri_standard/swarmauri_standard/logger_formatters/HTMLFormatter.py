@@ -57,7 +57,6 @@ class HTMLFormatter(FormatterBase):
         # We'll override the compile_formatter method instead of setting format
         # since HTML formatting requires more complex logic than a simple
         # format string
-        pass
 
     def escape_html(self, text: str) -> str:
         """

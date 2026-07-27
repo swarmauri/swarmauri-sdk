@@ -1,11 +1,13 @@
-from typing import Callable, List, Literal, Sequence, TypeVar, Union
 import logging
-from pydantic import Field
+from collections.abc import Callable, Sequence
+from typing import Literal, TypeVar, Union
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from pydantic import Field
+from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.pseudometrics.IPseudometric import IPseudometric
 from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -82,7 +84,7 @@ class PseudometricBase(IPseudometric, ComponentBase):
         ys: Sequence[
             Union[VectorType, MatrixType, Sequence[T], str, Callable]
         ],
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """
         Calculate the pairwise distances between two collections of objects.
 
@@ -142,10 +144,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_non_negativity method not implemented")
         raise NotImplementedError(
-            (
-                "The check_non_negativity method must be implemented by "
-                "derived classes"
-            )
+            "The check_non_negativity method must be implemented by "
+            "derived classes"
         )
 
     def check_symmetry(
@@ -214,10 +214,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_triangle_inequality method not implemented")
         raise NotImplementedError(
-            (
-                "The check_triangle_inequality method must be implemented by "
-                "derived classes"
-            )
+            "The check_triangle_inequality method must be implemented by "
+            "derived classes"
         )
 
     def check_weak_identity(
@@ -251,8 +249,6 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_weak_identity method not implemented")
         raise NotImplementedError(
-            (
-                "The check_weak_identity method must be implemented by "
-                "derived classes"
-            )
+            "The check_weak_identity method must be implemented by "
+            "derived classes"
         )

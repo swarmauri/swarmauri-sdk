@@ -12,7 +12,9 @@ def resolve_secret_ref(secret_ref: str) -> str:
     provider, _, name = secret_ref.partition(":")
     # Try dynamic import of peagen's plugin manager; ignore if unavailable
     try:
-        from peagen._utils.config_loader import load_peagen_toml  # type: ignore
+        from peagen._utils.config_loader import (
+            load_peagen_toml,  # type: ignore
+        )
         from peagen.plugins import PluginManager  # type: ignore
     except Exception:  # peagen not installed
         if provider and provider != "env":

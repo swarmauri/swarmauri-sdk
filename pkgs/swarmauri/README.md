@@ -148,7 +148,10 @@ Inspect registered first-party and discovered component paths:
 ```python
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
-for public_path, module_path in PluginCitizenshipRegistry.total_registry().items():
+for (
+    public_path,
+    module_path,
+) in PluginCitizenshipRegistry.total_registry().items():
     print(public_path, "->", module_path)
 ```
 

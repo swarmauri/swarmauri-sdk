@@ -9,7 +9,6 @@ from typing import (
     Literal,
     Optional,
     Type,
-    Union,
 )
 
 import httpx
@@ -167,7 +166,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -212,7 +211,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -248,7 +247,7 @@ class DeepInfraToolModel(ToolLLMBase):
 
             agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -261,7 +260,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -306,7 +305,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -342,7 +341,7 @@ class DeepInfraToolModel(ToolLLMBase):
 
             agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -355,7 +354,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -398,7 +397,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -454,7 +453,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversation: IConversation,
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -497,7 +496,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -550,7 +549,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversations: List[IConversation],
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> List[IConversation]:
@@ -585,7 +584,7 @@ class DeepInfraToolModel(ToolLLMBase):
         self,
         conversations: List[IConversation],
         toolkit: Optional[Toolkit] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        tool_choice: Optional[str | Dict[str, Any]] = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         max_concurrent: int = 5,

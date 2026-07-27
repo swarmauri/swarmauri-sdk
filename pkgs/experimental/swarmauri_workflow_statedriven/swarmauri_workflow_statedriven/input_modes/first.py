@@ -11,7 +11,8 @@ class FirstInputMode(InputMode):
     Class: FirstInputMode
     Method: prepare
 
-    If the raw data is a list, return its first element; otherwise return it unchanged.
+    If the raw data is a list, return its first element; otherwise return it
+    unchanged.
     """
 
     def prepare(
@@ -21,9 +22,7 @@ class FirstInputMode(InputMode):
         data: Any,
         results: Dict[str, Any],
     ) -> Any:
-        """
-        Return data[0] if data is a non-empty list; else return data.
-        """
+        """Return data[0] if data is a non-empty list; else return data."""
         if isinstance(data, list):
             return data[0] if data else None
         return data

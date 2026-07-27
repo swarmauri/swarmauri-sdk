@@ -27,7 +27,8 @@ class NofMJoinStrategy(JoinStrategy):
         Class: NofMJoinStrategy
         Method: mark_complete
 
-        No-op for NofMJoinStrategy: satisfaction is based solely on buffer length.
+        No-op for NofMJoinStrategy: satisfaction is based solely on buffer
+        length.
         """
         pass
 

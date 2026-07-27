@@ -51,15 +51,17 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable, Iterable
-from typing import Mapping, Optional, Sequence, Union
+from typing import Mapping, Sequence, Union
 
-from ..crypto.types import Alg, KeyRef
-from ..crypto.types import AEADCiphertext  # single‑recipient envelope
+from ..crypto.types import (
+    AEADCiphertext,  # single‑recipient envelope
+    Alg,
+    KeyRef,
+)
 from ..mre_crypto.types import (
     MultiRecipientEnvelope,
 )  # multi‑recipient envelope
 from .types import Signature
-
 
 # --------- Canonicalization tokens (stringly‑typed to avoid a hard dep)
 # ---------
@@ -112,8 +114,8 @@ class ISigning(ABC):
         key: KeyRef,
         payload: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         """
         Produce one or more detached signatures over raw bytes.
@@ -131,8 +133,8 @@ class ISigning(ABC):
         key: KeyRef,
         digest: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         """Produce detached signatures over a pre-computed message digest."""
         ...
@@ -143,8 +145,8 @@ class ISigning(ABC):
         payload: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         """
         Verify detached signatures over raw bytes.
@@ -168,8 +170,8 @@ class ISigning(ABC):
         key: KeyRef,
         payload: ByteStream,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         """
         Produce detached signatures over streaming byte payloads.
@@ -184,8 +186,8 @@ class ISigning(ABC):
         payload: ByteStream,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool: ...
 
     # ────────────────────────────────── Envelopes
@@ -196,8 +198,8 @@ class ISigning(ABC):
         self,
         env: Envelope,
         *,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bytes:
         """
         Deterministically canonicalize an envelope to bytes prior to
@@ -216,9 +218,9 @@ class ISigning(ABC):
         key: KeyRef,
         env: Envelope,
         *,
-        alg: Optional[Alg] = None,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         """
         Produce one or more detached signatures over a canonicalized envelope.
@@ -231,9 +233,9 @@ class ISigning(ABC):
         env: Envelope,
         signatures: Sequence[Signature],
         *,
-        canon: Optional[Canon] = None,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         """
         Verify detached signatures against the canonicalized envelope.
@@ -253,8 +255,8 @@ class ISigning(ABC):
         digest: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         """Verify detached signatures produced over a pre-computed digest."""
         ...

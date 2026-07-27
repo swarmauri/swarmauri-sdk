@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from typing import Any, Iterable, Mapping, Sequence
 
 from .types import (
     Alg,
@@ -26,7 +26,7 @@ class ICipherSuite(ABC):
 
     @abstractmethod
     def default_alg(
-        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+        self, op: CipherOp, *, for_key: KeyRef | None = None
     ) -> Alg:
         """Return the default algorithm for ``op`` under the current policy."""
 
@@ -35,10 +35,10 @@ class ICipherSuite(ABC):
         self,
         *,
         op: CipherOp,
-        alg: Optional[Alg] = None,
-        key: Optional[KeyRef] = None,
-        params: Optional[ParamMapping] = None,
-        dialect: Optional[str] = None,
+        alg: Alg | None = None,
+        key: KeyRef | None = None,
+        params: ParamMapping | None = None,
+        dialect: str | None = None,
     ) -> NormalizedDescriptor:
         """Return a normalized descriptor for the requested operation."""
 

@@ -1,7 +1,9 @@
 from typing import Any, Callable, Dict, Literal
-from swarmauri_standard.utils._get_subclasses import get_classes_from_module
-from swarmauri_base.factories.FactoryBase import FactoryBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.factories.FactoryBase import FactoryBase
+
+from swarmauri_standard.utils._get_subclasses import get_classes_from_module
 
 
 @ComponentBase.register_type(FactoryBase, "Factory")
@@ -21,7 +23,8 @@ class Factory(FactoryBase):
         """
         if type in self._resource_registry.get(resource, {}):
             raise ValueError(
-                f"Type '{type}' is already registered under resource '{resource}'."  # noqa: E501
+                f"Type '{type}' is already registered under resource "
+                f"'{resource}'."
             )
 
         if resource not in self._resource_registry:

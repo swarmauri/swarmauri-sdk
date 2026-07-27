@@ -91,16 +91,14 @@ class GaussianRBFSimilarity(SimilarityBase):
             # Ensure inputs have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
-                        f"Input shapes must match: got {x_array.shape} and "
-                        f"{y_array.shape}"
-                    )
+                    f"Input shapes must match: got {x_array.shape} and "
+                    f"{y_array.shape}"
                 )
 
             return x_array, y_array
 
         except (TypeError, ValueError) as e:
-            logger.error(f"Input validation error: {str(e)}")
+            logger.error(f"Input validation error: {e!s}")
             raise
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -136,16 +134,14 @@ class GaussianRBFSimilarity(SimilarityBase):
             similarity_value = exp(-self.gamma * squared_distance)
 
             logger.debug(
-                (
-                    f"Calculated similarity: {similarity_value} for inputs "
-                    f"with "
-                    f"squared distance: {squared_distance}"
-                )
+                f"Calculated similarity: {similarity_value} for inputs "
+                f"with "
+                f"squared distance: {squared_distance}"
             )
             return similarity_value
 
         except Exception as e:
-            logger.error(f"Error calculating similarity: {str(e)}")
+            logger.error(f"Error calculating similarity: {e!s}")
             raise
 
     def similarities(
@@ -189,7 +185,7 @@ class GaussianRBFSimilarity(SimilarityBase):
                 return [self.similarity(x, y) for y in ys]
 
         except Exception as e:
-            logger.error(f"Error calculating similarities: {str(e)}")
+            logger.error(f"Error calculating similarities: {e!s}")
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -212,7 +208,7 @@ class GaussianRBFSimilarity(SimilarityBase):
             # For bounded similarity in [0,1], dissimilarity is 1-similarity
             return 1.0 - self.similarity(x, y)
         except Exception as e:
-            logger.error(f"Error calculating dissimilarity: {str(e)}")
+            logger.error(f"Error calculating dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:

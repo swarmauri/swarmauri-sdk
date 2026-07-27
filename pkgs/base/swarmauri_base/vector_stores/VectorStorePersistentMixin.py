@@ -1,6 +1,4 @@
-from typing import Optional
-from pydantic import Field, BaseModel
-
+from pydantic import BaseModel, Field
 from swarmauri_core.vector_stores.IPersistentVectorStore import (
     IPersistentVectorStore,
 )
@@ -13,28 +11,28 @@ class VectorStorePersistentMixin(IPersistentVectorStore, BaseModel):
 
     collection_name: str
 
-    collection: Optional[object] = Field(
+    collection: object | None = Field(
         None,
         description=(
             "Collection object for interacting with the persistent-based store"
         ),
     )
 
-    path: Optional[str] = Field(
+    path: str | None = Field(
         None, description="URL of the persistent-based store to connect to"
     )
 
-    vector_size: Optional[int] = Field(
+    vector_size: int | None = Field(
         None, description="Size of the vectors used in the store"
     )
-    client: Optional[object] = Field(
+    client: object | None = Field(
         None,
         description=(
             "Client object for interacting with the persistent-based store"
         ),
     )
 
-    vectorizer: Optional[object] = Field(
+    vectorizer: object | None = Field(
         None,
         description="Vectorizer object for converting documents to vectors",
     )

@@ -1,46 +1,44 @@
 from abc import abstractmethod
-from typing import ClassVar, Dict, FrozenSet, List, Literal, Optional
+from typing import ClassVar, Literal
 
 from pydantic import Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.llms.IPredict import IPredict
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.models.ModelBase import ModelBase
+from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
-class LLMBase(IPredict, ComponentBase):
-    allowed_models: List[str] = Field(default_factory=list)
-    resource: Optional[str] = Field(
-        default=ResourceTypes.LLM.value, frozen=True
-    )
+class LLMBase(IPredict, ModelBase):
+    allowed_models: list[str] = Field(default_factory=list)
+    resource: str | None = Field(default=ResourceTypes.LLM.value, frozen=True)
     type: Literal["LLMBase"] = "LLMBase"
 
-    api_key: Optional[SecretStr] = Field(default=None, exclude=True)
+    api_key: SecretStr | None = Field(default=None, exclude=True)
     name: str = ""
     timeout: float = 600.0
     include_usage: bool = True
     max_retries: int = Field(default=3, ge=1)
     retry_delay: float = Field(default=2.0, ge=0)
 
-    capabilities: ClassVar[FrozenSet[str]] = frozenset()
-    retryable_status_codes: ClassVar[FrozenSet[int]] = frozenset(
+    capabilities: ClassVar[frozenset[str]] = frozenset()
+    retryable_status_codes: ClassVar[frozenset[int]] = frozenset(
         {408, 409, 425, 429, 500, 502, 503, 504, 529}
     )
 
     # Base URL to be overridden by subclasses
-    BASE_URL: Optional[str] = None
-    _headers: Dict[str, str] = PrivateAttr(default_factory=dict)
+    BASE_URL: str | None = None
+    _headers: dict[str, str] = PrivateAttr(default_factory=dict)
 
     @model_validator(mode="after")
     def _validate_name_in_allowed_models(self):
         name = self.name
         allowed_models = self.allowed_models
-        if name and allowed_models and name not in allowed_models:
+        if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                (
-                    f"Model name {name} is not allowed. Choose from "
-                    f"{allowed_models}"
-                )
+                f"Model name {name} is not allowed. Choose from "
+                f"{allowed_models}"
             )
         return self
 

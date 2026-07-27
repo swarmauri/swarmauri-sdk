@@ -30,7 +30,10 @@ def noisy_or(a: float, b: float) -> float:
 
 
 def prob_and(a: float, b: float) -> float:
-    """Independent-evidence AND/product. Monotone on [0, 1]."""
+    """Independent-evidence AND/product.
+
+    Monotone on [0, 1].
+    """
 
     return _prob(a) * _prob(b)
 
@@ -70,18 +73,28 @@ def bounded_evidence_sum(cap: float) -> Callable[[float, float], float]:
     return merge
 
 
-def pointwise_cdf_min(a: Mapping[float, float], b: Mapping[float, float]) -> dict[float, float]:
+def pointwise_cdf_min(
+    a: Mapping[float, float], b: Mapping[float, float]
+) -> dict[float, float]:
     """Pointwise lower envelope for CDF samples."""
 
     keys = a.keys() | b.keys()
-    return {key: min(_prob(a.get(key, 1.0)), _prob(b.get(key, 1.0))) for key in keys}
+    return {
+        key: min(_prob(a.get(key, 1.0)), _prob(b.get(key, 1.0)))
+        for key in keys
+    }
 
 
-def pointwise_cdf_max(a: Mapping[float, float], b: Mapping[float, float]) -> dict[float, float]:
+def pointwise_cdf_max(
+    a: Mapping[float, float], b: Mapping[float, float]
+) -> dict[float, float]:
     """Pointwise upper envelope for CDF samples."""
 
     keys = a.keys() | b.keys()
-    return {key: max(_prob(a.get(key, 0.0)), _prob(b.get(key, 0.0))) for key in keys}
+    return {
+        key: max(_prob(a.get(key, 0.0)), _prob(b.get(key, 0.0)))
+        for key in keys
+    }
 
 
 def normalize_weights(weights: Mapping[K, float]) -> dict[K, float]:

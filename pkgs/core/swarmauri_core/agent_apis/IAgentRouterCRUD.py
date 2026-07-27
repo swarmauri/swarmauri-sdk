@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Any, Dict
+from typing import Any, Callable
 
 
 class IAgentRouterCRUD(ABC):
@@ -20,10 +20,9 @@ class IAgentRouterCRUD(ABC):
         - handler (Callable[[Any], Any]): The function that handles requests to
           this route.
         """
-        pass
 
     @abstractmethod
-    def read_route(self, path: str, method: str) -> Dict:
+    def read_route(self, path: str, method: str) -> dict:
         """
         Retrieve information about a specific route.
 
@@ -35,7 +34,6 @@ class IAgentRouterCRUD(ABC):
         - Dict: Information about the route, including path, method, and
           handler.
         """
-        pass
 
     @abstractmethod
     def update_route(
@@ -50,7 +48,6 @@ class IAgentRouterCRUD(ABC):
         - new_handler (Callable[[Any], Any]): The new function that handles
           requests to this route.
         """
-        pass
 
     @abstractmethod
     def delete_route(self, path: str, method: str) -> None:
@@ -61,4 +58,3 @@ class IAgentRouterCRUD(ABC):
         - path (str): The URL path for the route.
         - method (str): The HTTP method.
         """
-        pass

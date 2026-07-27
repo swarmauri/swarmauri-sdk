@@ -63,10 +63,8 @@ class CosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
-                        f"Incompatible dimensions: {x_array.shape} vs "
-                        f"{y_array.shape}"
-                    )
+                    f"Incompatible dimensions: {x_array.shape} vs "
+                    f"{y_array.shape}"
                 )
 
             # Calculate vector norms
@@ -95,7 +93,7 @@ class CosineSimilarity(SimilarityBase):
             return float(cosine_sim)
 
         except Exception as e:
-            logger.error(f"Error calculating cosine similarity: {str(e)}")
+            logger.error(f"Error calculating cosine similarity: {e!s}")
             raise
 
     def similarities(
@@ -141,10 +139,8 @@ class CosineSimilarity(SimilarityBase):
                 # Check for compatible dimensions
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        (
-                            f"Incompatible dimensions: {x_array.shape} vs "
-                            f"{y_array.shape}"
-                        )
+                        f"Incompatible dimensions: {x_array.shape} vs "
+                        f"{y_array.shape}"
                     )
 
                 y_norm = np.linalg.norm(y_array)
@@ -169,7 +165,7 @@ class CosineSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating multiple cosine similarities: {str(e)}"
+                f"Error calculating multiple cosine similarities: {e!s}"
             )
             raise
 
@@ -208,7 +204,7 @@ class CosineSimilarity(SimilarityBase):
             return 1.0 - similarity_value
 
         except Exception as e:
-            logger.error(f"Error calculating cosine dissimilarity: {str(e)}")
+            logger.error(f"Error calculating cosine dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:
@@ -259,7 +255,7 @@ class CosineSimilarity(SimilarityBase):
             return abs(similarity_xy - similarity_yx) < 1e-10
 
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise
 
     def check_identity_of_discernibles(
@@ -349,5 +345,5 @@ class CosineSimilarity(SimilarityBase):
                     return similarity_value < 1.0 - 1e-10
 
         except Exception as e:
-            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            logger.error(f"Error checking identity of discernibles: {e!s}")
             raise

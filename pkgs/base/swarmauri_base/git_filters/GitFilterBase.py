@@ -25,7 +25,7 @@ class GitFilterBase(IGitFilter):
     @abstractmethod
     def from_uri(
         cls, uri: str
-    ) -> "GitFilterBase":  # pragma: no cover - interface
+    ) -> GitFilterBase:  # pragma: no cover - interface
         """Create a filter instance from *uri*."""
 
     def clean(self, data: bytes) -> str:

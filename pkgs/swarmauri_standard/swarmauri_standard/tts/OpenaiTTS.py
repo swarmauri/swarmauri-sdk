@@ -5,8 +5,8 @@ from typing import Any, AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr, model_validator
-from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tts.TTSBase import TTSBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -84,10 +84,8 @@ class OpenaiTTS(TTSBase):
         allowed_voices = values.allowed_voices
         if voice and voice not in allowed_voices:
             raise ValueError(
-                (
-                    f"Model name {voice} is not allowed. Choose from "
-                    f"{allowed_voices}"
-                )
+                f"Model name {voice} is not allowed. Choose from "
+                f"{allowed_voices}"
             )
         return values
 

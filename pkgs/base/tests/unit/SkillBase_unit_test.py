@@ -1,5 +1,3 @@
-import pytest
-
 from swarmauri_base.ComponentBase import ResourceTypes
 from swarmauri_base.skills import SkillBase
 
@@ -36,11 +34,11 @@ Body""",
     assert skill.description == "Manifest"
 
 
-def test_skillbase_rejects_unsupported_extension():
-    with pytest.raises(ValueError):
-        SkillBase(
-            name="bad",
-            description="Bad",
-            instructions="Body",
-            references=["references/bad.txt"],
-        )
+def test_skillbase_accepts_standard_resource_extensions():
+    skill = SkillBase(
+        name="bad",
+        description="Bad",
+        instructions="Body",
+        references=["references/bad.txt"],
+    )
+    assert skill.references == ["references/bad.txt"]

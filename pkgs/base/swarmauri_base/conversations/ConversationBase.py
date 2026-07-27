@@ -1,8 +1,8 @@
-from typing import List, Literal, Union
+from typing import Literal, Union
 
 from pydantic import ConfigDict, Field
-
 from swarmauri_core.conversations.IConversation import IConversation
+
 from swarmauri_base.ComponentBase import (
     ComponentBase,
     ResourceTypes,
@@ -18,7 +18,7 @@ class ConversationBase(IConversation, ComponentBase):
     operations.
     """
 
-    messages: List[SubclassUnion[MessageBase]] = Field(
+    messages: list[SubclassUnion[MessageBase]] = Field(
         default_factory=list,
         description="Messages retained by the conversation.",
     )
@@ -27,19 +27,19 @@ class ConversationBase(IConversation, ComponentBase):
     type: Literal["ConversationBase"] = "ConversationBase"
 
     @property
-    def history(self) -> List[SubclassUnion[MessageBase]]:
+    def history(self) -> list[SubclassUnion[MessageBase]]:
         """
         Provides read-only access to the conversation history.
         """
         return self.messages
 
     @property
-    def _history(self) -> List[SubclassUnion[MessageBase]]:
+    def _history(self) -> list[SubclassUnion[MessageBase]]:
         """Return the stored messages for legacy conversation subclasses."""
         return self.messages
 
     @_history.setter
-    def _history(self, messages: List[SubclassUnion[MessageBase]]) -> None:
+    def _history(self, messages: list[SubclassUnion[MessageBase]]) -> None:
         """Replace stored messages for legacy conversation subclasses."""
         self.messages = messages
 
@@ -55,9 +55,8 @@ class ConversationBase(IConversation, ComponentBase):
         """
         if self.messages and message in self.messages:
             self.messages.remove(message)
-        return None
 
-    def add_messages(self, messages: List[SubclassUnion[MessageBase]]):
+    def add_messages(self, messages: list[SubclassUnion[MessageBase]]):
         for message in messages:
             self.messages.append(message)
 

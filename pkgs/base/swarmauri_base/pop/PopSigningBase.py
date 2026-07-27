@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
@@ -15,7 +13,7 @@ from .PopSignerMixin import PopSignerMixin
 class PopSigningBase(PopSignerMixin, ComponentBase):
     """Component-backed base for PoP signers."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: str = "PopSigningBase"

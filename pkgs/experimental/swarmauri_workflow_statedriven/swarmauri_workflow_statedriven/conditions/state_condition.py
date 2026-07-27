@@ -9,7 +9,8 @@ class StateValueCondition(Condition):
     File: swarmauri/workflows/conditions/state_condition.py
     Class: StateValueCondition
 
-    Compares a state's output against an expected value using the specified comparator.
+    Compares a state's output against an expected value using the specified
+    comparator.
     """
 
     def __init__(self, node_name: str, expected: Any, comparator: str = "eq"):
@@ -21,7 +22,8 @@ class StateValueCondition(Condition):
         Args:
             node_name: the name of the state whose output will be tested
             expected: the value to compare against
-            comparator: comparison operator; one of "eq", "ne", "gt", "lt", "ge", "le"
+            comparator: comparison operator; one of "eq", "ne", "gt", "lt",
+            "ge", "le"
         """
         self.node_name = node_name
         self.expected = expected
@@ -33,7 +35,8 @@ class StateValueCondition(Condition):
         Class: StateValueCondition
         Method: evaluate
 
-        Retrieve the stored output for `node_name` and compare it to `expected`.
+        Retrieve the stored output for `node_name` and compare it to
+        `expected`.
 
         Args:
             state: mapping of state names to their outputs

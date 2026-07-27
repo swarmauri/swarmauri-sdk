@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import threading
+from collections.abc import Callable, Sequence
 from concurrent import futures
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import Field
 from swarmauri_core.evaluator_pools.IEvaluatorPool import IEvaluatorPool
@@ -25,11 +26,11 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     aggregation.
     """
 
-    resource: Optional[str] = ResourceTypes.EVALUATOR_POOL.value
+    resource: str | None = ResourceTypes.EVALUATOR_POOL.value
 
     # ── runtime-only attributes (excluded from pydantic serialisation)
     # ──────────
-    evaluators: Dict[str, IEvaluate] = Field(default_factory=dict)
+    evaluators: dict[str, IEvaluate] = Field(default_factory=dict)
     lock: Any = Field(default=None, exclude=True)
     executor: Any = Field(default=None, exclude=True)
     aggregation_func: Any = Field(default=None, exclude=True)
@@ -76,7 +77,7 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     # registry ops
     # ─────────────────────────────────────────────────────────────────────────
     def add_evaluator(
-        self, evaluator: IEvaluate, name: Optional[str] = None
+        self, evaluator: IEvaluate, name: str | None = None
     ) -> str:
         if not isinstance(evaluator, IEvaluate):
             raise TypeError("Evaluator must implement IEvaluate")
@@ -96,11 +97,11 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
             logger.debug("Removed evaluator '%s'", name)
         return removed
 
-    def get_evaluator(self, name: str) -> Optional[IEvaluate]:
+    def get_evaluator(self, name: str) -> IEvaluate | None:
         with self.lock:
             return self.evaluators.get(name)
 
-    def get_evaluator_names(self) -> List[str]:
+    def get_evaluator_names(self) -> list[str]:
         with self.lock:
             return list(self.evaluators.keys())
 
@@ -134,10 +135,10 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
         if not self.evaluators:
             return [self._create_eval_result(p, {}, {}) for p in programs]
 
-        results: List[IEvalResult] = []
+        results: list[IEvalResult] = []
         for program in programs:
-            scores: Dict[str, float] = {}
-            metadata: Dict[str, Any] = {}
+            scores: dict[str, float] = {}
+            metadata: dict[str, Any] = {}
 
             futures_map = {
                 self.executor.submit(evaluator.evaluate, program): name
@@ -197,8 +198,8 @@ class EvaluatorPoolBase(IEvaluatorPool, ComponentBase):
     def _create_eval_result(
         self,
         program: IProgram,
-        scores: Dict[str, float],
-        metadata: Dict[str, Any],
+        scores: dict[str, float],
+        metadata: dict[str, Any],
     ) -> IEvalResult:
         agg_score = self.aggregate(scores.values()) if scores else 0.0
         return EvalResultBase(

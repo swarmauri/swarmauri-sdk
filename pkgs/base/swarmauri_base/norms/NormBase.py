@@ -1,11 +1,13 @@
-from typing import TypeVar, Union, Callable, Sequence, Optional
 import logging
-from pydantic import Field
+from collections.abc import Callable, Sequence
+from typing import TypeVar, Union
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from pydantic import Field
+from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.norms.INorm import INorm
 from swarmauri_core.vectors.IVector import IVector
-from swarmauri_core.matrices.IMatrix import IMatrix
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -33,7 +35,7 @@ class NormBase(INorm, ComponentBase):
         The resource type, defaults to NORM.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.NORM.value)
+    resource: str | None = Field(default=ResourceTypes.NORM.value)
 
     def compute(
         self,
@@ -94,10 +96,8 @@ class NormBase(INorm, ComponentBase):
             This method must be implemented by subclasses.
         """
         raise NotImplementedError(
-            (
-                "The check_non_negativity method must be implemented by "
-                "subclasses."
-            )
+            "The check_non_negativity method must be implemented by "
+            "subclasses."
         )
 
     def check_definiteness(
@@ -170,10 +170,8 @@ class NormBase(INorm, ComponentBase):
             If the inputs are not of the same type or cannot be added.
         """
         raise NotImplementedError(
-            (
-                "The check_triangle_inequality method must be implemented by "
-                "subclasses."
-            )
+            "The check_triangle_inequality method must be implemented by "
+            "subclasses."
         )
 
     def check_absolute_homogeneity(
@@ -211,8 +209,6 @@ class NormBase(INorm, ComponentBase):
             If the input cannot be scaled by the scalar.
         """
         raise NotImplementedError(
-            (
-                "The check_absolute_homogeneity method must be implemented by "
-                "subclasses."
-            )
+            "The check_absolute_homogeneity method must be implemented by "
+            "subclasses."
         )

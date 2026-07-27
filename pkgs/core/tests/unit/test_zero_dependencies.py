@@ -2,8 +2,9 @@
 
 import ast
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = PACKAGE_ROOT / "swarmauri_core"

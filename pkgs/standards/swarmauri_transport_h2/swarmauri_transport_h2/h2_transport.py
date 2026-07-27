@@ -1,25 +1,20 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, List, Optional, Tuple
 
-from swarmauri_base.transports.http_client_mixin import HttpClientMixin
 from swarmauri_base.transports.http_server_mixin import HttpServerMixin
+from swarmauri_base.transports.multiplex_mixin import ChannelHandle
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import Feature
-
 from swarmauri_transport_h2mux import H2MuxTransport
-from swarmauri_base.transports.multiplex_mixin import ChannelHandle
 
 Bytes = bytes
-Headers = Dict[str, str]
+Headers = dict[str, str]
 
 
-class H2Transport(
-    TransportBase, RunnableMixin, HttpServerMixin, HttpClientMixin
-):
+class H2Transport(TransportBase, RunnableMixin, HttpServerMixin):
     """HTTP/2 transport adapter that layers HTTP semantics on top of
     ``H2MuxTransport``."""
 
@@ -78,10 +73,10 @@ class H2Transport(
         headers: Headers | None = None,
         body: Bytes = b"",
         channel: ChannelHandle | None = None,
-    ) -> Tuple[int, Headers, Bytes]:
+    ) -> tuple[int, Headers, Bytes]:
         owned = False
         if channel is None:
-            channel = await self._mux.open_channel()
+            channel = await self._mux.aopen_channel()
             owned = True
 
         header_block = [
@@ -97,9 +92,9 @@ class H2Transport(
             self._mux._h2.send_data(channel, body, end_stream=True)
         await self._mux._flush()
 
-        status: Optional[int] = None
+        status: int | None = None
         response_headers: Headers = {}
-        payload: List[bytes] = []
+        payload: list[bytes] = []
 
         while True:
             if self._mux._reader is None:
@@ -141,17 +136,17 @@ class H2Transport(
                 ):
                     await self._mux._flush()
                     if owned:
-                        await self._mux.close_channel(channel)
+                        await self._mux.aclose_channel(channel)
                     return status or 200, response_headers, b"".join(payload)
                 elif (
                     isinstance(event, StreamReset)
                     and event.stream_id == channel
                 ):
                     if owned:
-                        await self._mux.close_channel(channel)
+                        await self._mux.aclose_channel(channel)
                     raise RuntimeError("HTTP/2 stream reset")
             await self._mux._flush()
 
         if owned:
-            await self._mux.close_channel(channel)
+            await self._mux.aclose_channel(channel)
         return status or 500, response_headers, b"".join(payload)

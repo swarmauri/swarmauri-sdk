@@ -19,7 +19,8 @@ class CustomMergeStrategy(MergeStrategy):
         Method: __init__
 
         Args:
-            fn: a callable that takes a list of inputs and returns a merged value.
+            fn: a callable that takes a list of inputs and returns a merged
+            value.
         """
         self.fn = fn
 

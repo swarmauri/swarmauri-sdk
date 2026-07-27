@@ -15,7 +15,6 @@ class IDataConnector(ABC):
 
         :param kwargs: Authentication parameters such as API keys, tokens, etc.
         """
-        pass
 
     @abstractmethod
     def fetch_data(self, query: str, **kwargs):
@@ -26,7 +25,6 @@ class IDataConnector(ABC):
         :param kwargs: Additional parameters for fetching data.
         :return: Data fetched from the source.
         """
-        pass
 
     @abstractmethod
     def insert_data(self, data, **kwargs):
@@ -36,7 +34,6 @@ class IDataConnector(ABC):
         :param data: Data to be inserted.
         :param kwargs: Additional parameters for inserting data.
         """
-        pass
 
     @abstractmethod
     def update_data(self, identifier, data, **kwargs):
@@ -47,7 +44,6 @@ class IDataConnector(ABC):
         :param data: Updated data.
         :param kwargs: Additional parameters for updating data.
         """
-        pass
 
     @abstractmethod
     def delete_data(self, identifier, **kwargs):
@@ -57,7 +53,6 @@ class IDataConnector(ABC):
         :param identifier: Unique identifier of the data to delete.
         :param kwargs: Additional parameters for deleting data.
         """
-        pass
 
     @abstractmethod
     def test_connection(self, **kwargs):
@@ -67,4 +62,3 @@ class IDataConnector(ABC):
         :param kwargs: Connection parameters.
         :return: Boolean indicating whether the connection is successful.
         """
-        pass

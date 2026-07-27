@@ -1,11 +1,12 @@
-import logging
-from urllib.parse import urlencode
-import httpx
 import base64
 import json
+import logging
 from typing import List
-from swarmauri_base.documents.DocumentBase import DocumentBase
+from urllib.parse import urlencode
+
+import httpx
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
+from swarmauri_base.documents.DocumentBase import DocumentBase
 
 
 class GoogleDriveDataConnector(DataConnectorBase):
@@ -17,7 +18,7 @@ class GoogleDriveDataConnector(DataConnectorBase):
     Google Drive resources.
     """
 
-    def __init__(self, credentials_path: str = None):
+    def __init__(self, credentials_path: str | None = None):
         """
         Initialize the Google Drive Data Connector.
 
@@ -136,7 +137,9 @@ class GoogleDriveDataConnector(DataConnectorBase):
             logging.error(f"Authentication failed: {e}")
             raise ValueError(f"Authentication failed: {e}")
 
-    def fetch_data(self, query: str = None, **kwargs) -> List[DocumentBase]:
+    def fetch_data(
+        self, query: str | None = None, **kwargs
+    ) -> List[DocumentBase]:
         """
         Fetch documents from Google Drive based on a query.
 

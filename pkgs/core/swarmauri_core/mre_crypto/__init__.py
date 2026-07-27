@@ -1,6 +1,6 @@
 """Multi-Recipient Encryption interfaces and types."""
 
-from .types import MultiRecipientEnvelope, RecipientInfo, RecipientId, MreMode
+from .types import MreMode, MultiRecipientEnvelope, RecipientId, RecipientInfo
 
 __all__ = [
     "IMreCrypto",

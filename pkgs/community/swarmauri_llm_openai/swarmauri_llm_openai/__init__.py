@@ -1,5 +1,6 @@
 from .OpenAIAudio import OpenAIAudio
 from .OpenAIAudioTTS import OpenAIAudioTTS
+from .OpenAIVLM import OpenAIVLM
 from .OpenAIModel import OpenAIModel
 from .OpenAIReasonModel import OpenAIReasonModel
 from .OpenAIToolModel import OpenAIToolModel
@@ -7,6 +8,7 @@ from .OpenAIToolModel import OpenAIToolModel
 __all__ = [
     "OpenAIAudio",
     "OpenAIAudioTTS",
+    "OpenAIVLM",
     "OpenAIModel",
     "OpenAIReasonModel",
     "OpenAIToolModel",

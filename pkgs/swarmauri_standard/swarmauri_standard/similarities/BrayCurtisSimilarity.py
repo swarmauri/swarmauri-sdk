@@ -64,11 +64,9 @@ class BrayCurtisSimilarity(SimilarityBase):
             # Check if arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
-                        f"Input vectors must have the same shape: "
-                        f"{x_array.shape} != "
-                        f"{y_array.shape}"
-                    )
+                    f"Input vectors must have the same shape: "
+                    f"{x_array.shape} != "
+                    f"{y_array.shape}"
                 )
 
             # Check for negative values
@@ -80,7 +78,7 @@ class BrayCurtisSimilarity(SimilarityBase):
             return x_array, y_array
 
         except (TypeError, ValueError) as e:
-            logger.error(f"Input validation error: {str(e)}")
+            logger.error(f"Input validation error: {e!s}")
             raise
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -126,7 +124,7 @@ class BrayCurtisSimilarity(SimilarityBase):
             return float(similarity_value)
 
         except Exception as e:
-            logger.error(f"Error calculating Bray-Curtis similarity: {str(e)}")
+            logger.error(f"Error calculating Bray-Curtis similarity: {e!s}")
             raise
 
     def similarities(
@@ -176,11 +174,9 @@ class BrayCurtisSimilarity(SimilarityBase):
                 # Check if arrays have the same shape
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        (
-                            f"Input vectors must have the same shape: "
-                            f"{x_array.shape} != "
-                            f"{y_array.shape}"
-                        )
+                        f"Input vectors must have the same shape: "
+                        f"{x_array.shape} != "
+                        f"{y_array.shape}"
                     )
 
                 # Check for negative values in y
@@ -205,10 +201,7 @@ class BrayCurtisSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                (
-                    f"Error calculating multiple Bray-Curtis similarities: "
-                    f"{str(e)}"
-                )
+                f"Error calculating multiple Bray-Curtis similarities: {e!s}"
             )
             raise
 
@@ -255,9 +248,7 @@ class BrayCurtisSimilarity(SimilarityBase):
             return float(dissimilarity_value)
 
         except Exception as e:
-            logger.error(
-                f"Error calculating Bray-Curtis dissimilarity: {str(e)}"
-            )
+            logger.error(f"Error calculating Bray-Curtis dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:
@@ -309,5 +300,5 @@ class BrayCurtisSimilarity(SimilarityBase):
             return abs(similarity_xy - similarity_yx) < 1e-10
 
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise

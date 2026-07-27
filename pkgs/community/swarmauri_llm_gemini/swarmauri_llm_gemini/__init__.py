@@ -1,7 +1,8 @@
 from .GeminiProModel import GeminiProModel
 from .GeminiToolModel import GeminiToolModel
+from .GeminiVLM import GeminiVLM
 
-__all__ = ["GeminiProModel", "GeminiToolModel"]
+__all__ = ["GeminiProModel", "GeminiToolModel", "GeminiVLM"]
 
 try:
     from importlib.metadata import PackageNotFoundError, version

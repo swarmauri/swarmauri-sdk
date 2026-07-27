@@ -1,6 +1,7 @@
-from PIL import Image
-import httpx
 from io import BytesIO
+
+import httpx
+from PIL import Image
 
 
 def img_url_to_in_memory_img(img_url: str) -> Image.Image:

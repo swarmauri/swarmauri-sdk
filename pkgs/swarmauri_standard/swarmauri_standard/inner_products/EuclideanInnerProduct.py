@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, Union
+from typing import Callable, Literal
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -32,8 +32,8 @@ class EuclideanInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the Euclidean inner product (dot product) between two vectors.
@@ -58,10 +58,8 @@ class EuclideanInnerProduct(InnerProductBase):
             If inputs are not numeric arrays or vectors
         """
         logger.debug(
-            (
-                f"Computing Euclidean inner product between {type(a)} and "
-                f"{type(b)}"
-            )
+            f"Computing Euclidean inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         try:
@@ -86,10 +84,8 @@ class EuclideanInnerProduct(InnerProductBase):
             # Check if inputs have compatible dimensions for dot product
             if a_array.shape != b_array.shape:
                 raise ValueError(
-                    (
-                        f"Input vectors must have the same shape. Got "
-                        f"{a_array.shape} and {b_array.shape}"
-                    )
+                    f"Input vectors must have the same shape. Got "
+                    f"{a_array.shape} and {b_array.shape}"
                 )
 
             # Compute the dot product
@@ -98,13 +94,13 @@ class EuclideanInnerProduct(InnerProductBase):
             return float(result)
 
         except Exception as e:
-            logger.error(f"Error computing Euclidean inner product: {str(e)}")
+            logger.error(f"Error computing Euclidean inner product: {e!s}")
             raise
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the Euclidean inner product satisfies the conjugate symmetry
@@ -136,22 +132,20 @@ class EuclideanInnerProduct(InnerProductBase):
             is_symmetric = np.isclose(ab_product, ba_product)
 
             logger.debug(
-                (
-                    f"Conjugate symmetry check result: {is_symmetric} "
-                    f"(<a,b>={ab_product}, <b,a>={ba_product})"
-                )
+                f"Conjugate symmetry check result: {is_symmetric} "
+                f"(<a,b>={ab_product}, <b,a>={ba_product})"
             )
             return bool(is_symmetric)
 
         except Exception as e:
-            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            logger.error(f"Error checking conjugate symmetry: {e!s}")
             raise
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -179,10 +173,8 @@ class EuclideanInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -193,11 +185,9 @@ class EuclideanInnerProduct(InnerProductBase):
             # Check if a1 and a2 have the same shape
             if a1_array.shape != a2_array.shape:
                 raise ValueError(
-                    (
-                        f"a1 and a2 must have the same shape. Got "
-                        f"{a1_array.shape} "
-                        f"and {a2_array.shape}"
-                    )
+                    f"a1 and a2 must have the same shape. Got "
+                    f"{a1_array.shape} "
+                    f"and {a2_array.shape}"
                 )
 
             # Compute left side of the equation: <alpha*a1 + beta*a2, b>
@@ -213,18 +203,16 @@ class EuclideanInnerProduct(InnerProductBase):
             is_linear = np.isclose(left_side, right_side)
 
             logger.debug(
-                (
-                    f"Linearity check result: {is_linear} (left={left_side}, "
-                    f"right={right_side})"
-                )
+                f"Linearity check result: {is_linear} (left={left_side}, "
+                f"right={right_side})"
             )
             return bool(is_linear)
 
         except Exception as e:
-            logger.error(f"Error checking linearity: {str(e)}")
+            logger.error(f"Error checking linearity: {e!s}")
             raise
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the Euclidean inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
@@ -258,13 +246,11 @@ class EuclideanInnerProduct(InnerProductBase):
 
             result = is_nonnegative and is_zero_iff_a_zero
             logger.debug(
-                (
-                    f"Positivity check result: {result} "
-                    f"(self-product={self_product})"
-                )
+                f"Positivity check result: {result} "
+                f"(self-product={self_product})"
             )
             return result
 
         except Exception as e:
-            logger.error(f"Error checking positivity: {str(e)}")
+            logger.error(f"Error checking positivity: {e!s}")
             raise

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List
 from enum import Enum
+from typing import Any, Callable
 
 
 class PipelineStatus(Enum):
@@ -29,16 +29,14 @@ class IPipeline(ABC):
         :param args: Positional arguments for the task
         :param kwargs: Keyword arguments for the task
         """
-        pass
 
     @abstractmethod
-    def execute(self, *args: Any, **kwargs: Any) -> List[Any]:
+    def execute(self, *args: Any, **kwargs: Any) -> list[Any]:
         """
         Execute the entire pipeline.
 
         :return: List of results from pipeline execution
         """
-        pass
 
     @abstractmethod
     def get_status(self) -> PipelineStatus:
@@ -47,11 +45,9 @@ class IPipeline(ABC):
 
         :return: Current pipeline status
         """
-        pass
 
     @abstractmethod
     def reset(self) -> None:
         """
         Reset the pipeline to its initial state.
         """
-        pass

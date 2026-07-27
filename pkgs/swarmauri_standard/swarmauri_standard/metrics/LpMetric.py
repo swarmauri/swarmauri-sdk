@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Optional, Sequence, Union
+from typing import List, Literal, Optional, Sequence
 
 import numpy as np
 from pydantic import Field, field_validator
@@ -131,11 +131,9 @@ class LpMetric(MetricBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
-                        f"Inputs must have the same shape. Got {x_array.shape} "  # noqa: E501
-                        f"and "
-                        f"{y_array.shape}"
-                    )
+                    f"Inputs must have the same shape. Got {x_array.shape} "
+                    f"and "
+                    f"{y_array.shape}"
                 )
 
             # Calculate Lp distance: (sum(|x_i - y_i|^p))^(1/p)
@@ -148,14 +146,14 @@ class LpMetric(MetricBase):
             )
             return float(distance_value)
         except Exception as e:
-            logger.error(f"Error calculating Lp distance: {str(e)}")
+            logger.error(f"Error calculating Lp distance: {e!s}")
             raise
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate Lp distances between collections of points.
 
@@ -208,11 +206,9 @@ class LpMetric(MetricBase):
 
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        (
-                            f"Matrices must have the same shape. Got "
-                            f"{x_array.shape} and "
-                            f"{y_array.shape}"
-                        )
+                        f"Matrices must have the same shape. Got "
+                        f"{x_array.shape} and "
+                        f"{y_array.shape}"
                     )
 
                 # Calculate element-wise distances
@@ -231,7 +227,7 @@ class LpMetric(MetricBase):
                 return self.distance(x, y)
 
         except Exception as e:
-            logger.error(f"Error calculating Lp distances: {str(e)}")
+            logger.error(f"Error calculating Lp distances: {e!s}")
             raise
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -258,7 +254,7 @@ class LpMetric(MetricBase):
             logger.debug(f"Non-negativity check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in non-negativity check: {str(e)}")
+            logger.error(f"Error in non-negativity check: {e!s}")
             return False
 
     def check_identity_of_indiscernibles(
@@ -301,9 +297,7 @@ class LpMetric(MetricBase):
             logger.debug(f"Identity of indiscernibles check result: {result}")
             return result
         except Exception as e:
-            logger.error(
-                f"Error in identity of indiscernibles check: {str(e)}"
-            )
+            logger.error(f"Error in identity of indiscernibles check: {e!s}")
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -332,7 +326,7 @@ class LpMetric(MetricBase):
             logger.debug(f"Symmetry check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in symmetry check: {str(e)}")
+            logger.error(f"Error in symmetry check: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -368,7 +362,7 @@ class LpMetric(MetricBase):
             logger.debug(f"Triangle inequality check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in triangle inequality check: {str(e)}")
+            logger.error(f"Error in triangle inequality check: {e!s}")
             return False
 
     def get_norm(self) -> GeneralLpNorm:

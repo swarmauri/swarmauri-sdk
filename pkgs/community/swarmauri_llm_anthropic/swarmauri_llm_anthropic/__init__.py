@@ -1,7 +1,8 @@
 from .AnthropicModel import AnthropicModel
 from .AnthropicToolModel import AnthropicToolModel
+from .AnthropicVLM import AnthropicVLM
 
-__all__ = ["AnthropicModel", "AnthropicToolModel"]
+__all__ = ["AnthropicModel", "AnthropicToolModel", "AnthropicVLM"]
 
 try:
     from importlib.metadata import PackageNotFoundError, version

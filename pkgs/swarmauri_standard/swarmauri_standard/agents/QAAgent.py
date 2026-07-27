@@ -1,13 +1,13 @@
-from typing import Any, Optional, Dict, Literal
+from typing import Any, Dict, Literal, Optional
+
+from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.conversations.ConversationBase import ConversationBase
 
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-
-from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "QAAgent")
@@ -18,8 +18,10 @@ class QAAgent(AgentBase):
     type: Literal["QAAgent"] = "QAAgent"
 
     def exec(
-        self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
+        self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = None
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         self.conversation.add_message(HumanMessage(content=input_str))
@@ -28,8 +30,10 @@ class QAAgent(AgentBase):
         return self.conversation.get_last().content
 
     async def aexec(
-        self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = {}
+        self, input_str: Optional[str] = "", llm_kwargs: Optional[Dict] = None
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         llm_kwargs = llm_kwargs or self.llm_kwargs
 
         self.conversation.add_message(HumanMessage(content=input_str))

@@ -1,8 +1,8 @@
 from typing import Any, List, Literal, Type
 
 from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.swarms.SwarmBase import SwarmBase
 
 

@@ -1,12 +1,13 @@
 from typing import Literal
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.measurements.MeasurementAggregateMixin import (
+    MeasurementAggregateMixin,
+)
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
-from swarmauri_base.measurements.MeasurementAggregateMixin import (
-    MeasurementAggregateMixin,
-)
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(MeasurementBase, "MeanMeasurement")

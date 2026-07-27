@@ -1,6 +1,7 @@
 """Mixin for YAML serialization and validation utilities."""
 
 import json
+
 import yaml
 from pydantic import BaseModel, ValidationError
 

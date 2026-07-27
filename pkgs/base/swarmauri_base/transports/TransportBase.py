@@ -6,11 +6,11 @@ from contextlib import AbstractAsyncContextManager
 from typing import Any, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr
+from swarmauri_core.transports.capabilities import TransportCapabilities
+from swarmauri_core.transports.enums import Cast, Feature
+from swarmauri_core.transports.ITransport import ITransport
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.transports.capabilities import TransportCapabilities
-from swarmauri_core.transports.ITransport import ITransport
-from swarmauri_core.transports.enums import Cast, Feature
 
 
 class CapabilityError(RuntimeError):
@@ -33,7 +33,7 @@ def _require_caps(
 
 
 @ComponentBase.register_model()
-class TransportBase(ComponentBase, ITransport):
+class TransportBase(ITransport, ComponentBase):
     """Base class providing capability-safe server/client context managers."""
 
     allowed_protocols: list[str] = []
@@ -62,7 +62,7 @@ class TransportBase(ComponentBase, ITransport):
     # ------------------------------------------------------------------
     def server(
         self, **bind_kwargs: Any
-    ) -> AbstractAsyncContextManager["TransportBase"]:
+    ) -> AbstractAsyncContextManager[TransportBase]:
         """Create a context manager that starts the transport's server side."""
 
         self.supports()
@@ -81,7 +81,7 @@ class TransportBase(ComponentBase, ITransport):
 
     def client(
         self, **connect_kwargs: Any
-    ) -> AbstractAsyncContextManager["TransportBase"]:
+    ) -> AbstractAsyncContextManager[TransportBase]:
         """Create a context manager that opens the transport's client side."""
 
         self.supports()

@@ -3,6 +3,7 @@ try:
 except ImportError:  # pragma: no cover
     from importlib_metadata import PackageNotFoundError, version
 from pathlib import Path
+
 import tomllib
 
 try:

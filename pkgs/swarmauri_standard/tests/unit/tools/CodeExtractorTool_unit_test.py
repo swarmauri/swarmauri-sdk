@@ -5,8 +5,10 @@ In the CodeExtractorTool, it utilizes ast hence checks for python syntax
 Tests created must follow python syntax to avoid errors
 """
 
-import pytest
 import tempfile
+
+import pytest
+
 from swarmauri_standard.tools.CodeExtractorTool import (
     CodeExtractorTool as Tool,
 )
@@ -189,5 +191,6 @@ def test_call(
         f"Expected str, but got {type(result.get('code')).__name__}"
     )
     assert result.get("code") == expected_code, (
-        f"Expected Extracted Code {expected_code}, but got {result.get('code')}"  # noqa: E501
+        f"Expected Extracted Code {expected_code}, but got "
+        f"{result.get('code')}"
     )

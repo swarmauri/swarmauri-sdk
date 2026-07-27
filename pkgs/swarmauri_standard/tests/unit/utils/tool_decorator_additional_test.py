@@ -1,8 +1,9 @@
+from typing import Annotated, Any, Dict, List
+
 import pytest
-from typing import Dict, List, Any, Union, Annotated
+from swarmauri_base.tools.ToolBase import ToolBase
 
 from swarmauri_standard.utils.tool_decorator import tool
-from swarmauri_base.tools.ToolBase import ToolBase
 
 
 @pytest.mark.unit
@@ -39,7 +40,7 @@ def test_tool_decorator_complex_nested_types():
     def complex_fn(
         a_dict: dict,
         mapping: Dict[str, str],
-        union_map: Dict[str, Union[int, float, dict, str]],
+        union_map: Dict[str, int | float | dict | str],
         items: list,
         list_of_maps: List[Dict[str, Any]],
         annotated_value: Annotated[str, "meta"] = "foo",

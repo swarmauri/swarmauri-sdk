@@ -1,0 +1,27 @@
+[project]
+name = "swarmauri_agent_realtime"
+version = "0.1.0.dev2"
+description = "Provider-neutral realtime multimodal agent for Swarmauri live models."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = ["swarmauri_core", "swarmauri_base"]
+classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
+keywords = ["swarmauri", "agent", "realtime", "audio", "tools", "multimodal"]
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+[project.entry-points."swarmauri.agents"]
+RealtimeAgent = "swarmauri_agent_realtime:RealtimeAgent"
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["BLE001", "N999"]

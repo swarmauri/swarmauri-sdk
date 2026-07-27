@@ -207,7 +207,7 @@ class GeminiToolModel(ToolLLMBase):
                         )
                     )
                 except Exception as e:
-                    logging.error(f"Error processing tool call: {str(e)}")
+                    logging.error(f"Error processing tool call: {e!s}")
                     continue
 
         # Update messages for Gemini's format
@@ -251,7 +251,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: Conversation,
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -313,7 +313,7 @@ class GeminiToolModel(ToolLLMBase):
 
         # Check if there are tool calls
         has_tool_calls = False
-        if "candidates" in tool_response and tool_response["candidates"]:
+        if tool_response.get("candidates"):
             content = tool_response["candidates"][0]["content"]
             formatted_messages.append(content)
 
@@ -350,17 +350,14 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if (
-                    "candidates" in agent_response
-                    and agent_response["candidates"]
-                ):
+                if agent_response.get("candidates"):
                     content = agent_response["candidates"][0]["content"][
                         "parts"
                     ][0]["text"]
                     conversation.add_message(AgentMessage(content=content))
         else:
             # If no tool calls, just add the assistant's message
-            if "candidates" in tool_response and tool_response["candidates"]:
+            if tool_response.get("candidates"):
                 content = tool_response["candidates"][0]["content"]["parts"][
                     0
                 ]["text"]
@@ -373,7 +370,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: Conversation,
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         multiturn: bool = True,
         temperature: float = 0.7,
         max_tokens: int = 1024,
@@ -435,7 +432,7 @@ class GeminiToolModel(ToolLLMBase):
 
         # Check if there are tool calls
         has_tool_calls = False
-        if "candidates" in tool_response and tool_response["candidates"]:
+        if tool_response.get("candidates"):
             content = tool_response["candidates"][0]["content"]
             formatted_messages.append(content)
 
@@ -472,17 +469,14 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if (
-                    "candidates" in agent_response
-                    and agent_response["candidates"]
-                ):
+                if agent_response.get("candidates"):
                     content = agent_response["candidates"][0]["content"][
                         "parts"
                     ][0]["text"]
                     conversation.add_message(AgentMessage(content=content))
         else:
             # If no tool calls, just add the assistant's message
-            if "candidates" in tool_response and tool_response["candidates"]:
+            if tool_response.get("candidates"):
                 content = tool_response["candidates"][0]["content"]["parts"][
                     0
                 ]["text"]
@@ -495,7 +489,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: Conversation,
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> Iterator[str]:
@@ -555,7 +549,7 @@ class GeminiToolModel(ToolLLMBase):
 
         # Check if there are tool calls
         has_tool_calls = False
-        if "candidates" in tool_response and tool_response["candidates"]:
+        if tool_response.get("candidates"):
             content = tool_response["candidates"][0]["content"]
             formatted_messages.append(content)
 
@@ -601,10 +595,7 @@ class GeminiToolModel(ToolLLMBase):
                 if json_str:
                     try:
                         response_data = json.loads(json_str)
-                        if (
-                            "candidates" in response_data
-                            and response_data["candidates"]
-                        ):
+                        if response_data.get("candidates"):
                             candidate = response_data["candidates"][0]
                             if (
                                 "content" in candidate
@@ -621,7 +612,7 @@ class GeminiToolModel(ToolLLMBase):
             conversation.add_message(AgentMessage(content=full_response))
         else:
             # If no tool calls, just stream the response directly
-            if "candidates" in tool_response and tool_response["candidates"]:
+            if tool_response.get("candidates"):
                 content = tool_response["candidates"][0]["content"]["parts"][
                     0
                 ]["text"]
@@ -633,7 +624,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversation: Conversation,
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> AsyncIterator[str]:
@@ -694,7 +685,7 @@ class GeminiToolModel(ToolLLMBase):
 
         # Check if there are tool calls
         has_tool_calls = False
-        if "candidates" in tool_response and tool_response["candidates"]:
+        if tool_response.get("candidates"):
             content = tool_response["candidates"][0]["content"]
             formatted_messages.append(content)
 
@@ -737,10 +728,7 @@ class GeminiToolModel(ToolLLMBase):
                 if json_str:
                     try:
                         response_data = json.loads(json_str)
-                        if (
-                            "candidates" in response_data
-                            and response_data["candidates"]
-                        ):
+                        if response_data.get("candidates"):
                             candidate = response_data["candidates"][0]
                             if (
                                 "content" in candidate
@@ -757,7 +745,7 @@ class GeminiToolModel(ToolLLMBase):
             conversation.add_message(AgentMessage(content=full_response))
         else:
             # If no tool calls, just stream the response directly
-            if "candidates" in tool_response and tool_response["candidates"]:
+            if tool_response.get("candidates"):
                 content = tool_response["candidates"][0]["content"]["parts"][
                     0
                 ]["text"]
@@ -768,7 +756,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversations: List[Conversation],
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
     ) -> List[Conversation]:
@@ -803,7 +791,7 @@ class GeminiToolModel(ToolLLMBase):
         self,
         conversations: List[Conversation],
         toolkit: Toolkit = None,
-        tool_choice: Dict[str, Any] = None,
+        tool_choice: Dict[str, Any] | None = None,
         temperature: float = 0.7,
         max_tokens: int = 1024,
         max_concurrent: int = 5,

@@ -12,31 +12,26 @@ based on the unified registry.
 All classes and methods in this module use Spacy-style docstrings.
 """
 
+import builtins
 import functools
+from collections.abc import Callable
 from threading import Lock
 from typing import (
     Annotated,
     Any,
-    Callable,
     ClassVar,
-    Dict,
-    List,
     Literal,
     Optional,
-    Set,
-    Tuple,
-    Type,
     TypeVar,
     Union,
     get_args,
     get_origin,
 )
-from pydantic import BaseModel, Field, ConfigDict
+
+from pydantic import BaseModel, ConfigDict, Field
+from swarmauri_typing import UnionFactory, UnionFactoryMetadata
 
 from swarmauri_base.glogging import glogger
-from swarmauri_typing import UnionFactory
-from swarmauri_typing import UnionFactoryMetadata
-
 
 T = TypeVar("T", bound="DynamicBase")
 
@@ -57,9 +52,9 @@ class DynamicBase(BaseModel):
 
     # Unified registry mapping model names to a dict with "model_cls" and
     # "subtypes"
-    _registry: ClassVar[Dict[str, Dict[str, Any]]] = {}
-    _subclass_union_factory: ClassVar[Optional[UnionFactory]] = None
-    _full_union_factory: ClassVar[Optional[UnionFactory]] = None
+    _registry: ClassVar[dict[str, dict[str, Any]]] = {}
+    _subclass_union_factory: ClassVar[UnionFactory | None] = None
+    _full_union_factory: ClassVar[UnionFactory | None] = None
     _lock: ClassVar[Lock] = Lock()
     _type: ClassVar[str] = "DynamicBase"
 
@@ -126,8 +121,8 @@ class DynamicBase(BaseModel):
 
     @staticmethod
     def _subclass_union_getter(
-        parent_cls: Union[str, Type["DynamicBase"]],
-    ) -> List[Type["DynamicBase"]]:
+        parent_cls: Union[str, builtins.type["DynamicBase"]],
+    ) -> list[builtins.type["DynamicBase"]]:
         """
         Retrieve registered subclasses for a given parent class.
 
@@ -178,8 +173,8 @@ class DynamicBase(BaseModel):
 
     @staticmethod
     def _full_union_getter(
-        parent_cls: Union[str, Type["DynamicBase"]],
-    ) -> List[Type["DynamicBase"]]:
+        parent_cls: Union[str, builtins.type["DynamicBase"]],
+    ) -> list[builtins.type["DynamicBase"]]:
         """
         Retrieve registered subclasses for a given parent class.
 
@@ -208,8 +203,8 @@ class DynamicBase(BaseModel):
 
     @classmethod
     def _collect_union_field_updates(
-        cls, model_class: Type[BaseModel]
-    ) -> Dict[str, Any]:
+        cls, model_class: builtins.type[BaseModel]
+    ) -> dict[str, Any]:
         """
         Traverse the model's MRO to collect union-annotated field updates.
         This ensures that inherited union fields are considered.
@@ -236,7 +231,7 @@ class DynamicBase(BaseModel):
         return union_fields
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _field_contains_subclass_union(cls, field_annotation) -> bool:
         """
         Determine if the field annotation contains a UnionFactory or
@@ -278,13 +273,13 @@ class DynamicBase(BaseModel):
         elif origin in {
             Union,
             list,
-            List,
+            list,
             dict,
-            Dict,
+            dict,
             set,
-            Set,
+            set,
             tuple,
-            Tuple,
+            tuple,
             Optional,
         }:
             for arg in args:
@@ -306,10 +301,10 @@ class DynamicBase(BaseModel):
         return False
 
     @classmethod
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def _extract_parent_classes_from_field(
         cls, field_annotation
-    ) -> List[Type["DynamicBase"]]:
+    ) -> list[builtins.type["DynamicBase"]]:
         """
         Extract parent DynamicBase classes from a field annotation.
 
@@ -344,13 +339,13 @@ class DynamicBase(BaseModel):
             elif origin in {
                 Union,
                 list,
-                List,
+                list,
                 dict,
-                Dict,
+                dict,
                 set,
-                Set,
+                set,
                 tuple,
-                Tuple,
+                tuple,
                 Optional,
             }:
                 for arg in args:
@@ -400,7 +395,7 @@ class DynamicBase(BaseModel):
             # UnionFactoryMetadata.
             if origin is Annotated:
                 glogger.debug(f"\n\nAnnotated - {args}")
-                base_type = args[0]  # noqa: F841
+                base_type = args[0]
                 union_factory_metadata = args[1]
                 glogger.debug(f"Annotated - {union_factory_metadata}\n\n")
                 metadata = [
@@ -422,7 +417,8 @@ class DynamicBase(BaseModel):
                 Union[union_type, type(None)] if is_optional else union_type
             )
             glogger.debug(
-                "Determined new type for:\n\t field %s \n\t with parent %s \n\t to be %s \n",  # noqa: E501
+                "Determined new type for:\n\t field %s \n\t with parent %s "
+                "\n\t to be %s \n",
                 field_annotation,
                 parent_class,
                 new_type,
@@ -461,13 +457,13 @@ class DynamicBase(BaseModel):
         elif origin in {
             Union,
             list,
-            List,
+            list,
             dict,
-            Dict,
+            dict,
             set,
-            Set,
+            set,
             tuple,
-            Tuple,
+            tuple,
             Optional,
         }:
             args = get_args(annotation)
@@ -488,7 +484,7 @@ class DynamicBase(BaseModel):
     @classmethod
     def _generate_models_with_fields(
         cls,
-    ) -> Dict[Type[BaseModel], Dict[str, Any]]:
+    ) -> dict[builtins.type[BaseModel], dict[str, Any]]:
         """
         Generate a mapping of model classes to their fields with updated type
         annotations.
@@ -499,12 +495,10 @@ class DynamicBase(BaseModel):
                 fields and their new type annotations.
         """
         glogger.debug(
-            (
-                "Generating models with updated field annotations from the "
-                "unified registry."
-            )
+            "Generating models with updated field annotations from the "
+            "unified registry."
         )
-        models_with_fields: Dict[Type[BaseModel], Dict[str, Any]] = {}
+        models_with_fields: dict[type[BaseModel], dict[str, Any]] = {}
 
         # Process each base model in the registry.
         for model_name, entry in cls._registry.items():
@@ -588,7 +582,8 @@ class DynamicBase(BaseModel):
                                 ].annotation = new_type
                                 glogger.debug(
                                     (
-                                        "Merged union update for field '%s' in model '%s' from '%s' "  # noqa: E501
+                                        "Merged union update for field '%s' "
+                                        "in model '%s' from '%s' "
                                         "to '%s'"
                                     ),
                                     field_name,
@@ -609,10 +604,8 @@ class DynamicBase(BaseModel):
                         )
 
             glogger.debug(
-                (
-                    "All models have been successfully recreated following the "  # noqa: E501
-                    "dependency chain."
-                )
+                "All models have been successfully recreated following the "
+                "dependency chain."
             )
 
     ###############################################################
@@ -620,7 +613,9 @@ class DynamicBase(BaseModel):
     ###############################################################
 
     @classmethod
-    def register_model(cls) -> Callable[[Type[BaseModel]], Type[BaseModel]]:
+    def register_model(
+        cls,
+    ) -> Callable[[builtins.type[BaseModel]], builtins.type[BaseModel]]:
         """
         Decorator to register a base model in the unified registry.
 
@@ -628,7 +623,7 @@ class DynamicBase(BaseModel):
             Callable: A decorator function that registers the model class.
         """
 
-        def decorator(model_cls: Type[BaseModel]):
+        def decorator(model_cls: type[BaseModel]):
             """Register ``model_cls`` as a base model."""
             model_name = model_cls.__name__
             if model_name in cls._registry:
@@ -651,9 +646,12 @@ class DynamicBase(BaseModel):
     @classmethod
     def register_type(
         cls,
-        resource_type: Optional[Union[Type[T], List[Type[T]]]] = None,
-        type_name: Optional[str] = None,
-    ) -> Callable[[Type["DynamicBase"]], Type["DynamicBase"]]:
+        resource_type: Union[builtins.type[T], list[builtins.type[T]]]
+        | None = None,
+        type_name: str | None = None,
+    ) -> Callable[
+        [builtins.type["DynamicBase"]], builtins.type["DynamicBase"]
+    ]:
         """
         Decorator to register a subtype under one or more base models in the
         unified registry.
@@ -670,7 +668,7 @@ class DynamicBase(BaseModel):
             Callable: A decorator function that registers the subtype.
         """
 
-        def decorator(subclass: Type["DynamicBase"]):
+        def decorator(subclass: type["DynamicBase"]):
             """Register ``subclass`` as a subtype."""
             if resource_type is None:
                 resource_types = [
@@ -684,7 +682,8 @@ class DynamicBase(BaseModel):
             for rt in resource_types:
                 if not issubclass(subclass, rt):
                     raise TypeError(
-                        f"'{subclass.__name__}' must be a subclass of '{rt.__name__}'."  # noqa: E501
+                        f"'{subclass.__name__}' must be a subclass of "
+                        f"'{rt.__name__}'."
                     )
                 final_type_name = type_name or getattr(
                     subclass, "_type", subclass.__name__

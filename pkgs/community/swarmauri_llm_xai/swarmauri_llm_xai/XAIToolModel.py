@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, FrozenSet, List, Literal
+from typing import Any, ClassVar, Literal
 
 import httpx
 from swarmauri_base.ComponentBase import ComponentBase
@@ -25,7 +25,7 @@ class XAIToolModel(ToolLLMBase):
     base_url: str = "https://api.x.ai/v1"
     name: str = "grok-4.3"
     discover_models: bool = False
-    capabilities: ClassVar[FrozenSet[str]] = frozenset(
+    capabilities: ClassVar[frozenset[str]] = frozenset(
         {"chat_completions", "streaming", "tools"}
     )
 
@@ -37,6 +37,10 @@ class XAIToolModel(ToolLLMBase):
     abatch = abatch_tools
 
     def __init__(self, **data: Any) -> None:
+        selected_name = data.get(
+            "name", self.__class__.model_fields["name"].default
+        )
+        data.setdefault("allowed_models", [selected_name])
         super().__init__(**data)
         if self.api_key is None:
             raise ValueError("api_key is required")
@@ -57,7 +61,7 @@ class XAIToolModel(ToolLLMBase):
             "Content-Type": "application/json",
         }
 
-    def _get_models(self) -> List[str]:
+    def _get_models(self) -> list[str]:
         if not self.discover_models:
             return [self.name]
         with httpx.Client(timeout=self.timeout) as client:

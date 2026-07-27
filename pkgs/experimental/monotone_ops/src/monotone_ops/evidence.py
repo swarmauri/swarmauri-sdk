@@ -40,11 +40,18 @@ class WeightedEvidence:
         return self.total >= threshold
 
 
-def weighted_evidence_merge(a: WeightedEvidence, b: WeightedEvidence) -> WeightedEvidence:
+def weighted_evidence_merge(
+    a: WeightedEvidence, b: WeightedEvidence
+) -> WeightedEvidence:
     """Merge voter weights by pointwise max, preventing duplicate inflation."""
 
     keys = a.weights.keys() | b.weights.keys()
-    return WeightedEvidence({key: max(a.weights.get(key, 0.0), b.weights.get(key, 0.0)) for key in keys})
+    return WeightedEvidence(
+        {
+            key: max(a.weights.get(key, 0.0), b.weights.get(key, 0.0))
+            for key in keys
+        }
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,14 +64,22 @@ class ClaimEvidence:
 def claim_evidence_merge(a: ClaimEvidence, b: ClaimEvidence) -> ClaimEvidence:
     keys = a.support.keys() | b.support.keys()
     return ClaimEvidence(
-        {key: a.support.get(key, frozenset()) | b.support.get(key, frozenset()) for key in keys}
+        {
+            key: a.support.get(key, frozenset())
+            | b.support.get(key, frozenset())
+            for key in keys
+        }
     )
 
 
 def certified_claims(state: ClaimEvidence, quorum: int) -> frozenset[Hashable]:
     if quorum <= 0:
         raise ValueError("quorum must be positive")
-    return frozenset(claim for claim, voters in state.support.items() if len(voters) >= quorum)
+    return frozenset(
+        claim
+        for claim, voters in state.support.items()
+        if len(voters) >= quorum
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,16 +99,25 @@ def scorecard_merge(a: ScoreCard, b: ScoreCard) -> ScoreCard:
         raise ValueError("scorecards must use the same cap")
     keys = a.scores.keys() | b.scores.keys()
     return ScoreCard(
-        {key: min(a.cap, a.scores.get(key, 0.0) + b.scores.get(key, 0.0)) for key in keys},
+        {
+            key: min(a.cap, a.scores.get(key, 0.0) + b.scores.get(key, 0.0))
+            for key in keys
+        },
         a.cap,
     )
 
 
-def thresholded_features(card: ScoreCard, threshold: float) -> frozenset[Hashable]:
-    return frozenset(key for key, value in card.scores.items() if value >= threshold)
+def thresholded_features(
+    card: ScoreCard, threshold: float
+) -> frozenset[Hashable]:
+    return frozenset(
+        key for key, value in card.scores.items() if value >= threshold
+    )
 
 
-def support_ratio(state: ClaimEvidence, claim: Hashable, universe_size: int) -> float:
+def support_ratio(
+    state: ClaimEvidence, claim: Hashable, universe_size: int
+) -> float:
     if universe_size <= 0:
         raise ValueError("universe_size must be positive")
     return len(state.support.get(claim, frozenset())) / universe_size

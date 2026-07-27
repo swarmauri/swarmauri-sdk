@@ -1,8 +1,9 @@
 """Mixin for TOML serialization and validation utilities."""
 
 import json
-import tomllib
+
 import toml
+import tomllib
 from pydantic import BaseModel, ValidationError
 
 

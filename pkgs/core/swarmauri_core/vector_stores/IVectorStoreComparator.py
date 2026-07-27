@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Literal, Sequence, TypeAlias
+from typing import Literal, Sequence, TypeAlias
 
 ComparableValue: TypeAlias = object
 RankingDirection: TypeAlias = Literal["ascending", "descending"]
@@ -22,5 +22,5 @@ class IVectorStoreComparator(ABC):
     @abstractmethod
     def score_many(
         self, query: ComparableValue, candidates: Sequence[ComparableValue]
-    ) -> List[float]:
+    ) -> list[float]:
         """Compute retrieval scores for multiple candidates."""

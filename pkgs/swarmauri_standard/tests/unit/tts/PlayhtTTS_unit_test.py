@@ -1,12 +1,11 @@
 import logging
-import pytest
 import os
-
-from swarmauri_standard.tts.PlayhtTTS import PlayhtTTS
-from dotenv import load_dotenv
-
 from pathlib import Path
 
+import pytest
+from dotenv import load_dotenv
+
+from swarmauri_standard.tts.PlayhtTTS import PlayhtTTS
 
 # Get the current working directory
 root_dir = Path(__file__).resolve().parents[2]

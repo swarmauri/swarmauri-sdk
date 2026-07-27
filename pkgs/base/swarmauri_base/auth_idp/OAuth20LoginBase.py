@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Literal
 
 from pydantic import Field
+from swarmauri_core.auth_idp.IOAuth20Login import IOAuth20Login
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.auth_idp.IOAuth20Login import IOAuth20Login
 
 
 class OAuth20LoginBase(IOAuth20Login, ComponentBase):
     """Base class for OAuth 2.0 user login flows."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.OAuth20Login.value, frozen=True
     )
     type: Literal["OAuth20LoginBase"] = "OAuth20LoginBase"

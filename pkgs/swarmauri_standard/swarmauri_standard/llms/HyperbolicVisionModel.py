@@ -27,7 +27,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 warnings.warn(
     "Importing HyperbolicVisionModel from swarmauri.llms is deprecated and "
     "will be "
-    "removed in a future version. Please use 'from swarmauri_standard.vlms import "  # noqa: E501
+    "removed in a future version. Please use "
+    "'from swarmauri_standard.vlms import "
     "HyperbolicVLM' or 'from swarmauri.vlms import HyperbolicVLM' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -113,12 +114,11 @@ class HyperbolicVisionModel(LLMBase):
                     if item["type"] == "image_url" and "file_path" in item:
                         # Convert file path to base64
                         base64_img = file_path_to_base64(item["file_path"])
+                        data_url = f"data:image/jpeg;base64,{base64_img}"
                         formatted_content.append(
                             {
                                 "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_img}"  # noqa: E501
-                                },
+                                "image_url": {"url": data_url},
                             }
                         )
                     else:

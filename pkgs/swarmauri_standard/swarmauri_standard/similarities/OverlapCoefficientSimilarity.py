@@ -60,10 +60,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             try:
                 return set(x)
             except (TypeError, ValueError) as e:
-                logger.error(f"Cannot convert input to set: {str(e)}")
-                raise TypeError(
-                    f"Input must be convertible to a set: {str(e)}"
-                )
+                logger.error(f"Cannot convert input to set: {e!s}")
+                raise TypeError(f"Input must be convertible to a set: {e!s}")
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
@@ -111,7 +109,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             return intersection_size / min_size
         except Exception as e:
             logger.error(
-                f"Error calculating Overlap Coefficient similarity: {str(e)}"
+                f"Error calculating Overlap Coefficient similarity: {e!s}"
             )
             raise
 
@@ -182,10 +180,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                (
-                    f"Error calculating multiple Overlap Coefficient "
-                    f"similarities: {str(e)}"
-                )
+                f"Error calculating multiple Overlap Coefficient "
+                f"similarities: {e!s}"
             )
             raise
 
@@ -264,7 +260,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             # and the minimum size is the size of the set, so the result is 1.0
             return True
         except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
+            logger.error(f"Error checking reflexivity: {e!s}")
             raise
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -347,5 +343,5 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             # If similarity is not 1, identity of discernibles is satisfied
             return True
         except Exception as e:
-            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            logger.error(f"Error checking identity of discernibles: {e!s}")
             raise

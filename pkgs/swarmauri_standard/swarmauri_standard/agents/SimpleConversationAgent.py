@@ -1,12 +1,12 @@
-from typing import Any, Optional, Dict, Literal, List, Union
+from typing import Any, Dict, List, Literal, Optional
 
-from swarmauri_standard.messages.HumanMessage import contentItem
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
+
+from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
 
 
 @ComponentBase.register_type(AgentBase, "SimpleConversationAgent")
@@ -17,9 +17,11 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     def exec(
         self,
-        input_data: Optional[Union[str, List[contentItem]]] = "",
-        llm_kwargs: Optional[Dict] = {},
+        input_data: Optional[str | List[contentItem]] = "",
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if input_data:
             human_message = HumanMessage(content=input_data)
             self.conversation.add_message(human_message)
@@ -29,9 +31,11 @@ class SimpleConversationAgent(AgentConversationMixin, AgentBase):
 
     async def aexec(
         self,
-        input_data: Optional[Union[str, List[contentItem]]] = "",
-        llm_kwargs: Optional[Dict] = {},
+        input_data: Optional[str | List[contentItem]] = "",
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if input_data:
             human_message = HumanMessage(content=input_data)
             self.conversation.add_message(human_message)

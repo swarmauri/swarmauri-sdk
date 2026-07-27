@@ -1,0 +1,12 @@
+from typing import Literal
+
+from pydantic import Field, SecretStr
+from swarmauri_base.model_providers.ProviderAuthBase import ProviderAuthBase
+
+
+class AmazonNovaAuthConfig(ProviderAuthBase):
+    access_key_id: SecretStr | None = Field(default=None, exclude=True)
+    secret_access_key: SecretStr | None = Field(default=None, exclude=True)
+    session_token: SecretStr | None = Field(default=None, exclude=True)
+    profile: str | None = None
+    type: Literal["AmazonNovaAuthConfig"] = "AmazonNovaAuthConfig"

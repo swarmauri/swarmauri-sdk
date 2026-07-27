@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable, Mapping, Optional, Protocol
+from typing import Iterable, Mapping, Protocol
 
 from .types import BindType, CnfBinding, Feature, HttpParts, PoPKind
 
@@ -30,7 +30,7 @@ class VerifyPolicy:
     alg_allow: Iterable[str] = ()
     max_skew_s: int = 300
     require_ath: bool = False
-    require_bind: Optional[BindType] = None
+    require_bind: BindType | None = None
     htu_exact: bool = False
 
 

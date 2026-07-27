@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 
 class IBroadcastTransport(ABC):
@@ -11,6 +10,6 @@ class IBroadcastTransport(ABC):
 
     @abstractmethod
     async def broadcast(
-        self, data: bytes, *, timeout: Optional[float] = None
+        self, data: bytes, *, timeout: float | None = None
     ) -> None:
         """Broadcast data to all peers reachable by the transport."""

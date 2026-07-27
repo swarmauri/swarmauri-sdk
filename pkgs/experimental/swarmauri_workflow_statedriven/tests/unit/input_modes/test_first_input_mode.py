@@ -15,7 +15,9 @@ def test_prepare_returns_first_element_for_non_empty_list():
     """
     mode = FirstInputMode()
     data = ["a", "b", "c"]
-    result = mode.prepare(state_manager=None, node_name="X", data=data, results={})
+    result = mode.prepare(
+        state_manager=None, node_name="X", data=data, results={}
+    )
     assert result == "a"
 
 
@@ -29,7 +31,9 @@ def test_prepare_returns_none_for_empty_list():
     Should return None when the list is empty.
     """
     mode = FirstInputMode()
-    result = mode.prepare(state_manager=None, node_name="X", data=[], results={})
+    result = mode.prepare(
+        state_manager=None, node_name="X", data=[], results={}
+    )
     assert result is None
 
 

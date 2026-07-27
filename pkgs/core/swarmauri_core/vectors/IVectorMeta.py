@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 
 class IVectorMeta(ABC):
@@ -18,15 +18,13 @@ class IVectorMeta(ABC):
         vector
         in a database or a vector store.
         """
-        pass
 
     @property
     @abstractmethod
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         """
         Optional metadata associated with the vector. Metadata can include
         additional information
         useful for retrieval, categorization, or description of the vector
         data.
         """
-        pass

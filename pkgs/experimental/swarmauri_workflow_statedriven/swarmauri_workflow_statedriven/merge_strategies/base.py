@@ -5,15 +5,13 @@ from typing import Any, List
 
 
 class MergeStrategy(ABC):
-    """
-    Base class for merge strategies combining multiple buffered inputs
-    into a single value for a converged node.
-    """
+    """Base class for merge strategies combining multiple buffered inputs into
+    a single value for a converged node."""
 
     @abstractmethod
     def merge(self, inputs: List[Any]) -> Any:
-        """
-        Merge a list of branch outputs into one input for the converged state.
+        """Merge a list of branch outputs into one input for the converged
+        state.
 
         Args:
             inputs: List of values buffered from incoming branches.

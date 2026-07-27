@@ -1,8 +1,14 @@
 from .HyperbolicAudioTTS import HyperbolicAudioTTS
 from .HyperbolicModel import HyperbolicModel
 from .HyperbolicVisionModel import HyperbolicVisionModel
+from .HyperbolicVLM import HyperbolicVLM
 
-__all__ = ["HyperbolicAudioTTS", "HyperbolicModel", "HyperbolicVisionModel"]
+__all__ = [
+    "HyperbolicAudioTTS",
+    "HyperbolicModel",
+    "HyperbolicVisionModel",
+    "HyperbolicVLM",
+]
 
 try:
     from importlib.metadata import PackageNotFoundError, version

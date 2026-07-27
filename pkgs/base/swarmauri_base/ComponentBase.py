@@ -5,7 +5,6 @@ from enum import Enum
 from typing import (
     ClassVar,
     Literal,
-    Optional,
     TypeVar,
 )
 
@@ -16,7 +15,9 @@ from swarmauri_base.DynamicBase import DynamicBase
 ###########################################
 # Export Subclass Union for Legacy Support
 ###########################################
-from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
+from swarmauri_base.DynamicBase import (
+    SubclassUnion as SubclassUnion,  # noqa: PLC0414
+)
 from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.TomlMixin import TomlMixin
@@ -41,7 +42,7 @@ class ComponentBase(
 
     # Instance-attribute type (to support deserialization)
     type: Literal["ComponentBase"] = "ComponentBase"
-    name: Optional[str] = None
+    name: str | None = None
     resource: str = Field(default="ComponentBase")
     version: str = "0.1.0"
 
@@ -57,6 +58,9 @@ class ResourceTypes(Enum):
     UNIVERSAL_BASE = "ComponentBase"
     AGENT = "Agent"
     AGENT_FACTORY = "AgentFactory"
+    MODEL = "Model"
+    MODEL_PROVIDER = "ModelProvider"
+    LIVE_MODEL = "LiveModel"
     CHAIN = "Chain"
     CHAIN_METHOD = "ChainMethod"
     CHUNKER = "Chunker"
@@ -137,5 +141,3 @@ class ResourceTypes(Enum):
     OAuth21Login = "OAuth21Login"
     OIDC10AppClient = "OIDC10AppClient"
     OIDC10Login = "OIDC10Login"
-
-

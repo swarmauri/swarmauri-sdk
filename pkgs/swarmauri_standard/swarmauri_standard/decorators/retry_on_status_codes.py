@@ -1,20 +1,26 @@
-import time
-import logging
-import httpx
-from functools import wraps
-from typing import List, Callable, Any
 import asyncio
 import inspect
+import logging
+import time
+from functools import wraps
+from typing import Any, Callable, List
+
+import httpx
 
 
 def retry_on_status_codes(
-    status_codes: List[int] = [429], max_retries: int = 3, retry_delay: int = 2
+    status_codes: List[int] | None = None,
+    max_retries: int = 3,
+    retry_delay: int = 2,
 ):
     """
     A decorator to retry both sync and async functions when specific status
     codes are encountered,
     with exponential backoff.
     """
+
+    if status_codes is None:
+        status_codes = [429]
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
@@ -36,7 +42,7 @@ def retry_on_status_codes(
                             f"Received HTTP {e.response.status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         await asyncio.sleep(backoff_time)
                     else:
@@ -48,7 +54,7 @@ def retry_on_status_codes(
                     f"retries. "
                     f"Last encountered status code: "
                     f"{last_exception.response.status_code}. "
-                    f"Last error details: {str(last_exception)}"
+                    f"Last error details: {last_exception!s}"
                 )
                 logging.error(error_message)
                 raise Exception(error_message)
@@ -75,7 +81,7 @@ def retry_on_status_codes(
                             f"Received HTTP {e.response.status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         time.sleep(backoff_time)
                     else:
@@ -87,7 +93,7 @@ def retry_on_status_codes(
                     f"retries. "
                     f"Last encountered status code: "
                     f"{last_exception.response.status_code}. "
-                    f"Last error details: {str(last_exception)}"
+                    f"Last error details: {last_exception!s}"
                 )
                 logging.error(error_message)
                 raise Exception(error_message)

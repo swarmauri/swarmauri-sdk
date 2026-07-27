@@ -1,8 +1,9 @@
-from typing import List, Dict, Any, Optional, Literal
-from pydantic import Field, ConfigDict
+from typing import Any, Literal
+
+from pydantic import ConfigDict, Field
+from swarmauri_core.chains.IChain import IChain
 
 from swarmauri_base.chains.ChainStepBase import ChainStepBase
-from swarmauri_core.chains.IChain import IChain
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -12,8 +13,8 @@ class ChainBase(IChain, ComponentBase):
     A base implementation of the IChain interface.
     """
 
-    steps: List[ChainStepBase] = []
-    resource: Optional[str] = Field(default=ResourceTypes.CHAIN.value)
+    steps: list[ChainStepBase] = []
+    resource: str | None = Field(default=ResourceTypes.CHAIN.value)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ChainBase"] = "ChainBase"
 
@@ -34,5 +35,5 @@ class ChainBase(IChain, ComponentBase):
 
         raise NotImplementedError("This is not yet implemented")
 
-    def execute(self, *args, **kwargs) -> Dict[str, Any]:
+    def execute(self, *args, **kwargs) -> dict[str, Any]:
         raise NotImplementedError("This is not yet implemented")

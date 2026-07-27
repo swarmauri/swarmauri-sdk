@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, Any
+from typing import Any, AsyncIterator
 
 
 class IPeerTransport(ABC):

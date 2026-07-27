@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import socket
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from swarmauri_base.transports import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
@@ -23,12 +23,12 @@ class UdpTransport(
     """Datagram transport built on UDP sockets."""
 
     def __init__(
-        self, bind: Optional[str] = None, multicast_groups: Sequence[str] = ()
-    ):  # noqa: B008
+        self, bind: str | None = None, multicast_groups: Sequence[str] = ()
+    ):
         super().__init__(name="UDP")
         self._bind = bind
         self._groups = tuple(multicast_groups)
-        self._sock: Optional[socket.socket] = None
+        self._sock: socket.socket | None = None
         self._loop = asyncio.get_event_loop()
 
     def supports(self) -> TransportCapabilities:
@@ -72,21 +72,21 @@ class UdpTransport(
             self._sock = None
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if not self._sock:
             raise RuntimeError("socket not initialized")
         host, port = target.split(":", 1)
         self._sock.sendto(data, (host, int(port)))
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if not self._sock:
             raise RuntimeError("socket not initialized")
         fut = self._loop.run_in_executor(None, self._sock.recv, 65536)
         return await asyncio.wait_for(fut, timeout)
 
     async def broadcast(
-        self, data: bytes, *, timeout: Optional[float] = None
+        self, data: bytes, *, timeout: float | None = None
     ) -> None:
         if not self._sock:
             raise RuntimeError("socket not initialized")
@@ -99,7 +99,7 @@ class UdpTransport(
         group: Sequence[str],
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         if not self._sock:
             raise RuntimeError("socket not initialized")
@@ -112,7 +112,7 @@ class UdpTransport(
         candidates: Sequence[str],
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> str:
         if not self._sock:
             raise RuntimeError("socket not initialized")

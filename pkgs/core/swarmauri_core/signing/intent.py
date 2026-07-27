@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping, Optional
+from typing import Mapping
 
 try:  # pragma: no cover - typing upgrade path
     from typing import Literal
@@ -22,8 +22,8 @@ class SignIntent:
     format: Format
     mode: Mode
     alg: str
-    key_ref: Optional[str] = None
-    key_id: Optional[str] = None
+    key_ref: str | None = None
+    key_id: str | None = None
     hash_alg: str = "sha256"
     options: Mapping[str, object] = field(default_factory=dict)
 

@@ -1,9 +1,10 @@
+import warnings
 from typing import List, Literal
 
-from swarmauri_standard.vectors.Vector import Vector
-from swarmauri_base.distances.DistanceBase import DistanceBase
 from swarmauri_base.ComponentBase import ComponentBase
-import warnings
+from swarmauri_base.distances.DistanceBase import DistanceBase
+
+from swarmauri_standard.vectors.Vector import Vector
 
 warnings.warn(
     "This distance class will be deprecated in v0.12.0",
@@ -36,8 +37,8 @@ class SorensenDiceDistance(DistanceBase):
             vector_b.
         """
         # Convert vectors to binary sets
-        set_a = set([i for i, val in enumerate(vector_a) if val])
-        set_b = set([i for i, val in enumerate(vector_b) if val])
+        set_a = {i for i, val in enumerate(vector_a) if val}
+        set_b = {i for i, val in enumerate(vector_b) if val}
 
         # Calculate the intersection size
         intersection_size = len(set_a.intersection(set_b))
@@ -67,18 +68,14 @@ class SorensenDiceDistance(DistanceBase):
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            (
-                "Similarity calculation is not implemented for "
-                "SorensenDiceDistance."
-            )
+            "Similarity calculation is not implemented for "
+            "SorensenDiceDistance."
         )
 
     def similarities(
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            (
-                "Similarity calculation is not implemented for "
-                "SorensenDiceDistance."
-            )
+            "Similarity calculation is not implemented for "
+            "SorensenDiceDistance."
         )

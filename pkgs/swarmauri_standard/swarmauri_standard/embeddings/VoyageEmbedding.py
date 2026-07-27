@@ -2,8 +2,8 @@ from typing import Any, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 
 from swarmauri_standard.vectors.Vector import Vector
 
@@ -37,7 +37,8 @@ class VoyageEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         self._headers = {
@@ -79,11 +80,9 @@ class VoyageEmbedding(EmbeddingBase):
             return embeddings
 
         except httpx.HTTPError as e:
-            raise ValueError(f"Error calling Voyage AI API: {str(e)}")
+            raise ValueError(f"Error calling Voyage AI API: {e!s}")
         except (KeyError, ValueError) as e:
-            raise ValueError(
-                f"Error processing Voyage AI API response: {str(e)}"
-            )
+            raise ValueError(f"Error processing Voyage AI API response: {e!s}")
 
     def infer_vector(self, data: str) -> List[Vector]:
         """

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T", bound="IProgram")
-DiffType = Dict[str, Any]  # Type for diff representation
+DiffType = dict[str, Any]  # Type for diff representation
 
 
 class IProgram(ABC):
@@ -28,7 +28,6 @@ class IProgram(ABC):
         Raises:
             TypeError: If the other program is not compatible for diffing
         """
-        pass
 
     @abstractmethod
     def apply_diff(self, diff: DiffType) -> "IProgram":
@@ -45,7 +44,6 @@ class IProgram(ABC):
             ValueError: If the diff cannot be applied to this program
             TypeError: If the diff is not in the expected format
         """
-        pass
 
     @abstractmethod
     def validate(self) -> bool:
@@ -55,7 +53,6 @@ class IProgram(ABC):
         Returns:
             True if the program is valid, False otherwise
         """
-        pass
 
     @abstractmethod
     def clone(self) -> "IProgram":
@@ -65,4 +62,3 @@ class IProgram(ABC):
         Returns:
             A new program instance with the same state
         """
-        pass

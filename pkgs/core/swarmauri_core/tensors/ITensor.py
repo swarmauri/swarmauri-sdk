@@ -1,21 +1,19 @@
 from abc import ABC, abstractmethod
 from typing import (
-    Tuple,
-    List,
+    Iterator,
+    Literal,
+    Protocol,
+    Sequence,
     TypeVar,
     Union,
-    Iterator,
-    Sequence,
-    Protocol,
-    Literal,
 )
 
-from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 T = TypeVar("T", bound=Union[int, float, complex])
-Shape = Tuple[int, ...]
-Index = Union[int, slice, Tuple[Union[int, slice], ...]]
+Shape = tuple[int, ...]
+Index = Union[int, slice, tuple[Union[int, slice], ...]]
 
 
 class SupportsArray(Protocol):
@@ -55,7 +53,6 @@ class ITensor(ABC):
         IndexError
             If the index is out of bounds
         """
-        pass
 
     @abstractmethod
     def __setitem__(
@@ -80,7 +77,6 @@ class ITensor(ABC):
         ValueError
             If the value has incompatible dimensions
         """
-        pass
 
     @property
     @abstractmethod
@@ -93,7 +89,6 @@ class ITensor(ABC):
         Shape
             The dimensions of the tensor
         """
-        pass
 
     @abstractmethod
     def reshape(self, shape: Shape) -> "ITensor":
@@ -115,7 +110,6 @@ class ITensor(ABC):
         ValueError
             If the new shape is incompatible with the total number of elements
         """
-        pass
 
     @property
     @abstractmethod
@@ -128,10 +122,9 @@ class ITensor(ABC):
         type
             The data type of the elements
         """
-        pass
 
     @abstractmethod
-    def tolist(self) -> List:
+    def tolist(self) -> list:
         """
         Convert the tensor to a nested list.
 
@@ -140,7 +133,6 @@ class ITensor(ABC):
         List
             A nested list representing the tensor
         """
-        pass
 
     @abstractmethod
     def __add__(self, other: Union["ITensor", T]) -> "ITensor":
@@ -162,7 +154,6 @@ class ITensor(ABC):
         ValueError
             If the tensors have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __sub__(self, other: Union["ITensor", T]) -> "ITensor":
@@ -184,7 +175,6 @@ class ITensor(ABC):
         ValueError
             If the tensors have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __mul__(self, other: Union["ITensor", T]) -> "ITensor":
@@ -206,7 +196,6 @@ class ITensor(ABC):
         ValueError
             If the tensors have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __matmul__(self, other: "ITensor") -> "ITensor":
@@ -228,7 +217,6 @@ class ITensor(ABC):
         ValueError
             If the tensors have incompatible dimensions for contraction
         """
-        pass
 
     @abstractmethod
     def __truediv__(self, other: Union["ITensor", T]) -> "ITensor":
@@ -252,7 +240,6 @@ class ITensor(ABC):
         ZeroDivisionError
             If dividing by zero
         """
-        pass
 
     @abstractmethod
     def __neg__(self) -> "ITensor":
@@ -264,7 +251,6 @@ class ITensor(ABC):
         ITensor
             The negated tensor
         """
-        pass
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
@@ -281,7 +267,6 @@ class ITensor(ABC):
         bool
             True if the tensors are equal, False otherwise
         """
-        pass
 
     @abstractmethod
     def __iter__(self) -> Iterator[Union["ITensor", IMatrix, IVector]]:
@@ -293,11 +278,10 @@ class ITensor(ABC):
         Iterator[Union[ITensor, IMatrix, IVector]]
             An iterator yielding subtensors, matrices, or vectors
         """
-        pass
 
     @abstractmethod
     def transpose(
-        self, axes: Union[None, Tuple[int, ...]] = None
+        self, axes: Union[None, tuple[int, ...]] = None
     ) -> "ITensor":
         """
         Transpose (permute) the tensor's axes.
@@ -317,7 +301,6 @@ class ITensor(ABC):
         ValueError
             If the axes specification is invalid
         """
-        pass
 
     @abstractmethod
     def broadcast(self, shape: Shape) -> "ITensor":
@@ -339,7 +322,6 @@ class ITensor(ABC):
         ValueError
             If the tensor cannot be broadcast to the given shape
         """
-        pass
 
     @abstractmethod
     def __array__(self) -> "ITensor":
@@ -351,7 +333,6 @@ class ITensor(ABC):
         ITensor
             The tensor itself or a compatible representation
         """
-        pass
 
     @abstractmethod
     def astype(self, dtype: type) -> "ITensor":
@@ -368,7 +349,6 @@ class ITensor(ABC):
         ITensor
             A new tensor with the specified data type
         """
-        pass
 
     @abstractmethod
     def to_matrix(self) -> Literal[IMatrix]:
@@ -385,7 +365,6 @@ class ITensor(ABC):
         ValueError
             If the tensor cannot be converted to a matrix
         """
-        pass
 
     @abstractmethod
     def to_vector(self) -> Literal[IVector]:
@@ -402,4 +381,3 @@ class ITensor(ABC):
         ValueError
             If the tensor cannot be converted to a vector
         """
-        pass

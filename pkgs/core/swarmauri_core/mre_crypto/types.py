@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
 
 # Local scalar aliases to avoid circular imports
 KeyId = str
@@ -26,7 +25,7 @@ class RecipientInfo:
     version: KeyVersion
     wrap_alg: Alg
     wrapped_key: bytes
-    nonce: Optional[bytes] = None
+    nonce: bytes | None = None
 
 
 @dataclass(frozen=True)
@@ -35,8 +34,8 @@ class MultiRecipientEnvelope:
     nonce: bytes
     ct: bytes
     tag: bytes
-    recipients: Tuple[RecipientInfo, ...]
-    aad: Optional[bytes] = None
+    recipients: tuple[RecipientInfo, ...]
+    aad: bytes | None = None
 
 
 __all__ = [

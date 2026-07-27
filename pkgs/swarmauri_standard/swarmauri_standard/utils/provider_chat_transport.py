@@ -471,19 +471,21 @@ def stream_tools(
         stream=True,
     )
     content = ""
-    with httpx.Client(timeout=model.timeout) as client:
-        with client.stream(
+    with (
+        httpx.Client(timeout=model.timeout) as client,
+        client.stream(
             "POST",
             model._build_endpoint(),
             headers=model._build_headers(),
             json=payload,
-        ) as response:
-            response.raise_for_status()
-            for line in response.iter_lines():
-                delta, _ = _parse_sse(line)
-                if delta is not None:
-                    content += delta
-                    yield delta
+        ) as response,
+    ):
+        response.raise_for_status()
+        for line in response.iter_lines():
+            delta, _ = _parse_sse(line)
+            if delta is not None:
+                content += delta
+                yield delta
     conversation.add_message(AgentMessage(content=content))
 
 

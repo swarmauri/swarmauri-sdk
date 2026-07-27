@@ -1,16 +1,18 @@
-from typing import Any, Dict, List, Optional, Literal
-from pydantic import Field, ConfigDict
 import re
-from swarmauri_base.chains.ChainStepBase import ChainStepBase
+from typing import Any, Literal
+
+from pydantic import ConfigDict, Field
 from swarmauri_core.chains.IChainContext import IChainContext
+
+from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
 class ChainContextBase(IChainContext, ComponentBase):
-    steps: List[ChainStepBase] = []
-    context: Dict = {}
-    resource: Optional[str] = Field(default=ResourceTypes.CHAIN.value)
+    steps: list[ChainStepBase] = []
+    context: dict = {}
+    resource: str | None = Field(default=ResourceTypes.CHAIN.value)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ChainContextBase"] = "ChainContextBase"
 

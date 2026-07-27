@@ -1,5 +1,5 @@
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class IMeasurementCalculate(ABC):
@@ -16,7 +16,6 @@ class IMeasurementCalculate(ABC):
             **kwargs dict[str, Any]: Arbitrary keyword arguments that the
             measurement calculation might require.
         """
-        pass
 
     @abstractmethod
     def update(self, value: float) -> None:
@@ -32,4 +31,3 @@ class IMeasurementCalculate(ABC):
             This method is intended for internal use and should not be publicly
             accessible.
         """
-        pass

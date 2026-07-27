@@ -35,10 +35,9 @@ class GithubStorageAdapter(StorageAdapterBase):
         self, object_key: str
     ) -> None:  # pragma: no cover - stub
         del object_key
-        return
 
     @classmethod
     def from_uri(
         cls, uri: str
-    ) -> "GithubStorageAdapter":  # pragma: no cover - stub
+    ) -> GithubStorageAdapter:  # pragma: no cover - stub
         return cls()

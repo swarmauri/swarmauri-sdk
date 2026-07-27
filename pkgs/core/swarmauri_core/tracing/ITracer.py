@@ -1,6 +1,7 @@
-from swarmauri_core.tracing.ITraceContext import ITraceContext
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Any
+
+from swarmauri_core.tracing.ITraceContext import ITraceContext
 
 
 class ITracer(ABC):
@@ -11,7 +12,7 @@ class ITracer(ABC):
 
     @abstractmethod
     def start_trace(
-        self, name: str, initial_attributes: Optional[Dict[str, Any]] = None
+        self, name: str, initial_attributes: dict[str, Any] | None = None
     ) -> ITraceContext:
         """
         Starts a new trace with a given name and optional initial attributes.
@@ -26,7 +27,6 @@ class ITracer(ABC):
             ITraceContext: A context object representing this particular trace
             instance.
         """
-        pass
 
     @abstractmethod
     def end_trace(self, trace_context: ITraceContext):
@@ -37,7 +37,6 @@ class ITracer(ABC):
         Args:
             trace_context (ITraceContext): The trace context to be ended.
         """
-        pass
 
     @abstractmethod
     def annotate_trace(
@@ -52,4 +51,3 @@ class ITracer(ABC):
             key (str): The key or name of the annotation.
             value (Any): The value of the annotation.
         """
-        pass

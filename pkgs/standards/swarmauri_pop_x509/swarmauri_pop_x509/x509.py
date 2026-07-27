@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Mapping
+from collections.abc import Mapping
 
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.pop import PopVerifierBase, RequestContext, sha256_b64u
 from swarmauri_core.pop import (
     BindType,
     CnfBinding,
     Feature,
     PoPBindingError,
-    PoPParseError,
     PoPKind,
+    PoPParseError,
 )
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.pop import PopVerifierBase, RequestContext, sha256_b64u
 
 
 @ComponentBase.register_type(PopVerifierBase, "X509PoPVerifier")

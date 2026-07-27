@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Literal
 
 from pydantic import Field
+from swarmauri_core.auth_idp.IOIDC10Login import IOIDC10Login
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.auth_idp.IOIDC10Login import IOIDC10Login
 
 
 class OIDC10LoginBase(IOIDC10Login, ComponentBase):
     """Base class for OpenID Connect 1.0 user login flows."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.OIDC10Login.value, frozen=True
     )
     type: Literal["OIDC10LoginBase"] = "OIDC10LoginBase"

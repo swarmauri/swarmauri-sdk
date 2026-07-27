@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from swarmauri_standard.embeddings.MistralEmbedding import MistralEmbedding
 from dotenv import load_dotenv
+
+from swarmauri_standard.embeddings.MistralEmbedding import MistralEmbedding
 
 load_dotenv()
 

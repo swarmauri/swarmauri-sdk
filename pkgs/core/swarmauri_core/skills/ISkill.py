@@ -1,14 +1,16 @@
 from abc import ABC
-from typing import Any, Dict, List
 
 
 class ISkill(ABC):
+    """Portable Agent Skills contract for one complete skill bundle."""
+
     name: str
     description: str
     instructions: str
-    metadata: Dict[str, Any]
-    agents: List[str]
-    references: List[str]
-    scripts: List[str]
-    tools: List[str]
-    validation: List[str]
+    license: str | None
+    compatibility: str | None
+    metadata: dict[str, str]
+    allowed_tools: list[str]
+    references: list[str]
+    scripts: list[str]
+    assets: list[str]

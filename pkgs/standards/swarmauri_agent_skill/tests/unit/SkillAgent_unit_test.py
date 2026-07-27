@@ -7,7 +7,9 @@ from pydantic import ConfigDict
 from swarmauri_agent_skill import SkillAgent
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.skills.FileSystemSkillMixin import FileSystemSkillMixin
 from swarmauri_base.skills.SkillBase import SkillBase
+from swarmauri_base.skills.SkillMetadata import SkillMetadata
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
@@ -322,3 +324,78 @@ async def test_async_concurrent_list_inputs(demo_skill):
     ]
     assert agent.conversation.system_context.content == ""
     assert agent.conversation._history == []
+
+
+class CatalogLoader:
+    calls = []
+
+    @classmethod
+    def discover(cls, roots):
+        return [
+            SkillMetadata(
+                name="cataloged",
+                description="Cataloged skill",
+                source="test",
+                location="cataloged",
+            )
+        ]
+
+    @classmethod
+    def from_name(cls, name, roots):
+        cls.calls.append((name, list(roots)))
+        return AgentTestSkill(
+            name=name,
+            description="Cataloged skill",
+            instructions="Follow cataloged.",
+        )
+
+
+def test_skill_agent_activates_selected_metadata_on_demand():
+    CatalogLoader.calls = []
+    agent = SkillAgent.from_skill_roots(
+        EchoSkillLLM(),
+        roots=["skills"],
+        loader_cls=CatalogLoader,
+        turn_mode="single",
+        require_skill=True,
+    )
+
+    assert agent.skills == []
+    result = agent.exec("use cataloged")
+
+    assert "last=use cataloged" in result
+    assert CatalogLoader.calls == [("cataloged", ["skills"])]
+    assert [skill.name for skill in agent.skills] == ["cataloged"]
+
+
+class FilesystemSkillForAgent(FileSystemSkillMixin, SkillBase):
+    type: Literal["FilesystemSkillForAgent"] = "FilesystemSkillForAgent"
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
+def test_skill_agent_preserves_skill_loader_class_for_lazy_activation(
+    tmp_path,
+):
+    skill_dir = tmp_path / "demo"
+    skill_dir.mkdir()
+    (skill_dir / "SKILL.md").write_text(
+        """---
+name: demo
+description: Demo skill
+---
+Follow demo.""",
+        encoding="utf-8",
+    )
+
+    agent = SkillAgent.from_skill_roots(
+        EchoSkillLLM(),
+        roots=[skill_dir],
+        loader_cls=FilesystemSkillForAgent,
+        turn_mode="single",
+    )
+
+    assert agent.skills == []
+    assert agent.skill_loader is FilesystemSkillForAgent
+    assert [skill.name for skill in agent.select_skills("use demo")] == [
+        "demo"
+    ]

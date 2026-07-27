@@ -45,7 +45,9 @@ def bit_subset_leq(a: int, b: int) -> bool:
     return (a & b) == a
 
 
-def dict_join(val_join: Callable[[V, V], V]) -> Callable[[Mapping[K, V], Mapping[K, V]], dict[K, V]]:
+def dict_join(
+    val_join: Callable[[V, V], V],
+) -> Callable[[Mapping[K, V], Mapping[K, V]], dict[K, V]]:
     """Key-union map join with pointwise value join."""
 
     def merge(a: Mapping[K, V], b: Mapping[K, V]) -> dict[K, V]:
@@ -57,7 +59,9 @@ def dict_join(val_join: Callable[[V, V], V]) -> Callable[[Mapping[K, V], Mapping
     return merge
 
 
-def dict_meet(val_meet: Callable[[V, V], V]) -> Callable[[Mapping[K, V], Mapping[K, V]], dict[K, V]]:
+def dict_meet(
+    val_meet: Callable[[V, V], V],
+) -> Callable[[Mapping[K, V], Mapping[K, V]], dict[K, V]]:
     """Key-intersection map meet with pointwise value meet."""
 
     def merge(a: Mapping[K, V], b: Mapping[K, V]) -> dict[K, V]:
@@ -66,11 +70,17 @@ def dict_meet(val_meet: Callable[[V, V], V]) -> Callable[[Mapping[K, V], Mapping
     return merge
 
 
-def dict_pointwise_leq(val_leq: Callable[[V, V], bool]) -> Callable[[Mapping[K, V], Mapping[K, V]], bool]:
-    """Pointwise partial-map order: all keys in ``a`` exist in ``b`` and compare."""
+def dict_pointwise_leq(
+    val_leq: Callable[[V, V], bool],
+) -> Callable[[Mapping[K, V], Mapping[K, V]], bool]:
+    """
+    Pointwise partial-map order: all keys in ``a`` exist in ``b`` and compare.
+    """
 
     def leq(a: Mapping[K, V], b: Mapping[K, V]) -> bool:
-        return all(key in b and val_leq(value, b[key]) for key, value in a.items())
+        return all(
+            key in b and val_leq(value, b[key]) for key, value in a.items()
+        )
 
     return leq
 
@@ -88,7 +98,9 @@ def tuple_pointwise(
     return merge
 
 
-def sequence_pointwise(op: Callable[[V, V], V]) -> Callable[[Sequence[V], Sequence[V]], tuple[V, ...]]:
+def sequence_pointwise(
+    op: Callable[[V, V], V],
+) -> Callable[[Sequence[V], Sequence[V]], tuple[V, ...]]:
     """Pointwise merge for equal-length sequences."""
 
     def merge(a: Sequence[V], b: Sequence[V]) -> tuple[V, ...]:
@@ -124,7 +136,9 @@ def counter_leq(a: Counter[T], b: Counter[T]) -> bool:
     return all(a[key] <= b[key] for key in keys)
 
 
-def frozendict(items: Mapping[K, V] | Sequence[tuple[K, V]]) -> frozenset[tuple[K, V]]:
+def frozendict(
+    items: Mapping[K, V] | Sequence[tuple[K, V]],
+) -> frozenset[tuple[K, V]]:
     """Hashable map representation useful for law-test samples."""
 
     return frozenset(dict(items).items())
@@ -132,10 +146,14 @@ def frozendict(items: Mapping[K, V] | Sequence[tuple[K, V]]) -> frozenset[tuple[
 
 def frozendict_join(
     val_join: Callable[[V, V], V],
-) -> Callable[[frozenset[tuple[K, V]], frozenset[tuple[K, V]]], frozenset[tuple[K, V]]]:
+) -> Callable[
+    [frozenset[tuple[K, V]], frozenset[tuple[K, V]]], frozenset[tuple[K, V]]
+]:
     merge_dict = dict_join(val_join)
 
-    def merge(a: frozenset[tuple[K, V]], b: frozenset[tuple[K, V]]) -> frozenset[tuple[K, V]]:
+    def merge(
+        a: frozenset[tuple[K, V]], b: frozenset[tuple[K, V]]
+    ) -> frozenset[tuple[K, V]]:
         return frozenset(merge_dict(dict(a), dict(b)).items())
 
     return merge

@@ -12,11 +12,9 @@ class ICloudVectorStore(ABC):
         """
         Connects to the cloud-based vector store using provided credentials.
         """
-        pass
 
     @abstractmethod
     def disconnect(self) -> None:
         """
         Disconnects from the cloud-based vector store.
         """
-        pass

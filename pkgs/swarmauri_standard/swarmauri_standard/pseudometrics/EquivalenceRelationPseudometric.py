@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Callable, List, Literal, Sequence, TypeVar, Union
+from typing import Any, Callable, List, Literal, Sequence, TypeVar
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
@@ -63,8 +63,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
 
     def distance(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> float:
         """
         Calculate the pseudometric distance based on equivalence relation.
@@ -91,17 +91,13 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             else:
                 return 1.0
         except Exception as e:
-            logger.error(f"Error calculating distance: {str(e)}")
-            raise ValueError(f"Failed to calculate distance: {str(e)}")
+            logger.error(f"Error calculating distance: {e!s}")
+            raise ValueError(f"Failed to calculate distance: {e!s}")
 
     def distances(
         self,
-        xs: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
-        ys: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
+        xs: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
+        ys: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
     ) -> List[List[float]]:
         """
         Calculate the pairwise distances between two collections of objects.
@@ -130,13 +126,13 @@ class EquivalenceRelationPseudometric(PseudometricBase):
                 result.append(row)
             return result
         except Exception as e:
-            logger.error(f"Error calculating distances matrix: {str(e)}")
-            raise ValueError(f"Failed to calculate distances matrix: {str(e)}")
+            logger.error(f"Error calculating distances matrix: {e!s}")
+            raise ValueError(f"Failed to calculate distances matrix: {e!s}")
 
     def check_non_negativity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the distance function satisfies the non-negativity property.
@@ -162,8 +158,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
 
     def check_symmetry(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -192,14 +188,14 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             d_yx = self.distance(y, x)
             return abs(d_xy - d_yx) <= tolerance
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
-            raise ValueError(f"Failed to check symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
+            raise ValueError(f"Failed to check symmetry: {e!s}")
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
+        z: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -237,13 +233,13 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
             return d_xz <= d_xy + d_yz + tolerance
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
-            raise ValueError(f"Failed to check triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
+            raise ValueError(f"Failed to check triangle inequality: {e!s}")
 
     def check_weak_identity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the distance function satisfies the weak identity property.
@@ -278,5 +274,5 @@ class EquivalenceRelationPseudometric(PseudometricBase):
                 not are_equivalent and d_xy == 1.0
             )
         except Exception as e:
-            logger.error(f"Error checking weak identity: {str(e)}")
-            raise ValueError(f"Failed to check weak identity: {str(e)}")
+            logger.error(f"Error checking weak identity: {e!s}")
+            raise ValueError(f"Failed to check weak identity: {e!s}")

@@ -1,10 +1,11 @@
-from typing import Dict, List, Literal, Union, Optional
+from typing import Dict, List, Literal, Optional
+
 import pandas as pd
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(MeasurementBase, "MissingnessMeasurement")
@@ -28,9 +29,7 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
     unit: str = "%"
     measurements: List[Optional[float]] = []
 
-    def calculate_missingness(
-        self, data: Union[pd.DataFrame, List, Dict]
-    ) -> float:
+    def calculate_missingness(self, data: pd.DataFrame | List | Dict) -> float:
         """
         Calculates the missingness score for different data types.
 
@@ -55,10 +54,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
             missing_values = sum(1 for v in data.values() if v is None)
         else:
             raise ValueError(
-                (
-                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
-                    "Dict."
-                )
+                "Unsupported data type. Please provide DataFrame, List, or "
+                "Dict."
             )
 
         if total_values == 0:
@@ -66,9 +63,7 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
 
         return (missing_values / total_values) * 100
 
-    def __call__(
-        self, data: Union[pd.DataFrame, List, Dict], **kwargs
-    ) -> float:
+    def __call__(self, data: pd.DataFrame | List | Dict, **kwargs) -> float:
         """
         Calculates and returns the missingness score for the provided data.
 

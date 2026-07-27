@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.tools.WeatherTool import WeatherTool as Tool
 
 
@@ -47,5 +48,6 @@ def test_call():
     )
 
     assert result.get("weather_info") == expected_result, (
-        f"Expected Weather Info is {expected_result}, but got {result.get('weather_info')}"  # noqa: E501
+        f"Expected Weather Info is {expected_result}, but got "
+        f"{result.get('weather_info')}"
     )

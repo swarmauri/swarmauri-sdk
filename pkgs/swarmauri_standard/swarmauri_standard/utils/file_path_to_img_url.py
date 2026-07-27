@@ -1,5 +1,6 @@
-import httpx
 import base64
+
+import httpx
 
 
 def file_path_to_img_url(file_path: str, api_key: str) -> str:

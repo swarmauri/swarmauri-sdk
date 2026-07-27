@@ -50,7 +50,9 @@ def test_deprecated_distance_contract_modules_warn():
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always", DeprecationWarning)
         import importlib
+
         import swarmauri_core.distances.IDistanceSimilarity as deprecated_core
+
         import swarmauri_base.distances.DistanceBase as deprecated_base
         import swarmauri_base.distances.VisionDistanceBase as deprecated_vision
 

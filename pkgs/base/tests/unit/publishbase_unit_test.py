@@ -1,6 +1,7 @@
 """Unit tests for ``PublishBase`` implementations."""
 
 import pytest
+
 from swarmauri_base.publishers.PublishBase import PublishBase
 
 

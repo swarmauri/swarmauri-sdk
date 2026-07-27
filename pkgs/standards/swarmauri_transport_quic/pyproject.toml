@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_transport_quic"
-version = "0.11.0.dev2"
+version = "0.11.0.dev3"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "QUIC multiplex transport skeleton for Swarmauri."
 readme = "README.md"
@@ -68,3 +68,9 @@ dev = [
     "ruff>=0.9.9",
     "swarmauri_tests_pylicense",
 ]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["SIM117"]

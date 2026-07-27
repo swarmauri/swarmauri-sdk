@@ -1,9 +1,11 @@
-import numpy as np
-from typing import List, Literal
-from swarmauri_standard.vectors.Vector import Vector
-from swarmauri_base.distances.DistanceBase import DistanceBase
-from swarmauri_base.ComponentBase import ComponentBase
 import warnings
+from typing import List, Literal
+
+import numpy as np
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.distances.DistanceBase import DistanceBase
+
+from swarmauri_standard.vectors.Vector import Vector
 
 warnings.warn(
     "This distance class will be deprecated in v0.12.0",
@@ -43,12 +45,8 @@ class LevenshteinDistance(DistanceBase):
            float: The computed Levenshtein distance between vector_a and
            vector_b.
         """
-        string_a = "".join(
-            [chr(int(round(value))) for value in vector_a.value]
-        )
-        string_b = "".join(
-            [chr(int(round(value))) for value in vector_b.value]
-        )
+        string_a = "".join([chr(round(value)) for value in vector_a.value])
+        string_b = "".join([chr(round(value)) for value in vector_b.value])
 
         return self.levenshtein(string_a, string_b)
 
@@ -90,12 +88,8 @@ class LevenshteinDistance(DistanceBase):
         return matrix[size_x - 1, size_y - 1]
 
     def similarity(self, vector_a: Vector, vector_b: Vector) -> float:
-        string_a = "".join(
-            [chr(int(round(value))) for value in vector_a.value]
-        )
-        string_b = "".join(
-            [chr(int(round(value))) for value in vector_b.value]
-        )
+        string_a = "".join([chr(round(value)) for value in vector_a.value])
+        string_b = "".join([chr(round(value)) for value in vector_b.value])
         return 1 - self.levenshtein(string_a, string_b) / max(
             len(vector_a), len(vector_b)
         )

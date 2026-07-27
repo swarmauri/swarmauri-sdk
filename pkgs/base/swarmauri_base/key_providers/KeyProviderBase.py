@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, Iterable, Optional, Tuple, Literal
 import base64
 import hashlib
 import json
 import os
+from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Literal
 from urllib.parse import parse_qs
 
 from pydantic import Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.crypto.types import (
     ExportPolicy,
     KeyRef,
@@ -19,11 +18,13 @@ from swarmauri_core.crypto.types import (
 )
 from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+
 
 class KeyProviderBase(IKeyProvider, ComponentBase):
     """Base class for key providers within the Swarmauri ecosystem."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: Literal["KeyProviderBase"] = "KeyProviderBase"
@@ -55,7 +56,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         )
 
     # ------------------------------------------------------------------
-    def _split_path_params(self, spec: str) -> Tuple[Path, Dict[str, str]]:
+    def _split_path_params(self, spec: str) -> tuple[Path, dict[str, str]]:
         if "?" not in spec:
             return Path(os.path.expanduser(spec)), {}
         raw_path, raw_params = spec.split("?", 1)
@@ -65,7 +66,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         }
         return Path(os.path.expanduser(raw_path)), params
 
-    def _resolve_password(self, spec: Optional[str]) -> Optional[bytes]:
+    def _resolve_password(self, spec: str | None) -> bytes | None:
         if spec is None or spec == "":
             return None
         if spec.startswith("env:"):
@@ -87,11 +88,11 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         chain: Iterable[object] | None,
         *,
         include_secret: bool,
-        tags: Optional[Dict[str, str]] = None,
+        tags: dict[str, str] | None = None,
         key_type: KeyType | None = None,
-        export_public: Callable[[object], Optional[bytes]] | None = None,
-        export_private: Callable[[object], Optional[bytes]] | None = None,
-        export_chain: Callable[[object], Optional[bytes]] | None = None,
+        export_public: Callable[[object], bytes | None] | None = None,
+        export_private: Callable[[object], bytes | None] | None = None,
+        export_chain: Callable[[object], bytes | None] | None = None,
     ) -> KeyRef:
         """Construct a :class:`KeyRef` from provider-specific key material.
 
@@ -129,7 +130,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         public_bytes = self._resolve_public_bytes(
             private_key, export_public=export_public
         )
-        material: Optional[bytes] = None
+        material: bytes | None = None
         if include_secret:
             material = self._resolve_private_bytes(
                 private_key, export_private=export_private
@@ -162,7 +163,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
 
     def _build_keyref_from_jwk(
         self,
-        jwk: Dict[str, object],
+        jwk: dict[str, object],
         *,
         include_secret: bool,
     ) -> KeyRef:
@@ -174,7 +175,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
             if k not in {"d", "p", "q", "dp", "dq", "qi", "k"}
         }
         public_bytes = json.dumps(public_jwk, sort_keys=True).encode("utf-8")
-        material: Optional[bytes] = None
+        material: bytes | None = None
         export_policy = ExportPolicy.PUBLIC_ONLY
         if include_secret:
             material = json.dumps(jwk, sort_keys=True).encode("utf-8")
@@ -211,8 +212,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         self,
         private_key,
         *,
-        export_public: Callable[[object], Optional[bytes]] | None = None,
-    ) -> Optional[bytes]:
+        export_public: Callable[[object], bytes | None] | None = None,
+    ) -> bytes | None:
         if export_public is not None:
             result = export_public(private_key)
             return self._coerce_to_bytes(result, allow_none=True)
@@ -235,8 +236,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         self,
         private_key,
         *,
-        export_private: Callable[[object], Optional[bytes]] | None = None,
-    ) -> Optional[bytes]:
+        export_private: Callable[[object], bytes | None] | None = None,
+    ) -> bytes | None:
         if export_private is not None:
             result = export_private(private_key)
             return self._coerce_to_bytes(result, allow_none=True)
@@ -259,8 +260,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         self,
         chain: Iterable[object] | None,
         *,
-        export_chain: Callable[[object], Optional[bytes]] | None = None,
-    ) -> Tuple[bytes, ...]:
+        export_chain: Callable[[object], bytes | None] | None = None,
+    ) -> tuple[bytes, ...]:
         if not chain:
             return ()
         resolved: list[bytes] = []
@@ -281,7 +282,7 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
 
     def _coerce_to_bytes(
         self, value: object, *, allow_none: bool = False
-    ) -> Optional[bytes]:
+    ) -> bytes | None:
         if value is None:
             if allow_none:
                 return None
@@ -293,13 +294,11 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         if isinstance(value, dict):
             return json.dumps(value, sort_keys=True).encode("utf-8")
         raise TypeError(
-            (
-                "Unable to coerce value to bytes; supply an explicit export "
-                "callable"
-            )
+            "Unable to coerce value to bytes; supply an explicit export "
+            "callable"
         )
 
-    def _infer_key_type_from_jwk(self, jwk: Dict[str, object]) -> KeyType:
+    def _infer_key_type_from_jwk(self, jwk: dict[str, object]) -> KeyType:
         kty = jwk.get("kty")
         if kty == "RSA":
             return KeyType.RSA

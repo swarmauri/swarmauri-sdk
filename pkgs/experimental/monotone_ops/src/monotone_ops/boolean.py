@@ -1,7 +1,8 @@
 """Boolean monotone operators.
 
 Positive Boolean functions are exactly those expressible without negation using
-AND/OR over variables. Threshold functions are another important monotone family.
+AND/OR over variables. Threshold functions are another important monotone
+family.
 """
 
 from __future__ import annotations
@@ -42,7 +43,9 @@ def at_least_k(values: Sequence[bool], k: int) -> bool:
 
 
 def at_most_k_false(values: Sequence[bool], k: int) -> bool:
-    """Equivalent monotone reliability predicate: no more than ``k`` failures."""
+    """
+    Equivalent monotone reliability predicate: no more than ``k`` failures.
+    """
 
     if k < 0:
         raise ValueError("k must be non-negative")
@@ -55,7 +58,9 @@ def majority(values: Sequence[bool]) -> bool:
     return at_least_k(values, len(values) // 2 + 1)
 
 
-def monotone_dnf(clauses: Sequence[frozenset[Hashable]]) -> Callable[[Mapping[Hashable, bool]], bool]:
+def monotone_dnf(
+    clauses: Sequence[frozenset[Hashable]],
+) -> Callable[[Mapping[Hashable, bool]], bool]:
     """Build a positive DNF predicate from clauses of variable names.
 
     A clause is satisfied when every variable in the clause is true. The DNF is
@@ -65,12 +70,17 @@ def monotone_dnf(clauses: Sequence[frozenset[Hashable]]) -> Callable[[Mapping[Ha
     frozen = tuple(frozenset(clause) for clause in clauses)
 
     def predicate(assignment: Mapping[Hashable, bool]) -> bool:
-        return any(all(assignment.get(var, False) for var in clause) for clause in frozen)
+        return any(
+            all(assignment.get(var, False) for var in clause)
+            for clause in frozen
+        )
 
     return predicate
 
 
-def monotone_cnf(clauses: Sequence[frozenset[Hashable]]) -> Callable[[Mapping[Hashable, bool]], bool]:
+def monotone_cnf(
+    clauses: Sequence[frozenset[Hashable]],
+) -> Callable[[Mapping[Hashable, bool]], bool]:
     """Build a positive CNF predicate from clauses of variable names.
 
     A clause is satisfied when any variable in the clause is true. The CNF is
@@ -80,12 +90,17 @@ def monotone_cnf(clauses: Sequence[frozenset[Hashable]]) -> Callable[[Mapping[Ha
     frozen = tuple(frozenset(clause) for clause in clauses)
 
     def predicate(assignment: Mapping[Hashable, bool]) -> bool:
-        return all(any(assignment.get(var, False) for var in clause) for clause in frozen)
+        return all(
+            any(assignment.get(var, False) for var in clause)
+            for clause in frozen
+        )
 
     return predicate
 
 
-def k_of_n_merger(k: int) -> Callable[[frozenset[Hashable], frozenset[Hashable]], frozenset[Hashable]]:
+def k_of_n_merger(
+    k: int,
+) -> Callable[[frozenset[Hashable], frozenset[Hashable]], frozenset[Hashable]]:
     """Return a merge over evidence sets plus an attached threshold.
 
     The merge is union; the threshold is checked by ``len(state) >= k``.
@@ -94,7 +109,9 @@ def k_of_n_merger(k: int) -> Callable[[frozenset[Hashable], frozenset[Hashable]]
     if k <= 0:
         raise ValueError("k must be positive")
 
-    def merge(a: frozenset[Hashable], b: frozenset[Hashable]) -> frozenset[Hashable]:
+    def merge(
+        a: frozenset[Hashable], b: frozenset[Hashable]
+    ) -> frozenset[Hashable]:
         return a | b
 
     merge.threshold = k  # type: ignore[attr-defined]

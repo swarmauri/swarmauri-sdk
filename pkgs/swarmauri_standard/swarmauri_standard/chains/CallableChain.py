@@ -1,7 +1,8 @@
-from typing import Any, Callable, List, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
+
 from swarmauri_core.chains.ICallableChain import (
-    ICallableChain,
     CallableDefinition,
+    ICallableChain,
 )
 
 
@@ -22,8 +23,8 @@ class CallableChain(ICallableChain):
     def add_callable(
         self,
         func: Callable[[Any], Any],
-        args: List[Any] = None,
-        kwargs: Dict[str, Any] = None,
+        args: List[Any] | None = None,
+        kwargs: Dict[str, Any] | None = None,
     ) -> None:
         # Add a new callable to the chain
         self.callables.append((func, args or [], kwargs or {}))

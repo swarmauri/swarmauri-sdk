@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+
 import httpx
 from PIL import Image
 

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from swarmauri_core.vectors.IVector import IVector
 
 
@@ -26,4 +27,3 @@ class ISimilarity(ABC):
         Returns:
             float: A similarity score between vector_a and vector_b.
         """
-        pass

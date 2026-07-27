@@ -18,9 +18,7 @@ def test_input_mode_is_abstract():
 
 
 class DummyMode(InputMode):
-    """
-    Concrete subclass implementing prepare for testing.
-    """
+    """Concrete subclass implementing prepare for testing."""
 
     def prepare(self, state_manager, node_name, data, results):
         return f"prepared:{data}"
@@ -37,5 +35,7 @@ def test_dummy_mode_prepare_returns_expected():
     """
     mode = DummyMode()
     # state_manager and results can be None or empty dict for this test
-    out = mode.prepare(state_manager=None, node_name="X", data="input", results={})
+    out = mode.prepare(
+        state_manager=None, node_name="X", data="input", results={}
+    )
     assert out == "prepared:input"

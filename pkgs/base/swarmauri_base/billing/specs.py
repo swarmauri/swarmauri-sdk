@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-
 from swarmauri_core.billing.protos import (
     CheckoutReqProto,
     CouponSpecProto,
@@ -57,22 +57,20 @@ class BillingSpec(BaseModel):
 class ProductSpec(ProductSpecProto, BillingSpec):
     """Product creation specification."""
 
-    name: Optional[str] = Field(
-        default=None, description="Product display name"
-    )
-    description: Optional[str] = Field(
+    name: str | None = Field(default=None, description="Product display name")
+    description: str | None = Field(
         default=None, description="Detailed description of the product"
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata to associate with the product"
     )
-    sku: Optional[str] = Field(
+    sku: str | None = Field(
         default=None,
         description="Optional SKU identifier for inventory systems",
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "ProductSpec":
+    def _populate_from_payload(self) -> ProductSpec:
         self._apply_payload_defaults(
             ["name", "description", "metadata", "sku"]
         )
@@ -82,16 +80,16 @@ class ProductSpec(ProductSpecProto, BillingSpec):
 class PriceSpec(PriceSpecProto, BillingSpec):
     """Price creation specification."""
 
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="ISO currency code for the price"
     )
-    unit_amount_minor: Optional[int] = Field(
+    unit_amount_minor: int | None = Field(
         default=None,
         description=(
             "Unit amount represented in the currency's smallest denomination"
         ),
     )
-    nickname: Optional[str] = Field(
+    nickname: str | None = Field(
         default=None, description="Optional nickname for the price"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -99,7 +97,7 @@ class PriceSpec(PriceSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "PriceSpec":
+    def _populate_from_payload(self) -> PriceSpec:
         self._apply_payload_defaults(
             ["currency", "unit_amount_minor", "nickname", "metadata"]
         )
@@ -112,28 +110,28 @@ class CheckoutRequest(CheckoutReqProto, BillingSpec):
     quantity: int = Field(
         default=1, description="Quantity of the price to purchase"
     )
-    success_url: Optional[str] = Field(
+    success_url: str | None = Field(
         default=None,
         description="URL the customer is redirected to after success",
     )
-    cancel_url: Optional[str] = Field(
+    cancel_url: str | None = Field(
         default=None,
         description="URL the customer is redirected to after cancellation",
     )
-    customer_email: Optional[str] = Field(
+    customer_email: str | None = Field(
         default=None,
         description="Customer email used for the checkout session",
     )
     metadata: Mapping[str, Any] | None = Field(
         default=None, description="Metadata forwarded to the provider checkout"
     )
-    idempotency_key: Optional[str] = Field(
+    idempotency_key: str | None = Field(
         default=None,
         description="Optional idempotency key for the checkout session",
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "CheckoutRequest":
+    def _populate_from_payload(self) -> CheckoutRequest:
         self._apply_payload_defaults(
             [
                 "quantity",
@@ -150,14 +148,16 @@ class CheckoutRequest(CheckoutReqProto, BillingSpec):
 class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
     """Payment intent request specification."""
 
-    amount_minor: Optional[int] = Field(
+    amount_minor: int | None = Field(
         default=None,
-        description="Amount to collect in the currency's smallest denomination",  # noqa: E501
+        description=(
+            "Amount to collect in the currency's smallest denomination"
+        ),
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="ISO currency code for the payment"
     )
-    payment_method_id: Optional[str] = Field(
+    payment_method_id: str | None = Field(
         default=None, description="Identifier of an existing payment method"
     )
     confirm: bool = Field(
@@ -171,13 +171,13 @@ class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
         default=None,
         description="Provider-specific metadata to attach to the payment",
     )
-    idempotency_key: Optional[str] = Field(
+    idempotency_key: str | None = Field(
         default=None,
         description="Optional idempotency key for the payment intent",
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "PaymentIntentRequest":
+    def _populate_from_payload(self) -> PaymentIntentRequest:
         self._apply_payload_defaults(
             [
                 "amount_minor",
@@ -206,18 +206,18 @@ class SubscriptionItemSpec(BaseModel):
 class SubscriptionSpec(SubscriptionSpecProto, BillingSpec):
     """Subscription creation specification."""
 
-    customer_id: Optional[str] = Field(
+    customer_id: str | None = Field(
         default=None, description="Identifier for the subscribing customer"
     )
     items: Sequence[SubscriptionItemSpec] = Field(
         default_factory=tuple,
         description="Collection of subscription items to provision",
     )
-    trial_end: Optional[int] = Field(
+    trial_end: int | None = Field(
         default=None,
         description="Unix timestamp indicating when a trial should end",
     )
-    collection_method: Optional[str] = Field(
+    collection_method: str | None = Field(
         default=None,
         description=(
             "Collection method accepted by the provider (e.g. "
@@ -229,7 +229,7 @@ class SubscriptionSpec(SubscriptionSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "SubscriptionSpec":
+    def _populate_from_payload(self) -> SubscriptionSpec:
         self._apply_payload_defaults(
             ["customer_id", "trial_end", "collection_method", "metadata"]
         )
@@ -251,18 +251,18 @@ class SubscriptionSpec(SubscriptionSpecProto, BillingSpec):
 class InvoiceLineItemSpec(BaseModel):
     """Invoice line item specification."""
 
-    price_id: Optional[str] = Field(
+    price_id: str | None = Field(
         default=None,
         description="Identifier of an existing price to reference",
     )
-    amount_minor: Optional[int] = Field(
+    amount_minor: int | None = Field(
         default=None,
         description="Explicit amount in the smallest currency denomination",
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="Currency for custom invoice line items"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None, description="Description shown on the invoice line"
     )
     quantity: int = Field(default=1, description="Quantity for the line item")
@@ -271,14 +271,14 @@ class InvoiceLineItemSpec(BaseModel):
 class InvoiceSpec(InvoiceSpecProto, BillingSpec):
     """Invoice creation specification."""
 
-    customer_id: Optional[str] = Field(
+    customer_id: str | None = Field(
         default=None,
         description="Identifier for the customer receiving the invoice",
     )
-    collection_method: Optional[str] = Field(
+    collection_method: str | None = Field(
         default=None, description="Invoice collection method"
     )
-    days_until_due: Optional[int] = Field(
+    days_until_due: int | None = Field(
         default=None, description="Number of days until the invoice is due"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -290,13 +290,13 @@ class InvoiceSpec(InvoiceSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "InvoiceSpec":
+    def _populate_from_payload(self) -> InvoiceSpec:
         self._apply_payload_defaults(
             ["customer_id", "collection_method", "days_until_due", "metadata"]
         )
         if not self.line_items and isinstance(self.payload, Mapping):
             payload_items = self.payload.get("line_items", [])
-            items: List[InvoiceLineItemSpec] = []
+            items: list[InvoiceLineItemSpec] = []
             for item in payload_items:
                 if isinstance(item, InvoiceLineItemSpec):
                     items.append(item)
@@ -319,13 +319,13 @@ class SplitEntrySpec(BaseModel):
 class SplitSpec(SplitSpecProto, BillingSpec):
     """Split configuration specification for marketplace operations."""
 
-    name: Optional[str] = Field(
+    name: str | None = Field(
         default=None, description="Human readable split name"
     )
-    type: Optional[str] = Field(
+    type: str | None = Field(
         default=None, description="Provider-specific split type"
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="Currency that the split applies to"
     )
     entries: Sequence[SplitEntrySpec] = Field(
@@ -334,7 +334,7 @@ class SplitSpec(SplitSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "SplitSpec":
+    def _populate_from_payload(self) -> SplitSpec:
         self._apply_payload_defaults(["name", "type", "currency"])
         if not self.entries and isinstance(self.payload, Mapping):
             payload_entries = self.payload.get("entries", [])
@@ -351,11 +351,11 @@ class SplitSpec(SplitSpecProto, BillingSpec):
 class RefundRequest(RefundReqProto, BillingSpec):
     """Refund request specification."""
 
-    amount_minor: Optional[int] = Field(
+    amount_minor: int | None = Field(
         default=None,
         description="Amount to refund in the smallest currency denomination",
     )
-    reason: Optional[str] = Field(
+    reason: str | None = Field(
         default=None, description="Reason for issuing the refund"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -363,7 +363,7 @@ class RefundRequest(RefundReqProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "RefundRequest":
+    def _populate_from_payload(self) -> RefundRequest:
         self._apply_payload_defaults(["amount_minor", "reason", "metadata"])
         return self
 
@@ -371,8 +371,8 @@ class RefundRequest(RefundReqProto, BillingSpec):
 class CustomerSpec(CustomerSpecProto, BillingSpec):
     """Customer creation specification."""
 
-    name: Optional[str] = Field(default=None, description="Customer full name")
-    email: Optional[str] = Field(
+    name: str | None = Field(default=None, description="Customer full name")
+    email: str | None = Field(
         default=None, description="Customer email address"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -380,7 +380,7 @@ class CustomerSpec(CustomerSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "CustomerSpec":
+    def _populate_from_payload(self) -> CustomerSpec:
         self._apply_payload_defaults(["name", "email", "metadata"])
         return self
 
@@ -388,9 +388,7 @@ class CustomerSpec(CustomerSpecProto, BillingSpec):
 class PaymentMethodSpec(PaymentMethodSpecProto, BillingSpec):
     """Payment method creation specification."""
 
-    type: Optional[str] = Field(
-        default=None, description="Payment method type"
-    )
+    type: str | None = Field(default=None, description="Payment method type")
     billing_details: Mapping[str, Any] | None = Field(
         default=None,
         description="Billing details associated with the payment method",
@@ -400,7 +398,7 @@ class PaymentMethodSpec(PaymentMethodSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "PaymentMethodSpec":
+    def _populate_from_payload(self) -> PaymentMethodSpec:
         self._apply_payload_defaults(["type", "billing_details", "metadata"])
         return self
 
@@ -408,14 +406,14 @@ class PaymentMethodSpec(PaymentMethodSpecProto, BillingSpec):
 class PayoutRequest(PayoutReqProto, BillingSpec):
     """Payout request specification."""
 
-    amount_minor: Optional[int] = Field(
+    amount_minor: int | None = Field(
         default=None,
         description="Amount to pay out in the smallest currency denomination",
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="Currency of the payout"
     )
-    destination_account: Optional[str] = Field(
+    destination_account: str | None = Field(
         default=None,
         description="Destination account identifier for the payout",
     )
@@ -424,7 +422,7 @@ class PayoutRequest(PayoutReqProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "PayoutRequest":
+    def _populate_from_payload(self) -> PayoutRequest:
         self._apply_payload_defaults(
             ["amount_minor", "currency", "destination_account", "metadata"]
         )
@@ -434,14 +432,16 @@ class PayoutRequest(PayoutReqProto, BillingSpec):
 class TransferRequest(TransferReqProto, BillingSpec):
     """Balance transfer request specification."""
 
-    amount_minor: Optional[int] = Field(
+    amount_minor: int | None = Field(
         default=None,
-        description="Amount to transfer in the currency's smallest denomination",  # noqa: E501
+        description=(
+            "Amount to transfer in the currency's smallest denomination"
+        ),
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="Currency of the transfer"
     )
-    destination_account: Optional[str] = Field(
+    destination_account: str | None = Field(
         default=None, description="Destination account receiving the transfer"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -449,7 +449,7 @@ class TransferRequest(TransferReqProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "TransferRequest":
+    def _populate_from_payload(self) -> TransferRequest:
         self._apply_payload_defaults(
             ["amount_minor", "currency", "destination_account", "metadata"]
         )
@@ -459,7 +459,7 @@ class TransferRequest(TransferReqProto, BillingSpec):
 class ReportRequest(ReportReqProto, BillingSpec):
     """Report creation request specification."""
 
-    report_type: Optional[str] = Field(
+    report_type: str | None = Field(
         default=None, description="Provider-specific report type identifier"
     )
     parameters: Mapping[str, Any] | None = Field(
@@ -467,7 +467,7 @@ class ReportRequest(ReportReqProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "ReportRequest":
+    def _populate_from_payload(self) -> ReportRequest:
         self._apply_payload_defaults(["report_type", "parameters"])
         return self
 
@@ -475,19 +475,19 @@ class ReportRequest(ReportReqProto, BillingSpec):
 class CouponSpec(CouponSpecProto, BillingSpec):
     """Coupon creation specification."""
 
-    percent_off: Optional[float] = Field(
+    percent_off: float | None = Field(
         default=None, description="Percentage discount for the coupon"
     )
-    amount_off_minor: Optional[int] = Field(
+    amount_off_minor: int | None = Field(
         default=None,
         description=(
             "Fixed amount discount in the smallest currency denomination"
         ),
     )
-    currency: Optional[str] = Field(
+    currency: str | None = Field(
         default=None, description="Currency for fixed-amount coupons"
     )
-    duration: Optional[str] = Field(
+    duration: str | None = Field(
         default=None, description="Duration for which the coupon applies"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -495,7 +495,7 @@ class CouponSpec(CouponSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "CouponSpec":
+    def _populate_from_payload(self) -> CouponSpec:
         self._apply_payload_defaults(
             [
                 "percent_off",
@@ -511,11 +511,11 @@ class CouponSpec(CouponSpecProto, BillingSpec):
 class PromotionSpec(PromotionSpecProto, BillingSpec):
     """Promotion creation specification."""
 
-    coupon_id: Optional[str] = Field(
+    coupon_id: str | None = Field(
         default=None,
         description="Coupon identifier associated with the promotion",
     )
-    code: Optional[str] = Field(
+    code: str | None = Field(
         default=None, description="Public code used to redeem the promotion"
     )
     metadata: Mapping[str, Any] | None = Field(
@@ -523,6 +523,6 @@ class PromotionSpec(PromotionSpecProto, BillingSpec):
     )
 
     @model_validator(mode="after")
-    def _populate_from_payload(self) -> "PromotionSpec":
+    def _populate_from_payload(self) -> PromotionSpec:
         self._apply_payload_defaults(["coupon_id", "code", "metadata"])
         return self

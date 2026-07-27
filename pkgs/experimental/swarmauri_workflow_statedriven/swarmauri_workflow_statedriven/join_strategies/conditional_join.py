@@ -9,7 +9,8 @@ class ConditionalJoinStrategy(JoinStrategy):
     File: join_strategies/conditional_join.py
     Class: ConditionalJoinStrategy
 
-    Fires when a user‑provided predicate over the list of buffered inputs returns True.
+    Fires when a user‑provided predicate over the list of buffered inputs
+    returns True.
     """
 
     def __init__(self, predicate: Callable[[List[Any]], bool]):
@@ -19,7 +20,8 @@ class ConditionalJoinStrategy(JoinStrategy):
         Method: __init__
 
         Args:
-            predicate: a function that takes the list of buffered inputs and returns a bool.
+            predicate: a function that takes the list of buffered inputs and
+            returns a bool.
         """
         self.predicate = predicate
 

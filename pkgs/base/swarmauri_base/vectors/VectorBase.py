@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Literal
 
 import numpy as np
 from pydantic import Field
@@ -9,8 +9,8 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class VectorBase(IVector, ComponentBase):
-    value: List[float]
-    resource: Optional[str] = Field(
+    value: list[float]
+    resource: str | None = Field(
         default=ResourceTypes.VECTOR.value, frozen=True
     )
     type: Literal["VectorBase"] = "VectorBase"

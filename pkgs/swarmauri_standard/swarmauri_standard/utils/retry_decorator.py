@@ -8,9 +8,8 @@ from typing import Any, Callable, Optional, Union
 
 import httpx
 
-
 RetryCodes = Union[Collection[int], Callable[[Any], Collection[int]]]
-RetryValue = Union[int, float, Callable[[Any], Union[int, float]]]
+RetryValue = Union[int, float, Callable[[Any], int | float]]
 
 
 def _resolve(value: Any, instance: Any, fallback: Any) -> Any:
@@ -74,7 +73,7 @@ def retry_on_status_codes(
                             f"Received HTTP {e.response.status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         await asyncio.sleep(backoff_time)
                     else:
@@ -134,7 +133,7 @@ def retry_on_status_codes(
                             f"Received HTTP {e.response.status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         time.sleep(backoff_time)
                     else:

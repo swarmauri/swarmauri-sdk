@@ -1,10 +1,11 @@
 import pytest
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_base.ComponentBase import ResourceTypes
+
 from swarmauri_standard.conversations.MaxSizeConversation import (
     MaxSizeConversation,
 )
-from swarmauri_base.ComponentBase import ResourceTypes
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 
 @pytest.mark.unit

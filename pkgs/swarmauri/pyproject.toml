@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev3"
+version = "0.11.0.dev4"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -180,4 +180,18 @@ dev = [
     "flake8>=7.0",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+]
+
+[tool.ruff]
+extend = "../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = [
+    "BLE001",
+    "E501",
+    "RUF012",
+    "S110",
+    "SIM118",
+    "TRY004",
+    "TRY401",
 ]

@@ -1,8 +1,9 @@
 from typing import Union
-from pydantic import BaseModel, ConfigDict, field_validator
 
+from pydantic import BaseModel, ConfigDict, field_validator
 from swarmauri_core.agents.IAgentSystemContext import IAgentSystemContext
 from swarmauri_core.messages.IMessage import IMessage
+
 from swarmauri_base.messages.MessageBase import MessageBase
 
 

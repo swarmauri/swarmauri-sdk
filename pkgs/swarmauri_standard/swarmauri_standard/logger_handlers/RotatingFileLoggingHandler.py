@@ -1,12 +1,12 @@
-from typing import Literal, Optional, Union
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+from logging.handlers import RotatingFileHandler
+from typing import Literal, Optional
 
-from swarmauri_base.ObserveBase import ObserveBase
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
 @ObserveBase.register_model()
@@ -43,7 +43,7 @@ class RotatingFileLoggingHandler(HandlerBase):
 
     type: Literal["RotatingFileLoggingHandler"] = "RotatingFileLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     filename: str = "app.log"
     maxBytes: int = 10485760  # 10 MB default
     backupCount: int = 5

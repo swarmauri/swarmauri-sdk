@@ -11,7 +11,6 @@ from typing import (
     Union,
 )
 
-
 try:
     import numpy as np  # type: ignore
 
@@ -109,19 +108,14 @@ class LpPseudometric(PseudometricBase):
         if domain is not None:
             if len(domain) != 2 or domain[0] >= domain[1]:
                 raise ValueError(
-                    (
-                        f"Domain must be a valid interval [a, b] where a < b, "
-                        f"got "
-                        f"{domain}"
-                    )
+                    f"Domain must be a valid interval [a, b] where a < b, "
+                    f"got "
+                    f"{domain}"
                 )
 
         # Validate coordinates if provided
-        if coordinates is not None:
-            if any(c < 0 for c in coordinates):
-                raise ValueError(
-                    "Coordinates must contain non-negative indices"
-                )
+        if coordinates is not None and any(c < 0 for c in coordinates):
+            raise ValueError("Coordinates must contain non-negative indices")
 
         self.p = p
         self.domain = domain
@@ -129,10 +123,8 @@ class LpPseudometric(PseudometricBase):
         self.epsilon = epsilon
 
         logger.info(
-            (
-                f"Initialized LpPseudometric with p={p}, domain={domain}, "
-                f"coordinates={coordinates}"
-            )
+            f"Initialized LpPseudometric with p={p}, domain={domain}, "
+            f"coordinates={coordinates}"
         )
 
     def _convert_to_array(self, x: InputType):
@@ -214,21 +206,17 @@ class LpPseudometric(PseudometricBase):
             if len(arr.shape) == 1:
                 if coord_max >= arr.shape[0]:
                     raise ValueError(
-                        (
-                            f"Coordinate index out of bounds: max index "
-                            f"{coord_max}, "
-                            f"array shape {arr.shape}"
-                        )
+                        f"Coordinate index out of bounds: max index "
+                        f"{coord_max}, "
+                        f"array shape {arr.shape}"
                     )
                 return arr[self.coordinates]
             elif len(arr.shape) == 2:
                 if coord_max >= arr.shape[0]:
                     raise ValueError(
-                        (
-                            f"Coordinate index out of bounds: max index "
-                            f"{coord_max}, "
-                            f"array shape {arr.shape}"
-                        )
+                        f"Coordinate index out of bounds: max index "
+                        f"{coord_max}, "
+                        f"array shape {arr.shape}"
                     )
                 return arr[self.coordinates, :]
             else:
@@ -240,21 +228,17 @@ class LpPseudometric(PseudometricBase):
             if isinstance(arr[0], (list, tuple)):
                 if coord_max >= len(arr):
                     raise ValueError(
-                        (
-                            f"Coordinate index out of bounds: max index "
-                            f"{coord_max}, "
-                            f"array length {len(arr)}"
-                        )
+                        f"Coordinate index out of bounds: max index "
+                        f"{coord_max}, "
+                        f"array length {len(arr)}"
                     )
                 return [arr[i] for i in self.coordinates]
             else:
                 if coord_max >= len(arr):
                     raise ValueError(
-                        (
-                            f"Coordinate index out of bounds: max index "
-                            f"{coord_max}, "
-                            f"array length {len(arr)}"
-                        )
+                        f"Coordinate index out of bounds: max index "
+                        f"{coord_max}, "
+                        f"array length {len(arr)}"
                     )
                 return [arr[i] for i in self.coordinates]
 
@@ -282,10 +266,8 @@ class LpPseudometric(PseudometricBase):
             If inputs have incompatible dimensions
         """
         logger.debug(
-            (
-                f"Calculating Lp pseudometric distance with p={self.p} "
-                f"between inputs of types {type(x)} and {type(y)}"
-            )
+            f"Calculating Lp pseudometric distance with p={self.p} "
+            f"between inputs of types {type(x)} and {type(y)}"
         )
 
         try:
@@ -300,11 +282,9 @@ class LpPseudometric(PseudometricBase):
             ):
                 if x_arr.shape != y_arr.shape:
                     raise ValueError(
-                        (
-                            f"Inputs must have the same shape: {x_arr.shape} "
-                            f"vs "
-                            f"{y_arr.shape}"
-                        )
+                        f"Inputs must have the same shape: {x_arr.shape} "
+                        f"vs "
+                        f"{y_arr.shape}"
                     )
             else:  # pragma: no cover - numpy fallback
                 if isinstance(x_arr[0], (list, tuple)) != isinstance(
@@ -371,9 +351,7 @@ class LpPseudometric(PseudometricBase):
                 return float((total) ** (1.0 / self.p))
 
         except Exception as e:
-            logger.error(
-                f"Error calculating Lp pseudometric distance: {str(e)}"
-            )
+            logger.error(f"Error calculating Lp pseudometric distance: {e!s}")
             raise
 
     def distances(
@@ -403,10 +381,8 @@ class LpPseudometric(PseudometricBase):
             If inputs have incompatible dimensions
         """
         logger.debug(
-            (
-                f"Calculating pairwise Lp pseudometric distances between "
-                f"{len(xs)} and {len(ys)} objects"
-            )
+            f"Calculating pairwise Lp pseudometric distances between "
+            f"{len(xs)} and {len(ys)} objects"
         )
 
         result = []
@@ -417,11 +393,9 @@ class LpPseudometric(PseudometricBase):
                     row.append(self.distance(x, y))
                 except Exception as e:
                     logger.error(
-                        (
-                            f"Error calculating distance between xs[{i}] and "
-                            f"ys[{j}]: "
-                            f"{str(e)}"
-                        )
+                        f"Error calculating distance between xs[{i}] and "
+                        f"ys[{j}]: "
+                        f"{e!s}"
                     )
                     raise
             result.append(row)
@@ -448,7 +422,7 @@ class LpPseudometric(PseudometricBase):
             dist = self.distance(x, y)
             return dist >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_symmetry(
@@ -476,7 +450,7 @@ class LpPseudometric(PseudometricBase):
             dist_yx = self.distance(y, x)
             return abs(dist_xy - dist_yx) <= tolerance
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -513,7 +487,7 @@ class LpPseudometric(PseudometricBase):
             # Account for floating-point errors with tolerance
             return dist_xz <= dist_xy + dist_yz + tolerance
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False
 
     def check_weak_identity(self, x: InputType, y: InputType) -> bool:
@@ -577,7 +551,7 @@ class LpPseudometric(PseudometricBase):
 
             return False
         except Exception as e:
-            logger.error(f"Error checking weak identity: {str(e)}")
+            logger.error(f"Error checking weak identity: {e!s}")
             return False
 
     def __str__(self) -> str:

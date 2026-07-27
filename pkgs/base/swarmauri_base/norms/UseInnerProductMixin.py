@@ -1,8 +1,9 @@
-from typing import Literal, TypeVar, Any
 import logging
+from typing import Any, Literal, TypeVar
 
-from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
+from pydantic import BaseModel, ConfigDict, PrivateAttr
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 Vector = TypeVar("Vector")
 
 
-class UseInnerProductMixin(IUseInnerProduct):
+class UseInnerProductMixin(IUseInnerProduct, BaseModel):
     """
     Base mixin class for structures dependent on inner products.
 
@@ -25,6 +26,9 @@ class UseInnerProductMixin(IUseInnerProduct):
     _inner_product : IInnerProduct
         Reference to the inner product implementation used by this component
     """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    _inner_product: IInnerProduct = PrivateAttr()
 
     def __init__(
         self, inner_product: IInnerProduct, *args: Any, **kwargs: Any
@@ -41,13 +45,11 @@ class UseInnerProductMixin(IUseInnerProduct):
         **kwargs : Any
             Additional keyword arguments for parent classes
         """
-        self._inner_product = inner_product
         super().__init__(*args, **kwargs)
+        self._inner_product = inner_product
         logger.debug(
-            (
-                f"Initialized {self.__class__.__name__} with inner product "
-                f"{inner_product}"
-            )
+            f"Initialized {self.__class__.__name__} with inner product "
+            f"{inner_product}"
         )
 
     def get_inner_product(self) -> Literal[IInnerProduct]:

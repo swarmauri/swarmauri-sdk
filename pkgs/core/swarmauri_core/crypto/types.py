@@ -16,12 +16,12 @@ Notes:
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple, Mapping, TYPE_CHECKING
-import hashlib
+from typing import TYPE_CHECKING, Mapping
 
-from ..mre_crypto.types import RecipientInfo, MultiRecipientEnvelope
+from ..mre_crypto.types import MultiRecipientEnvelope, RecipientInfo
 
 # -----------------------------
 # Scalar aliases
@@ -110,12 +110,12 @@ class ExportPolicy(str, Enum):
 @dataclass(frozen=True)
 class KeySummary:
     kid: KeyId
-    name: Optional[str]
+    name: str | None
     type: KeyType
     state: KeyState
     primary_version: KeyVersion
-    uses: Tuple[KeyUse, ...]
-    tags: Dict[str, str]
+    uses: tuple[KeyUse, ...]
+    tags: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -123,26 +123,26 @@ class KeyVersionInfo:
     version: KeyVersion
     created_at: float  # epoch seconds
     state: KeyState
-    thumbprint: Optional[str] = None
+    thumbprint: str | None = None
 
 
 @dataclass(frozen=True)
 class KeyDescriptor:
     kid: KeyId
-    name: Optional[str]
+    name: str | None
     type: KeyType
     state: KeyState
     primary_version: KeyVersion
-    uses: Tuple[KeyUse, ...]
+    uses: tuple[KeyUse, ...]
     export_policy: ExportPolicy
-    tags: Dict[str, str]
-    versions: Tuple[KeyVersionInfo, ...]
+    tags: dict[str, str]
+    versions: tuple[KeyVersionInfo, ...]
 
 
 @dataclass(frozen=True)
 class Page:
-    items: Tuple[KeySummary, ...]
-    next_cursor: Optional[str] = None
+    items: tuple[KeySummary, ...]
+    next_cursor: str | None = None
 
 
 # -----------------------------
@@ -162,13 +162,13 @@ class KeyRef:
     kid: KeyId
     version: KeyVersion
     type: KeyType
-    uses: Tuple[KeyUse, ...]
+    uses: tuple[KeyUse, ...]
     export_policy: ExportPolicy
-    uri: Optional[str] = None
-    material: Optional[bytes | str] = None
-    public: Optional[bytes | str] = None
-    tags: Dict[str, str] | None = None
-    fingerprint: Optional[str] = None
+    uri: str | None = None
+    material: bytes | str | None = None
+    public: bytes | str | None = None
+    tags: dict[str, str] | None = None
+    fingerprint: str | None = None
 
     def __post_init__(self) -> None:
         if self.fingerprint is None:
@@ -196,7 +196,7 @@ class AEADCiphertext:
     nonce: bytes
     ct: bytes
     tag: bytes
-    aad: Optional[bytes] = None
+    aad: bytes | None = None
 
 
 @dataclass(frozen=True)
@@ -212,8 +212,8 @@ class WrappedKey:
     kek_version: KeyVersion
     wrap_alg: Alg
     wrapped: bytes
-    nonce: Optional[bytes] = None
-    tag: Optional[bytes] = None
+    nonce: bytes | None = None
+    tag: bytes | None = None
 
 
 # -----------------------------

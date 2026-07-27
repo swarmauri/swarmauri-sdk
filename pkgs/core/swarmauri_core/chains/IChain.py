@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
+
 from swarmauri_core.chains.IChainStep import IChainStep
 
 
@@ -50,7 +51,6 @@ class IChain(ABC):
             or configuration
                       for the step when it is executed.
         """
-        pass
 
     @abstractmethod
     def remove_step(self, step: IChainStep) -> None:
@@ -64,12 +64,11 @@ class IChain(ABC):
             step (IChainStep): The Callable representing the step to remove
             from the chain.
         """
-        pass
 
     @abstractmethod
     def execute(
         self, *args: tuple[Any, ...], **kwargs: dict[str, Any]
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Initiates the execution of the chain. This involves invoking each step
         in the order
@@ -99,4 +98,3 @@ class IChain(ABC):
                  other result type as
                  determined by the specific chain implementation.
         """
-        pass

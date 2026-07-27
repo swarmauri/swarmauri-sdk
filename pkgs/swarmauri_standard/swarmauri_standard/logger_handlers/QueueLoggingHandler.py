@@ -1,7 +1,7 @@
 import logging
 import queue
 from logging.handlers import QueueHandler
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 
 from pydantic import Field
 from swarmauri_base import FullUnion
@@ -33,7 +33,7 @@ class QueueLoggingHandler(HandlerBase):
     type: Literal["QueueLoggingHandler"] = "QueueLoggingHandler"
     queue: Any = Field(default_factory=queue.Queue, exclude=True)
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     respect_handler_level: bool = True
 
     def compile_handler(self) -> logging.Handler:

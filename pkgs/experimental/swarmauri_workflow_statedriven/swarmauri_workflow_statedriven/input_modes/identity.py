@@ -21,7 +21,5 @@ class IdentityInputMode(InputMode):
         data: Any,
         results: Dict[str, Any],
     ) -> Any:
-        """
-        Return the raw payload exactly as received.
-        """
+        """Return the raw payload exactly as received."""
         return data

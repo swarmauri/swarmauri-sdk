@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, Literal
-from swarmauri_base.factories.FactoryBase import FactoryBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.factories.FactoryBase import FactoryBase
 
 
 @ComponentBase.register_type(FactoryBase, "AgentFactory")

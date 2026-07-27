@@ -6,9 +6,7 @@ from swarmauri_workflow_statedriven.state_manager import StateManager
 
 
 class AggregateInputMode(InputMode):
-    """
-    Pass the full map of all prior state outputs as input.
-    """
+    """Pass the full map of all prior state outputs as input."""
 
     def prepare(
         self,
@@ -22,6 +20,7 @@ class AggregateInputMode(InputMode):
         Class: AggregateInputMode
         Method: prepare
 
-        Returns a shallow copy of `results` so the node sees every completed output.
+        Returns a shallow copy of `results` so the node sees every completed
+        output.
         """
         return results.copy()

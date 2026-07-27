@@ -1,50 +1,116 @@
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple
+import re
+from pathlib import PurePath
+from typing import Any, ClassVar, Literal
 
 import yaml
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import (
+    AliasChoices,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
+from swarmauri_core.skills.ISkill import ISkill
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.skills.ISkill import ISkill
 
 
 @ComponentBase.register_model()
 class SkillBase(ISkill, ComponentBase):
+    """Portable Agent Skills model for one complete skill bundle."""
+
     name: str
     description: str
     instructions: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    agents: List[str] = Field(default_factory=list)
-    references: List[str] = Field(default_factory=list)
-    scripts: List[str] = Field(default_factory=list)
-    tools: List[str] = Field(default_factory=list)
-    validation: List[str] = Field(default_factory=list)
-    resource: Optional[str] = Field(default=ResourceTypes.SKILL.value)
+    license: str | None = None
+    compatibility: str | None = None
+    metadata: dict[str, str] = Field(default_factory=dict)
+    allowed_tools: list[str] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("allowed-tools", "allowed_tools"),
+    )
+    assets: list[str] = Field(default_factory=list)
+    references: list[str] = Field(default_factory=list)
+    scripts: list[str] = Field(default_factory=list)
+    resource: str | None = Field(default=ResourceTypes.SKILL.value)
     type: Literal["SkillBase"] = "SkillBase"
-    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+    model_config = ConfigDict(
+        extra="forbid",
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+    )
 
     _RESOURCE_FIELDS: ClassVar[tuple[str, ...]] = (
-        "agents",
         "references",
         "scripts",
-        "tools",
-        "validation",
+        "assets",
     )
-    _SUPPORTED_EXTENSIONS: ClassVar[set[str]] = {".md", ".yaml", ".yml", ".py"}
+    _NAME_PATTERN: ClassVar[re.Pattern[str]] = re.compile(
+        r"^(?!.*--)[a-z0-9]+(?:-[a-z0-9]+)*$"
+    )
+
+    @field_validator("metadata", mode="before")
+    @classmethod
+    def _normalize_metadata(cls, value: Any) -> dict[str, str]:
+        if value is None:
+            return {}
+        if not isinstance(value, dict):
+            raise ValueError("Skill metadata must be a mapping")
+        return {
+            str(key): " ".join(str(item) for item in raw)
+            if isinstance(raw, (list, tuple, set))
+            else str(raw)
+            for key, raw in value.items()
+        }
+
+    @field_validator("name")
+    @classmethod
+    def _validate_name(cls, value: str) -> str:
+        if not 1 <= len(value) <= 64 or not cls._NAME_PATTERN.fullmatch(value):
+            raise ValueError(
+                "Skill name must be 1-64 characters of lowercase letters, "
+                "numbers, and single hyphens, without leading/trailing hyphens"
+            )
+        return value
+
+    @field_validator("description")
+    @classmethod
+    def _validate_description(cls, value: str) -> str:
+        if not value.strip() or len(value) > 1024:
+            raise ValueError("Skill description must be 1-1024 characters")
+        return value
+
+    @field_validator("compatibility")
+    @classmethod
+    def _validate_compatibility(cls, value: str | None) -> str | None:
+        if value is not None and not 1 <= len(value) <= 500:
+            raise ValueError("Skill compatibility must be 1-500 characters")
+        return value
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_legacy_fields(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        data = dict(value)
+        if "allowed-tools" not in data and "allowed_tools" in data:
+            data["allowed-tools"] = data.pop("allowed_tools")
+        if isinstance(data.get("allowed-tools"), str):
+            data["allowed-tools"] = data["allowed-tools"].split()
+        return data
 
     @model_validator(mode="after")
-    def _validate_resource_extensions(self) -> "SkillBase":
+    def _validate_resource_paths(self) -> SkillBase:
         for field_name in self._RESOURCE_FIELDS:
             for value in getattr(self, field_name):
-                suffix = self._suffix(value)
-                if suffix and suffix not in self._SUPPORTED_EXTENSIONS:
+                if not isinstance(value, str) or not value:
+                    raise ValueError(f"{field_name} entries must be strings")
+                path = PurePath(value.replace("\\", "/"))
+                if path.is_absolute() or ".." in path.parts:
                     raise ValueError(
-                        (
-                            f"Unsupported skill resource extension for "
-                            f"{field_name}: "
-                            f"{value}"
-                        )
+                        f"Skill resource path must stay relative: {value}"
                     )
         return self
 
@@ -52,17 +118,17 @@ class SkillBase(ISkill, ComponentBase):
     def from_markdown(
         cls,
         markdown: str,
-        manifest: Optional[Dict[str, Any]] = None,
+        manifest: dict[str, Any] | None = None,
         **overrides: Any,
-    ) -> "SkillBase":
+    ) -> SkillBase:
         frontmatter, instructions = cls.split_frontmatter(markdown)
         data = cls.merge_skill_data(frontmatter, manifest or {}, overrides)
         data.setdefault("instructions", instructions.strip())
         return cls(**data)
 
     @classmethod
-    def split_frontmatter(cls, markdown: str) -> Tuple[Dict[str, Any], str]:
-        normalized = markdown.lstrip("﻿")
+    def split_frontmatter(cls, markdown: str) -> tuple[dict[str, Any], str]:
+        normalized = markdown.lstrip("\ufeff")
         if not normalized.startswith("---"):
             return {}, markdown
 
@@ -86,16 +152,16 @@ class SkillBase(ISkill, ComponentBase):
                         "SKILL.md frontmatter must be a YAML mapping"
                     )
                 return parsed, body
-        return {}, markdown
+        return {}, normalized
 
     @classmethod
     def merge_skill_data(
         cls,
-        frontmatter: Dict[str, Any],
-        manifest: Dict[str, Any],
-        overrides: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        data: Dict[str, Any] = {}
+        frontmatter: dict[str, Any],
+        manifest: dict[str, Any],
+        overrides: dict[str, Any],
+    ) -> dict[str, Any]:
+        data: dict[str, Any] = {}
         data.update(frontmatter or {})
         data.update(manifest or {})
         data.update(
@@ -106,10 +172,3 @@ class SkillBase(ISkill, ComponentBase):
             }
         )
         return data
-
-    @staticmethod
-    def _suffix(value: str) -> str:
-        name = value.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
-        if "." not in name:
-            return ""
-        return "." + name.rsplit(".", 1)[1].lower()

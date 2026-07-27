@@ -4,13 +4,11 @@ import asyncio
 import contextlib
 import ssl
 from collections import deque
-from typing import Deque, Dict, Optional, Tuple
 
 from swarmauri_base.transports.multiplex_mixin import (
     ChannelHandle,
     MultiplexTransportMixin,
 )
-from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
@@ -24,9 +22,7 @@ from swarmauri_core.transports.enums import (
 )
 
 
-class H2MuxTransport(
-    TransportBase, RunnableMixin, PeerTransportMixin, MultiplexTransportMixin
-):
+class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
     """HTTP/2 multiplexed connection without HTTP application semantics."""
 
     def __init__(self, allow_h2c: bool = False):
@@ -36,9 +32,9 @@ class H2MuxTransport(
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._h2 = None
-        self._streams: Dict[int, Deque[bytes]] = {}
+        self._streams: dict[int, deque[bytes]] = {}
         self._next_sid = 1
-        self._recv_wait: Tuple[int, asyncio.Future[bytes]] | None = None
+        self._recv_wait: tuple[int, asyncio.Future[bytes]] | None = None
 
     def supports(self) -> TransportCapabilities:
         schemes = {AddressScheme.HTTPS}
@@ -59,7 +55,7 @@ class H2MuxTransport(
         self,
         host: str = "0.0.0.0",
         port: int = 8443,
-        ssl_ctx: Optional[ssl.SSLContext] = None,
+        ssl_ctx: ssl.SSLContext | None = None,
     ) -> None:
         if ssl_ctx:
             with contextlib.suppress(Exception):
@@ -84,8 +80,8 @@ class H2MuxTransport(
         self,
         host: str = "127.0.0.1",
         port: int = 8443,
-        server_hostname: Optional[str] = None,
-        ssl_ctx: Optional[ssl.SSLContext] = None,
+        server_hostname: str | None = None,
+        ssl_ctx: ssl.SSLContext | None = None,
     ) -> None:
         if ssl_ctx:
             with contextlib.suppress(Exception):
@@ -107,7 +103,10 @@ class H2MuxTransport(
         self._reader = None
         self._writer = None
 
-    async def open_channel(self) -> ChannelHandle:  # type: ignore[override]
+    def open_channel(self) -> ChannelHandle:
+        return asyncio.run(self.aopen_channel())
+
+    async def aopen_channel(self) -> ChannelHandle:  # type: ignore[override]
         if self._h2 is None:
             raise RuntimeError("H2 not initialized")
         stream_id = self._next_sid
@@ -115,30 +114,50 @@ class H2MuxTransport(
         self._streams[stream_id] = deque()
         return stream_id
 
-    async def close_channel(self, handle: ChannelHandle) -> None:  # type: ignore[override]
+    def close_channel(self, handle: ChannelHandle) -> None:
+        asyncio.run(self.aclose_channel(handle))
+
+    async def aclose_channel(self, handle: ChannelHandle) -> None:  # type: ignore[override]
         if self._h2 is not None:
             with contextlib.suppress(Exception):
                 self._h2.end_stream(handle)
             await self._flush()
         self._streams.pop(handle, None)
 
-    async def send_on(
+    def send_on(
         self,
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
+    ) -> None:
+        asyncio.run(self.asend_on(handle, data, timeout=timeout))
+
+    async def asend_on(
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: float | None = None,
     ) -> None:  # type: ignore[override]
         if self._h2 is None or self._writer is None:
             raise RuntimeError("not connected")
         self._h2.send_data(handle, data)
         await asyncio.wait_for(self._flush(), timeout=timeout)
 
-    async def recv_on(
+    def receive_on(
         self,
         handle: ChannelHandle,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
+    ) -> bytes:
+        return asyncio.run(self.areceive_on(handle, timeout=timeout))
+
+    async def areceive_on(
+        self,
+        handle: ChannelHandle,
+        *,
+        timeout: float | None = None,
     ) -> bytes:  # type: ignore[override]
         queue = self._streams.get(handle)
         if queue and queue:

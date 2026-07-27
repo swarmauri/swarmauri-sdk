@@ -2,8 +2,7 @@ import asyncio
 from types import SimpleNamespace
 
 import pytest
-
-import swarmauri_core.transports as transports
+from swarmauri_core import transports
 
 transports.UnicastTransportMixin = type("UnicastTransportMixin", (), {})
 transports.PeerTransportMixin = type("PeerTransportMixin", (), {})
@@ -50,7 +49,7 @@ async def test_send_writes_to_connected_writer() -> None:
 @pytest.mark.asyncio
 async def test_recv_returns_bytes() -> None:
     class StubReader:
-        async def read(self, n: int) -> bytes:  # noqa: ARG002
+        async def read(self, n: int) -> bytes:
             return b"response"
 
     transport = UdsUnicastTransport("/tmp/example.sock")
@@ -69,7 +68,7 @@ async def test_start_server_unlinks_existing_socket(
     path.write_text("stale")
     captured = {}
 
-    async def fake_start_unix_server(callback, *, path: str):  # noqa: ARG001
+    async def fake_start_unix_server(callback, *, path: str):
         captured["path"] = path
         return SimpleNamespace(
             close=lambda: None, wait_closed=lambda: asyncio.sleep(0)
@@ -116,7 +115,7 @@ async def test_open_client_sets_streams(monkeypatch, tmp_path) -> None:
     reader = object()
     writer = object()
 
-    async def fake_open_unix_connection(path_arg: str):  # noqa: ARG001
+    async def fake_open_unix_connection(path_arg: str):
         return reader, writer
 
     transport = UdsUnicastTransport(str(path))

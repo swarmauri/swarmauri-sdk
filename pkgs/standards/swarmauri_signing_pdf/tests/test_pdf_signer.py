@@ -1,5 +1,4 @@
 import pytest
-
 from swarmauri_core.signing.types import Signature
 from swarmauri_signing_pdf.pdf_signer import (
     PDFSigner,

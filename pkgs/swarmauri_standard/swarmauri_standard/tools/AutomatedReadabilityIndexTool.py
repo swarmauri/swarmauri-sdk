@@ -2,9 +2,10 @@ import re
 from typing import Dict, List, Literal
 
 from pydantic import ConfigDict
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "AutomatedReadabilityIndexTool")
@@ -123,6 +124,4 @@ class AutomatedReadabilityIndexTool(ToolBase):
         Returns:
             bool: True if the input is valid, False otherwise.
         """
-        if isinstance(input_text, str):
-            return True
-        return False
+        return bool(isinstance(input_text, str))

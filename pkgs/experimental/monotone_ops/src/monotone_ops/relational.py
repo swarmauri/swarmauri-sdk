@@ -52,7 +52,9 @@ def named_project(rel: NamedRelation, columns: Sequence[str]) -> NamedRelation:
     return NamedRelation(tuple(columns), project(rel.rows, indexes))
 
 
-def named_select(rel: NamedRelation, predicate: Callable[[dict[str, Any]], bool]) -> NamedRelation:
+def named_select(
+    rel: NamedRelation, predicate: Callable[[dict[str, Any]], bool]
+) -> NamedRelation:
     def row_predicate(row: Row) -> bool:
         return predicate(dict(zip(rel.schema, row, strict=True)))
 
@@ -60,7 +62,10 @@ def named_select(rel: NamedRelation, predicate: Callable[[dict[str, Any]], bool]
 
 
 def natural_join(a: NamedRelation, b: NamedRelation) -> NamedRelation:
-    """Natural join. Monotone in both input relations."""
+    """Natural join.
+
+    Monotone in both input relations.
+    """
 
     common = tuple(column for column in a.schema if column in b.schema)
     a_common = tuple(a.schema.index(column) for column in common)
@@ -79,14 +84,19 @@ def natural_join(a: NamedRelation, b: NamedRelation) -> NamedRelation:
 
 
 def semi_join(a: NamedRelation, b: NamedRelation) -> NamedRelation:
-    """Positive semijoin: keep rows in ``a`` that join with at least one row in ``b``."""
+    """
+    Positive semijoin: keep rows in ``a`` that join with at least one row in
+    ``b``.
+    """
 
     joined = natural_join(a, b)
     return named_project(joined, a.schema)
 
 
 def rename(rel: NamedRelation, mapping: dict[str, str]) -> NamedRelation:
-    return NamedRelation(tuple(mapping.get(col, col) for col in rel.schema), rel.rows)
+    return NamedRelation(
+        tuple(mapping.get(col, col) for col in rel.schema), rel.rows
+    )
 
 
 def union_named(a: NamedRelation, b: NamedRelation) -> NamedRelation:
@@ -117,4 +127,6 @@ def relation_from_dicts(rows: Iterable[dict[str, Any]]) -> NamedRelation:
     if not rows:
         return NamedRelation((), frozenset())
     schema = tuple(rows[0].keys())
-    return NamedRelation(schema, frozenset(tuple(row[col] for col in schema) for row in rows))
+    return NamedRelation(
+        schema, frozenset(tuple(row[col] for col in schema) for row in rows)
+    )

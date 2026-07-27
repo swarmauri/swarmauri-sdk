@@ -1,8 +1,9 @@
 """Unit tests for ``ObserveBase`` registration mechanics."""
 
 import pytest
-from swarmauri_base.ObserveBase import ObserveBase
+
 from swarmauri_base.DynamicBase import DynamicBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
 @DynamicBase.register_type()

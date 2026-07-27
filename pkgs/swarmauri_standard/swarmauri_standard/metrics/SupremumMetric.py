@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Tuple
 
 import numpy as np
 from pydantic import Field
@@ -103,13 +103,13 @@ class SupremumMetric(MetricBase):
                     )
 
         except Exception as e:
-            logger.error(f"Error calculating supremum distance: {str(e)}")
+            logger.error(f"Error calculating supremum distance: {e!s}")
             raise
 
     def _calculate_supremum(
         self,
-        x: Union[List, Tuple, np.ndarray],
-        y: Union[List, Tuple, np.ndarray],
+        x: List | Tuple | np.ndarray,
+        y: List | Tuple | np.ndarray,
     ) -> float:
         """
         Helper method to calculate the supremum distance between two sequences.
@@ -136,9 +136,9 @@ class SupremumMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate distances between collections of points.
 
@@ -243,7 +243,7 @@ class SupremumMetric(MetricBase):
                 return self.distance(x, y)
 
         except Exception as e:
-            logger.error(f"Error calculating supremum distances: {str(e)}")
+            logger.error(f"Error calculating supremum distances: {e!s}")
             raise
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -274,7 +274,7 @@ class SupremumMetric(MetricBase):
             # Check if the distance is non-negative
             return dist >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_identity_of_indiscernibles(
@@ -322,9 +322,7 @@ class SupremumMetric(MetricBase):
             # Distance is 0 iff the points are equal
             return (dist == 0) == equal
         except Exception as e:
-            logger.error(
-                f"Error checking identity of indiscernibles: {str(e)}"
-            )
+            logger.error(f"Error checking identity of indiscernibles: {e!s}")
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -358,7 +356,7 @@ class SupremumMetric(MetricBase):
             epsilon = 1e-10
             return abs(dist_xy - dist_yx) < epsilon
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -395,5 +393,5 @@ class SupremumMetric(MetricBase):
             epsilon = 1e-10
             return dist_xz <= dist_xy + dist_yz + epsilon
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False

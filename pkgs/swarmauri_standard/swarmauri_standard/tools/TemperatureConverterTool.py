@@ -1,8 +1,10 @@
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "TemperatureConverterTool")
@@ -14,7 +16,8 @@ class TemperatureConverterTool(ToolBase):
                 name="from_unit",
                 input_type="string",
                 description=(
-                    "The unit of the input temperature ('celsius', 'fahrenheit', "  # noqa: E501
+                    "The unit of the input temperature ('celsius', "
+                    "'fahrenheit', "
                     "'kelvin')."
                 ),
                 required=True,
@@ -78,4 +81,4 @@ class TemperatureConverterTool(ToolBase):
 
             return {f"temperature_in_{to_unit}": str(result)}
         except Exception as e:
-            raise f"An error occurred: {str(e)}"
+            raise f"An error occurred: {e!s}"

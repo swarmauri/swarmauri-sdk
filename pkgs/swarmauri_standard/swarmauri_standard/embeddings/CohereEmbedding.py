@@ -1,9 +1,9 @@
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional
 
 import httpx
 from pydantic import PrivateAttr, SecretStr
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 
 from swarmauri_standard.vectors.Vector import Vector
 
@@ -84,20 +84,25 @@ class CohereEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"  # noqa: E501
+                f"Invalid task_type '{self.task_type}'. Allowed task types "
+                f"are: {', '.join(self.allowed_task_types)}"
             )
         if self.embedding_types not in self._allowed_embedding_types:
             raise ValueError(
-                f"Invalid embedding_types '{self.embedding_types}'. Allowed embedding types are: {', '.join(self._allowed_embedding_types)}"  # noqa: E501
+                f"Invalid embedding_types '{self.embedding_types}'. Allowed "
+                f"embedding types are: "
+                f"{', '.join(self._allowed_embedding_types)}"
             )
         if self.truncate not in ["END", "START", "NONE"]:
             raise ValueError(
-                f"Invalid truncate '{self.truncate}'. Allowed truncate are: END, START, NONE"  # noqa: E501
+                f"Invalid truncate '{self.truncate}'. Allowed truncate are: "
+                f"END, START, NONE"
             )
         self._client = httpx.Client()
 
@@ -126,9 +131,9 @@ class CohereEmbedding(EmbeddingBase):
             response.raise_for_status()
             return response.json()
         except httpx.HTTPError as e:
-            raise RuntimeError(f"API request failed: {str(e)}")
+            raise RuntimeError(f"API request failed: {e!s}")
 
-    def infer_vector(self, data: Union[List[str], List[str]]) -> List[Vector]:
+    def infer_vector(self, data: List[str]) -> List[Vector]:
         """
         Generate embeddings for the given list of texts or images.
 
@@ -168,7 +173,7 @@ class CohereEmbedding(EmbeddingBase):
 
         except Exception as e:
             raise RuntimeError(
-                f"An error occurred during embedding generation: {str(e)}"
+                f"An error occurred during embedding generation: {e!s}"
             )
 
     def __del__(self):

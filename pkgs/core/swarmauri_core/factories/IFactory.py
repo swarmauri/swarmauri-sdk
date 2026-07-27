@@ -10,9 +10,7 @@ class IFactory(ABC):
     @abstractmethod
     def create(self, type: str, *args: Any, **kwargs: Any) -> Any:
         """Create and return an instance."""
-        pass
 
     @abstractmethod
     def register(self, type: str, resource_class: Callable) -> None:
         """Register a class with the factory."""
-        pass
