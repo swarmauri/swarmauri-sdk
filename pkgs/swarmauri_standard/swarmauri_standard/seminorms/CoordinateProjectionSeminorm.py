@@ -332,9 +332,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         norm_x = self.compute(x)
 
         # Compute αx
-        if isinstance(x, IVector):
-            alpha_x = x * alpha
-        elif isinstance(x, IMatrix):
+        if isinstance(x, (IVector, IMatrix)):
             alpha_x = x * alpha
         elif isinstance(x, (list, tuple)):
             alpha_x = [complex(item) * alpha for item in x]

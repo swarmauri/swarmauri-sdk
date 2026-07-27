@@ -63,18 +63,14 @@ class FrobeniusMetric(MetricBase):
         )
 
         # Convert inputs to numpy arrays for easier processing
-        if isinstance(x, IMatrix):
-            x_array = np.array(x)
-        elif isinstance(x, (np.ndarray, list)):
+        if isinstance(x, (IMatrix, np.ndarray, list)):
             x_array = np.array(x)
         else:
             raise TypeError(
                 f"Unsupported type for Frobenius metric: {type(x)}"
             )
 
-        if isinstance(y, IMatrix):
-            y_array = np.array(y)
-        elif isinstance(y, (np.ndarray, list)):
+        if isinstance(y, (IMatrix, np.ndarray, list)):
             y_array = np.array(y)
         else:
             raise TypeError(

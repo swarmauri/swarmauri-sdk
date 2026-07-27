@@ -63,6 +63,7 @@ class SubprocessTool(ToolBase):
                 capture_output=True,
                 text=True,
                 shell=shell,
+                check=False,
                 timeout=timeout,
             )
             return {
