@@ -1,6 +1,8 @@
 from typing import Any, Mapping, Optional, Sequence
 
-from swarmauri_base.transports.websocket import WebSocketClientBase
+from swarmauri_base.transports.websocket.WebSocketClientBase import (
+    WebSocketClientBase,
+)
 
 from .WebSocketConnection import WebSocketConnection
 

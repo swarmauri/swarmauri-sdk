@@ -1,4 +1,4 @@
-from swarmauri_base.live_models import LiveConfigBase
+from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 
 
 class NovaSonicConfigMapper:

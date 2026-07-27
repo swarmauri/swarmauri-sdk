@@ -1,10 +1,8 @@
 import pytest
 
-from swarmauri_base.live_models import (
-    LiveSessionBase,
-    TextDeltaEvent,
-    TextInput,
-)
+from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.live_models.events.TextDeltaEvent import TextDeltaEvent
+from swarmauri_base.live_models.inputs.TextInput import TextInput
 from swarmauri_base.live_models.LiveSessionState import LiveSessionState
 
 

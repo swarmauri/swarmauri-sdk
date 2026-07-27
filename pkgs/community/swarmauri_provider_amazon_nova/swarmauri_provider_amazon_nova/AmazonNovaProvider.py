@@ -2,7 +2,7 @@ from typing import Any, Dict, Literal, Optional
 
 from pydantic import Field, SecretStr, model_validator
 
-from swarmauri_base.model_providers import ModelProviderBase
+from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 
 from .AmazonNovaEndpoints import AmazonNovaEndpoints
 from .AmazonNovaErrorMapper import AmazonNovaErrorMapper

@@ -1,6 +1,6 @@
 from typing import Literal, Optional
 from pydantic import SecretStr
-from swarmauri_base.model_providers import ProviderAuthBase
+from swarmauri_base.model_providers.ProviderAuthBase import ProviderAuthBase
 
 
 class XAIAuthConfig(ProviderAuthBase):

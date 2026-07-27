@@ -80,12 +80,16 @@ class RealtimeAgentBase(IRealtimeAgent, ComponentBase):
     async def arun(self, *args: Any, **kwargs: Any) -> Any: ...
 
     def interrupt(self) -> None:
-        from swarmauri_base.live_models.inputs import InterruptInput
+        from swarmauri_base.live_models.inputs.InterruptInput import (
+            InterruptInput,
+        )
 
         self.send(InterruptInput())
 
     async def ainterrupt(self) -> None:
-        from swarmauri_base.live_models.inputs import InterruptInput
+        from swarmauri_base.live_models.inputs.InterruptInput import (
+            InterruptInput,
+        )
 
         await self.asend(InterruptInput())
 

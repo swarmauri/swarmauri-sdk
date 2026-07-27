@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import PrivateAttr
 
-from swarmauri_base.transports.http import HttpResponseBase
+from swarmauri_base.transports.http.HttpResponseBase import HttpResponseBase
 
 
 class HttpxResponse(HttpResponseBase):

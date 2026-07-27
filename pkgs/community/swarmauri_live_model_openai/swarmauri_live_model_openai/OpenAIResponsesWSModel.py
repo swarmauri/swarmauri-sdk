@@ -1,5 +1,5 @@
 from typing import Literal
-from swarmauri_base.live_models import LiveConfigBase
+from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 from .OpenAIRealtimeModel import OpenAIRealtimeModel
 from .OpenAIRealtimeSession import OpenAIRealtimeSession
 

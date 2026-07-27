@@ -3,11 +3,11 @@ from urllib.parse import quote
 
 from pydantic import ConfigDict, Field
 
-from swarmauri_base.live_models import (
+from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
-    LiveConfigBase,
-    LiveModelBase,
 )
+from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
+from swarmauri_base.live_models.LiveModelBase import LiveModelBase
 from swarmauri_provider_gemini import GeminiProvider
 from swarmauri_transport_websocket import WebSocketClient
 

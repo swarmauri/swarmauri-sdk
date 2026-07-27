@@ -1,6 +1,6 @@
 from typing import Any, Dict, Literal
 from pydantic import Field, model_validator
-from swarmauri_base.model_providers import ModelProviderBase
+from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from .XAIEndpoints import XAIEndpoints
 from .XAIErrorMapper import XAIErrorMapper
 from .XAIModelCatalog import XAIModelCatalog

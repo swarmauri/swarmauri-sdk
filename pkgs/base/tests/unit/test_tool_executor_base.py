@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from swarmauri_base.tools import ToolExecutorBase
+from swarmauri_base.tools.ToolExecutorBase import ToolExecutorBase
 
 
 def test_sync_tool_execution_preserves_call_correlation() -> None:

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from swarmauri_base.model_providers import ModelCatalogBase
+from swarmauri_base.model_providers.ModelCatalogBase import ModelCatalogBase
 
 
 class GeminiModelCatalog(ModelCatalogBase):

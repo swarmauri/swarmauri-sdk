@@ -3,7 +3,7 @@ from typing import Any, AsyncIterator, Iterator, Mapping, Optional
 
 import httpx
 
-from swarmauri_base.transports.http import HttpClientBase
+from swarmauri_base.transports.http.HttpClientBase import HttpClientBase
 
 from .AsyncHttpxStreamResponse import AsyncHttpxStreamResponse
 from .HttpxResponse import HttpxResponse

@@ -3,7 +3,9 @@ from typing import Any
 
 from pydantic import PrivateAttr
 
-from swarmauri_base.transports.http import HttpStreamResponseBase
+from swarmauri_base.transports.http.HttpStreamResponseBase import (
+    HttpStreamResponseBase,
+)
 
 
 class HttpxStreamResponse(HttpStreamResponseBase):

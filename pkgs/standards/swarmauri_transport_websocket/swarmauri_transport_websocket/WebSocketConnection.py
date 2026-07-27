@@ -3,10 +3,10 @@ from typing import Any
 
 from pydantic import PrivateAttr
 
-from swarmauri_base.transports.websocket import (
+from swarmauri_base.transports.websocket.WebSocketConnectionBase import (
     WebSocketConnectionBase,
-    WebSocketState,
 )
+from swarmauri_base.transports.websocket.WebSocketState import WebSocketState
 from swarmauri_core.transports.i_websocket_connection import WebSocketMessage
 
 

@@ -1,10 +1,12 @@
 import base64
 import json
-from swarmauri_base.live_models.events import (
-    AudioDeltaEvent,
+from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
+from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
-    TextDeltaEvent,
-    ToolCallEvent,
+)
+from swarmauri_base.live_models.events.TextDeltaEvent import TextDeltaEvent
+from swarmauri_base.live_models.events.ToolCallEvent import ToolCallEvent
+from swarmauri_base.live_models.events.TurnCompleteEvent import (
     TurnCompleteEvent,
 )
 

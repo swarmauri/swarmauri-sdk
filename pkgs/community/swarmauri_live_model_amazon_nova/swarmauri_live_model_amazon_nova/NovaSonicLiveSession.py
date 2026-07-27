@@ -3,8 +3,10 @@ from contextlib import suppress
 
 from pydantic import PrivateAttr
 
-from swarmauri_base.live_models import LiveSessionBase
-from swarmauri_base.live_models.events import SessionErrorEvent
+from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.live_models.events.SessionErrorEvent import (
+    SessionErrorEvent,
+)
 
 from .NovaSonicCodec import NovaSonicCodec
 

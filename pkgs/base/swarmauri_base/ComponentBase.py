@@ -16,7 +16,7 @@ from swarmauri_base.DynamicBase import DynamicBase
 ###########################################
 # Export Subclass Union for Legacy Support
 ###########################################
-from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion
+from swarmauri_base.DynamicBase import SubclassUnion as SubclassUnion  # noqa: PLC0414
 from swarmauri_base.LoggerMixin import LoggerMixin
 from swarmauri_base.ServiceMixin import ServiceMixin
 from swarmauri_base.TomlMixin import TomlMixin

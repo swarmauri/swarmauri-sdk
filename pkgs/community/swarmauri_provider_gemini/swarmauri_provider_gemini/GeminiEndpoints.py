@@ -1,6 +1,8 @@
 from typing import Literal
 
-from swarmauri_base.model_providers import ProviderEndpointBase
+from swarmauri_base.model_providers.ProviderEndpointBase import (
+    ProviderEndpointBase,
+)
 
 
 class GeminiEndpoints(ProviderEndpointBase):

@@ -1,4 +1,4 @@
-from swarmauri_base.live_models.inputs import ToolResultInput
+from swarmauri_base.live_models.inputs.ToolResultInput import ToolResultInput
 
 
 class XAIRealtimeToolAdapter:

@@ -3,7 +3,8 @@ import threading
 
 import pytest
 
-from swarmauri_base.tools import ToolExecutionPolicy, ToolExecutorBase
+from swarmauri_base.tools.ToolExecutionPolicy import ToolExecutionPolicy
+from swarmauri_base.tools.ToolExecutorBase import ToolExecutorBase
 
 
 def test_required_approval_denies_without_invoking_tool() -> None:

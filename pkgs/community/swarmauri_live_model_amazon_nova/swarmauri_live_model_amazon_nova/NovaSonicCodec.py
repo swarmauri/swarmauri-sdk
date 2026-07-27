@@ -1,12 +1,14 @@
 import base64
-from swarmauri_base.live_models.events import (
-    AudioDeltaEvent,
+from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
+from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
-    TextDeltaEvent,
-    ToolCallEvent,
-    TurnCompleteEvent,
-    UsageEvent,
 )
+from swarmauri_base.live_models.events.TextDeltaEvent import TextDeltaEvent
+from swarmauri_base.live_models.events.ToolCallEvent import ToolCallEvent
+from swarmauri_base.live_models.events.TurnCompleteEvent import (
+    TurnCompleteEvent,
+)
+from swarmauri_base.live_models.events.UsageEvent import UsageEvent
 
 
 class NovaSonicCodec:

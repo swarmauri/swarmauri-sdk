@@ -2,18 +2,27 @@ import base64
 import json
 from typing import Any, Dict, List
 
-from swarmauri_base.live_models import LiveEventBase, LiveInputBase
-from swarmauri_base.live_models.events import (
-    AudioDeltaEvent,
+from swarmauri_base.live_models.LiveEventBase import LiveEventBase
+from swarmauri_base.live_models.LiveInputBase import LiveInputBase
+from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
+from swarmauri_base.live_models.events.InputTranscriptDeltaEvent import (
     InputTranscriptDeltaEvent,
-    InterruptionEvent,
-    OutputTranscriptDeltaEvent,
-    SessionErrorEvent,
-    TextDeltaEvent,
-    ToolCallEvent,
-    TurnCompleteEvent,
-    UsageEvent,
 )
+from swarmauri_base.live_models.events.InterruptionEvent import (
+    InterruptionEvent,
+)
+from swarmauri_base.live_models.events.OutputTranscriptDeltaEvent import (
+    OutputTranscriptDeltaEvent,
+)
+from swarmauri_base.live_models.events.SessionErrorEvent import (
+    SessionErrorEvent,
+)
+from swarmauri_base.live_models.events.TextDeltaEvent import TextDeltaEvent
+from swarmauri_base.live_models.events.ToolCallEvent import ToolCallEvent
+from swarmauri_base.live_models.events.TurnCompleteEvent import (
+    TurnCompleteEvent,
+)
+from swarmauri_base.live_models.events.UsageEvent import UsageEvent
 
 
 class OpenAIRealtimeCodec:

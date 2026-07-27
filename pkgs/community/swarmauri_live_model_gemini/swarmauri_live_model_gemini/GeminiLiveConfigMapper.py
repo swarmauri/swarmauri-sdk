@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from swarmauri_base.live_models import LiveConfigBase
+from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 from swarmauri_provider_gemini import GeminiToolSchemaConverter
 
 

@@ -1,5 +1,7 @@
 from typing import Any, Literal
-from swarmauri_base.model_providers import ProviderErrorMapperBase
+from swarmauri_base.model_providers.ProviderErrorMapperBase import (
+    ProviderErrorMapperBase,
+)
 
 
 class QwenErrorMapper(ProviderErrorMapperBase):
