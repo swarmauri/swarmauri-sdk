@@ -11,7 +11,7 @@ from swarmauri_base.skills.SkillLoaderBase import SkillLoaderBase
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
 
 
-class FileSystemSkillMixin(BaseModel, SkillLoaderBase):
+class FileSystemSkillMixin(SkillLoaderBase, BaseModel):
     """Load Agent Skills packages from a filesystem root."""
 
     root_path: str | None = None
