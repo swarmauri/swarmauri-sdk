@@ -24,7 +24,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing GroqVisionModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.vlms import "
+    "removed in a future version. Please use 'from swarmauri_standard.vlms "
+    "import "
     "GroqVLM' or 'from swarmauri.vlms import GroqVLM' instead.",
     DeprecationWarning,
     stacklevel=2,

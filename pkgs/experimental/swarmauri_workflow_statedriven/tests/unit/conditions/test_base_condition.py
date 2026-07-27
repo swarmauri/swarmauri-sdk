@@ -18,9 +18,7 @@ def test_condition_is_abstract():
 
 
 class DummyCondition(Condition):
-    """
-    Concrete subclass implementing evaluate for testing.
-    """
+    """Concrete subclass implementing evaluate for testing."""
 
     def __init__(self, result):
         self.result = result

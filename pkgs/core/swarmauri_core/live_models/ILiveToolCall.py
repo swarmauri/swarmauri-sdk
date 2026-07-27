@@ -1,7 +1,7 @@
 """Live tool-call interface."""
 
 from abc import ABC
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 
 class ILiveToolCall(ABC):

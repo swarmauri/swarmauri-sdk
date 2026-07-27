@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Callable, List, Literal, Sequence, TypeVar, Union
+from typing import Callable, Literal, Sequence, TypeVar, Union
 
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector

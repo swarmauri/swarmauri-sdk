@@ -1,4 +1,3 @@
-
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.messages.MessageBase import MessageBase
 

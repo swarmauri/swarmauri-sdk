@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import Tuple, Type
-
 from .enums import (
     ALL_CAPABILITIES,
     CAPABILITY_TO_TIGRBL,

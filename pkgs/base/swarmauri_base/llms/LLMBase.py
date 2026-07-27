@@ -12,9 +12,7 @@ from swarmauri_base.utils.allowed_models import is_model_allowed
 @ComponentBase.register_model()
 class LLMBase(IPredict, ModelBase):
     allowed_models: list[str] = Field(default_factory=list)
-    resource: str | None = Field(
-        default=ResourceTypes.LLM.value, frozen=True
-    )
+    resource: str | None = Field(default=ResourceTypes.LLM.value, frozen=True)
     type: Literal["LLMBase"] = "LLMBase"
 
     api_key: SecretStr | None = Field(default=None, exclude=True)
@@ -39,10 +37,8 @@ class LLMBase(IPredict, ModelBase):
         allowed_models = self.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                
-                    f"Model name {name} is not allowed. Choose from "
-                    f"{allowed_models}"
-                
+                f"Model name {name} is not allowed. Choose from "
+                f"{allowed_models}"
             )
         return self
 

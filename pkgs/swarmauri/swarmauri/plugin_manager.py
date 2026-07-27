@@ -132,7 +132,8 @@ def process_plugin(entry_point: EntryPoint) -> bool:
         preliminary_path = f"swarmauri.{resource_kind}.{entry_point.name}"
         if PluginCitizenshipRegistry.resource_exists(preliminary_path):
             logger.debug(
-                f"Resource path '{preliminary_path}' already registered; skipping."
+                f"Resource path '{preliminary_path}' already registered; "
+                f"skipping."
             )
             return True
 
@@ -161,7 +162,8 @@ def process_plugin(entry_point: EntryPoint) -> bool:
             # Eager loading: load the plugin module
             plugin_object = entry_point.load()
             logger.debug(
-                f"Eagerly loaded plugin '{entry_point.name}' as {type(plugin_object)}"
+                f"Eagerly loaded plugin '{entry_point.name}' as "
+                f"{type(plugin_object)}"
             )
 
             # Determine plugin type based on entry point's object reference
@@ -180,7 +182,8 @@ def process_plugin(entry_point: EntryPoint) -> bool:
 
     except (ImportError, ModuleNotFoundError) as e:
         msg = (
-            f"Failed to import plugin '{entry_point.name}' from '{entry_point.value}'. "
+            f"Failed to import plugin '{entry_point.name}' from "
+            f"'{entry_point.value}'. "
             f"Check that it is installed and imports correctly. Error: {e}"
         )
         logger.error(msg)
@@ -243,7 +246,8 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> dict[str, Any] | None:
             ) as f:
                 metadata = json.load(f)
                 logger.debug(
-                    f"Loaded metadata for plugin '{entry_point.name}': {metadata}"
+                    f"Loaded metadata for plugin '{entry_point.name}': "
+                    f"{metadata}"
                 )
                 return metadata
         else:
@@ -260,7 +264,8 @@ def _load_plugin_metadata(entry_point: EntryPoint) -> dict[str, Any] | None:
         )
     except json.JSONDecodeError as e:
         logger.error(
-            f"Invalid JSON in metadata.json for plugin '{entry_point.name}': {e}"
+            f"Invalid JSON in metadata.json for plugin '{entry_point.name}': "
+            f"{e}"
         )
     except Exception as e:
         logger.exception(
@@ -291,7 +296,8 @@ def _register_lazy_plugin_from_metadata(
         module_path, _, attr_path = entry_point.value.partition(":")
         if not module_path or not attr_path:
             msg = (
-                f"Invalid entry point value '{entry_point.value}' for plugin '{entry_point.name}'. "
+                f"Invalid entry point value '{entry_point.value}' for plugin "
+                f"'{entry_point.name}'. "
                 f"Expected format 'module_path:attribute_path'."
             )
             logger.error(msg)
@@ -327,7 +333,8 @@ def _register_lazy_plugin_from_metadata(
             citizenship, resource_path, module_path
         )
         logger.info(
-            f"Registered {citizenship}-class plugin '{type_name}' at '{resource_path}' [lazy]"
+            f"Registered {citizenship}-class plugin '{type_name}' at "
+            f"'{resource_path}' [lazy]"
         )
 
         # Import Spec
@@ -352,17 +359,20 @@ def _register_lazy_plugin_from_metadata(
 
     except KeyError as e:
         logger.error(
-            f"Missing required metadata field: {e} in plugin '{entry_point.name}'"
+            f"Missing required metadata field: {e} in plugin "
+            f"'{entry_point.name}'"
         )
         raise PluginValidationError(
             f"Missing required metadata field: {e}"
         ) from e
     except Exception as e:
         logger.exception(
-            f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}"
+            f"Failed to register lazy plugin '{entry_point.name}' from "
+            f"metadata: {e}"
         )
         raise PluginValidationError(
-            f"Failed to register lazy plugin '{entry_point.name}' from metadata: {e}"
+            f"Failed to register lazy plugin '{entry_point.name}' from "
+            f"metadata: {e}"
         ) from e
 
 
@@ -433,18 +443,21 @@ def _process_class_plugin(
     try:
         # Step 1: Plugin class already loaded
         logger.debug(
-            f"Loaded plugin class '{plugin_class.__name__}' from '{entry_point.name}'"
+            f"Loaded plugin class '{plugin_class.__name__}' from "
+            f"'{entry_point.name}'"
         )
 
         # Step 2: Determine citizenship classification
         citizenship = determine_plugin_citizenship(entry_point)
         if citizenship:
             logger.info(
-                f"Plugin '{entry_point.name}' is classified as {citizenship}-class."
+                f"Plugin '{entry_point.name}' is classified as "
+                f"{citizenship}-class."
             )
         else:
             logger.warning(
-                f"Plugin '{entry_point.name}' has unrecognized citizenship and will not be registered."
+                f"Plugin '{entry_point.name}' has unrecognized citizenship "
+                f"and will not be registered."
             )
             return False
 
@@ -458,12 +471,16 @@ def _process_class_plugin(
             )
 
             if not issubclass(plugin_class, interface_class):
-                msg = f"Plugin '{entry_point.name}' must subclass '{interface_class.__name__}'."
+                msg = (
+                    f"Plugin '{entry_point.name}' must subclass "
+                    f"'{interface_class.__name__}'."
+                )
                 logger.error(msg)
                 raise PluginValidationError(msg)
 
             logger.info(
-                f"Validated class-based plugin '{plugin_class.__name__}' against interface '{interface_class.__name__}'"
+                f"Validated class-based plugin '{plugin_class.__name__}' "
+                f"against interface '{interface_class.__name__}'"
             )
 
         # Step 4: Register the plugin in PluginCitizenshipRegistry
@@ -478,7 +495,8 @@ def _process_class_plugin(
             citizenship, resource_path, module_path
         )
         logger.info(
-            f"Registered {citizenship}-class plugin '{plugin_class.__name__}' at '{resource_path}' in PluginCitizenshipRegistry"
+            f"Registered {citizenship}-class plugin '{plugin_class.__name__}' "
+            f"at '{resource_path}' in PluginCitizenshipRegistry"
         )
 
         # Step 5: Register the plugin class in ComponentBase.TYPE_REGISTRY
@@ -498,7 +516,8 @@ def _process_class_plugin(
 
     except PluginValidationError as e:
         logger.error(
-            f"Validation failed for class-based plugin '{entry_point.name}': {e}"
+            f"Validation failed for class-based plugin '{entry_point.name}': "
+            f"{e}"
         )
         raise
     except Exception as e:
@@ -527,14 +546,16 @@ def _process_module_plugin(
     try:
         # Module already loaded
         logger.debug(
-            f"Loaded plugin module '{plugin_module.__name__}' from '{entry_point.name}'"
+            f"Loaded plugin module '{plugin_module.__name__}' from "
+            f"'{entry_point.name}'"
         )
 
         # Iterate through __all__ to process each attribute
         module_all = getattr(plugin_module, "__all__", [])
         if not module_all:
             logger.warning(
-                f"Module '{plugin_module.__name__}' does not define __all__; skipping."
+                f"Module '{plugin_module.__name__}' does not define __all__; "
+                f"skipping."
             )
             return False
 
@@ -542,7 +563,8 @@ def _process_module_plugin(
             try:
                 attr = getattr(plugin_module, attr_name)
                 logger.debug(
-                    f"Processing attribute '{attr_name}' in module '{plugin_module.__name__}'"
+                    f"Processing attribute '{attr_name}' in module "
+                    f"'{plugin_module.__name__}'"
                 )
 
                 if inspect.isclass(attr):
@@ -569,7 +591,10 @@ def _process_module_plugin(
                             )
                         )
                         if not issubclass(attr, interface_class):
-                            msg = f"Plugin class '{attr_name}' must subclass '{interface_class.__name__}'."
+                            msg = (
+                                f"Plugin class '{attr_name}' must subclass "
+                                f"'{interface_class.__name__}'."
+                            )
                             logger.error(msg)
                             raise PluginValidationError(msg)
 
@@ -580,11 +605,12 @@ def _process_module_plugin(
                             plugin_module.__name__,
                         )
                         logger.info(
-                            f"Registered {citizenship}-class plugin '{attr_name}' at '{class_resource_path}'"
+                            f"Registered {citizenship}-class plugin "
+                            f"'{attr_name}' at '{class_resource_path}'"
                         )
 
                         # Register in TYPE_REGISTRY
-                        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class,
+                        # ComponentBase.TYPE_REGISTRY.setdefault(interface_class,  # noqa: E501
                         # {})[
                         #     attr_name
                         # ] = attr
@@ -595,7 +621,8 @@ def _process_module_plugin(
 
                     elif citizenship is None:
                         logger.warning(
-                            f"Plugin class '{attr_name}' has unrecognized citizenship and will not be registered."
+                            f"Plugin class '{attr_name}' has unrecognized "
+                            f"citizenship and will not be registered."
                         )
 
                 elif inspect.ismodule(attr):
@@ -629,26 +656,29 @@ def _process_module_plugin(
                             plugin_module.__name__,
                         )
                         logger.info(
-                            f"Registered third-class generic plugin '{attr_name}' at '{generic_resource_path}'"
+                            f"Registered third-class generic plugin "
+                            f"'{attr_name}' at '{generic_resource_path}'"
                         )
                     else:
                         logger.warning(
-                            f"Generic plugin '{attr_name}' in module '{plugin_module.__name__}' "(
-                                "is not classified as third-class citizen and "
-                                "cannot be "
-                                "registered."
-                            )
+                            f"Generic plugin '{attr_name}' in module "
+                            f"'{plugin_module.__name__}' "
+                            "is not classified as third-class citizen and "
+                            "cannot be "
+                            "registered."
                         )
                         continue
 
             except PluginValidationError as ve:
                 logger.error(
-                    f"Validation failed for attribute '{attr_name}' in module '{plugin_module.__name__}': {ve}"
+                    f"Validation failed for attribute '{attr_name}' in module "
+                    f"'{plugin_module.__name__}': {ve}"
                 )
                 continue
             except Exception as e:
                 logger.exception(
-                    f"Failed to process attribute '{attr_name}' in module '{plugin_module.__name__}': {e}"
+                    f"Failed to process attribute '{attr_name}' in module "
+                    f"'{plugin_module.__name__}': {e}"
                 )
                 continue
 
@@ -682,7 +712,9 @@ def _process_generic_plugin(
         citizenship = determine_plugin_citizenship(entry_point)
         if citizenship != "third":
             logger.warning(
-                f"Generic plugin '{entry_point.name}' is not classified as third-class citizen and cannot be registered under protected namespaces."
+                f"Generic plugin '{entry_point.name}' is not classified as "
+                f"third-class citizen and cannot be registered under "
+                f"protected namespaces."
             )
             return False
 
@@ -691,7 +723,8 @@ def _process_generic_plugin(
             "third", resource_path, entry_point.value.split(":")[0]
         )
         logger.info(
-            f"Registered generic plugin '{entry_point.name}' under '{resource_path}' for lazy loading."
+            f"Registered generic plugin '{entry_point.name}' under "
+            f"'{resource_path}' for lazy loading."
         )
 
         # Register in TYPE_REGISTRY
@@ -776,7 +809,8 @@ def determine_plugin_citizenship(entry_point: EntryPoint) -> str | None:
     # Check for Third-Class Plugins
     if group == "swarmauri.plugins":
         logger.debug(
-            f"Plugin '{name}' classified as third-class (mapped under 'swarmauri.plugins')."
+            f"Plugin '{name}' classified as third-class (mapped under "
+            f"'swarmauri.plugins')."
         )
         return "third"
 
@@ -791,18 +825,21 @@ def determine_plugin_citizenship(entry_point: EntryPoint) -> str | None:
                 # Use PluginCitizenshipRegistry to check if it's first-class
                 if PluginCitizenshipRegistry.is_first_class(entry_point):
                     logger.debug(
-                        f"Plugin '{name}' classified as first-class (pre-registered)."
+                        f"Plugin '{name}' classified as first-class "
+                        f"(pre-registered)."
                     )
                     return "first"
                 else:
                     logger.debug(
-                        f"Plugin '{name}' classified as second-class (community-contributed)."
+                        f"Plugin '{name}' classified as second-class "
+                        f"(community-contributed)."
                     )
                     return "second"
 
     # If none of the conditions match, the plugin is unrecognized
     logger.warning(
-        f"Plugin '{name}' does not match any recognized citizenship classification."
+        f"Plugin '{name}' does not match any recognized citizenship "
+        f"classification."
     )
     return None
 
@@ -839,7 +876,8 @@ def discover_and_register_plugins(group_prefix="swarmauri."):
                     )
                 except PluginValidationError as e:
                     logger.error(
-                        f"Skipping plugin '{ep.name}' due to validation error: {e}"
+                        f"Skipping plugin '{ep.name}' due to validation "
+                        f"error: {e}"
                     )
     except Exception as e:
         logger.exception(

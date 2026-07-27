@@ -1,7 +1,13 @@
 from dataclasses import dataclass
 
 from monotone_ops.matrix import max_dilate, min_erode
-from monotone_ops.ordering import argmax_by, argmin_by, earliest_by, latest_by, lexicographic_max
+from monotone_ops.ordering import (
+    argmax_by,
+    argmin_by,
+    earliest_by,
+    latest_by,
+    lexicographic_max,
+)
 
 
 @dataclass
@@ -33,5 +39,15 @@ def test_selectors_with_tie_key_use_explicit_tie_breaker():
     a = Payload(score=1, replica=1)
     b = Payload(score=1, replica=2)
 
-    assert argmax_by(lambda item: item.score, tie_key=lambda item: item.replica)(a, b) is b
-    assert argmin_by(lambda item: item.score, tie_key=lambda item: item.replica)(a, b) is a
+    assert (
+        argmax_by(lambda item: item.score, tie_key=lambda item: item.replica)(
+            a, b
+        )
+        is b
+    )
+    assert (
+        argmin_by(lambda item: item.score, tie_key=lambda item: item.replica)(
+            a, b
+        )
+        is a
+    )

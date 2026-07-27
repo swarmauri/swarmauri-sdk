@@ -1,6 +1,5 @@
 """Correlation identifiers carried by live events."""
 
-
 from pydantic import BaseModel
 
 

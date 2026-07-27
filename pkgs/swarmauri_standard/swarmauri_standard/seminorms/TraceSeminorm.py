@@ -112,11 +112,9 @@ class TraceSeminorm(SeminormBase):
                 f"Unsupported input type for trace seminorm: {type(x)}"
             )
             raise TypeError(
-                
-                    f"Trace seminorm requires a matrix or matrix-like input, "
-                    f"got "
-                    f"{type(x)}"
-                
+                f"Trace seminorm requires a matrix or matrix-like input, "
+                f"got "
+                f"{type(x)}"
             )
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -146,10 +144,8 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
 
         # Ensure we can add the inputs
@@ -161,10 +157,8 @@ class TraceSeminorm(SeminormBase):
             # Check if shapes are compatible for addition
             if x_data.shape != y_data.shape:
                 logger.warning(
-                    
-                        f"Incompatible shapes for triangle inequality check: "
-                        f"{x_data.shape} vs {y_data.shape}"
-                    
+                    f"Incompatible shapes for triangle inequality check: "
+                    f"{x_data.shape} vs {y_data.shape}"
                 )
                 return False
 
@@ -213,10 +207,8 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
 
         try:

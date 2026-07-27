@@ -1,6 +1,5 @@
 """Concrete live-model capabilities."""
 
-
 from pydantic import Field
 from swarmauri_core.live_models.ILiveCapabilities import ILiveCapabilities
 

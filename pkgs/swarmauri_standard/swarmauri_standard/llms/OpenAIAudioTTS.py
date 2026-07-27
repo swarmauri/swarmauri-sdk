@@ -13,7 +13,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing OpenAIAudioTTS from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "removed in a future version. Please use 'from swarmauri_standard.tts "
+    "import "
     "OpenaiTTS' or 'from swarmauri.tts import OpenaiTTS' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -93,10 +94,8 @@ class OpenAIAudioTTS(LLMBase):
         allowed_voices = values.allowed_voices
         if voice and voice not in allowed_voices:
             raise ValueError(
-                
-                    f"Model name {voice} is not allowed. Choose from "
-                    f"{allowed_voices}"
-                
+                f"Model name {voice} is not allowed. Choose from "
+                f"{allowed_voices}"
             )
         return values
 

@@ -417,7 +417,8 @@ class DynamicBase(BaseModel):
                 Union[union_type, type(None)] if is_optional else union_type
             )
             glogger.debug(
-                "Determined new type for:\n\t field %s \n\t with parent %s \n\t to be %s \n",
+                "Determined new type for:\n\t field %s \n\t with parent %s "
+                "\n\t to be %s \n",
                 field_annotation,
                 parent_class,
                 new_type,
@@ -494,10 +495,8 @@ class DynamicBase(BaseModel):
                 fields and their new type annotations.
         """
         glogger.debug(
-            
-                "Generating models with updated field annotations from the "
-                "unified registry."
-            
+            "Generating models with updated field annotations from the "
+            "unified registry."
         )
         models_with_fields: dict[type[BaseModel], dict[str, Any]] = {}
 
@@ -583,7 +582,8 @@ class DynamicBase(BaseModel):
                                 ].annotation = new_type
                                 glogger.debug(
                                     (
-                                        "Merged union update for field '%s' in model '%s' from '%s' "
+                                        "Merged union update for field '%s' "
+                                        "in model '%s' from '%s' "
                                         "to '%s'"
                                     ),
                                     field_name,
@@ -604,10 +604,8 @@ class DynamicBase(BaseModel):
                         )
 
             glogger.debug(
-                
-                    "All models have been successfully recreated following the "
-                    "dependency chain."
-                
+                "All models have been successfully recreated following the "
+                "dependency chain."
             )
 
     ###############################################################
@@ -615,7 +613,9 @@ class DynamicBase(BaseModel):
     ###############################################################
 
     @classmethod
-    def register_model(cls) -> Callable[[builtins.type[BaseModel]], builtins.type[BaseModel]]:
+    def register_model(
+        cls,
+    ) -> Callable[[builtins.type[BaseModel]], builtins.type[BaseModel]]:
         """
         Decorator to register a base model in the unified registry.
 
@@ -646,9 +646,12 @@ class DynamicBase(BaseModel):
     @classmethod
     def register_type(
         cls,
-        resource_type: Union[builtins.type[T], list[builtins.type[T]]] | None = None,
+        resource_type: Union[builtins.type[T], list[builtins.type[T]]]
+        | None = None,
         type_name: str | None = None,
-    ) -> Callable[[builtins.type["DynamicBase"]], builtins.type["DynamicBase"]]:
+    ) -> Callable[
+        [builtins.type["DynamicBase"]], builtins.type["DynamicBase"]
+    ]:
         """
         Decorator to register a subtype under one or more base models in the
         unified registry.
@@ -679,7 +682,8 @@ class DynamicBase(BaseModel):
             for rt in resource_types:
                 if not issubclass(subclass, rt):
                     raise TypeError(
-                        f"'{subclass.__name__}' must be a subclass of '{rt.__name__}'."
+                        f"'{subclass.__name__}' must be a subclass of "
+                        f"'{rt.__name__}'."
                     )
                 final_type_name = type_name or getattr(
                     subclass, "_type", subclass.__name__

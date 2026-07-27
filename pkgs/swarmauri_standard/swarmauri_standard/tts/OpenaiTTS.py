@@ -84,10 +84,8 @@ class OpenaiTTS(TTSBase):
         allowed_voices = values.allowed_voices
         if voice and voice not in allowed_voices:
             raise ValueError(
-                
-                    f"Model name {voice} is not allowed. Choose from "
-                    f"{allowed_voices}"
-                
+                f"Model name {voice} is not allowed. Choose from "
+                f"{allowed_voices}"
             )
         return values
 

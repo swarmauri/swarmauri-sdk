@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 
 class ITaskMgmtStrategy(ABC):

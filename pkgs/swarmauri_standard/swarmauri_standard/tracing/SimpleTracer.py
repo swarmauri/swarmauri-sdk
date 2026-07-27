@@ -37,12 +37,10 @@ class SimpleTracer(ITracer):
             # Example of simply printing the completed trace; in practice, you
             # might log it or store it elsewhere
             print(
-                
-                    f"Trace Completed: {completed_trace.name}, Duration: "
-                    f"{completed_trace.start_time} to "
-                    f"{completed_trace.end_time}, Attributes: "
-                    f"{completed_trace.attributes}"
-                
+                f"Trace Completed: {completed_trace.name}, Duration: "
+                f"{completed_trace.start_time} to "
+                f"{completed_trace.end_time}, Attributes: "
+                f"{completed_trace.attributes}"
             )
 
     def annotate_trace(self, key: str, value: Any):

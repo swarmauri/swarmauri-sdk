@@ -72,8 +72,10 @@ def test_call():
     )
 
     assert result.get("reading_ease") == expected_reading_ease, (
-        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"
+        f"Expected Reading Ease value is {expected_reading_ease}, but got "
+        f"{result.get('reading_ease')}"
     )
     assert result.get("grade_level") == expected_grade_level, (
-        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"
+        f"Expected Grade Level value is {expected_grade_level}, but got "
+        f"{result.get('grade_level')}"
     )

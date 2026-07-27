@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Tuple
+from typing import Iterable, Mapping
 
 from ..crypto.types import KeyRef
 from .types import KeySpec
@@ -43,9 +43,7 @@ class IKeyProvider(ABC):
         """Create a new version for an existing key."""
 
     @abstractmethod
-    async def destroy_key(
-        self, kid: str, version: int | None = None
-    ) -> bool:
+    async def destroy_key(self, kid: str, version: int | None = None) -> bool:
         """Destroy a key or specific version."""
 
     @abstractmethod

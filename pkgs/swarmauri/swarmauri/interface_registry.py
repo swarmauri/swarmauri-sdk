@@ -159,7 +159,8 @@ class InterfaceRegistry:
             )
         else:
             logger.debug(
-                f"Retrieved interface '{interface.__name__}' for resource kind '{resource_kind}'."
+                f"Retrieved interface '{interface.__name__}' for resource "
+                f"kind '{resource_kind}'."
             )
 
         return interface
@@ -187,12 +188,14 @@ class InterfaceRegistry:
                 f"{interface_class.__module__}.{interface_class.__name__}"
             )
             logger.info(
-                f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."
+                f"Registered interface '{interface_class.__name__}' for "
+                f"resource kind '{resource_kind}'."
             )
         else:
             cls.INTERFACE_IMPORT_PATHS[resource_kind] = None
             logger.info(
-                f"Removed interface association for resource kind '{resource_kind}'."
+                f"Removed interface association for resource kind "
+                f"'{resource_kind}'."
             )
 
     @classmethod

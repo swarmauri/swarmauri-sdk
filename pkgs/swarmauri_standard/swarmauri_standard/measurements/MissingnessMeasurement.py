@@ -54,10 +54,8 @@ class MissingnessMeasurement(MeasurementCalculateMixin, MeasurementBase):
             missing_values = sum(1 for v in data.values() if v is None)
         else:
             raise ValueError(
-                
-                    "Unsupported data type. Please provide DataFrame, List, or "
-                    "Dict."
-                
+                "Unsupported data type. Please provide DataFrame, List, or "
+                "Dict."
             )
 
         if total_values == 0:

@@ -57,10 +57,8 @@ class SobolevMetric(MetricBase):
         # Create a SobolevNorm instance to handle the norm calculations
         self.norm = SobolevNorm(order=self.order, weights=self.weights)
         logger.debug(
-            
-                f"Initialized SobolevMetric with order {self.order} and "
-                f"weights {self.weights}"
-            
+            f"Initialized SobolevMetric with order {self.order} and "
+            f"weights {self.weights}"
         )
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
@@ -91,10 +89,8 @@ class SobolevMetric(MetricBase):
             If input types are not supported
         """
         logger.debug(
-            
-                f"Calculating Sobolev distance between {type(x).__name__} "
-                f"and {type(y).__name__}"
-            
+            f"Calculating Sobolev distance between {type(x).__name__} "
+            f"and {type(y).__name__}"
         )
 
         try:
@@ -103,11 +99,9 @@ class SobolevMetric(MetricBase):
                 callable(x) and callable(y)
             ):
                 raise TypeError(
-                    
-                        f"Inputs must be of the same type, got "
-                        f"{type(x).__name__} "
-                        f"and {type(y).__name__}"
-                    
+                    f"Inputs must be of the same type, got "
+                    f"{type(x).__name__} "
+                    f"and {type(y).__name__}"
                 )
 
             # For callable functions
@@ -147,10 +141,8 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        
-                            "Sequences must have the same length for distance "
-                            "calculation"
-                        
+                        "Sequences must have the same length for distance "
+                        "calculation"
                     )
                 diff_xy = [x[i] - y[i] for i in range(len(x))]
                 return self.norm.compute(diff_xy)
@@ -211,11 +203,9 @@ class SobolevMetric(MetricBase):
                 # Return vector of distances between corresponding elements
                 if x.shape[0] != y.shape[0]:
                     raise ValueError(
-                        
-                            "Vectors must have the same length for "
-                            "element-wise "
-                            "distances"
-                        
+                        "Vectors must have the same length for "
+                        "element-wise "
+                        "distances"
                     )
                 result = x.zeros(x.shape[0])
                 for i in range(x.shape[0]):
@@ -261,17 +251,13 @@ class SobolevMetric(MetricBase):
 
             else:
                 raise TypeError(
-                    
-                        f"Unsupported collection types: {type(x).__name__} and "
-                        f"{type(y).__name__}"
-                    
+                    f"Unsupported collection types: {type(x).__name__} and "
+                    f"{type(y).__name__}"
                 )
 
         except Exception as e:
             logger.error(f"Error calculating Sobolev distances: {e!s}")
-            raise ValueError(
-                f"Failed to calculate Sobolev distances: {e!s}"
-            )
+            raise ValueError(f"Failed to calculate Sobolev distances: {e!s}")
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
         """
@@ -332,9 +318,7 @@ class SobolevMetric(MetricBase):
                 # If distance is not 0, x and y should be different
                 return not self._are_effectively_equal(x, y)
         except Exception as e:
-            logger.error(
-                f"Error checking identity of indiscernibles: {e!s}"
-            )
+            logger.error(f"Error checking identity of indiscernibles: {e!s}")
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:

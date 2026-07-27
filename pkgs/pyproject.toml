@@ -791,6 +791,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
+required-version = "==0.15.21"
 line-length = 79
 exclude = ["experimental", ".config", "**/*.bak.py", "standards/peagen/test_project"]
 

@@ -67,10 +67,8 @@ class HermitianInnerProduct(InnerProductBase):
             If the dimensions of the inputs don't match
         """
         logger.debug(
-            
-                f"Computing Hermitian inner product between {type(a)} and "
-                f"{type(b)}"
-            
+            f"Computing Hermitian inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         # ADDED: Handle mixed case where one is ndarray and one is Vector
@@ -92,7 +90,10 @@ class HermitianInnerProduct(InnerProductBase):
 
             # Check dimensions
             if a_array.shape != b_array.shape:
-                error_msg = f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"
+                error_msg = (
+                    f"Vector dimensions don't match: {a_array.shape} vs "
+                    f"{b_array.shape}"
+                )
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -221,10 +222,8 @@ class HermitianInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -342,11 +341,9 @@ class HermitianInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                
-                    f"<a, a> = {aa_inner.real}, is_non_negative = "
-                    f"{is_non_negative}, is_zero_iff_a_zero = "
-                    f"{is_zero_iff_a_zero}"
-                
+                f"<a, a> = {aa_inner.real}, is_non_negative = "
+                f"{is_non_negative}, is_zero_iff_a_zero = "
+                f"{is_zero_iff_a_zero}"
             )
 
             return result

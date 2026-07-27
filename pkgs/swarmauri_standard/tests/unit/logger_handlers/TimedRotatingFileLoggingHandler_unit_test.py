@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 
-from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (
+from swarmauri_standard.logger_handlers.TimedRotatingFileLoggingHandler import (  # noqa: E501
     TimedRotatingFileLoggingHandler,
 )
 

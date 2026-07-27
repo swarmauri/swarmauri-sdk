@@ -67,10 +67,8 @@ class TanimotoSimilarity(SimilarityBase):
             # Check dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Input vectors must have the same dimensions: "
-                        f"{x_array.shape} != {y_array.shape}"
-                    
+                    f"Input vectors must have the same dimensions: "
+                    f"{x_array.shape} != {y_array.shape}"
                 )
 
             # Check for zero vectors
@@ -210,10 +208,8 @@ class TanimotoSimilarity(SimilarityBase):
                     # Check dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            
-                                f"Input vectors must have the same dimensions: "
-                                f"{x_array.shape} != {y_array.shape}"
-                            
+                            f"Input vectors must have the same dimensions: "
+                            f"{x_array.shape} != {y_array.shape}"
                         )
 
                     # Check for zero vector

@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Iterator
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 
 class IBidirectionalStreamConnection(ABC):

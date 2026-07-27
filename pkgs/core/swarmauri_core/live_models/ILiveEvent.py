@@ -1,7 +1,7 @@
 """Live-session event interface."""
 
 from abc import ABC
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 
 class ILiveEvent(ABC):

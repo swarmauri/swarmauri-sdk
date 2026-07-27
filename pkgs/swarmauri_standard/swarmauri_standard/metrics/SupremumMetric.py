@@ -322,9 +322,7 @@ class SupremumMetric(MetricBase):
             # Distance is 0 iff the points are equal
             return (dist == 0) == equal
         except Exception as e:
-            logger.error(
-                f"Error checking identity of indiscernibles: {e!s}"
-            )
+            logger.error(f"Error checking identity of indiscernibles: {e!s}")
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:

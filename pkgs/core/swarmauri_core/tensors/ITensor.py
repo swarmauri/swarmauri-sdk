@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import (
     Iterator,
-    List,
     Literal,
     Protocol,
     Sequence,
-    Tuple,
     TypeVar,
     Union,
 )

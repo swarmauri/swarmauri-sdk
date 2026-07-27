@@ -63,10 +63,8 @@ class CosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Incompatible dimensions: {x_array.shape} vs "
-                        f"{y_array.shape}"
-                    
+                    f"Incompatible dimensions: {x_array.shape} vs "
+                    f"{y_array.shape}"
                 )
 
             # Calculate vector norms
@@ -141,10 +139,8 @@ class CosineSimilarity(SimilarityBase):
                 # Check for compatible dimensions
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        
-                            f"Incompatible dimensions: {x_array.shape} vs "
-                            f"{y_array.shape}"
-                        
+                        f"Incompatible dimensions: {x_array.shape} vs "
+                        f"{y_array.shape}"
                     )
 
                 y_norm = np.linalg.norm(y_array)

@@ -1,14 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from swarmauri_core.messages.IMessage import IMessage
 
 
 class IAgent(ABC):
     @abstractmethod
-    def exec(
-        self, input_data: Any | None, llm_kwargs: dict | None
-    ) -> Any:
+    def exec(self, input_data: Any | None, llm_kwargs: dict | None) -> Any:
         """
         Executive method that triggers the agent's action based on the input
         data.

@@ -37,7 +37,8 @@ class VoyageEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         self._headers = {
@@ -81,9 +82,7 @@ class VoyageEmbedding(EmbeddingBase):
         except httpx.HTTPError as e:
             raise ValueError(f"Error calling Voyage AI API: {e!s}")
         except (KeyError, ValueError) as e:
-            raise ValueError(
-                f"Error processing Voyage AI API response: {e!s}"
-            )
+            raise ValueError(f"Error processing Voyage AI API response: {e!s}")
 
     def infer_vector(self, data: str) -> List[Vector]:
         """

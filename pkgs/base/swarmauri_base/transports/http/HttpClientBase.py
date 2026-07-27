@@ -22,9 +22,7 @@ class HttpClientBase(IHttpClient, ComponentBase, ABC):
             return path
         return f"{self.base_url.rstrip('/')}/{path.lstrip('/')}"
 
-    def merge_headers(
-        self, headers: dict[str, str] | None
-    ) -> dict[str, str]:
+    def merge_headers(self, headers: dict[str, str] | None) -> dict[str, str]:
         merged = dict(self.default_headers)
         merged.update(headers or {})
         return merged

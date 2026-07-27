@@ -23,7 +23,9 @@ class WeatherTool(ToolBase):
             Parameter(
                 name="unit",
                 input_type="string",
-                description="The unit for temperature ('fahrenheit' or 'celsius')",
+                description=(
+                    "The unit for temperature ('fahrenheit' or 'celsius')"
+                ),
                 required=True,
                 enum=["fahrenheit", "celsius"],
             ),

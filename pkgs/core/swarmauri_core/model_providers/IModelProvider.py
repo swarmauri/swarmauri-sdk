@@ -1,7 +1,7 @@
 """Model provider interface."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from .IModelCatalog import IModelCatalog
 from .IProviderErrorMapper import IProviderErrorMapper

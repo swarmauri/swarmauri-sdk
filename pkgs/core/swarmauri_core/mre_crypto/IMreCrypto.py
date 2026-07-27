@@ -39,7 +39,7 @@ Typical sealed flow:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Mapping, Optional, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from ..crypto.types import Alg, KeyRef
 from .types import (

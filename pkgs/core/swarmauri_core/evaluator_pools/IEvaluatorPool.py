@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Sequence
+from typing import Callable, Sequence
 
 from swarmauri_core.evaluator_results.IEvalResult import IEvalResult
 from swarmauri_core.evaluators.IEvaluate import IEvaluate

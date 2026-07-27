@@ -93,10 +93,8 @@ class MaxSystemContextConversation(
         """
         if isinstance(message, SystemMessage):
             raise ValueError(
-                
-                    f"System context cannot be set through this method on "
-                    f"{self.__class_name__}."
-                
+                f"System context cannot be set through this method on "
+                f"{self.__class_name__}."
             )
         elif isinstance(message, IMessage):
             self._history.append(message)

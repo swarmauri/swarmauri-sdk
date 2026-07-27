@@ -86,16 +86,12 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
         raise NotImplementedError(
-            
-                "check_triangle_inequality method must be implemented by "
-                "subclasses"
-            
+            "check_triangle_inequality method must be implemented by "
+            "subclasses"
         )
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
@@ -128,10 +124,8 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
         raise NotImplementedError(
             "check_scalar_homogeneity method must be implemented by subclasses"

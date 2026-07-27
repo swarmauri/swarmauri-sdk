@@ -6,18 +6,14 @@ from swarmauri_workflow_statedriven.conditions.base import Condition
 
 
 class TrueCondition(Condition):
-    """
-    Stub Condition that always returns True.
-    """
+    """Stub Condition that always returns True."""
 
     def evaluate(self, state):
         return True
 
 
 class FalseCondition(Condition):
-    """
-    Stub Condition that always returns False.
-    """
+    """Stub Condition that always returns False."""
 
     def evaluate(self, state):
         return False

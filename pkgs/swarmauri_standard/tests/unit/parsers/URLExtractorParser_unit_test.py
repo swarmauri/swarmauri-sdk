@@ -26,7 +26,8 @@ def test_serialization():
 @pytest.mark.unit
 def test_parse():
     documents = Parser().parse(
-        "https://www.swarmauri_standard.com, swarmauri_standard.app, and swarmauri_standard agents."
+        "https://www.swarmauri_standard.com, swarmauri_standard.app, and "
+        "swarmauri_standard agents."
     )
     assert len(documents) == 1
     assert documents[0].resource == "Document"

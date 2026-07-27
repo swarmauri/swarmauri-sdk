@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence, TypedDict
+from typing import Any, Iterable, Mapping, Sequence, TypedDict
 
 from swarmauri_core.crypto.types import (
     KeyRef,
@@ -21,7 +21,7 @@ class SubjectSpec(TypedDict, total=False):
     C: str
     ST: str
     L: str
-    O: str
+    O: str  # noqa: E741 - X.509 standard abbreviation for organization
     OU: str
     emailAddress: str
     # You can pass additional RDNs via 'extra_rdns' using provider-specific

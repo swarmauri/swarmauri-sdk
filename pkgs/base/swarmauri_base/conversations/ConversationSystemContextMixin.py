@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, ConfigDict
 from swarmauri_core.conversations.ISystemContext import ISystemContext
 from swarmauri_core.messages.IMessage import IMessage

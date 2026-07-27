@@ -74,12 +74,14 @@ class GeminiEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
+                f"Invalid task_type '{self.task_type}'. Allowed task types "
+                f"are: {', '.join(self.allowed_task_types)}"
             )
 
         if self.api_key.get_secret_value():
@@ -122,7 +124,10 @@ class GeminiEmbedding(EmbeddingBase):
                 payload["outputDimensionality"] = self.output_dimensionality
 
             try:
-                url = f"{self._BASE_URL}/models/{self.model}:embedContent?key={self.api_key.get_secret_value()}"
+                url = (
+                    f"{self._BASE_URL}/models/{self.model}:embedContent"
+                    f"?key={self.api_key.get_secret_value()}"
+                )
                 response = self._client.post(
                     url, headers=self._headers, json=payload, timeout=30
                 )

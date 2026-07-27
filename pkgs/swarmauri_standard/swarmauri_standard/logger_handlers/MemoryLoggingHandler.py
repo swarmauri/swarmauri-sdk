@@ -48,11 +48,9 @@ class MemoryLoggingHandler(HandlerBase):
         """
         if not self.target:
             raise ValueError(
-                
-                    "MemoryLoggingHandler requires a target handler for "
-                    "flushing "
-                    "records"
-                
+                "MemoryLoggingHandler requires a target handler for "
+                "flushing "
+                "records"
             )
 
         # Resolve the target handler
@@ -60,7 +58,8 @@ class MemoryLoggingHandler(HandlerBase):
             # This is a placeholder for resolving handler by name
             # In a real implementation, you would look up the handler by name
             raise ValueError(
-                f"Target handler resolution by name '{self.target}' not implemented"
+                f"Target handler resolution by name '{self.target}' not "
+                f"implemented"
             )
         else:
             self._target_handler = self.target.compile_handler()

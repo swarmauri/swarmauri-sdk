@@ -59,7 +59,8 @@ class OpenAIEmbedding(EmbeddingBase):
         super().__init__(**kwargs)
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.api_key.get_secret_value():

@@ -8,4 +8,3 @@ class IVector(ABC):
     applications,
     such as machine learning, information retrieval, and similarity search.
     """
-

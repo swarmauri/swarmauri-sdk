@@ -125,10 +125,8 @@ class SimilarityBase(ISimilarity, ComponentBase):
                 raise
         else:
             raise NotImplementedError(
-                
-                    "Dissimilarity for unbounded similarity measures must be "
-                    "implemented by subclasses"
-                
+                "Dissimilarity for unbounded similarity measures must be "
+                "implemented by subclasses"
             )
 
     def dissimilarities(

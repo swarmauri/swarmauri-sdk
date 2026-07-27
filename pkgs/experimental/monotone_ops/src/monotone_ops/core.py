@@ -35,7 +35,8 @@ class Leq(Protocol[T_contra]):
 class Operator(Generic[T]):
     """Named binary operator with law metadata.
 
-    The laws are descriptive; use ``monotone_ops.laws`` for finite sample checks.
+    The laws are descriptive; use ``monotone_ops.laws`` for finite sample
+    checks.
     """
 
     name: str
@@ -63,10 +64,13 @@ def fold(op: Binary[T], items: Iterable[T]) -> T | None: ...
 def fold(op: Binary[T], items: Iterable[T], *, initial: T) -> T: ...
 
 
-def fold(op: Binary[T], items: Iterable[T], *, initial: T | _Missing = _MISSING) -> T | None:
+def fold(
+    op: Binary[T], items: Iterable[T], *, initial: T | _Missing = _MISSING
+) -> T | None:
     """Fold a closed binary operator over an iterable.
 
-    Without ``initial``, an empty iterable returns ``None``. With ``initial``, the
+    Without ``initial``, an empty iterable returns ``None``. With ``initial``,
+    the
     result is always a ``T``. Associative operators are streaming-friendly; ACI
     operators are also order-independent.
     """
@@ -84,7 +88,9 @@ def fold(op: Binary[T], items: Iterable[T], *, initial: T | _Missing = _MISSING)
     return acc
 
 
-def scan(op: Binary[T], items: Iterable[T], *, initial: T | _Missing = _MISSING) -> Iterator[T]:
+def scan(
+    op: Binary[T], items: Iterable[T], *, initial: T | _Missing = _MISSING
+) -> Iterator[T]:
     """Yield running aggregates."""
 
     iterator = iter(items)
@@ -108,7 +114,10 @@ def identity(x: T) -> T:
 
 
 def constant(value: U) -> Callable[[T], U]:
-    """Constant unary operator. Constant maps are monotone for every input order."""
+    """Constant unary operator.
+
+    Constant maps are monotone for every input order.
+    """
 
     def inner(_: T) -> U:
         return value
@@ -117,7 +126,10 @@ def constant(value: U) -> Callable[[T], U]:
 
 
 def compose(f: Callable[[U], V], g: Callable[[T], U]) -> Callable[[T], V]:
-    """Compose monotone maps. If both inputs are monotone, the result is monotone."""
+    """Compose monotone maps.
+
+    If both inputs are monotone, the result is monotone.
+    """
 
     def inner(x: T) -> V:
         return f(g(x))
@@ -175,7 +187,9 @@ def is_chain(leq: Leq[T], xs: Sequence[T]) -> bool:
     return all(leq(a, b) for a, b in zip(xs, xs[1:], strict=False))
 
 
-def iterate_until_stable(step: Callable[[T], T], seed: T, *, max_steps: int = 10_000) -> T:
+def iterate_until_stable(
+    step: Callable[[T], T], seed: T, *, max_steps: int = 10_000
+) -> T:
     """Iterate ``step`` until structural equality stabilizes."""
 
     cur = seed

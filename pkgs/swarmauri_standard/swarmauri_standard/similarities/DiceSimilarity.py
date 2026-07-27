@@ -261,7 +261,5 @@ class DiceSimilarity(SimilarityBase):
             similarity_yx = self.similarity(y, x)
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(
-                f"Error checking symmetry of Dice similarity: {e!s}"
-            )
+            logger.error(f"Error checking symmetry of Dice similarity: {e!s}")
             raise

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 from typing import Mapping as TypingMapping
 
 # Local scalar aliases to avoid circular imports

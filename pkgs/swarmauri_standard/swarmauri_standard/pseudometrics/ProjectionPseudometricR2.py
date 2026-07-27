@@ -56,10 +56,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         if projection_axis not in [0, 1]:
             logger.error(
-                
-                    f"Invalid projection axis: {projection_axis}. Must be 0 "
-                    f"(x-axis) or 1 (y-axis)."
-                
+                f"Invalid projection axis: {projection_axis}. Must be 0 "
+                f"(x-axis) or 1 (y-axis)."
             )
             raise ValueError(
                 "Projection axis must be 0 (x-axis) or 1 (y-axis)"
@@ -67,10 +65,8 @@ class ProjectionPseudometricR2(PseudometricBase):
 
         super().__init__(**kwargs, projection_axis=projection_axis)
         logger.debug(
-            
-                f"Initialized ProjectionPseudometricR2 with "
-                f"projection_axis={projection_axis}"
-            
+            f"Initialized ProjectionPseudometricR2 with "
+            f"projection_axis={projection_axis}"
         )
 
     def _validate_and_extract_coordinates(
@@ -119,11 +115,9 @@ class ProjectionPseudometricR2(PseudometricBase):
                 # Check if it can be interpreted as a 2D point
                 if point_array.size != 2:
                     raise ValueError(
-                        
-                            f"Expected a matrix that can be interpreted as a "
-                            f"2D point, "
-                            f"got shape {point_array.shape}"
-                        
+                        f"Expected a matrix that can be interpreted as a "
+                        f"2D point, "
+                        f"got shape {point_array.shape}"
                     )
 
                 # Flatten to extract coordinates
@@ -136,7 +130,8 @@ class ProjectionPseudometricR2(PseudometricBase):
                     parts = point.strip("()[]{}").split(",")
                     if len(parts) != 2:
                         raise ValueError(
-                            f"Expected a string representing a 2D point (e.g., '1,2'), got {point}"
+                            f"Expected a string representing a 2D point "
+                            f"(e.g., '1,2'), got {point}"
                         )
 
                     x = float(parts[0].strip())
@@ -163,9 +158,7 @@ class ProjectionPseudometricR2(PseudometricBase):
                 raise TypeError(f"Unsupported input type: {type(point)}")
 
         except Exception as e:
-            logger.error(
-                f"Error validating and extracting coordinates: {e!s}"
-            )
+            logger.error(f"Error validating and extracting coordinates: {e!s}")
             raise
 
     def distance(
@@ -247,10 +240,8 @@ class ProjectionPseudometricR2(PseudometricBase):
             If inputs cannot be interpreted as 2D points
         """
         logger.debug(
-            
-                f"Calculating pairwise projection distances between "
-                f"{len(xs)} and {len(ys)} points"
-            
+            f"Calculating pairwise projection distances between "
+            f"{len(xs)} and {len(ys)} points"
         )
 
         try:

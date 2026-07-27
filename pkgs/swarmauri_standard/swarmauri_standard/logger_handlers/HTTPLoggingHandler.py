@@ -102,7 +102,8 @@ class HTTPLoggingHandler(HandlerBase):
                         headers = {
                             "Authorization": "Basic "
                             + urllib.parse.quote_plus(
-                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"
+                                f"{self.credentials.get('username', '')}:"
+                                f"{self.credentials.get('password', '')}"
                             )
                         }
                     else:

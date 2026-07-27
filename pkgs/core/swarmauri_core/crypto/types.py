@@ -19,7 +19,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Mapping
 
 from ..mre_crypto.types import MultiRecipientEnvelope, RecipientInfo
 

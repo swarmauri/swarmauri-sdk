@@ -12,7 +12,8 @@ from swarmauri_base.llms.LLMBase import LLMBase
 warnings.warn(
     "Importing HyperbolicAudioTTS from swarmauri.llms is deprecated and will "
     "be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "
+    "removed in a future version. Please use 'from swarmauri_standard.tts "
+    "import "
     "HyperbolicTTS' or 'from swarmauri.tts import HyperbolicTTS' instead.",
     DeprecationWarning,
     stacklevel=2,

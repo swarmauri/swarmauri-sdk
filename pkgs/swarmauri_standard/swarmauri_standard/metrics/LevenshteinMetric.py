@@ -136,51 +136,39 @@ class LevenshteinMetric(MetricBase):
         # Validate input types
         if not isinstance(x, list) or not isinstance(y, list):
             logger.error(
-                
-                    f"Inputs must be lists or numpy arrays, got {type(x)} and "
-                    f"{type(y)}"
-                
+                f"Inputs must be lists or numpy arrays, got {type(x)} and "
+                f"{type(y)}"
             )
             raise TypeError(
-                
-                    f"Inputs must be lists or numpy arrays, got {type(x)} and "
-                    f"{type(y)}"
-                
+                f"Inputs must be lists or numpy arrays, got {type(x)} and "
+                f"{type(y)}"
             )
 
         # Validate that all elements are strings
         for i, item in enumerate(x):
             if not isinstance(item, str):
                 logger.error(
-                    
-                        f"All elements must be strings, found {type(item)} at "
-                        f"index "
-                        f"{i} in x"
-                    
+                    f"All elements must be strings, found {type(item)} at "
+                    f"index "
+                    f"{i} in x"
                 )
                 raise TypeError(
-                    
-                        f"All elements must be strings, found {type(item)} at "
-                        f"index "
-                        f"{i} in x"
-                    
+                    f"All elements must be strings, found {type(item)} at "
+                    f"index "
+                    f"{i} in x"
                 )
 
         for i, item in enumerate(y):
             if not isinstance(item, str):
                 logger.error(
-                    
-                        f"All elements must be strings, found {type(item)} at "
-                        f"index "
-                        f"{i} in y"
-                    
+                    f"All elements must be strings, found {type(item)} at "
+                    f"index "
+                    f"{i} in y"
                 )
                 raise TypeError(
-                    
-                        f"All elements must be strings, found {type(item)} at "
-                        f"index "
-                        f"{i} in y"
-                    
+                    f"All elements must be strings, found {type(item)} at "
+                    f"index "
+                    f"{i} in y"
                 )
 
         # Create a matrix of distances

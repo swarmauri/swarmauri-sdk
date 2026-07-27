@@ -42,7 +42,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Iterable
 
 from .types import (
     AEADCiphertext,

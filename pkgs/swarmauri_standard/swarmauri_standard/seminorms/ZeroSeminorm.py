@@ -65,10 +65,8 @@ class ZeroSeminorm(SeminormBase):
             satisfied
         """
         logger.debug(
-            
-                f"Checking triangle inequality for ZeroSeminorm with inputs "
-                f"of types {type(x)} and {type(y)}"
-            
+            f"Checking triangle inequality for ZeroSeminorm with inputs "
+            f"of types {type(x)} and {type(y)}"
         )
         # Triangle inequality is always satisfied for the zero seminorm
         return True
@@ -94,10 +92,8 @@ class ZeroSeminorm(SeminormBase):
             Always returns True as scalar homogeneity is trivially satisfied
         """
         logger.debug(
-            
-                f"Checking scalar homogeneity for ZeroSeminorm with input of "
-                f"type {type(x)} and scalar {alpha}"
-            
+            f"Checking scalar homogeneity for ZeroSeminorm with input of "
+            f"type {type(x)} and scalar {alpha}"
         )
         # Scalar homogeneity is always satisfied for the zero seminorm
         return True

@@ -64,10 +64,8 @@ class EvaluatorBase(IEvaluate, ComponentBase):
             metadata["execution_time"] = execution_time
 
             logger.debug(
-                
-                    f"Evaluation completed in {execution_time:.4f}s with score "
-                    f"{score:.4f}"
-                
+                f"Evaluation completed in {execution_time:.4f}s with score "
+                f"{score:.4f}"
             )
             return score, metadata
 

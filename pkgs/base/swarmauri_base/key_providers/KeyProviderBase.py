@@ -294,10 +294,8 @@ class KeyProviderBase(IKeyProvider, ComponentBase):
         if isinstance(value, dict):
             return json.dumps(value, sort_keys=True).encode("utf-8")
         raise TypeError(
-            
-                "Unable to coerce value to bytes; supply an explicit export "
-                "callable"
-            
+            "Unable to coerce value to bytes; supply an explicit export "
+            "callable"
         )
 
     def _infer_key_type_from_jwk(self, jwk: dict[str, object]) -> KeyType:

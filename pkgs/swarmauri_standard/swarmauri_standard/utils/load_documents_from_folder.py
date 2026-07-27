@@ -45,18 +45,14 @@ def load_documents_from_folder(
         if not include_all_folders:
             if include_folders and current_folder_name not in include_folders:
                 logging.info(
-                    
-                        f"Skipping folder due to inclusion filter: "
-                        f"{current_folder_name}"
-                    
+                    f"Skipping folder due to inclusion filter: "
+                    f"{current_folder_name}"
                 )
                 continue
             if exclude_folders and current_folder_name in exclude_folders:
                 logging.info(
-                    
-                        f"Skipping folder due to exclusion filter: "
-                        f"{current_folder_name}"
-                    
+                    f"Skipping folder due to exclusion filter: "
+                    f"{current_folder_name}"
                 )
                 continue
 

@@ -35,7 +35,8 @@ class CodeExtractorTool(ToolBase):
                 name="to_be_ignored",
                 input_type="list",
                 description=(
-                    "A list of function or variable names to be ignored during "
+                    "A list of function or variable names to be ignored "
+                    "during "
                     "code extraction."
                 ),
                 required=False,

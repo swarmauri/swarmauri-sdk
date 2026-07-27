@@ -110,11 +110,9 @@ class HammingMetric(MetricBase):
             if x.ndim == 1 and y.ndim == 1:
                 if x.shape[0] != y.shape[0]:
                     raise ValueError(
-                        
-                            f"Sequences must have equal length: {x.shape[0]} "
-                            f"!= "
-                            f"{y.shape[0]}"
-                        
+                        f"Sequences must have equal length: {x.shape[0]} "
+                        f"!= "
+                        f"{y.shape[0]}"
                     )
                 return float(np.sum(x != y))
 
@@ -122,11 +120,9 @@ class HammingMetric(MetricBase):
             elif x.ndim == 2 and y.ndim == 2:
                 if x.shape[1] != y.shape[1]:
                     raise ValueError(
-                        
-                            f"Sequences must have equal length: {x.shape[1]} "
-                            f"!= "
-                            f"{y.shape[1]}"
-                        
+                        f"Sequences must have equal length: {x.shape[1]} "
+                        f"!= "
+                        f"{y.shape[1]}"
                     )
 
                 # Calculate distances between all pairs

@@ -47,10 +47,8 @@ def test_startup_and_first_class_registration_performance() -> None:
     PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = original_registry
 
     print(
-        
-            f"Startup: {startup_time:.4f}s, First-class registration: "
-            f"{registration_time:.4f}s"
-        
+        f"Startup: {startup_time:.4f}s, First-class registration: "
+        f"{registration_time:.4f}s"
     )
 
     assert startup_time >= 0

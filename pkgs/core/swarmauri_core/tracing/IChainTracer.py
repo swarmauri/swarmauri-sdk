@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable
 
 
 class IChainTracer(ABC):

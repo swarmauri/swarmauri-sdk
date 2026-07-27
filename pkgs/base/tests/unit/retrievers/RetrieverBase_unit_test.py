@@ -1,4 +1,3 @@
-
 import pytest
 from swarmauri_core.documents.IDocument import IDocument
 

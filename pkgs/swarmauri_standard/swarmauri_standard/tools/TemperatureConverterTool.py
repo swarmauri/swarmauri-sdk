@@ -16,7 +16,8 @@ class TemperatureConverterTool(ToolBase):
                 name="from_unit",
                 input_type="string",
                 description=(
-                    "The unit of the input temperature ('celsius', 'fahrenheit', "
+                    "The unit of the input temperature ('celsius', "
+                    "'fahrenheit', "
                     "'kelvin')."
                 ),
                 required=True,

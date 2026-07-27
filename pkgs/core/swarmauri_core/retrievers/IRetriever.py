@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from swarmauri_core.documents.IDocument import IDocument
 

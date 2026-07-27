@@ -131,11 +131,9 @@ class LpMetric(MetricBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Inputs must have the same shape. Got {x_array.shape} "
-                        f"and "
-                        f"{y_array.shape}"
-                    
+                    f"Inputs must have the same shape. Got {x_array.shape} "
+                    f"and "
+                    f"{y_array.shape}"
                 )
 
             # Calculate Lp distance: (sum(|x_i - y_i|^p))^(1/p)
@@ -208,11 +206,9 @@ class LpMetric(MetricBase):
 
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        
-                            f"Matrices must have the same shape. Got "
-                            f"{x_array.shape} and "
-                            f"{y_array.shape}"
-                        
+                        f"Matrices must have the same shape. Got "
+                        f"{x_array.shape} and "
+                        f"{y_array.shape}"
                     )
 
                 # Calculate element-wise distances
@@ -301,9 +297,7 @@ class LpMetric(MetricBase):
             logger.debug(f"Identity of indiscernibles check result: {result}")
             return result
         except Exception as e:
-            logger.error(
-                f"Error in identity of indiscernibles check: {e!s}"
-            )
+            logger.error(f"Error in identity of indiscernibles check: {e!s}")
             return False
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:

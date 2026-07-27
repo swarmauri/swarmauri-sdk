@@ -144,10 +144,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_non_negativity method not implemented")
         raise NotImplementedError(
-            
-                "The check_non_negativity method must be implemented by "
-                "derived classes"
-            
+            "The check_non_negativity method must be implemented by "
+            "derived classes"
         )
 
     def check_symmetry(
@@ -216,10 +214,8 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_triangle_inequality method not implemented")
         raise NotImplementedError(
-            
-                "The check_triangle_inequality method must be implemented by "
-                "derived classes"
-            
+            "The check_triangle_inequality method must be implemented by "
+            "derived classes"
         )
 
     def check_weak_identity(
@@ -253,8 +249,6 @@ class PseudometricBase(IPseudometric, ComponentBase):
         """
         logger.error("check_weak_identity method not implemented")
         raise NotImplementedError(
-            
-                "The check_weak_identity method must be implemented by "
-                "derived classes"
-            
+            "The check_weak_identity method must be implemented by "
+            "derived classes"
         )

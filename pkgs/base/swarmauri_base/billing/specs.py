@@ -57,9 +57,7 @@ class BillingSpec(BaseModel):
 class ProductSpec(ProductSpecProto, BillingSpec):
     """Product creation specification."""
 
-    name: str | None = Field(
-        default=None, description="Product display name"
-    )
+    name: str | None = Field(default=None, description="Product display name")
     description: str | None = Field(
         default=None, description="Detailed description of the product"
     )
@@ -152,7 +150,9 @@ class PaymentIntentRequest(PaymentIntentReqProto, BillingSpec):
 
     amount_minor: int | None = Field(
         default=None,
-        description="Amount to collect in the currency's smallest denomination",
+        description=(
+            "Amount to collect in the currency's smallest denomination"
+        ),
     )
     currency: str | None = Field(
         default=None, description="ISO currency code for the payment"
@@ -388,9 +388,7 @@ class CustomerSpec(CustomerSpecProto, BillingSpec):
 class PaymentMethodSpec(PaymentMethodSpecProto, BillingSpec):
     """Payment method creation specification."""
 
-    type: str | None = Field(
-        default=None, description="Payment method type"
-    )
+    type: str | None = Field(default=None, description="Payment method type")
     billing_details: Mapping[str, Any] | None = Field(
         default=None,
         description="Billing details associated with the payment method",
@@ -436,7 +434,9 @@ class TransferRequest(TransferReqProto, BillingSpec):
 
     amount_minor: int | None = Field(
         default=None,
-        description="Amount to transfer in the currency's smallest denomination",
+        description=(
+            "Amount to transfer in the currency's smallest denomination"
+        ),
     )
     currency: str | None = Field(
         default=None, description="Currency of the transfer"

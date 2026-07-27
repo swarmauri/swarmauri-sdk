@@ -1,7 +1,7 @@
 """Tool execution interface."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 
 class IToolExecutor(ABC):

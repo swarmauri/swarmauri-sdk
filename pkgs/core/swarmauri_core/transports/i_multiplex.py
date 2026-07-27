@@ -1,7 +1,7 @@
 """Multiplex transport interface."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeAlias
+from typing import Any, TypeAlias
 
 ChannelHandle: TypeAlias = Any
 

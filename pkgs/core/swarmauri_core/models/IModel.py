@@ -1,7 +1,6 @@
 """Common interface for model resources."""
 
 from abc import ABC
-from typing import Optional
 
 from swarmauri_core.model_providers.IModelProvider import IModelProvider
 

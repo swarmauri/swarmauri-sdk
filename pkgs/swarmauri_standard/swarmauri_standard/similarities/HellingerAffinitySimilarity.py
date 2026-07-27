@@ -129,10 +129,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Check if dimensions match
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    
-                        f"Probability vectors must have the same shape, got "
-                        f"{x_arr.shape} and {y_arr.shape}"
-                    
+                    f"Probability vectors must have the same shape, got "
+                    f"{x_arr.shape} and {y_arr.shape}"
                 )
 
             # Calculate Hellinger Affinity: sum of square roots of products
@@ -203,10 +201,8 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                
-                    f"Error calculating multiple Hellinger Affinity "
-                    f"similarities: {e!s}"
-                
+                f"Error calculating multiple Hellinger Affinity "
+                f"similarities: {e!s}"
             )
             raise
 
@@ -245,9 +241,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Dissimilarity is 1 - similarity
             return 1.0 - sim
         except Exception as e:
-            logger.error(
-                f"Error calculating Hellinger dissimilarity: {e!s}"
-            )
+            logger.error(f"Error calculating Hellinger dissimilarity: {e!s}")
             raise
 
     def dissimilarities(
@@ -286,10 +280,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return [1.0 - sim for sim in sims]
         except Exception as e:
             logger.error(
-                
-                    f"Error calculating multiple Hellinger dissimilarities: "
-                    f"{e!s}"
-                
+                f"Error calculating multiple Hellinger dissimilarities: {e!s}"
             )
             raise
 

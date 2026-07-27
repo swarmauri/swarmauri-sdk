@@ -8,7 +8,7 @@
 #     ("swarmauri_standard.chunkers.FixedLengthChunker", "FixedLengthChunker"),
 #     ("swarmauri_standard.chunkers.MdSnippetChunker", "MdSnippetChunker"),
 #     ("swarmauri_standard.chunkers.SentenceChunker", "SentenceChunker"),
-#     ("swarmauri_standard.chunkers.SlidingWindowChunker", "SlidingWindowChunker"),
+#     ("swarmauri_standard.chunkers.SlidingWindowChunker", "SlidingWindowChunker"),  # noqa: E501
 # ]
 
 # # Lazy loading of chunker classes, storing them in variables

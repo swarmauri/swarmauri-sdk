@@ -50,5 +50,6 @@ def test_call():
     )
 
     assert result.get("code_output") == expected_output, (
-        f"Expected Code Output {expected_output}, but got {result.get('code_output')}"
+        f"Expected Code Output {expected_output}, but got "
+        f"{result.get('code_output')}"
     )

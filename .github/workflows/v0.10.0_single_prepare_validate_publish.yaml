@@ -115,7 +115,7 @@ jobs:
           MEMBER="${{ github.event.inputs.member }}"
           PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Running Ruff format on $MEMBER"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format --check .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Ruff lint check
         run: |
@@ -123,7 +123,7 @@ jobs:
           MEMBER="${{ github.event.inputs.member }}"
           PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Running Ruff lint check on $MEMBER"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Run tests
         run: |

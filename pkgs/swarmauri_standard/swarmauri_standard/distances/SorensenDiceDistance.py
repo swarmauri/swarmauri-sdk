@@ -68,18 +68,14 @@ class SorensenDiceDistance(DistanceBase):
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            
-                "Similarity calculation is not implemented for "
-                "SorensenDiceDistance."
-            
+            "Similarity calculation is not implemented for "
+            "SorensenDiceDistance."
         )
 
     def similarities(
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            
-                "Similarity calculation is not implemented for "
-                "SorensenDiceDistance."
-            
+            "Similarity calculation is not implemented for "
+            "SorensenDiceDistance."
         )

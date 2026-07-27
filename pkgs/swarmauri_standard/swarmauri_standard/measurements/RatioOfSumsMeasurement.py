@@ -37,7 +37,8 @@ class RatioOfSumsMeasurement(MeasurementBase, MeasurementCalculateMixin):
 
         if sum_b == 0:
             raise ValueError(
-                f"The sum of column '{column_b}' is zero, cannot divide by zero."
+                f"The sum of column '{column_b}' is zero, cannot divide by "
+                f"zero."
             )
 
         return sum_a / sum_b

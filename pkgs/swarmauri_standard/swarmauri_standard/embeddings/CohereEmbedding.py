@@ -84,20 +84,25 @@ class CohereEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"
+                f"Invalid task_type '{self.task_type}'. Allowed task types "
+                f"are: {', '.join(self.allowed_task_types)}"
             )
         if self.embedding_types not in self._allowed_embedding_types:
             raise ValueError(
-                f"Invalid embedding_types '{self.embedding_types}'. Allowed embedding types are: {', '.join(self._allowed_embedding_types)}"
+                f"Invalid embedding_types '{self.embedding_types}'. Allowed "
+                f"embedding types are: "
+                f"{', '.join(self._allowed_embedding_types)}"
             )
         if self.truncate not in ["END", "START", "NONE"]:
             raise ValueError(
-                f"Invalid truncate '{self.truncate}'. Allowed truncate are: END, START, NONE"
+                f"Invalid truncate '{self.truncate}'. Allowed truncate are: "
+                f"END, START, NONE"
             )
         self._client = httpx.Client()
 

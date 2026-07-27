@@ -91,10 +91,8 @@ class GaussianRBFSimilarity(SimilarityBase):
             # Ensure inputs have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Input shapes must match: got {x_array.shape} and "
-                        f"{y_array.shape}"
-                    
+                    f"Input shapes must match: got {x_array.shape} and "
+                    f"{y_array.shape}"
                 )
 
             return x_array, y_array
@@ -136,11 +134,9 @@ class GaussianRBFSimilarity(SimilarityBase):
             similarity_value = exp(-self.gamma * squared_distance)
 
             logger.debug(
-                
-                    f"Calculated similarity: {similarity_value} for inputs "
-                    f"with "
-                    f"squared distance: {squared_distance}"
-                
+                f"Calculated similarity: {similarity_value} for inputs "
+                f"with "
+                f"squared distance: {squared_distance}"
             )
             return similarity_value
 

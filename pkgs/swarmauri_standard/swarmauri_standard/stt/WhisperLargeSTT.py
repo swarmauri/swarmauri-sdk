@@ -90,7 +90,8 @@ class WhisperLargeSTT(STTBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', "
+                f"'translation']"
             )
 
         with open(audio_path, "rb") as audio_file:
@@ -139,7 +140,8 @@ class WhisperLargeSTT(STTBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', "
+                f"'translation']"
             )
 
         with open(audio_path, "rb") as audio_file:

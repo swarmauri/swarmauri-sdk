@@ -11,9 +11,7 @@ from swarmauri_base.utils.allowed_models import is_model_allowed
 @ComponentBase.register_model()
 class OCRBase(IPredict, ComponentBase):
     allowed_models: list[str] = []
-    resource: str | None = Field(
-        default=ResourceTypes.OCR.value, frozen=True
-    )
+    resource: str | None = Field(default=ResourceTypes.OCR.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["OCRBase"] = "OCRBase"
 
@@ -24,10 +22,8 @@ class OCRBase(IPredict, ComponentBase):
         allowed_models = values.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                
-                    f"Model name {name} is not allowed. Choose from "
-                    f"{allowed_models}"
-                
+                f"Model name {name} is not allowed. Choose from "
+                f"{allowed_models}"
             )
         return values
 

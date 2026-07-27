@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, FrozenSet, Iterable
+from typing import Iterable
 
 
 class Capability(str, Enum):

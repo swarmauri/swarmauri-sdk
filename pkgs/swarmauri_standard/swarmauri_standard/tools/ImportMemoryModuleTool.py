@@ -31,7 +31,8 @@ class ImportMemoryModuleTool(ToolBase):
                 name="package_path",
                 input_type="string",
                 description=(
-                    "Dot-separated package path where the new module should be "
+                    "Dot-separated package path where the new module should "
+                    "be "
                     "inserted."
                 ),
                 required=True,

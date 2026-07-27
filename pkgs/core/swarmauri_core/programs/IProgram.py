@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T", bound="IProgram")
 DiffType = dict[str, Any]  # Type for diff representation

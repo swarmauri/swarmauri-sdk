@@ -350,9 +350,7 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if (
-                    agent_response.get("candidates")
-                ):
+                if agent_response.get("candidates"):
                     content = agent_response["candidates"][0]["content"][
                         "parts"
                     ][0]["text"]
@@ -471,9 +469,7 @@ class GeminiToolModel(ToolLLMBase):
                     response.raise_for_status()
                     agent_response = response.json()
 
-                if (
-                    agent_response.get("candidates")
-                ):
+                if agent_response.get("candidates"):
                     content = agent_response["candidates"][0]["content"][
                         "parts"
                     ][0]["text"]
@@ -599,9 +595,7 @@ class GeminiToolModel(ToolLLMBase):
                 if json_str:
                     try:
                         response_data = json.loads(json_str)
-                        if (
-                            response_data.get("candidates")
-                        ):
+                        if response_data.get("candidates"):
                             candidate = response_data["candidates"][0]
                             if (
                                 "content" in candidate
@@ -734,9 +728,7 @@ class GeminiToolModel(ToolLLMBase):
                 if json_str:
                     try:
                         response_data = json.loads(json_str)
-                        if (
-                            response_data.get("candidates")
-                        ):
+                        if response_data.get("candidates"):
                             candidate = response_data["candidates"][0]
                             if (
                                 "content" in candidate

@@ -1,7 +1,8 @@
 """Finite-sample law checks for monotone operators.
 
-These checks are not proofs. They are deliberately small, deterministic guards that
-catch implementation mistakes and document the intended algebraic contract.
+These checks are not proofs. They are deliberately small, deterministic guards
+that catch implementation mistakes and document the intended algebraic
+contract.
 """
 
 from __future__ import annotations
@@ -57,7 +58,9 @@ def check_associative(op: Binary[T], samples: Iterable[T]) -> LawReport:
     return LawReport("associative", True)
 
 
-def check_inflationary(op: Binary[T], leq: Leq[T], samples: Iterable[T]) -> LawReport:
+def check_inflationary(
+    op: Binary[T], leq: Leq[T], samples: Iterable[T]
+) -> LawReport:
     xs = _materialize(samples)
     for a, b in product(xs, xs):
         merged = op(a, b)
@@ -66,7 +69,9 @@ def check_inflationary(op: Binary[T], leq: Leq[T], samples: Iterable[T]) -> LawR
     return LawReport("inflationary", True)
 
 
-def check_deflationary(op: Binary[T], leq: Leq[T], samples: Iterable[T]) -> LawReport:
+def check_deflationary(
+    op: Binary[T], leq: Leq[T], samples: Iterable[T]
+) -> LawReport:
     xs = _materialize(samples)
     for a, b in product(xs, xs):
         merged = op(a, b)
@@ -88,14 +93,18 @@ def check_monotone_unary(
     return LawReport("monotone_unary", True)
 
 
-def check_monotone_binary(op: Binary[T], leq: Leq[T], samples: Iterable[T]) -> LawReport:
+def check_monotone_binary(
+    op: Binary[T], leq: Leq[T], samples: Iterable[T]
+) -> LawReport:
     xs = _materialize(samples)
     for a1, a2, b1, b2 in product(xs, xs, xs, xs):
         if leq(a1, a2) and leq(b1, b2):
             left = op(a1, b1)
             right = op(a2, b2)
             if not leq(left, right):
-                return LawReport("monotone_binary", False, (a1, a2, b1, b2, left, right))
+                return LawReport(
+                    "monotone_binary", False, (a1, a2, b1, b2, left, right)
+                )
     return LawReport("monotone_binary", True)
 
 
@@ -104,7 +113,9 @@ def assert_all(*reports: LawReport) -> None:
         report.assert_ok()
 
 
-def aci_reports(op: Binary[T], samples: Sequence[T]) -> tuple[LawReport, LawReport, LawReport]:
+def aci_reports(
+    op: Binary[T], samples: Sequence[T]
+) -> tuple[LawReport, LawReport, LawReport]:
     return (
         check_associative(op, samples),
         check_commutative(op, samples),

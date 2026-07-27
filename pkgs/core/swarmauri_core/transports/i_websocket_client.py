@@ -1,7 +1,7 @@
 """WebSocket client interface."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Sequence
 
 from .i_websocket_connection import IWebSocketConnection
 

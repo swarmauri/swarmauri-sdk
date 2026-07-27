@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Literal, Sequence, TypeAlias
+from typing import Literal, Sequence, TypeAlias
 
 ComparableValue: TypeAlias = object
 RankingDirection: TypeAlias = Literal["ascending", "descending"]

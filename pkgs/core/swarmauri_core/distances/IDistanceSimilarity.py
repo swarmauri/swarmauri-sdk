@@ -1,6 +1,5 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import List
 
 from swarmauri_core.vectors.IVector import IVector
 

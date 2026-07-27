@@ -29,7 +29,9 @@ class JSONRequestsTool(ToolBase):
             Parameter(
                 name="method",
                 input_type="string",
-                description="The HTTP method to use ('get', 'post', 'put', 'delete').",
+                description=(
+                    "The HTTP method to use ('get', 'post', 'put', 'delete')."
+                ),
                 required=True,
                 enum=["get", "post", "put", "delete"],
             ),
@@ -49,7 +51,8 @@ class JSONRequestsTool(ToolBase):
                 name="data",
                 input_type="object",
                 description=(
-                    "The form data to include in the request (used in POST and "
+                    "The form data to include in the request (used in POST "
+                    "and "
                     "PUT)."
                 ),
                 required=False,
@@ -58,7 +61,8 @@ class JSONRequestsTool(ToolBase):
                 name="json",
                 input_type="object",
                 description=(
-                    "The JSON data to include in the request (used in POST and "
+                    "The JSON data to include in the request (used in POST "
+                    "and "
                     "PUT)."
                 ),
                 required=False,

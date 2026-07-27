@@ -110,7 +110,8 @@ class SupremumComplexNorm(NormBase):
                             return self.compute(values)
                     except Exception:
                         raise ValueError(
-                            f"Cannot interpret string '{x}' as complex value(s)"
+                            f"Cannot interpret string '{x}' as complex "
+                            f"value(s)"
                         )
 
             else:
@@ -119,9 +120,7 @@ class SupremumComplexNorm(NormBase):
 
         except Exception as e:
             logger.error(f"Error computing supremum complex norm: {e!s}")
-            raise ValueError(
-                f"Failed to compute supremum complex norm: {e!s}"
-            )
+            raise ValueError(f"Failed to compute supremum complex norm: {e!s}")
 
     def check_non_negativity(
         self,

@@ -205,10 +205,8 @@ class _HTTPSHandler(logging.Handler):
             # Check if the request was successful
             if response.status >= 400:
                 logging.getLogger("HTTPSLoggingHandler").warning(
-                    
-                        f"Failed to send log record: HTTP {response.status} - "
-                        f"{response.reason}"
-                    
+                    f"Failed to send log record: HTTP {response.status} - "
+                    f"{response.reason}"
                 )
 
             # Close the connection

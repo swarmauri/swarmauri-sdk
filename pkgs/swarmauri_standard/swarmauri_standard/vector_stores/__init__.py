@@ -3,8 +3,8 @@
 # # List of vectore_stores names (file names without the ".py" extension) and
 # corresponding class names
 # vectore_stores_files = [
-#     ("swarmauri_standard.vector_stores.SqliteVectorStore", "SqliteVectorStore"),
-#     ("swarmauri_standard.vector_stores.TfidfVectorStore", "TfidfVectorStore"),
+#     ("swarmauri_standard.vector_stores.SqliteVectorStore", "SqliteVectorStore"),  # noqa: E501
+#     ("swarmauri_standard.vector_stores.TfidfVectorStore", "TfidfVectorStore"),  # noqa: E501
 # ]
 
 # # Lazy loading of vectore_storess, storing them in variables

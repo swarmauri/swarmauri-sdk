@@ -71,10 +71,8 @@ class SobolevNorm(NormBase):
                 self.weights[i] = 1.0
 
         logger.debug(
-            
-                f"Initialized SobolevNorm with order {self.order} and "
-                f"weights {self.weights}"
-            
+            f"Initialized SobolevNorm with order {self.order} and "
+            f"weights {self.weights}"
         )
 
     def compute(
@@ -180,10 +178,8 @@ class SobolevNorm(NormBase):
                     d_norm = self._evaluate_function_norm(current_derivative)
                     norm_sum += self.weights[i] * d_norm**2
                     logger.debug(
-                        
-                            f"{i}th derivative contribution: "
-                            f"{self.weights[i] * d_norm**2}"
-                        
+                        f"{i}th derivative contribution: "
+                        f"{self.weights[i] * d_norm**2}"
                     )
 
             # Return the square root of the weighted sum
@@ -388,11 +384,9 @@ class SobolevNorm(NormBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        
-                            "Sequences must have the same length for triangle "
-                            "inequality "
-                            "check"
-                        
+                        "Sequences must have the same length for triangle "
+                        "inequality "
+                        "check"
                     )
                 sum_xy = [x[i] + y[i] for i in range(len(x))]
                 norm_sum = self.compute(sum_xy)

@@ -25,10 +25,8 @@ class ImageGenBase(IGenImage, ModelBase):
         allowed_models = values.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                
-                    f"Model name {name} is not allowed. Choose from "
-                    f"{allowed_models}"
-                
+                f"Model name {name} is not allowed. Choose from "
+                f"{allowed_models}"
             )
         return values
 

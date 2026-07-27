@@ -10,7 +10,8 @@ class ListMergeStrategy(MergeStrategy):
     Class: ListMergeStrategy
     Method: merge
 
-    Returns the buffered inputs exactly as a list, preserving order and identity.
+    Returns the buffered inputs exactly as a list, preserving order and
+    identity.
     """
 
     def merge(self, inputs: List[Any]) -> Any:

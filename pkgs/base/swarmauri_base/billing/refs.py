@@ -144,6 +144,4 @@ class WebhookEventRef(WebhookEventProto, BillingRef):
     event_id: str = Field(
         ..., description="Event identifier returned by the provider"
     )
-    type: str | None = Field(
-        default=None, description="Provider event type"
-    )
+    type: str | None = Field(default=None, description="Provider event type")

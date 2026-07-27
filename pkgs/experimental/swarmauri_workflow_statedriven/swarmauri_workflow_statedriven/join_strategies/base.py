@@ -5,15 +5,12 @@ from typing import Any, List
 
 
 class JoinStrategy(ABC):
-    """
-    Base class for join strategies determining when a converging state
-    should fire based on buffered branch outputs.
-    """
+    """Base class for join strategies determining when a converging state
+    should fire based on buffered branch outputs."""
 
     @abstractmethod
     def mark_complete(self, branch: str) -> None:
-        """
-        Record that the branch identified by 'branch' has completed.
+        """Record that the branch identified by 'branch' has completed.
 
         Args:
             branch: the name of the branch/state that just completed.
@@ -22,8 +19,8 @@ class JoinStrategy(ABC):
 
     @abstractmethod
     def is_satisfied(self, buffer: List[Any]) -> bool:
-        """
-        Check if the join condition is met given the list of buffered inputs.
+        """Check if the join condition is met given the list of buffered
+        inputs.
 
         Args:
             buffer: list of values buffered for the converging state.
@@ -34,7 +31,6 @@ class JoinStrategy(ABC):
 
     @abstractmethod
     def reset(self) -> None:
-        """
-        Reset any internal state to allow reuse of this strategy for subsequent joins.
-        """
+        """Reset any internal state to allow reuse of this strategy for
+        subsequent joins."""
         ...

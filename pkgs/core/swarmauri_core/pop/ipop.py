@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable, Mapping, Optional, Protocol
+from typing import Iterable, Mapping, Protocol
 
 from .types import BindType, CnfBinding, Feature, HttpParts, PoPKind
 

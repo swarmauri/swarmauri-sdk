@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Iterator
-from typing import Optional, TypeAlias
+from typing import TypeAlias
 
 WebSocketMessage: TypeAlias = str | bytes
 

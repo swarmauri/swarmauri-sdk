@@ -1,7 +1,7 @@
 """Live-session input interface."""
 
 from abc import ABC
-from typing import Any, Optional
+from typing import Any
 
 
 class ILiveInput(ABC):

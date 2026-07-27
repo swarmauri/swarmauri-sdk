@@ -48,10 +48,8 @@ class UseInnerProductMixin(IUseInnerProduct, BaseModel):
         super().__init__(*args, **kwargs)
         self._inner_product = inner_product
         logger.debug(
-            
-                f"Initialized {self.__class__.__name__} with inner product "
-                f"{inner_product}"
-            
+            f"Initialized {self.__class__.__name__} with inner product "
+            f"{inner_product}"
         )
 
     def get_inner_product(self) -> Literal[IInnerProduct]:

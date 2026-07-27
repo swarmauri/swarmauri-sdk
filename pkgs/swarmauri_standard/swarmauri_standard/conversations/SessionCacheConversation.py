@@ -40,10 +40,8 @@ class SessionCacheConversation(
         """
         if isinstance(message, SystemMessage):
             raise ValueError(
-                
-                    f"System context cannot be set through this method on "
-                    f"{self.__class_name__}."
-                
+                f"System context cannot be set through this method on "
+                f"{self.__class_name__}."
             )
         if not self._history and not isinstance(message, HumanMessage):
             raise ValueError(

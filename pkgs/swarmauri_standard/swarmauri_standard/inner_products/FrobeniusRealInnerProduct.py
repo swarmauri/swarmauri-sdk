@@ -59,10 +59,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
             raise ValueError("Both inputs must be numpy arrays (matrices)")
 
         logger.debug(
-            
-                f"Computing Frobenius inner product between matrices of "
-                f"shape {a.shape} and {b.shape}"
-            
+            f"Computing Frobenius inner product between matrices of "
+            f"shape {a.shape} and {b.shape}"
         )
 
         if a.shape != b.shape:
@@ -105,10 +103,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
             True if conjugate symmetry holds, False otherwise
         """
         logger.debug(
-            
-                f"Checking conjugate symmetry for matrices of shape "
-                f"{a.shape} and {b.shape}"
-            
+            f"Checking conjugate symmetry for matrices of shape "
+            f"{a.shape} and {b.shape}"
         )
 
         # For real matrices, conjugate symmetry means <a,b> = <b,a>
@@ -119,10 +115,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         is_symmetric = np.isclose(forward, backward)
 
         logger.debug(
-            
-                f"Conjugate symmetry check result: {is_symmetric} ({forward} "
-                f"vs {backward})"
-            
+            f"Conjugate symmetry check result: {is_symmetric} ({forward} "
+            f"vs {backward})"
         )
         return bool(is_symmetric)
 
@@ -174,10 +168,8 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         is_linear = np.isclose(left_side, right_side)
 
         logger.debug(
-            
-                f"Linearity check result: {is_linear} ({left_side} vs "
-                f"{right_side})"
-            
+            f"Linearity check result: {is_linear} ({left_side} vs "
+            f"{right_side})"
         )
         return bool(is_linear)
 
@@ -213,9 +205,7 @@ class FrobeniusRealInnerProduct(InnerProductBase):
         result = is_non_negative and is_zero_iff_a_zero
 
         logger.debug(
-            
-                f"Positivity check result: {result} (inner product: "
-                f"{inner_product})"
-            
+            f"Positivity check result: {result} (inner product: "
+            f"{inner_product})"
         )
         return result

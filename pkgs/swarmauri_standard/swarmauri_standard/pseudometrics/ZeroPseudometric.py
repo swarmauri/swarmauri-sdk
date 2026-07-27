@@ -61,10 +61,8 @@ class ZeroPseudometric(PseudometricBase):
             Always returns 0.0
         """
         logger.debug(
-            
-                f"Computing ZeroPseudometric distance between objects of "
-                f"types {type(x)} and {type(y)}"
-            
+            f"Computing ZeroPseudometric distance between objects of "
+            f"types {type(x)} and {type(y)}"
         )
         return 0.0
 
@@ -94,10 +92,8 @@ class ZeroPseudometric(PseudometricBase):
             A matrix of zeros with dimensions len(xs) × len(ys)
         """
         logger.debug(
-            
-                f"Computing pairwise ZeroPseudometric distances between "
-                f"{len(xs)} and {len(ys)} objects"
-            
+            f"Computing pairwise ZeroPseudometric distances between "
+            f"{len(xs)} and {len(ys)} objects"
         )
         # Create a matrix of zeros with dimensions len(xs) × len(ys)
         return [[0.0 for _ in range(len(ys))] for _ in range(len(xs))]
@@ -125,10 +121,8 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            
-                f"Checking non-negativity for ZeroPseudometric with objects "
-                f"of types {type(x)} and {type(y)}"
-            
+            f"Checking non-negativity for ZeroPseudometric with objects "
+            f"of types {type(x)} and {type(y)}"
         )
         # Non-negativity is always satisfied since 0 ≥ 0
         return True
@@ -160,10 +154,8 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            
-                f"Checking symmetry for ZeroPseudometric with objects of "
-                f"types {type(x)} and {type(y)}"
-            
+            f"Checking symmetry for ZeroPseudometric with objects of "
+            f"types {type(x)} and {type(y)}"
         )
         # Symmetry is always satisfied since d(x,y) = 0 = d(y,x)
         return True
@@ -199,10 +191,8 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            
-                f"Checking triangle inequality for ZeroPseudometric with "
-                f"objects of types {type(x)}, {type(y)}, and {type(z)}"
-            
+            f"Checking triangle inequality for ZeroPseudometric with "
+            f"objects of types {type(x)}, {type(y)}, and {type(z)}"
         )
         # Triangle inequality is always satisfied since d(x,z) = 0 ≤ d(x,y) +
         # d(y,z) = 0 + 0 = 0
@@ -234,10 +224,8 @@ class ZeroPseudometric(PseudometricBase):
             Always returns True
         """
         logger.debug(
-            
-                f"Checking weak identity for ZeroPseudometric with objects "
-                f"of types {type(x)} and {type(y)}"
-            
+            f"Checking weak identity for ZeroPseudometric with objects "
+            f"of types {type(x)} and {type(y)}"
         )
         # Weak identity is always satisfied since d(x,y) = 0 for all x and y
         return True

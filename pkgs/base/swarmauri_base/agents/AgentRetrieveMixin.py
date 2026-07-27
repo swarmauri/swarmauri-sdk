@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, ConfigDict, Field
 from swarmauri_core.agents.IAgentRetrieve import IAgentRetrieve
 from swarmauri_core.documents.IDocument import IDocument

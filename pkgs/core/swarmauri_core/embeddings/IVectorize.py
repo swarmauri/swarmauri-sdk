@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Union
+from typing import Any, Union
 
 from swarmauri_core.vectors.IVector import IVector
 

@@ -29,7 +29,7 @@
 #         "swarmauri_standard.measurements.RatioOfSumsMeasurement",
 #         "RatioOfSumsMeasurement",
 #     ),
-#     ("swarmauri_standard.measurements.StaticMeasurement", "StaticMeasurement"),
+#     ("swarmauri_standard.measurements.StaticMeasurement", "StaticMeasurement"),  # noqa: E501
 # ("swarmauri_standard.measurements.UniquenessMeasurement",
 # "UniquenessMeasurement"),
 #     ("swarmauri_standard.measurements.ZeroMeasurement", "ZeroMeasurement"),

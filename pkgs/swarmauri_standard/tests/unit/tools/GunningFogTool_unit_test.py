@@ -82,11 +82,14 @@ def test_call(
         f"Expected keys {expected_keys} but got {result.keys()}"
     )
     assert isinstance(result.get("gunning_fog_score"), float), (
-        f"Expected float, but got {type(result.get('gunning_fog_score')).__name__}"
+        f"Expected float, but got "
+        f"{type(result.get('gunning_fog_score')).__name__}"
     )
 
     assert result.get("gunning_fog_score") == pytest.approx(
         expected_score, rel=0.01
     ), (
-        f"Expected Gunning-Fog score {pytest.approx(expected_score, rel=0.01)}, but got {result.get('gunning_fog_score')}"
+        f"Expected Gunning-Fog score "
+        f"{pytest.approx(expected_score, rel=0.01)}, but got "
+        f"{result.get('gunning_fog_score')}"
     )

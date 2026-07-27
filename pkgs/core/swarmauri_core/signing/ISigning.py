@@ -51,7 +51,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable, Iterable
-from typing import Mapping, Optional, Sequence, Union
+from typing import Mapping, Sequence, Union
 
 from ..crypto.types import (
     AEADCiphertext,  # single‑recipient envelope

@@ -5,7 +5,9 @@ from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
 
 T = TypeVar("T", bound=Union[int, float, complex])
-InputType = Union[Literal[IVector, IMatrix], Sequence[T], str, Callable[..., T]]
+InputType = Union[
+    Literal[IVector, IMatrix], Sequence[T], str, Callable[..., T]
+]
 
 
 class ISeminorm(ABC):

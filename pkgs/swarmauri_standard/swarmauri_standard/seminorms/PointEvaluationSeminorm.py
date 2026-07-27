@@ -53,10 +53,8 @@ class PointEvaluationSeminorm(SeminormBase):
         self.point = point
         self.absolute = absolute
         logger.debug(
-            
-                f"Initialized PointEvaluationSeminorm with point={point}, "
-                f"absolute={absolute}"
-            
+            f"Initialized PointEvaluationSeminorm with point={point}, "
+            f"absolute={absolute}"
         )
 
     def compute(self, x: InputType) -> float:
@@ -97,11 +95,9 @@ class PointEvaluationSeminorm(SeminormBase):
                 result = x[self.point]
             else:
                 raise TypeError(
-                    
-                        f"Unsupported input type: {type(x)}. Must be callable "
-                        f"or "
-                        f"support item access."
-                    
+                    f"Unsupported input type: {type(x)}. Must be callable "
+                    f"or "
+                    f"support item access."
                 )
 
             # Convert result to float if possible
@@ -116,11 +112,9 @@ class PointEvaluationSeminorm(SeminormBase):
                     result_float = abs(result)
                 else:
                     raise TypeError(
-                        
-                            f"Cannot convert result {result} to a non-negative "
-                            f"real "
-                            f"number"
-                        
+                        f"Cannot convert result {result} to a non-negative "
+                        f"real "
+                        f"number"
                     )
 
             # Apply absolute value if required
@@ -166,10 +160,8 @@ class PointEvaluationSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
 
         try:
@@ -188,11 +180,9 @@ class PointEvaluationSeminorm(SeminormBase):
                 # For sequences, check if we can add them element-wise
                 if len(x) != len(y):
                     raise ValueError(
-                        
-                            "Sequences must have the same length for triangle "
-                            "inequality "
-                            "check"
-                        
+                        "Sequences must have the same length for triangle "
+                        "inequality "
+                        "check"
                     )
                 sum_seq = [x_i + y_i for x_i, y_i in zip(x, y)]
                 norm_sum = self.compute(sum_seq)
@@ -248,10 +238,8 @@ class PointEvaluationSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
 
         try:

@@ -1,7 +1,7 @@
 # core/vectors/IVectorNorm.py
 
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import Union
 
 
 class IVectorNorm(ABC):

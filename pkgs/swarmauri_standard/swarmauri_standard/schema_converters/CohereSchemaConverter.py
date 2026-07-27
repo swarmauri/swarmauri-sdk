@@ -29,7 +29,10 @@ class CohereSchemaConverter(SchemaConverterBase):
                 _type = "bool"
             else:
                 raise NotImplementedError(
-                    f"🚧 Support for missing type pending https://docs.cohere.com/docs/parameter-types-in-tool-use\n: Missing Type: {param.input_type}"
+                    "🚧 Support for missing type pending "
+                    "https://docs.cohere.com/docs/"
+                    "parameter-types-in-tool-use\n: Missing Type: "
+                    f"{param.input_type}"
                 )
             properties[param.name].update({"type": _type})
 

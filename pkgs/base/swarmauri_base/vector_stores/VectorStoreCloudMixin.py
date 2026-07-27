@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field, SecretStr
 from swarmauri_core.vector_stores.ICloudVectorStore import ICloudVectorStore
 

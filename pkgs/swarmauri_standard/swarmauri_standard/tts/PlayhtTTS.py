@@ -83,17 +83,13 @@ class PlayhtTTS(TTSBase):
 
         if model not in self.allowed_models:
             raise ValueError(
-                
-                    f"{model} voice engine not allowed. Choose from "
-                    f"{self.allowed_models}"
-                
+                f"{model} voice engine not allowed. Choose from "
+                f"{self.allowed_models}"
             )
         if voice and voice not in self.allowed_voices:
             raise ValueError(
-                
-                    f"Voice name {voice} is not allowed for this {model} voice "
-                    f"engine. Choose from {self.allowed_voices}"
-                
+                f"Voice name {voice} is not allowed for this {model} voice "
+                f"engine. Choose from {self.allowed_voices}"
             )
 
     @retry_on_status_codes((429, 529), max_retries=1)

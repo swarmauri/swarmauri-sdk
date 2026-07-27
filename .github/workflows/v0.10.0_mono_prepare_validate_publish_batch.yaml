@@ -162,7 +162,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format --check .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Ruff lint check
         run: |
@@ -171,7 +171,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Run tests for member ${{ matrix.member }}
         run: |

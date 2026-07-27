@@ -101,10 +101,8 @@ class TriangleCosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Incompatible dimensions: {x_array.shape} vs "
-                        f"{y_array.shape}"
-                    
+                    f"Incompatible dimensions: {x_array.shape} vs "
+                    f"{y_array.shape}"
                 )
 
             # Calculate norms
@@ -174,10 +172,8 @@ class TriangleCosineSimilarity(SimilarityBase):
                     # Check for compatible dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            
-                                f"Incompatible dimensions: {x_array.shape} vs "
-                                f"{y_array.shape}"
-                            
+                            f"Incompatible dimensions: {x_array.shape} vs "
+                            f"{y_array.shape}"
                         )
 
                     y_norm = np.linalg.norm(y_array)
@@ -196,8 +192,7 @@ class TriangleCosineSimilarity(SimilarityBase):
                     results.append(similarity)
                 except Exception as e:
                     logger.warning(
-                        f"Error calculating similarity for one vector: "
-                        f"{e!s}"
+                        f"Error calculating similarity for one vector: {e!s}"
                     )
                     # Append None or a default value, or re-raise based on
                     # requirements
@@ -207,10 +202,8 @@ class TriangleCosineSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                
-                    f"Error calculating multiple triangle cosine similarities: "
-                    f"{e!s}"
-                
+                f"Error calculating multiple triangle cosine similarities: "
+                f"{e!s}"
             )
             raise
 

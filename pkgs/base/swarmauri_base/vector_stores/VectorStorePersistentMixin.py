@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field
 from swarmauri_core.vector_stores.IPersistentVectorStore import (
     IPersistentVectorStore,

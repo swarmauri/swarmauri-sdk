@@ -128,10 +128,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             If the dimensions of inputs don't match
         """
         logger.debug(
-            
-                f"Computing weighted L2 inner product between {type(a)} and "
-                f"{type(b)}"
-            
+            f"Computing weighted L2 inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         # Handle callable functions (requires numerical integration)
@@ -170,11 +168,9 @@ class WeightedL2InnerProduct(InnerProductBase):
                 return complex(result)
             except Exception as e:
                 logger.error(
-                    
-                        f"Error computing inner product for callable "
-                        f"functions: "
-                        f"{e!s}"
-                    
+                    f"Error computing inner product for callable "
+                    f"functions: "
+                    f"{e!s}"
                 )
                 raise
 
@@ -210,14 +206,13 @@ class WeightedL2InnerProduct(InnerProductBase):
                 weights_array = np.array(weights)
                 if weights_array.shape != a_array.shape:
                     logger.error(
-                        f"Weight shape {weights_array.shape} doesn't match input shape {a_array.shape}"
+                        f"Weight shape {weights_array.shape} doesn't match "
+                        f"input shape {a_array.shape}"
                     )
                     raise ValueError(
-                        
-                            f"Weight shape must match input shape: "
-                            f"{weights_array.shape} "
-                            f"vs {a_array.shape}"
-                        
+                        f"Weight shape must match input shape: "
+                        f"{weights_array.shape} "
+                        f"vs {a_array.shape}"
                     )
 
             # Check positivity of weights
@@ -232,10 +227,8 @@ class WeightedL2InnerProduct(InnerProductBase):
         else:
             logger.error(f"Unsupported types: {type(a)} and {type(b)}")
             raise TypeError(
-                
-                    f"Unsupported types for WeightedL2InnerProduct: {type(a)} "
-                    f"and {type(b)}"
-                
+                f"Unsupported types for WeightedL2InnerProduct: {type(a)} "
+                f"and {type(b)}"
             )
 
     def check_conjugate_symmetry(
@@ -276,10 +269,8 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             if not is_symmetric:
                 logger.warning(
-                    
-                        f"Conjugate symmetry check failed: <a,b>={inner_ab}, "
-                        f"<b,a>*={inner_ba_conj}"
-                    
+                    f"Conjugate symmetry check failed: <a,b>={inner_ab}, "
+                    f"<b,a>*={inner_ba_conj}"
                 )
 
             return is_symmetric
@@ -319,10 +310,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -406,10 +395,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             # Check if it's real (should be for any inner product)
             if not np.isclose(inner_product.imag, 0):
                 logger.warning(
-                    
-                        f"Inner product <a,a> has non-zero imaginary part: "
-                        f"{inner_product.imag}"
-                    
+                    f"Inner product <a,a> has non-zero imaginary part: "
+                    f"{inner_product.imag}"
                 )
                 return False
 
@@ -462,11 +449,9 @@ class WeightedL2InnerProduct(InnerProductBase):
             if inner_product.imag != 0 or inner_product.real < 0:
                 logger.error(f"Invalid inner product value: {inner_product}")
                 raise ValueError(
-                    
-                        f"Inner product <a,a> must be real and non-negative, "
-                        f"got "
-                        f"{inner_product}"
-                    
+                    f"Inner product <a,a> must be real and non-negative, "
+                    f"got "
+                    f"{inner_product}"
                 )
 
             return np.sqrt(inner_product.real)

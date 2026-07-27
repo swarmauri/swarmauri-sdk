@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Mapping, Optional
+from typing import Mapping
 
 try:  # pragma: no cover - typing upgrade path
     from typing import Literal

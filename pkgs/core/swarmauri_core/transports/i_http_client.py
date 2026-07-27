@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from .i_http_response import IHttpResponse
 from .i_http_stream_response import (

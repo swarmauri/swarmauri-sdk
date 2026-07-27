@@ -6,9 +6,7 @@ from swarmauri_workflow_statedriven.state_manager import StateManager
 
 
 class SplitInputMode(InputMode):
-    """
-    If the raw data is a list, split it into individual payloads.
-    """
+    """If the raw data is a list, split it into individual payloads."""
 
     def prepare(
         self,

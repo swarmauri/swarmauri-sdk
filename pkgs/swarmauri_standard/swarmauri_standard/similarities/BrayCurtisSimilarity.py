@@ -64,11 +64,9 @@ class BrayCurtisSimilarity(SimilarityBase):
             # Check if arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    
-                        f"Input vectors must have the same shape: "
-                        f"{x_array.shape} != "
-                        f"{y_array.shape}"
-                    
+                    f"Input vectors must have the same shape: "
+                    f"{x_array.shape} != "
+                    f"{y_array.shape}"
                 )
 
             # Check for negative values
@@ -176,11 +174,9 @@ class BrayCurtisSimilarity(SimilarityBase):
                 # Check if arrays have the same shape
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        
-                            f"Input vectors must have the same shape: "
-                            f"{x_array.shape} != "
-                            f"{y_array.shape}"
-                        
+                        f"Input vectors must have the same shape: "
+                        f"{x_array.shape} != "
+                        f"{y_array.shape}"
                     )
 
                 # Check for negative values in y
@@ -205,10 +201,7 @@ class BrayCurtisSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                
-                    f"Error calculating multiple Bray-Curtis similarities: "
-                    f"{e!s}"
-                
+                f"Error calculating multiple Bray-Curtis similarities: {e!s}"
             )
             raise
 
@@ -255,9 +248,7 @@ class BrayCurtisSimilarity(SimilarityBase):
             return float(dissimilarity_value)
 
         except Exception as e:
-            logger.error(
-                f"Error calculating Bray-Curtis dissimilarity: {e!s}"
-            )
+            logger.error(f"Error calculating Bray-Curtis dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:

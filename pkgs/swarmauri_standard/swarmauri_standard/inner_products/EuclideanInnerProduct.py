@@ -58,10 +58,8 @@ class EuclideanInnerProduct(InnerProductBase):
             If inputs are not numeric arrays or vectors
         """
         logger.debug(
-            
-                f"Computing Euclidean inner product between {type(a)} and "
-                f"{type(b)}"
-            
+            f"Computing Euclidean inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         try:
@@ -86,10 +84,8 @@ class EuclideanInnerProduct(InnerProductBase):
             # Check if inputs have compatible dimensions for dot product
             if a_array.shape != b_array.shape:
                 raise ValueError(
-                    
-                        f"Input vectors must have the same shape. Got "
-                        f"{a_array.shape} and {b_array.shape}"
-                    
+                    f"Input vectors must have the same shape. Got "
+                    f"{a_array.shape} and {b_array.shape}"
                 )
 
             # Compute the dot product
@@ -136,10 +132,8 @@ class EuclideanInnerProduct(InnerProductBase):
             is_symmetric = np.isclose(ab_product, ba_product)
 
             logger.debug(
-                
-                    f"Conjugate symmetry check result: {is_symmetric} "
-                    f"(<a,b>={ab_product}, <b,a>={ba_product})"
-                
+                f"Conjugate symmetry check result: {is_symmetric} "
+                f"(<a,b>={ab_product}, <b,a>={ba_product})"
             )
             return bool(is_symmetric)
 
@@ -179,10 +173,8 @@ class EuclideanInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -193,11 +185,9 @@ class EuclideanInnerProduct(InnerProductBase):
             # Check if a1 and a2 have the same shape
             if a1_array.shape != a2_array.shape:
                 raise ValueError(
-                    
-                        f"a1 and a2 must have the same shape. Got "
-                        f"{a1_array.shape} "
-                        f"and {a2_array.shape}"
-                    
+                    f"a1 and a2 must have the same shape. Got "
+                    f"{a1_array.shape} "
+                    f"and {a2_array.shape}"
                 )
 
             # Compute left side of the equation: <alpha*a1 + beta*a2, b>
@@ -213,10 +203,8 @@ class EuclideanInnerProduct(InnerProductBase):
             is_linear = np.isclose(left_side, right_side)
 
             logger.debug(
-                
-                    f"Linearity check result: {is_linear} (left={left_side}, "
-                    f"right={right_side})"
-                
+                f"Linearity check result: {is_linear} (left={left_side}, "
+                f"right={right_side})"
             )
             return bool(is_linear)
 
@@ -258,10 +246,8 @@ class EuclideanInnerProduct(InnerProductBase):
 
             result = is_nonnegative and is_zero_iff_a_zero
             logger.debug(
-                
-                    f"Positivity check result: {result} "
-                    f"(self-product={self_product})"
-                
+                f"Positivity check result: {result} "
+                f"(self-product={self_product})"
             )
             return result
 

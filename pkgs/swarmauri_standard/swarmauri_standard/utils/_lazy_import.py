@@ -12,14 +12,14 @@ def _lazy_import(module_name, class_name):
     except ImportError:
         # If module is not available, print a warning message
         print(
-            f"Warning: The module '{module_name}' is not available. "(
-                "Please install the necessary dependencies to enable this "
-                "functionality."
-            )
+            f"Warning: The module '{module_name}' is not available. "
+            "Please install the necessary dependencies to enable this "
+            "functionality."
         )
         return None
     except AttributeError:
         print(
-            f"Warning: The class '{class_name}' was not found in module '{module_name}'."
+            f"Warning: The class '{class_name}' was not found in module "
+            f"'{module_name}'."
         )
         return None

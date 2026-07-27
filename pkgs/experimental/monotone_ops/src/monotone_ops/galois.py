@@ -33,7 +33,9 @@ class InteriorOperator(Generic[T]):
 
 @dataclass(frozen=True, slots=True)
 class GaloisConnection(Generic[C, A]):
-    """Adjunction skeleton: abstraction ``alpha`` and concretization ``gamma``."""
+    """
+    Adjunction skeleton: abstraction ``alpha`` and concretization ``gamma``.
+    """
 
     alpha: Callable[[C], A]
     gamma: Callable[[A], C]
@@ -45,13 +47,18 @@ class GaloisConnection(Generic[C, A]):
         return InteriorOperator(lambda x: self.alpha(self.gamma(x)))
 
 
-def compose_closure(a: ClosureOperator[T], b: ClosureOperator[T]) -> ClosureOperator[T]:
-    """Compose closures; iterate externally if commutation is not guaranteed."""
+def compose_closure(
+    a: ClosureOperator[T], b: ClosureOperator[T]
+) -> ClosureOperator[T]:
+    """Compose closures; iterate externally if commutation is not
+    guaranteed."""
 
     return ClosureOperator(lambda x: a(b(x)))
 
 
-def compose_interior(a: InteriorOperator[T], b: InteriorOperator[T]) -> InteriorOperator[T]:
+def compose_interior(
+    a: InteriorOperator[T], b: InteriorOperator[T]
+) -> InteriorOperator[T]:
     return InteriorOperator(lambda x: a(b(x)))
 
 
@@ -59,7 +66,9 @@ def fixed_by(op: Callable[[T], T], x: T) -> bool:
     return op(x) == x
 
 
-def Moore_closure(seed: frozenset[T], closed_sets: frozenset[frozenset[T]]) -> frozenset[T]:
+def Moore_closure(
+    seed: frozenset[T], closed_sets: frozenset[frozenset[T]]
+) -> frozenset[T]:
     """Closure as intersection of all closed sets containing ``seed``."""
 
     containing = [closed for closed in closed_sets if seed <= closed]
@@ -71,7 +80,9 @@ def Moore_closure(seed: frozenset[T], closed_sets: frozenset[frozenset[T]]) -> f
     return acc
 
 
-def Alexandrov_interior(seed: frozenset[T], open_sets: frozenset[frozenset[T]]) -> frozenset[T]:
+def Alexandrov_interior(
+    seed: frozenset[T], open_sets: frozenset[frozenset[T]]
+) -> frozenset[T]:
     """Interior as union of all open sets contained in ``seed``."""
 
     acc: frozenset[T] = frozenset()

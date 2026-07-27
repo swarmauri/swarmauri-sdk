@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Optional
 
 from swarmauri_core.tools.ITool import ITool
 

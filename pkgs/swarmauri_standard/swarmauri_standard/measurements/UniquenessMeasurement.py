@@ -64,10 +64,8 @@ class UniquenessMeasurement(MeasurementBase):
 
         else:
             raise ValueError(
-                
-                    "Unsupported data type. Please provide DataFrame, List, or "
-                    "Dict."
-                
+                "Unsupported data type. Please provide DataFrame, List, or "
+                "Dict."
             )
 
     def call(

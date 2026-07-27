@@ -117,7 +117,8 @@ class ProgramBase(IProgram, ComponentBase):
                 elif action == "add" or action == "modify":
                     if "value" not in operation:
                         raise ValueError(
-                            f"Missing 'value' for {action} operation on key {key}"
+                            f"Missing 'value' for {action} operation on key "
+                            f"{key}"
                         )
                     new_dict[key] = operation["value"]
                 else:

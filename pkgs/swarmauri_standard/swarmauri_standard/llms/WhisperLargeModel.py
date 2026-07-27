@@ -10,8 +10,10 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing WhisperLargeModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "
+    "Importing WhisperLargeModel from swarmauri.llms is deprecated and will "
+    "be "
+    "removed in a future version. Please use 'from swarmauri_standard.stt "
+    "import "
     "WhisperLargeSTT' or 'from swarmauri.stt import WhisperLargeSTT' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -98,7 +100,8 @@ class WhisperLargeModel(LLMBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', "
+                f"'translation']"
             )
 
         with open(audio_path, "rb") as audio_file:
@@ -147,7 +150,8 @@ class WhisperLargeModel(LLMBase):
         """
         if task not in ["transcription", "translation"]:
             raise ValueError(
-                f"Task {task} not supported. Choose from ['transcription', 'translation']"
+                f"Task {task} not supported. Choose from ['transcription', "
+                f"'translation']"
             )
 
         with open(audio_path, "rb") as audio_file:

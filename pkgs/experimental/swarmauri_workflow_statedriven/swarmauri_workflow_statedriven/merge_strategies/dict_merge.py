@@ -5,15 +5,14 @@ from swarmauri_workflow_statedriven.merge_strategies.base import MergeStrategy
 
 
 class DictMergeStrategy(MergeStrategy):
-    """
-    MergeStrategy that shallow‑merges a list of dicts into a single dict.
+    """MergeStrategy that shallow‑merges a list of dicts into a single dict.
+
     Later dicts override earlier keys.
     """
 
     def merge(self, inputs: List[Any]) -> Any:
-        """
-        Merge a list of branch outputs by updating a result dict with each input.
-        Only dict inputs are merged; others are ignored.
+        """Merge a list of branch outputs by updating a result dict with each
+        input. Only dict inputs are merged; others are ignored.
 
         Args:
             inputs: List of values buffered from incoming branches.

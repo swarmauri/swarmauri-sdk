@@ -642,10 +642,8 @@ class PayPalBillingProvider(
         webhook_id = self.webhook_id or secret
         if not webhook_id:
             raise ValueError(
-                
-                    "webhook_id or secret is required for PayPal webhook "
-                    "verification"
-                
+                "webhook_id or secret is required for PayPal webhook "
+                "verification"
             )
         event = json.loads(raw_body.decode("utf-8"))
         raw = self._request(

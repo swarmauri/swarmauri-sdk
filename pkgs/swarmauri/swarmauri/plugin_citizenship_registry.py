@@ -962,17 +962,20 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path in registry:
             logger.debug(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."
+                f"Resource path '{resource_path}' already exists in the "
+                f"{class_type}-class registry. Skipping registration."
             )
             return
 
@@ -980,10 +983,8 @@ class PluginCitizenshipRegistry:
         registry[resource_path] = module_path
         cls._KNOWN_GROUPS_CACHE = None
         logger.info(
-            
-                f"Added to {class_type}-class registry: {resource_path} -> "
-                f"{module_path}"
-            
+            f"Added to {class_type}-class registry: {resource_path} -> "
+            f"{module_path}"
         )
 
     @classmethod
@@ -1005,20 +1006,24 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
 
         # Remove from the specific registry
@@ -1051,10 +1056,12 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         logger.debug(f"Listing {class_type}-class registry.")
@@ -1072,7 +1079,8 @@ class PluginCitizenshipRegistry:
         module_path = cls.total_registry().get(resource_path)
         if module_path:
             logger.debug(
-                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."
+                f"Retrieved module path '{module_path}' for resource path "
+                f"'{resource_path}'."
             )
         else:
             logger.debug(
@@ -1123,29 +1131,31 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
         logger.info(
-            
-                f"Updated {class_type}-class registry entry: {resource_path} "
-                f"-> {new_module_path} (was: {old_module_path})"
-            
+            f"Updated {class_type}-class registry entry: {resource_path} "
+            f"-> {new_module_path} (was: {old_module_path})"
         )
 
     @classmethod
@@ -1187,7 +1197,8 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_first = resource_path in cls.FIRST_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."
+            f"Plugin '{entry_point.name}' is "
+            f"{'first-class' if is_first else 'not first-class'}."
         )
         return is_first
 
@@ -1202,7 +1213,8 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_second = resource_path in cls.SECOND_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."
+            f"Plugin '{entry_point.name}' is "
+            f"{'second-class' if is_second else 'not second-class'}."
         )
         return is_second
 

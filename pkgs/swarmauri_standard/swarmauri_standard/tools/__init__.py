@@ -11,9 +11,9 @@
 #     ("swarmauri_standard.tools.CalculatorTool", "CalculatorTool"),
 #     ("swarmauri_standard.tools.CodeExtractorTool", "CodeExtractorTool"),
 #     ("swarmauri_standard.tools.CodeInterpreterTool", "CodeInterpreterTool"),
-#     ("swarmauri_standard.tools.ColemanLiauIndexTool", "ColemanLiauIndexTool"),
+#     ("swarmauri_standard.tools.ColemanLiauIndexTool", "ColemanLiauIndexTool"),  # noqa: E501
 #     ("swarmauri_standard.tools.FleschKincaidTool", "FleschKincaidTool"),
-#     ("swarmauri_standard.tools.FleschReadingEaseTool", "FleschReadingEaseTool"),
+#     ("swarmauri_standard.tools.FleschReadingEaseTool", "FleschReadingEaseTool"),  # noqa: E501
 #     ("swarmauri_standard.tools.GunningFogTool", "GunningFogTool"),
 # ("swarmauri_standard.tools.ImportMemoryModuleTool",
 # "ImportMemoryModuleTool"),

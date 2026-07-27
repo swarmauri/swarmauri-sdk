@@ -23,7 +23,8 @@ class Factory(FactoryBase):
         """
         if type in self._resource_registry.get(resource, {}):
             raise ValueError(
-                f"Type '{type}' is already registered under resource '{resource}'."
+                f"Type '{type}' is already registered under resource "
+                f"'{resource}'."
             )
 
         if resource not in self._resource_registry:

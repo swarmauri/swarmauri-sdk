@@ -61,9 +61,7 @@ class OverlapCoefficientSimilarity(SimilarityBase):
                 return set(x)
             except (TypeError, ValueError) as e:
                 logger.error(f"Cannot convert input to set: {e!s}")
-                raise TypeError(
-                    f"Input must be convertible to a set: {e!s}"
-                )
+                raise TypeError(f"Input must be convertible to a set: {e!s}")
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
@@ -182,10 +180,8 @@ class OverlapCoefficientSimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                
-                    f"Error calculating multiple Overlap Coefficient "
-                    f"similarities: {e!s}"
-                
+                f"Error calculating multiple Overlap Coefficient "
+                f"similarities: {e!s}"
             )
             raise
 

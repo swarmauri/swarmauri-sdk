@@ -256,11 +256,9 @@ class GeneralLpNorm(NormBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise TypeError(
-                    
-                        "Inputs must have the same shape for triangle "
-                        "inequality "
-                        "check"
-                    
+                    "Inputs must have the same shape for triangle "
+                    "inequality "
+                    "check"
                 )
 
             # Compute norms

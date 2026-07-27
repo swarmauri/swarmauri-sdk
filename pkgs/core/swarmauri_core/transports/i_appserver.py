@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Awaitable, Dict, Tuple
+from typing import Awaitable
 
 Bytes = bytes
 Headers = dict[str, str]

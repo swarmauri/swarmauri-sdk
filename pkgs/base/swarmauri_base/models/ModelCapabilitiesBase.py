@@ -1,6 +1,5 @@
 """Concrete base representation of model capabilities."""
 
-
 from pydantic import BaseModel, ConfigDict, Field
 from swarmauri_core.models.IModelCapabilities import IModelCapabilities
 

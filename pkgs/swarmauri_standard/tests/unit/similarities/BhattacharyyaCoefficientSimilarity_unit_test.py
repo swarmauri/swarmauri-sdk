@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pytest
 
-from swarmauri_standard.similarities.BhattacharyyaCoefficientSimilarity import (
+from swarmauri_standard.similarities.BhattacharyyaCoefficientSimilarity import (  # noqa: E501
     BhattacharyyaCoefficientSimilarity,
 )
 

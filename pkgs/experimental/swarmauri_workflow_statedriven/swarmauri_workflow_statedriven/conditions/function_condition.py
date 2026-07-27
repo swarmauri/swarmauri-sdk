@@ -5,9 +5,7 @@ from swarmauri_workflow_statedriven.conditions.base import Condition
 
 
 class FunctionCondition(Condition):
-    """
-    Wraps a simple Python callable as a workflow condition.
-    """
+    """Wraps a simple Python callable as a workflow condition."""
 
     def __init__(self, fn: Callable[[Dict[str, Any]], bool]):
         """
@@ -16,7 +14,8 @@ class FunctionCondition(Condition):
         Method: __init__
 
         Args:
-            fn: A callable that takes the workflow state dict and returns True/False.
+            fn: A callable that takes the workflow state dict and returns
+            True/False.
         """
         self.fn = fn
 

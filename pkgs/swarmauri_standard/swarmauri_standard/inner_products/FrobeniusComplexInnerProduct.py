@@ -69,10 +69,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             If matrix dimensions are incompatible
         """
         logger.debug(
-            
-                f"Computing Frobenius inner product between {type(a)} and "
-                f"{type(b)}"
-            
+            f"Computing Frobenius inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         try:
@@ -83,7 +81,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             # Check if dimensions match
             if a_matrix.shape != b_matrix.shape:
                 raise ValueError(
-                    f"Matrix dimensions don't match: {a_matrix.shape} vs {b_matrix.shape}"
+                    f"Matrix dimensions don't match: {a_matrix.shape} vs "
+                    f"{b_matrix.shape}"
                 )
 
             # Compute the inner product: Tr(A* B)
@@ -174,10 +173,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -251,10 +248,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                
-                    f"<a,a> = {inner_product}, is_real: {is_real}, "
-                    f"is_nonnegative: {is_nonnegative}"
-                
+                f"<a,a> = {inner_product}, is_real: {is_real}, "
+                f"is_nonnegative: {is_nonnegative}"
             )
             logger.debug(f"Zero iff a is zero: {is_zero_iff_a_zero}")
 

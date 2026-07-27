@@ -50,7 +50,7 @@ jobs:
           MEMBER="${{ github.event.inputs.member }}"
           echo "::notice::Running Ruff format on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff format .
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format . --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Ruff lint check & fix
         run: |
@@ -58,7 +58,7 @@ jobs:
           MEMBER="${{ github.event.inputs.member }}"
           echo "::notice::Running Ruff lint check & fix on $MEMBER"
           PACKAGE_NAME=$(python -c "import toml; print(toml.load('${{ github.workspace }}/pkgs/${MEMBER}/pyproject.toml')['project']['name'])")
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active ruff check . --fix
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check . --fix --config "${{ github.workspace }}/pkgs/pyproject.toml"
 
       - name: Run tests for member
         run: |

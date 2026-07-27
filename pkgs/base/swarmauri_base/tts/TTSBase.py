@@ -13,9 +13,7 @@ from swarmauri_base.utils.allowed_models import is_model_allowed
 @ComponentBase.register_model()
 class TTSBase(ITextToSpeech, ModelBase):
     allowed_models: list[str] = []
-    resource: str | None = Field(
-        default=ResourceTypes.TTS.value, frozen=True
-    )
+    resource: str | None = Field(default=ResourceTypes.TTS.value, frozen=True)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TTSBase"] = "TTSBase"
 
@@ -25,10 +23,8 @@ class TTSBase(ITextToSpeech, ModelBase):
         allowed_models = self.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                
-                    f"Model name {name} is not allowed. Choose from "
-                    f"{allowed_models}"
-                
+                f"Model name {name} is not allowed. Choose from "
+                f"{allowed_models}"
             )
         return self
 

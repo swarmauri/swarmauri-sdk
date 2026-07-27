@@ -52,7 +52,8 @@ def test_usage():
             "Non-functional requirements include performance and scalability.",
         ],
         "System Designer": [
-            "System architecture includes client-server and microservices models.",
+            "System architecture includes client-server and microservices "
+            "models.",
             "ER diagrams are essential for database design.",
             "UML diagrams help visualize system workflows.",
             "Scalability must be a core focus of the design process.",
@@ -70,8 +71,10 @@ def test_usage():
             "Accessibility (WCAG) compliance is essential for a good UI.",
         ],
         "QA Engineer": [
-            "Test cases should cover both functional and non-functional requirements.",
-            "Integration tests validate interactions between system components.",
+            "Test cases should cover both functional and non-functional "
+            "requirements.",
+            "Integration tests validate interactions between system "
+            "components.",
             "Use tools like Selenium for automated UI testing.",
             "Load testing ensures the system handles concurrent users.",
         ],
@@ -81,27 +84,33 @@ def test_usage():
     prompt_templates = {
         "Requirements Analyst": (
             "Summarize the collected requirements as bullet points. "
-            "Conclude with a note to the System Designer on how these requirements "
+            "Conclude with a note to the System Designer on how these "
+            "requirements "
             "should be interpreted for designing the system. "
         ),
         "System Designer": (
             "Use the requirements provided to create a system architecture. "
-            "Provide a brief summary of the architecture and a note to the Backend Developer "
+            "Provide a brief summary of the architecture and a note to the "
+            "Backend Developer "
             "on how to implement it. "
         ),
         "Backend Developer": (
             "Implement backend APIs based on the provided architecture. "
-            "Summarize the API endpoints and include a note for the Frontend Developer "
+            "Summarize the API endpoints and include a note for the Frontend "
+            "Developer "
             "on how to integrate with the backend. "
         ),
         "Frontend Developer": (
-            "Develop the frontend UI based on the provided API specifications. "
-            "Summarize the UI components and include a note to the QA Engineer "
+            "Develop the frontend UI based on the provided API "
+            "specifications. "
+            "Summarize the UI components and include a note to the QA "
+            "Engineer "
             "on how to test the application."
         ),
         "QA Engineer": (
             "Test the application based on the provided frontend and backend. "
-            "Summarize the test cases and include a note to conclude the workflow."
+            "Summarize the test cases and include a note to conclude the "
+            "workflow."
         ),
     }
 
@@ -123,7 +132,8 @@ def test_usage():
             agent=rag_agents["Requirements Analyst"],
             input_mode=IdentityInputMode(),
             join_strategy=FirstJoinStrategy(),  # fire on first arrival
-            merge_strategy=ConcatMergeStrategy(),  # combine text into one string
+            # Combine text into one string.
+            merge_strategy=ConcatMergeStrategy(),
         )
 
         # 2) Design system uses full context

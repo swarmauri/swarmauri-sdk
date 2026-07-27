@@ -5,14 +5,11 @@ from typing import Any, Dict
 
 
 class Condition(ABC):
-    """
-    Base class for all transition and join conditions.
-    """
+    """Base class for all transition and join conditions."""
 
     @abstractmethod
     def evaluate(self, state: Dict[str, Any]) -> bool:
-        """
-        Evaluate this condition against the current workflow state.
+        """Evaluate this condition against the current workflow state.
 
         Args:
             state: mapping of state names to their outputs.

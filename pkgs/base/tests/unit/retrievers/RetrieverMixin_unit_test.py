@@ -1,4 +1,3 @@
-
 import pytest
 from pydantic import BaseModel
 from swarmauri_core.documents.IDocument import IDocument

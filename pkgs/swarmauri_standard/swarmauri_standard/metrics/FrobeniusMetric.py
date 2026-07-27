@@ -56,10 +56,8 @@ class FrobeniusMetric(MetricBase):
             If inputs are not matrices
         """
         logger.debug(
-            
-                f"Calculating Frobenius distance between matrices of types "
-                f"{type(x)} and {type(y)}"
-            
+            f"Calculating Frobenius distance between matrices of types "
+            f"{type(x)} and {type(y)}"
         )
 
         # Convert inputs to numpy arrays for easier processing

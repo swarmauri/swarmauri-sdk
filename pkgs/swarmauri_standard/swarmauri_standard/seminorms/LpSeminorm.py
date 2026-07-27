@@ -124,10 +124,8 @@ class LpSeminorm(SeminormBase):
             If the computation cannot be performed on the given input
         """
         logger.debug(
-            
-                f"Computing Lp seminorm with p={self.p} for input of type "
-                f"{type(x)}"
-            
+            f"Computing Lp seminorm with p={self.p} for input of type "
+            f"{type(x)}"
         )
 
         try:
@@ -176,10 +174,8 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
 
         try:
@@ -188,10 +184,8 @@ class LpSeminorm(SeminormBase):
 
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    
-                        f"Inputs must have the same shape: {x_arr.shape} vs "
-                        f"{y_arr.shape}"
-                    
+                    f"Inputs must have the same shape: {x_arr.shape} vs "
+                    f"{y_arr.shape}"
                 )
 
             # Compute the seminorm of x + y
@@ -237,10 +231,8 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
 
         try:
