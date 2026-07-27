@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Optional
 
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports import (
@@ -85,14 +84,14 @@ class UdsUnicastTransport(
         self._reader, self._writer = reader, writer
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if not self._writer:
             raise RuntimeError("not connected")
         self._writer.write(data)
         await asyncio.wait_for(self._writer.drain(), timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if not self._reader:
             raise RuntimeError("not connected")
         return await asyncio.wait_for(self._reader.read(65536), timeout)

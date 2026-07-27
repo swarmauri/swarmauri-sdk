@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import json
 import ssl
+from collections.abc import Awaitable, Callable
 from contextlib import suppress
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any
 
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
@@ -29,9 +30,9 @@ class WsJsonrpcTransport(TransportBase, RunnableMixin):
         super().__init__(name="WS-JSONRPC")
         self._server = None
         self._ws = None
-        self._handler: Optional[RpcHandler] = None
+        self._handler: RpcHandler | None = None
         self._pending: dict[JSONValue, asyncio.Future[dict[str, Any]]] = {}
-        self._receiver_task: Optional[asyncio.Task[None]] = None
+        self._receiver_task: asyncio.Task[None] | None = None
         self._send_lock = asyncio.Lock()
         self._next_id = 1
 
@@ -52,7 +53,7 @@ class WsJsonrpcTransport(TransportBase, RunnableMixin):
         self,
         host: str = "0.0.0.0",
         port: int = 8081,
-        ssl_ctx: Optional[ssl.SSLContext] = None,
+        ssl_ctx: ssl.SSLContext | None = None,
     ) -> None:
         try:
             import websockets
@@ -87,7 +88,7 @@ class WsJsonrpcTransport(TransportBase, RunnableMixin):
             self._server = None
 
     async def _open_client(
-        self, url: str, ssl_ctx: Optional[ssl.SSLContext] = None
+        self, url: str, ssl_ctx: ssl.SSLContext | None = None
     ) -> None:
         try:
             import websockets

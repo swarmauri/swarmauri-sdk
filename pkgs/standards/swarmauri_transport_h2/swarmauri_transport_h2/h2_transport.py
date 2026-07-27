@@ -1,19 +1,17 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, List, Optional, Tuple
 
 from swarmauri_base.transports.http_server_mixin import HttpServerMixin
+from swarmauri_base.transports.multiplex_mixin import ChannelHandle
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import Feature
-
 from swarmauri_transport_h2mux import H2MuxTransport
-from swarmauri_base.transports.multiplex_mixin import ChannelHandle
 
 Bytes = bytes
-Headers = Dict[str, str]
+Headers = dict[str, str]
 
 
 class H2Transport(TransportBase, RunnableMixin, HttpServerMixin):
@@ -75,7 +73,7 @@ class H2Transport(TransportBase, RunnableMixin, HttpServerMixin):
         headers: Headers | None = None,
         body: Bytes = b"",
         channel: ChannelHandle | None = None,
-    ) -> Tuple[int, Headers, Bytes]:
+    ) -> tuple[int, Headers, Bytes]:
         owned = False
         if channel is None:
             channel = await self._mux.aopen_channel()
@@ -94,9 +92,9 @@ class H2Transport(TransportBase, RunnableMixin, HttpServerMixin):
             self._mux._h2.send_data(channel, body, end_stream=True)
         await self._mux._flush()
 
-        status: Optional[int] = None
+        status: int | None = None
         response_headers: Headers = {}
-        payload: List[bytes] = []
+        payload: list[bytes] = []
 
         while True:
             if self._mux._reader is None:

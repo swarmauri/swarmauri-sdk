@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Optional
 
 from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
@@ -72,14 +71,14 @@ class TCPUnicast(
         self._writer = None
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if self._writer is None:
             raise RuntimeError("not connected")
         self._writer.write(data)
         await asyncio.wait_for(self._writer.drain(), timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if self._reader is None:
             raise RuntimeError("not connected")
         return await asyncio.wait_for(self._reader.read(65536), timeout)

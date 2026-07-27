@@ -2,8 +2,8 @@ import asyncio
 import json
 
 import pytest
-
 from swarmauri_core.transports.enums import Feature
+
 from swarmauri_transport_wsjsonrpcmux import (
     WsJsonrpcMuxTransport,
     WsJsonrpcTransport,

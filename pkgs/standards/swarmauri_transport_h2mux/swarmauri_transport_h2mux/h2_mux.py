@@ -4,7 +4,6 @@ import asyncio
 import contextlib
 import ssl
 from collections import deque
-from typing import Deque, Dict, Optional, Tuple
 
 from swarmauri_base.transports.multiplex_mixin import (
     ChannelHandle,
@@ -33,9 +32,9 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._h2 = None
-        self._streams: Dict[int, Deque[bytes]] = {}
+        self._streams: dict[int, deque[bytes]] = {}
         self._next_sid = 1
-        self._recv_wait: Tuple[int, asyncio.Future[bytes]] | None = None
+        self._recv_wait: tuple[int, asyncio.Future[bytes]] | None = None
 
     def supports(self) -> TransportCapabilities:
         schemes = {AddressScheme.HTTPS}
@@ -56,7 +55,7 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         self,
         host: str = "0.0.0.0",
         port: int = 8443,
-        ssl_ctx: Optional[ssl.SSLContext] = None,
+        ssl_ctx: ssl.SSLContext | None = None,
     ) -> None:
         if ssl_ctx:
             with contextlib.suppress(Exception):
@@ -81,8 +80,8 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         self,
         host: str = "127.0.0.1",
         port: int = 8443,
-        server_hostname: Optional[str] = None,
-        ssl_ctx: Optional[ssl.SSLContext] = None,
+        server_hostname: str | None = None,
+        ssl_ctx: ssl.SSLContext | None = None,
     ) -> None:
         if ssl_ctx:
             with contextlib.suppress(Exception):
@@ -130,7 +129,7 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         asyncio.run(self.asend_on(handle, data, timeout=timeout))
 
@@ -139,7 +138,7 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:  # type: ignore[override]
         if self._h2 is None or self._writer is None:
             raise RuntimeError("not connected")
@@ -150,7 +149,7 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         self,
         handle: ChannelHandle,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> bytes:
         return asyncio.run(self.areceive_on(handle, timeout=timeout))
 
@@ -158,7 +157,7 @@ class H2MuxTransport(TransportBase, RunnableMixin, MultiplexTransportMixin):
         self,
         handle: ChannelHandle,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> bytes:  # type: ignore[override]
         queue = self._streams.get(handle)
         if queue and queue:

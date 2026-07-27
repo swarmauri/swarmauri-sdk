@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
 
 from swarmauri_base.transports.http_server_mixin import HttpServerMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
@@ -22,7 +22,7 @@ ASGIApp = Callable[..., Awaitable[None]]
 class ASGITransport(TransportBase, RunnableMixin, HttpServerMixin):
     """In-process ASGI server transport using Uvicorn."""
 
-    def __init__(self, app: Optional[ASGIApp] = None) -> None:
+    def __init__(self, app: ASGIApp | None = None) -> None:
         super().__init__(name="ASGI")
         if app is not None:
             self.set_app(app)

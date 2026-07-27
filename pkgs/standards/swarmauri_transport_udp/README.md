@@ -47,6 +47,7 @@ rebroadcasts the payload.
 import asyncio
 from swarmauri_transport_udp import UdpTransport
 
+
 async def main():
     server = UdpTransport(bind="0.0.0.0:5000", multicast_groups=["239.1.2.3"])
 
@@ -64,6 +65,7 @@ async def main():
             print(reply.decode())
 
     await asyncio.gather(run_server(), run_client())
+
 
 asyncio.run(main())
 ```

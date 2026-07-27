@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Optional, Sequence
+from collections.abc import Sequence
 
 from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
@@ -59,14 +59,14 @@ class StdioTransport(
             self._process = None
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if self._process is None or self._process.stdin is None:
             raise RuntimeError("not connected")
         self._process.stdin.write(data)
         await asyncio.wait_for(self._process.stdin.drain(), timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if self._process is None or self._process.stdout is None:
             raise RuntimeError("not connected")
         return await asyncio.wait_for(

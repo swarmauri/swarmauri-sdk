@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import ssl
-from typing import AsyncIterator, Optional, Tuple
+from collections.abc import AsyncIterator
 
 from swarmauri_base.transports import (
     TransportBase,
@@ -23,7 +23,7 @@ from swarmauri_core.transports import (
 class TlsUnicastTransport(TransportBase):
     """TLS-secured unicast transport built on top of asyncio streams."""
 
-    def __init__(self, ssl_ctx: ssl.SSLContext, sni: Optional[str] = None):
+    def __init__(self, ssl_ctx: ssl.SSLContext, sni: str | None = None):
         super().__init__(name="TLS")
         self._ssl_ctx = ssl_ctx
         self._sni = sni
@@ -31,7 +31,7 @@ class TlsUnicastTransport(TransportBase):
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._accept_queue: asyncio.Queue[
-            Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+            tuple[asyncio.StreamReader, asyncio.StreamWriter]
         ] = asyncio.Queue()
 
     def supports(self) -> TransportCapabilities:
@@ -92,7 +92,7 @@ class TlsUnicastTransport(TransportBase):
 
     async def accept(
         self,
-    ) -> AsyncIterator[Tuple[asyncio.StreamReader, asyncio.StreamWriter]]:
+    ) -> AsyncIterator[tuple[asyncio.StreamReader, asyncio.StreamWriter]]:
         if not self._server:
             raise RuntimeError("server not started")
         while True:
@@ -101,14 +101,14 @@ class TlsUnicastTransport(TransportBase):
             yield reader, writer
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if not self._writer:
             raise RuntimeError("not connected")
         self._writer.write(data)
         await asyncio.wait_for(self._writer.drain(), timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if not self._reader:
             raise RuntimeError("not connected")
         return await asyncio.wait_for(self._reader.read(65536), timeout)
