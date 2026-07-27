@@ -237,10 +237,11 @@ class ScrollFileTool(ToolBase):
     def _read_page(
         self, file_path: Path, target_start: int, page_size: int
     ) -> tuple[list[ScrollLine], bool]:
-        preceding: deque[ScrollLine] = deque(maxlen=page_size)
+        preceding: deque[tuple[ScrollLine, int]] = deque()
         window: list[ScrollLine] = []
         has_next = False
         scanned_bytes = 0
+        preceding_bytes = 0
         returned_bytes = 0
         started_at = time.monotonic()
 
@@ -292,18 +293,28 @@ class ScrollFileTool(ToolBase):
                         "line_number": line_number,
                         "content": content,
                     }
+                    line_bytes = len(content.encode("utf-8"))
                     if line_number < target_start:
-                        preceding.append(line)
+                        preceding.append((line, line_bytes))
+                        preceding_bytes += line_bytes
+                        if len(preceding) > page_size:
+                            _, removed_bytes = preceding.popleft()
+                            preceding_bytes -= removed_bytes
+                        if preceding_bytes > self.MAX_RETURN_BYTES:
+                            raise ValueError(
+                                "File page exceeded the configured "
+                                "returned-byte limit."
+                            )
                         continue
 
                     if len(window) == page_size:
                         has_next = True
                         break
-                    returned_bytes += len(content.encode("utf-8"))
+                    returned_bytes += line_bytes
                     if returned_bytes > self.MAX_RETURN_BYTES:
                         raise ValueError(
-                            "File page exceeded the configured returned-byte "
-                            "limit."
+                            "File page exceeded the configured "
+                            "returned-byte limit."
                         )
                     window.append(line)
         finally:
@@ -311,6 +322,6 @@ class ScrollFileTool(ToolBase):
                 os.close(descriptor)
 
         if not window and preceding:
-            return list(preceding), False
+            return [line for line, _ in preceding], False
 
         return window, has_next

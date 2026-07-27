@@ -288,6 +288,19 @@ def test_enforces_scanned_and_returned_byte_budgets(
 
 
 @pytest.mark.unit
+def test_enforces_returned_byte_budget_for_beyond_eof_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "file.txt"
+    path.write_text("aa\nbb\n", encoding="utf-8")
+    monkeypatch.setattr(ScrollFileTool, "MAX_RETURN_BYTES", 3)
+
+    tool = ScrollFileTool(allowed_roots=[str(tmp_path)])
+    with pytest.raises(ValueError, match="returned-byte limit"):
+        tool(str(path), start_line=100, page_size=2)
+
+
+@pytest.mark.unit
 def test_enforces_scanned_line_budget(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
