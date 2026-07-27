@@ -1,5 +1,5 @@
 import pytest
-
+from swarmauri_base.pop import RequestContext, sha256_b64u
 from swarmauri_core.pop import (
     BindType,
     CnfBinding,
@@ -7,8 +7,6 @@ from swarmauri_core.pop import (
     PoPParseError,
     VerifyPolicy,
 )
-from swarmauri_base.pop import RequestContext, sha256_b64u
-
 from swarmauri_pop_x509 import X509PoPVerifier
 
 
