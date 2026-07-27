@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tests_component"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 description = "Pytest-generated conformance proofs for Swarmauri components."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
