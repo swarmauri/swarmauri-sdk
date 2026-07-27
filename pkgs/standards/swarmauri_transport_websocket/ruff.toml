@@ -1,4 +1,0 @@
-extend = "../../pyproject.toml"
-
-[lint]
-ignore = ["N999"]

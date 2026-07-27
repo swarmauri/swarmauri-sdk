@@ -77,3 +77,9 @@ dev = [
     "ruff>=0.9.9",
     "swarmauri_tests_pylicense",
 ]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["BLE001"]

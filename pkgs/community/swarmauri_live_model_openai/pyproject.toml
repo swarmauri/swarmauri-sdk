@@ -22,3 +22,9 @@ requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 [dependency-groups]
 dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["BLE001", "N999"]
