@@ -1,5 +1,0 @@
-extend = "../../pyproject.toml"
-
-[lint]
-# Public Swarmauri component modules intentionally use CamelCase filenames.
-ignore = ["N999"]
