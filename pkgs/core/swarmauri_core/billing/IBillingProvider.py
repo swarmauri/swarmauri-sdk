@@ -18,5 +18,5 @@ class IBillingProvider(ABC):
 
     @property
     @abstractmethod
-    def api_strategies(self) -> Tuple[Type[Any], ...]:
+    def api_strategies(self) -> tuple[type[Any], ...]:
         """Return strategy interfaces supported by the provider."""

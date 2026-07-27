@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Optional, Literal
+from typing import Literal
+
 from pydantic import Field
+from swarmauri_core.certs.ICertService import ICertService
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.certs.ICertService import ICertService
 
 
 class CertServiceBase(ICertService, ComponentBase):
     """Abstract base class for certificate services compliant with RFC 5280 and
     RFC 2986."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: Literal["CertServiceBase"] = "CertServiceBase"

@@ -7,5 +7,5 @@ from typing import Any, Optional
 class ILiveInput(ABC):
     kind: str
     payload: Any
-    mime_type: Optional[str]
-    correlation_id: Optional[str]
+    mime_type: str | None
+    correlation_id: str | None

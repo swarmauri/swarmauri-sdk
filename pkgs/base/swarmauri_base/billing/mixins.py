@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Tuple, Type
-
 from pydantic import BaseModel
 
 from .BalanceTransfersMixin import BalanceTransfersMixin
@@ -22,7 +20,7 @@ from .RiskMixin import RiskMixin
 from .SubscriptionsMixin import SubscriptionsMixin
 from .WebhooksMixin import WebhooksMixin
 
-BillingMixins: Tuple[Type[BaseModel], ...] = (
+BillingMixins: tuple[type[BaseModel], ...] = (
     ProductsPricesMixin,
     HostedCheckoutMixin,
     OnlinePaymentsMixin,

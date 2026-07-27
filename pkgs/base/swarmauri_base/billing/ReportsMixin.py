@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IReports
 from swarmauri_core.billing.protos import ReportReqProto
 

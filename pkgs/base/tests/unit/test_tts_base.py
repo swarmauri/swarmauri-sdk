@@ -1,11 +1,10 @@
 import inspect
 
 import pytest
+from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
 
 from swarmauri_base.ComponentBase import ResourceTypes
 from swarmauri_base.tts.TTSBase import TTSBase
-from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
-
 
 pytestmark = pytest.mark.unit
 

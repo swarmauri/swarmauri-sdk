@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import swarmauri_core.keys as keys
+from swarmauri_core import keys
 from swarmauri_core.key_providers import (
     ExportPolicy,
     IKeyProvider,

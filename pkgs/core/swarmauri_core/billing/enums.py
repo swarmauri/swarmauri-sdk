@@ -64,7 +64,7 @@ class Operation(str, Enum):
     CREATE_PROMOTION = "create_promotion"
 
 
-ALL_CAPABILITIES: FrozenSet[Capability] = frozenset(cap for cap in Capability)
+ALL_CAPABILITIES: frozenset[Capability] = frozenset(cap for cap in Capability)
 """Complete set of billing capabilities."""
 
 
@@ -72,7 +72,7 @@ ALL_CAPABILITIES: FrozenSet[Capability] = frozenset(cap for cap in Capability)
 # identifiers.
 # Keeping the mapping in string form avoids importing the tigrbl package as a
 # runtime dependency.
-CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
+CAPABILITY_TO_TIGRBL: dict[Capability, frozenset[str]] = {
     Capability.PRODUCTS_PRICES: frozenset({"PRICE"}),
     Capability.HOSTED_CHECKOUT: frozenset({"CHARGE"}),
     Capability.ONLINE_PAYMENTS: frozenset(
@@ -96,7 +96,7 @@ CAPABILITY_TO_TIGRBL: Dict[Capability, FrozenSet[str]] = {
 
 def capabilities_to_tigrbl(
     capabilities: Iterable[Capability],
-) -> FrozenSet[str]:
+) -> frozenset[str]:
     """Translate Swarmauri billing capabilities to tigrbl capability
     identifiers."""
 

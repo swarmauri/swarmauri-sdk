@@ -1,9 +1,11 @@
 import logging
-import pytest
 import os
+from pathlib import Path
+
+import pytest
+
 from swarmauri_standard.stt.GroqSTT import GroqSTT
 from swarmauri_standard.utils.timeout_wrapper import timeout
-from pathlib import Path
 
 # Retrieve API key from environment variable
 API_KEY = os.getenv("GROQ_API_KEY")

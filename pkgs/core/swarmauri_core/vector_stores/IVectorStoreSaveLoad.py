@@ -20,7 +20,6 @@ class IVectorStoreSaveLoad(ABC):
         - directory_path (str): The directory path where the store's state will
           be saved.
         """
-        pass
 
     @abstractmethod
     def load_store(self, directory_path: str) -> None:
@@ -33,7 +32,6 @@ class IVectorStoreSaveLoad(ABC):
         - directory_path (str): The directory path from where the store's state
           will be loaded.
         """
-        pass
 
     @abstractmethod
     def save_parts(
@@ -43,7 +41,6 @@ class IVectorStoreSaveLoad(ABC):
         Save the model in parts to handle large files by splitting them.
 
         """
-        pass
 
     @abstractmethod
     def load_parts(self, directory_path: str, file_pattern: str) -> None:
@@ -51,4 +48,3 @@ class IVectorStoreSaveLoad(ABC):
         Load and combine model parts from a directory.
 
         """
-        pass

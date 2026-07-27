@@ -1,10 +1,12 @@
 # Import necessary modules
+from typing import Any, Dict, List, Literal, Optional
+
 import httpx
-from typing import Optional, Dict, Any, Literal, List
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "JSONRequestsTool")
@@ -27,7 +29,7 @@ class JSONRequestsTool(ToolBase):
             Parameter(
                 name="method",
                 input_type="string",
-                description="The HTTP method to use ('get', 'post', 'put', 'delete').",  # noqa: E501
+                description="The HTTP method to use ('get', 'post', 'put', 'delete').",
                 required=True,
                 enum=["get", "post", "put", "delete"],
             ),
@@ -47,7 +49,7 @@ class JSONRequestsTool(ToolBase):
                 name="data",
                 input_type="object",
                 description=(
-                    "The form data to include in the request (used in POST and "  # noqa: E501
+                    "The form data to include in the request (used in POST and "
                     "PUT)."
                 ),
                 required=False,
@@ -56,7 +58,7 @@ class JSONRequestsTool(ToolBase):
                 name="json",
                 input_type="object",
                 description=(
-                    "The JSON data to include in the request (used in POST and "  # noqa: E501
+                    "The JSON data to include in the request (used in POST and "
                     "PUT)."
                 ),
                 required=False,

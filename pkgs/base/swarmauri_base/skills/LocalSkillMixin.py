@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable, List
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 from swarmauri_base.skills.FileSystemSkillMixin import FileSystemSkillMixin
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
-from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 
 class LocalSkillMixin(ISkillLoader, BaseModel):
@@ -19,9 +20,9 @@ class LocalSkillMixin(ISkillLoader, BaseModel):
     @classmethod
     def discover(
         cls, roots: Iterable[str | Path] | str | Path
-    ) -> List[SkillMetadata]:
+    ) -> list[SkillMetadata]:
         expanded_roots = cls._roots(roots)
-        discovered: List[SkillMetadata] = []
+        discovered: list[SkillMetadata] = []
         locations: dict[str, str] = {}
         for root in expanded_roots:
             if (root / "SKILL.md").is_file():
@@ -65,7 +66,7 @@ class LocalSkillMixin(ISkillLoader, BaseModel):
         )
 
     @staticmethod
-    def _roots(roots: Iterable[str | Path] | str | Path) -> List[Path]:
+    def _roots(roots: Iterable[str | Path] | str | Path) -> list[Path]:
         if isinstance(roots, (str, Path)):
             roots = [roots]
         return [Path(root).expanduser().resolve() for root in roots]

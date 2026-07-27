@@ -1,23 +1,24 @@
 """Reusable model-catalog behavior."""
 
+from collections.abc import Iterable
 from datetime import datetime, timezone
-from typing import Any, Dict, Iterable, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import Field, PrivateAttr
+from swarmauri_core.model_providers.IModelCatalog import IModelCatalog
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.model_providers.IModelCatalog import IModelCatalog
 
 
 class ModelCatalogBase(IModelCatalog, ComponentBase):
-    models: Dict[str, Any] = Field(default_factory=dict)
+    models: dict[str, Any] = Field(default_factory=dict)
     type: Literal["ModelCatalogBase"] = "ModelCatalogBase"
-    _refreshed_at: Optional[datetime] = PrivateAttr(default=None)
+    _refreshed_at: datetime | None = PrivateAttr(default=None)
 
     def list_models(self) -> Iterable[Any]:
         return list(self.models.values())
 
-    def get_model(self, name: str) -> Optional[Any]:
+    def get_model(self, name: str) -> Any | None:
         return self.models.get(name)
 
     def refresh(self) -> Iterable[Any]:
@@ -32,5 +33,5 @@ class ModelCatalogBase(IModelCatalog, ComponentBase):
         self._refreshed_at = datetime.now(timezone.utc)
 
     @property
-    def refreshed_at(self) -> Optional[datetime]:
+    def refreshed_at(self) -> datetime | None:
         return self._refreshed_at

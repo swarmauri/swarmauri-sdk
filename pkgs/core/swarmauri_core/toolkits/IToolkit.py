@@ -11,12 +11,11 @@ class IToolkit(ABC):
     """
 
     @abstractmethod
-    def add_tools(self, tools: Dict[str, ITool]) -> None:
+    def add_tools(self, tools: dict[str, ITool]) -> None:
         """
         An abstract method that should be implemented by subclasses to add
         multiple tools to the toolkit.
         """
-        pass
 
     @abstractmethod
     def add_tool(self, tool: ITool) -> None:
@@ -24,7 +23,6 @@ class IToolkit(ABC):
         An abstract method that should be implemented by subclasses to add a
         single tool to the toolkit.
         """
-        pass
 
     @abstractmethod
     def remove_tool(self, tool_name: str) -> None:
@@ -32,15 +30,13 @@ class IToolkit(ABC):
         An abstract method that should be implemented by subclasses to remove a
         tool from the toolkit by name.
         """
-        pass
 
     @abstractmethod
-    def get_tool_by_name(self, tool_name: str) -> Optional[ITool]:
+    def get_tool_by_name(self, tool_name: str) -> ITool | None:
         """
         An abstract method that should be implemented by subclasses to retrieve
         a tool from the toolkit by name.
         """
-        pass
 
     @abstractmethod
     def __len__(self) -> int:
@@ -48,4 +44,3 @@ class IToolkit(ABC):
         An abstract method that should be implemented by subclasses to return
         the number of tools in the toolkit.
         """
-        pass

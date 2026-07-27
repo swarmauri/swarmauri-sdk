@@ -54,10 +54,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         kwargs["beta"] = beta
         super().__init__(**kwargs)
         logger.info(
-            (
+            
                 f"Initialized SobolevH1InnerProduct with alpha={alpha}, "
                 f"beta={beta}"
-            )
+            
         )
 
     def compute(
@@ -160,10 +160,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
+            
                 f"H1 inner product result: {result} (L2 part: {l2_part}, "
                 f"derivative part: {derivative_part})"
-            )
+            
         )
 
         return result
@@ -224,10 +224,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
+            
                 f"H1 inner product result: {result} (L2 part: {l2_part}, "
                 f"derivative part: {derivative_part})"
-            )
+            
         )
 
         return result
@@ -284,10 +284,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
+            
                 f"H1 inner product result: {result} (L2 part: {l2_part}, "
                 f"derivative part: {derivative_part})"
-            )
+            
         )
 
         return result
@@ -329,10 +329,10 @@ class SobolevH1InnerProduct(InnerProductBase):
             is_symmetric = np.isclose(inner_ab, inner_ba)
 
         logger.debug(
-            (
+            
                 f"Conjugate symmetry check result: {is_symmetric} "
                 f"(<a,b>={inner_ab}, <b,a>={inner_ba})"
-            )
+            
         )
         return is_symmetric
 
@@ -374,10 +374,10 @@ class SobolevH1InnerProduct(InnerProductBase):
             If the inputs cannot be linearly combined
         """
         logger.debug(
-            (
+            
                 f"Checking linearity in first argument with alpha={alpha}, "
                 f"beta={beta}"
-            )
+            
         )
 
         # Compute individual inner products
@@ -429,10 +429,10 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Check if the two sides are approximately equal
         is_linear = np.isclose(left_side, right_side)
         logger.debug(
-            (
+            
                 f"Linearity check result: {is_linear} (left side: "
                 f"{left_side}, right side: {right_side})"
-            )
+            
         )
 
         return is_linear
@@ -486,10 +486,10 @@ class SobolevH1InnerProduct(InnerProductBase):
 
         is_positive = is_non_negative and is_zero_for_zero_only
         logger.debug(
-            (
+            
                 f"Positivity check result: {is_positive} (inner product: "
                 f"{inner_aa})"
-            )
+            
         )
 
         return is_positive

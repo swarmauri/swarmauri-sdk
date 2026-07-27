@@ -2,9 +2,11 @@
 
 from abc import abstractmethod
 from collections.abc import AsyncIterator, Iterator
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import ConfigDict, Field, PrivateAttr
+from swarmauri_core.agents.IRealtimeAgent import IRealtimeAgent
+from swarmauri_core.live_models.ILiveSession import ILiveSession
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.conversations.ConversationBase import ConversationBase
@@ -12,8 +14,6 @@ from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 from swarmauri_base.live_models.LiveModelBase import LiveModelBase
 from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_base.tools.ToolExecutorBase import ToolExecutorBase
-from swarmauri_core.agents.IRealtimeAgent import IRealtimeAgent
-from swarmauri_core.live_models.ILiveSession import ILiveSession
 
 from .RealtimeInputAdapterBase import RealtimeInputAdapterBase
 from .RealtimeOutputAdapterBase import RealtimeOutputAdapterBase
@@ -23,15 +23,15 @@ from .RealtimeOutputAdapterBase import RealtimeOutputAdapterBase
 class RealtimeAgentBase(IRealtimeAgent, ComponentBase):
     live_model: LiveModelBase
     config: LiveConfigBase = Field(default_factory=LiveConfigBase)
-    conversation: Optional[ConversationBase] = None
-    toolkit: Optional[ToolkitBase] = None
+    conversation: ConversationBase | None = None
+    toolkit: ToolkitBase | None = None
     tool_executor: ToolExecutorBase = Field(default_factory=ToolExecutorBase)
-    input_adapter: Optional[RealtimeInputAdapterBase] = None
-    output_adapter: Optional[RealtimeOutputAdapterBase] = None
+    input_adapter: RealtimeInputAdapterBase | None = None
+    output_adapter: RealtimeOutputAdapterBase | None = None
     resource: str = Field(default=ResourceTypes.AGENT.value, frozen=True)
     type: Literal["RealtimeAgentBase"] = "RealtimeAgentBase"
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
-    _session: Optional[ILiveSession] = PrivateAttr(default=None)
+    _session: ILiveSession | None = PrivateAttr(default=None)
 
     def connect(self, **kwargs: Any) -> ILiveSession:
         self._session = self.live_model.connect(self.config)

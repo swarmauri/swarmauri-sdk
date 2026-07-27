@@ -112,11 +112,11 @@ class PartialSumSeminorm(SeminormBase):
                 # Check if any indices are out of bounds
                 if max(self.indices) >= len(data) or min(self.indices) < 0:
                     raise ValueError(
-                        (
+                        
                             f"Indices {self.indices} out of bounds for input "
                             f"of length "
                             f"{len(data)}"
-                        )
+                        
                     )
                 return data[list(self.indices)]
             elif self.start_idx is not None and self.end_idx is not None:
@@ -132,7 +132,7 @@ class PartialSumSeminorm(SeminormBase):
                 # Use entire input if no indices or range specified
                 return data
         except Exception as e:
-            logger.error(f"Error extracting partial data: {str(e)}")
+            logger.error(f"Error extracting partial data: {e!s}")
             raise
 
     def compute(self, x: InputType) -> float:
@@ -192,7 +192,7 @@ class PartialSumSeminorm(SeminormBase):
                 raise TypeError(f"Unsupported input type: {type(x)}")
 
         except Exception as e:
-            logger.error(f"Error computing PartialSumSeminorm: {str(e)}")
+            logger.error(f"Error computing PartialSumSeminorm: {e!s}")
             raise
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -222,20 +222,20 @@ class PartialSumSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            (
+            
                 f"Checking triangle inequality for inputs of types {type(x)} "
                 f"and {type(y)}"
-            )
+            
         )
 
         try:
             # Ensure inputs are of the same type
             if type(x) is not type(y):
                 raise TypeError(
-                    (
+                    
                         f"Inputs must be of the same type, got {type(x)} and "
                         f"{type(y)}"
-                    )
+                    
                 )
 
             # Handle different input types
@@ -243,11 +243,11 @@ class PartialSumSeminorm(SeminormBase):
                 # Ensure inputs have the same length
                 if len(x) != len(y):
                     raise ValueError(
-                        (
+                        
                             f"Inputs must have the same length, got {len(x)} "
                             f"and "
                             f"{len(y)}"
-                        )
+                        
                     )
 
                 # Compute the sum of x and y
@@ -259,11 +259,11 @@ class PartialSumSeminorm(SeminormBase):
                 y_array = np.asarray(y)
                 if x_array.shape != y_array.shape:
                     raise ValueError(
-                        (
+                        
                             f"Matrices must have the same shape, got "
                             f"{x_array.shape} and "
                             f"{y_array.shape}"
-                        )
+                        
                     )
 
                 # Compute the sum of x and y
@@ -275,11 +275,11 @@ class PartialSumSeminorm(SeminormBase):
                 y_ascii = [ord(char) for char in y]
                 if len(x_ascii) != len(y_ascii):
                     raise ValueError(
-                        (
+                        
                             f"Strings must have the same length, got {len(x)} "
                             f"and "
                             f"{len(y)}"
-                        )
+                        
                     )
 
                 z = [x_ascii[i] + y_ascii[i] for i in range(len(x_ascii))]
@@ -303,7 +303,7 @@ class PartialSumSeminorm(SeminormBase):
             return norm_x_plus_y <= norm_x + norm_y + epsilon
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             raise
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
@@ -334,10 +334,10 @@ class PartialSumSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            (
+            
                 f"Checking scalar homogeneity for input of type {type(x)} "
                 f"with scalar {alpha}"
-            )
+            
         )
 
         try:
@@ -375,5 +375,5 @@ class PartialSumSeminorm(SeminormBase):
             return abs(norm_scaled_x - abs_alpha * norm_x) < epsilon
 
         except Exception as e:
-            logger.error(f"Error checking scalar homogeneity: {str(e)}")
+            logger.error(f"Error checking scalar homogeneity: {e!s}")
             raise

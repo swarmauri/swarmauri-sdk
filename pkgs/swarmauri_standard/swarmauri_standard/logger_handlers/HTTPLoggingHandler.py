@@ -1,7 +1,7 @@
 import http.client
-from logging.handlers import HTTPHandler
 import logging
 import urllib.parse
+from logging.handlers import HTTPHandler
 from typing import Dict, Literal, Optional
 
 from swarmauri_base import FullUnion
@@ -102,7 +102,7 @@ class HTTPLoggingHandler(HandlerBase):
                         headers = {
                             "Authorization": "Basic "
                             + urllib.parse.quote_plus(
-                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"  # noqa: E501
+                                f"{self.credentials.get('username', '')}:{self.credentials.get('password', '')}"
                             )
                         }
                     else:

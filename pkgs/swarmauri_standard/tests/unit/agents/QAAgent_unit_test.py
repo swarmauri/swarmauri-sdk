@@ -1,8 +1,10 @@
-import pytest
 import os
-from swarmauri_standard.llms.GroqModel import GroqModel
-from swarmauri_standard.agents.QAAgent import QAAgent
+
+import pytest
 from dotenv import load_dotenv
+
+from swarmauri_standard.agents.QAAgent import QAAgent
+from swarmauri_standard.llms.GroqModel import GroqModel
 from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 load_dotenv()

@@ -72,7 +72,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
 
             return arr
         except Exception as e:
-            logger.error(f"Error validating probability vector: {str(e)}")
+            logger.error(f"Error validating probability vector: {e!s}")
             raise
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -129,10 +129,10 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Check if dimensions match
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    (
+                    
                         f"Probability vectors must have the same shape, got "
                         f"{x_arr.shape} and {y_arr.shape}"
-                    )
+                    
                 )
 
             # Calculate Hellinger Affinity: sum of square roots of products
@@ -142,7 +142,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return float(affinity)
         except Exception as e:
             logger.error(
-                f"Error calculating Hellinger Affinity similarity: {str(e)}"
+                f"Error calculating Hellinger Affinity similarity: {e!s}"
             )
             raise
 
@@ -203,10 +203,10 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                (
+                
                     f"Error calculating multiple Hellinger Affinity "
-                    f"similarities: {str(e)}"
-                )
+                    f"similarities: {e!s}"
+                
             )
             raise
 
@@ -246,7 +246,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return 1.0 - sim
         except Exception as e:
             logger.error(
-                f"Error calculating Hellinger dissimilarity: {str(e)}"
+                f"Error calculating Hellinger dissimilarity: {e!s}"
             )
             raise
 
@@ -286,10 +286,10 @@ class HellingerAffinitySimilarity(SimilarityBase):
             return [1.0 - sim for sim in sims]
         except Exception as e:
             logger.error(
-                (
+                
                     f"Error calculating multiple Hellinger dissimilarities: "
-                    f"{str(e)}"
-                )
+                    f"{e!s}"
+                
             )
             raise
 
@@ -342,7 +342,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Check if it's approximately 1
             return abs(self_similarity - 1.0) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
+            logger.error(f"Error checking reflexivity: {e!s}")
             raise
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -379,7 +379,7 @@ class HellingerAffinitySimilarity(SimilarityBase):
             # Check if they're approximately equal
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise
 
     def check_identity_of_discernibles(
@@ -431,5 +431,5 @@ class HellingerAffinitySimilarity(SimilarityBase):
             else:
                 return similarity_value < 1.0 - 1e-10
         except Exception as e:
-            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            logger.error(f"Error checking identity of discernibles: {e!s}")
             raise

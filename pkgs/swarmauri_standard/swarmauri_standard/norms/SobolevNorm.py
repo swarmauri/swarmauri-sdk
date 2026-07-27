@@ -71,10 +71,10 @@ class SobolevNorm(NormBase):
                 self.weights[i] = 1.0
 
         logger.debug(
-            (
+            
                 f"Initialized SobolevNorm with order {self.order} and "
                 f"weights {self.weights}"
-            )
+            
         )
 
     def compute(
@@ -180,18 +180,18 @@ class SobolevNorm(NormBase):
                     d_norm = self._evaluate_function_norm(current_derivative)
                     norm_sum += self.weights[i] * d_norm**2
                     logger.debug(
-                        (
+                        
                             f"{i}th derivative contribution: "
                             f"{self.weights[i] * d_norm**2}"
-                        )
+                        
                     )
 
             # Return the square root of the weighted sum
             return np.sqrt(norm_sum)
 
         except Exception as e:
-            logger.error(f"Error computing Sobolev norm: {str(e)}")
-            raise ValueError(f"Failed to compute Sobolev norm: {str(e)}")
+            logger.error(f"Error computing Sobolev norm: {e!s}")
+            raise ValueError(f"Failed to compute Sobolev norm: {e!s}")
 
     def _evaluate_function_norm(self, func: Callable) -> float:
         """
@@ -216,8 +216,8 @@ class SobolevNorm(NormBase):
             # Compute approximate L2 norm using trapezoidal rule
             return np.sqrt(np.trapz(y_values**2, x_values))
         except Exception as e:
-            logger.error(f"Error evaluating function: {str(e)}")
-            raise ValueError(f"Failed to evaluate function norm: {str(e)}")
+            logger.error(f"Error evaluating function: {e!s}")
+            raise ValueError(f"Failed to evaluate function norm: {e!s}")
 
     def _compute_l2_norm(
         self, x: VectorType | MatrixType | SequenceType
@@ -252,8 +252,8 @@ class SobolevNorm(NormBase):
                     f"Cannot compute L2 norm for type {type(x).__name__}"
                 )
         except Exception as e:
-            logger.error(f"Error computing L2 norm: {str(e)}")
-            raise ValueError(f"Failed to compute L2 norm: {str(e)}")
+            logger.error(f"Error computing L2 norm: {e!s}")
+            raise ValueError(f"Failed to compute L2 norm: {e!s}")
 
     def check_non_negativity(
         self,
@@ -277,7 +277,7 @@ class SobolevNorm(NormBase):
             norm_value = self.compute(x)
             return norm_value >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_definiteness(
@@ -314,7 +314,7 @@ class SobolevNorm(NormBase):
             norm_value = self.compute(x)
             return norm_value > 0
         except Exception as e:
-            logger.error(f"Error checking definiteness: {str(e)}")
+            logger.error(f"Error checking definiteness: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -388,11 +388,11 @@ class SobolevNorm(NormBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        (
+                        
                             "Sequences must have the same length for triangle "
                             "inequality "
                             "check"
-                        )
+                        
                     )
                 sum_xy = [x[i] + y[i] for i in range(len(x))]
                 norm_sum = self.compute(sum_xy)
@@ -411,7 +411,7 @@ class SobolevNorm(NormBase):
             )  # Allow for numerical precision issues
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False
 
     # Fix for check_absolute_homogeneity
@@ -491,7 +491,7 @@ class SobolevNorm(NormBase):
             )  # Relative tolerance
 
         except Exception as e:
-            logger.error(f"Error checking absolute homogeneity: {str(e)}")
+            logger.error(f"Error checking absolute homogeneity: {e!s}")
             return False
 
     # Fix for _is_zero
@@ -539,5 +539,5 @@ class SobolevNorm(NormBase):
                 return x == 0
 
         except Exception as e:
-            logger.error(f"Error checking if input is zero: {str(e)}")
+            logger.error(f"Error checking if input is zero: {e!s}")
             return False

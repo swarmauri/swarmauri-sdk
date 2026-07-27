@@ -10,9 +10,9 @@ from swarmauri_base.schema_converters.SchemaConverterBase import (
     SchemaConverterBase,
 )
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_core.conversations.IConversation import IConversation
+
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
@@ -229,7 +229,7 @@ class GroqToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -261,7 +261,7 @@ class GroqToolModel(ToolLLMBase):
             response.raise_for_status()
             agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -319,7 +319,7 @@ class GroqToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -354,7 +354,7 @@ class GroqToolModel(ToolLLMBase):
                 response.raise_for_status()
                 agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -406,7 +406,7 @@ class GroqToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -513,7 +513,7 @@ class GroqToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 

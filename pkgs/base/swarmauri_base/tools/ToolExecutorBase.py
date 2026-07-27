@@ -3,13 +3,14 @@
 import asyncio
 import inspect
 import threading
+from collections.abc import Mapping
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
-from typing import Any, Dict, Mapping, Optional
+from typing import Any
 
 from pydantic import ConfigDict, Field, PrivateAttr
+from swarmauri_core.tools.IToolExecutor import IToolExecutor
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.tools.IToolExecutor import IToolExecutor
 
 from .ToolExecutionError import (
     DuplicateToolCallError,
@@ -25,7 +26,7 @@ from .ToolExecutionResult import ToolExecutionResult
 class ToolExecutorBase(IToolExecutor, ComponentBase):
     policy: ToolExecutionPolicy = Field(default_factory=ToolExecutionPolicy)
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
-    _running: Dict[str, Future[Any] | asyncio.Task[Any]] = PrivateAttr(
+    _running: dict[str, Future[Any] | asyncio.Task[Any]] = PrivateAttr(
         default_factory=dict
     )
     _running_lock: threading.RLock = PrivateAttr(
@@ -44,8 +45,8 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
         cls,
         tool: Any,
         arguments: Mapping[str, Any],
-        call_id: Optional[str],
-        context: Optional[Mapping[str, Any]],
+        call_id: str | None,
+        context: Mapping[str, Any] | None,
     ) -> ToolExecutionRequest:
         execution_context = dict(context or {})
         return ToolExecutionRequest(
@@ -64,7 +65,7 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
             correlation=dict(execution_context.get("correlation") or {}),
         )
 
-    def _register(self, call_id: Optional[str], operation: Any) -> None:
+    def _register(self, call_id: str | None, operation: Any) -> None:
         if call_id is None:
             return
         with self._running_lock:
@@ -74,7 +75,7 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 )
             self._running[call_id] = operation
 
-    def _unregister(self, call_id: Optional[str], operation: Any) -> None:
+    def _unregister(self, call_id: str | None, operation: Any) -> None:
         if call_id is None:
             return
         with self._running_lock:
@@ -131,9 +132,9 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
         tool: Any,
         arguments: Mapping[str, Any],
         *,
-        call_id: Optional[str] = None,
-        timeout: Optional[float] = None,
-        context: Optional[Mapping[str, Any]] = None,
+        call_id: str | None = None,
+        timeout: float | None = None,
+        context: Mapping[str, Any] | None = None,
     ) -> ToolExecutionResult:
         request = self._request(tool, arguments, call_id, context)
         try:
@@ -195,9 +196,9 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
         tool: Any,
         arguments: Mapping[str, Any],
         *,
-        call_id: Optional[str] = None,
-        timeout: Optional[float] = None,
-        context: Optional[Mapping[str, Any]] = None,
+        call_id: str | None = None,
+        timeout: float | None = None,
+        context: Mapping[str, Any] | None = None,
     ) -> ToolExecutionResult:
         request = self._request(tool, arguments, call_id, context)
         try:

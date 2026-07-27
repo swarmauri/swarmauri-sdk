@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, Tuple
-
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
@@ -11,8 +9,8 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 
 def load_pem_private_key_and_chain(
     pem_bytes: bytes,
-    password: Optional[bytes],
-) -> Tuple[object, List[x509.Certificate]]:
+    password: bytes | None,
+) -> tuple[object, list[x509.Certificate]]:
     """Load a PEM private key and return it with any provided certificate
     chain."""
 
@@ -24,8 +22,8 @@ def load_pem_private_key_and_chain(
 
 def load_der_private_key_and_chain(
     der_bytes: bytes,
-    password: Optional[bytes],
-) -> Tuple[object, List[x509.Certificate]]:
+    password: bytes | None,
+) -> tuple[object, list[x509.Certificate]]:
     """Load a DER private key and associated chain if available."""
 
     private_key = serialization.load_der_private_key(
@@ -36,14 +34,14 @@ def load_der_private_key_and_chain(
 
 def load_pfx_key_and_chain(
     pfx_bytes: bytes,
-    password: Optional[bytes],
-) -> Tuple[object, List[x509.Certificate]]:
+    password: bytes | None,
+) -> tuple[object, list[x509.Certificate]]:
     """Load a PKCS#12 archive returning the key and certificate chain."""
 
     private_key, cert, extra = pkcs12.load_key_and_certificates(
         pfx_bytes, password=password
     )
-    chain: List[x509.Certificate] = []
+    chain: list[x509.Certificate] = []
     if cert is not None:
         chain.append(cert)
     if extra:
@@ -54,7 +52,7 @@ def load_pfx_key_and_chain(
 
 
 __all__ = [
-    "load_pem_private_key_and_chain",
     "load_der_private_key_and_chain",
+    "load_pem_private_key_and_chain",
     "load_pfx_key_and_chain",
 ]

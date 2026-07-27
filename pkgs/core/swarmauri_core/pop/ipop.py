@@ -30,7 +30,7 @@ class VerifyPolicy:
     alg_allow: Iterable[str] = ()
     max_skew_s: int = 300
     require_ath: bool = False
-    require_bind: Optional[BindType] = None
+    require_bind: BindType | None = None
     htu_exact: bool = False
 
 

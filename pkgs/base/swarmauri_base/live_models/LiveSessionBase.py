@@ -7,10 +7,10 @@ from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import ConfigDict, Field, PrivateAttr
-
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.live_models.ILiveInput import ILiveInput
 from swarmauri_core.live_models.ILiveSession import ILiveSession
+
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .LiveEventBase import LiveEventBase
 from .LiveSessionState import LiveSessionState
@@ -106,5 +106,5 @@ class LiveSessionBase(ILiveSession, ComponentBase):
     async def __aenter__(self) -> "LiveSessionBase":
         return self
 
-    async def __aexit__(self, *_: Any) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.aclose()

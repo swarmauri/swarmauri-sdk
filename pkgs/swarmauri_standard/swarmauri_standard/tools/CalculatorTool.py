@@ -13,11 +13,13 @@ taking two numerical operands as input and returning the result of the
 specified operation.
 """
 
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "CalculatorTool")
@@ -106,4 +108,4 @@ class CalculatorTool(ToolBase):
                 return {"error": "Error: Unknown operation."}
             return {"operation": operation, "calculated_result": str(result)}
         except Exception as e:
-            return {"error": f"An error occurred: {str(e)}"}
+            return {"error": f"An error occurred: {e!s}"}

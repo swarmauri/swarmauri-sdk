@@ -3,8 +3,9 @@ import os
 import platform
 import sys
 from datetime import datetime
-from IPython import get_ipython
 from urllib.parse import unquote
+
+from IPython import get_ipython
 
 try:
     import tomllib
@@ -91,7 +92,7 @@ def get_notebook_name():
                 if clean_name:
                     return clean_name
     except Exception as e:
-        print(f"Error getting notebook name: {str(e)}")
+        print(f"Error getting notebook name: {e!s}")
         return None
 
 

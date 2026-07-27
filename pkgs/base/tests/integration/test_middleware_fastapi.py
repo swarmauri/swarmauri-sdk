@@ -1,9 +1,9 @@
 import pytest
 from fastapi import FastAPI, Request
 from httpx import ASGITransport, AsyncClient
+from swarmauri_core.middlewares.IMiddleware import ASGIApp, Message, Scope
 
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
-from swarmauri_core.middlewares.IMiddleware import ASGIApp, Message, Scope
 
 
 class TrackingMiddleware(MiddlewareBase):

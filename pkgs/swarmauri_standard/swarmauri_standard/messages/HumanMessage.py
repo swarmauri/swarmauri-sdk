@@ -1,10 +1,11 @@
-from typing import Optional, Literal, List, Union, Dict
+from typing import Dict, List, Literal, Optional, Union
+
 from pydantic import Field, field_validator
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from typing_extensions import TypedDict
 
-from swarmauri_standard.utils.base64_encoder import is_url, encode_file
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.utils.base64_encoder import encode_file, is_url
 
 
 # Define specific content types

@@ -6,24 +6,25 @@ concrete providers only need to implement what they support.
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Literal, Optional, Tuple
+from collections.abc import Iterable
+from typing import Literal
 
 from pydantic import Field
-
 from swarmauri_core.crypto.ICrypto import ICrypto
 from swarmauri_core.crypto.types import AEADCiphertext, Alg, KeyRef, WrappedKey
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
 class CryptoBase(ICrypto, ComponentBase):
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: Literal["CryptoBase"] = "CryptoBase"
 
     # ─────────────────────────── capabilities ───────────────────────────
-    def supports(self) -> Dict[str, Iterable[Alg]]:
+    def supports(self) -> dict[str, Iterable[Alg]]:
         raise NotImplementedError("supports() must be implemented by subclass")
 
     # ─────────────────────────── symmetric AEAD ─────────────────────────
@@ -32,9 +33,9 @@ class CryptoBase(ICrypto, ComponentBase):
         key: KeyRef,
         pt: bytes,
         *,
-        alg: Optional[Alg] = None,
-        aad: Optional[bytes] = None,
-        nonce: Optional[bytes] = None,
+        alg: Alg | None = None,
+        aad: bytes | None = None,
+        nonce: bytes | None = None,
     ) -> AEADCiphertext:
         raise NotImplementedError("encrypt() must be implemented by subclass")
 
@@ -43,7 +44,7 @@ class CryptoBase(ICrypto, ComponentBase):
         key: KeyRef,
         ct: AEADCiphertext,
         *,
-        aad: Optional[bytes] = None,
+        aad: bytes | None = None,
     ) -> bytes:
         raise NotImplementedError("decrypt() must be implemented by subclass")
 
@@ -52,9 +53,9 @@ class CryptoBase(ICrypto, ComponentBase):
         self,
         kek: KeyRef,
         *,
-        dek: Optional[bytes] = None,
-        wrap_alg: Optional[Alg] = None,
-        nonce: Optional[bytes] = None,
+        dek: bytes | None = None,
+        wrap_alg: Alg | None = None,
+        nonce: bytes | None = None,
     ) -> WrappedKey:
         raise NotImplementedError("wrap() must be implemented by subclass")
 
@@ -67,7 +68,7 @@ class CryptoBase(ICrypto, ComponentBase):
         recipient: KeyRef,
         pt: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         raise NotImplementedError("seal() must be implemented by subclass")
 
@@ -76,7 +77,7 @@ class CryptoBase(ICrypto, ComponentBase):
         recipient_priv: KeyRef,
         sealed: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         raise NotImplementedError("unseal() must be implemented by subclass")
 
@@ -85,8 +86,8 @@ class CryptoBase(ICrypto, ComponentBase):
         self,
         recipient: KeyRef,
         *,
-        alg: Optional[Alg] = None,
-    ) -> Tuple[bytes, bytes]:
+        alg: Alg | None = None,
+    ) -> tuple[bytes, bytes]:
         raise NotImplementedError("encaps() must be implemented by subclass")
 
     async def decaps(
@@ -94,6 +95,6 @@ class CryptoBase(ICrypto, ComponentBase):
         recipient_priv: KeyRef,
         encapsulated_key: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         raise NotImplementedError("decaps() must be implemented by subclass")

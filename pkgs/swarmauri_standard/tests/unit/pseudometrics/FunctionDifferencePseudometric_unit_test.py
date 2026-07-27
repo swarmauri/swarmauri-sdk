@@ -8,7 +8,6 @@ from swarmauri_standard.pseudometrics.FunctionDifferencePseudometric import (
     FunctionDifferencePseudometric,
 )
 
-
 # Configure logging for tests
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

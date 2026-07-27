@@ -30,7 +30,6 @@ class IEvaluatorPool(ABC):
         Raises:
             RuntimeError: If initialization fails
         """
-        pass
 
     @abstractmethod
     def shutdown(self) -> None:
@@ -43,11 +42,10 @@ class IEvaluatorPool(ABC):
         Raises:
             RuntimeError: If shutdown fails
         """
-        pass
 
     @abstractmethod
     def add_evaluator(
-        self, evaluator: IEvaluate, name: Optional[str] = None
+        self, evaluator: IEvaluate, name: str | None = None
     ) -> str:
         """
         Add an evaluator to the pool.
@@ -64,7 +62,6 @@ class IEvaluatorPool(ABC):
             ValueError: If an evaluator with the same name already exists
             TypeError: If the evaluator doesn't implement IEvaluate
         """
-        pass
 
     @abstractmethod
     def remove_evaluator(self, name: str) -> bool:
@@ -77,7 +74,6 @@ class IEvaluatorPool(ABC):
         Returns:
             True if the evaluator was removed, False if it wasn't found
         """
-        pass
 
     @abstractmethod
     def evaluate(
@@ -99,7 +95,6 @@ class IEvaluatorPool(ABC):
         Raises:
             RuntimeError: If evaluation fails
         """
-        pass
 
     @abstractmethod
     async def evaluate_async(
@@ -121,7 +116,6 @@ class IEvaluatorPool(ABC):
         Raises:
             RuntimeError: If evaluation fails
         """
-        pass
 
     @abstractmethod
     def aggregate(self, scores: Sequence[float]) -> float:
@@ -141,7 +135,6 @@ class IEvaluatorPool(ABC):
         Raises:
             ValueError: If scores is empty or contains invalid values
         """
-        pass
 
     @abstractmethod
     def set_aggregation_function(
@@ -157,10 +150,9 @@ class IEvaluatorPool(ABC):
         Raises:
             TypeError: If func is not callable or has an invalid signature
         """
-        pass
 
     @abstractmethod
-    def get_evaluator(self, name: str) -> Optional[IEvaluate]:
+    def get_evaluator(self, name: str) -> IEvaluate | None:
         """
         Get an evaluator by name.
 
@@ -170,17 +162,15 @@ class IEvaluatorPool(ABC):
         Returns:
             The evaluator if found, None otherwise
         """
-        pass
 
     @abstractmethod
-    def get_evaluator_names(self) -> List[str]:
+    def get_evaluator_names(self) -> list[str]:
         """
         Get the names of all registered evaluators.
 
         Returns:
             A list of evaluator names
         """
-        pass
 
     @abstractmethod
     def get_evaluator_count(self) -> int:
@@ -190,4 +180,3 @@ class IEvaluatorPool(ABC):
         Returns:
             The count of evaluators in the pool
         """
-        pass

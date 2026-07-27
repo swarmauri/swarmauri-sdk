@@ -7,13 +7,13 @@ provider module is imported only when the corresponding shim is requested.
 from importlib import import_module
 
 __all__ = [
+    "AnthropicVLM",
     "FalVLM",
+    "GeminiVLM",
     "GroqVLM",
     "HyperbolicVLM",
-    "OpenAIVLM",
-    "GeminiVLM",
-    "AnthropicVLM",
     "MistralVLM",
+    "OpenAIVLM",
 ]
 
 

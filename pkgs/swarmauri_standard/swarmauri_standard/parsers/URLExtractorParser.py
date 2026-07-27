@@ -1,8 +1,10 @@
 import re
-from typing import List, Any, Literal
-from swarmauri_standard.documents.Document import Document
-from swarmauri_base.parsers.ParserBase import ParserBase
+from typing import Any, List, Literal
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.parsers.ParserBase import ParserBase
+
+from swarmauri_standard.documents.Document import Document
 
 
 @ComponentBase.register_type(ParserBase, "URLExtractorParser")

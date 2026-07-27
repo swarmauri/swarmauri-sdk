@@ -1,17 +1,17 @@
-from abc import ABC, abstractmethod
-from typing import List, Tuple, Callable, Sequence, Union, TypeVar
 import logging
+from abc import ABC, abstractmethod
+from typing import Callable, List, Sequence, Tuple, TypeVar, Union
 
-from swarmauri_core.vectors.IVector import IVector
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 # Set up logger
 logger = logging.getLogger(__name__)
 
 # Type variables
 T = TypeVar("T", bound=Union[float, int])
-VectorLike = Union[IVector, List[T], Tuple[T, ...]]
-MatrixLike = Union[IMatrix, List[List[T]], Tuple[Tuple[T, ...], ...]]
+VectorLike = Union[IVector, list[T], tuple[T, ...]]
+MatrixLike = Union[IMatrix, list[list[T]], tuple[tuple[T, ...], ...]]
 SequenceLike = Union[Sequence[T], str]
 ComparableType = Union[VectorLike, MatrixLike, SequenceLike, Callable]
 
@@ -53,12 +53,11 @@ class ISimilarity(ABC):
         TypeError
             If the input types are not supported
         """
-        pass
 
     @abstractmethod
     def similarities(
         self, x: ComparableType, ys: Sequence[ComparableType]
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Calculate similarities between one object and multiple other objects.
 
@@ -81,7 +80,6 @@ class ISimilarity(ABC):
         TypeError
             If any input types are not supported
         """
-        pass
 
     @abstractmethod
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -107,12 +105,11 @@ class ISimilarity(ABC):
         TypeError
             If the input types are not supported
         """
-        pass
 
     @abstractmethod
     def dissimilarities(
         self, x: ComparableType, ys: Sequence[ComparableType]
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Calculate dissimilarities between one object and multiple other
         objects.
@@ -136,7 +133,6 @@ class ISimilarity(ABC):
         TypeError
             If any input types are not supported
         """
-        pass
 
     @abstractmethod
     def check_bounded(self) -> bool:
@@ -151,7 +147,6 @@ class ISimilarity(ABC):
         bool
             True if the similarity measure is bounded, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_reflexivity(self, x: ComparableType) -> bool:
@@ -173,7 +168,6 @@ class ISimilarity(ABC):
         TypeError
             If the input type is not supported
         """
-        pass
 
     @abstractmethod
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -199,7 +193,6 @@ class ISimilarity(ABC):
         TypeError
             If the input types are not supported
         """
-        pass
 
     @abstractmethod
     def check_identity_of_discernibles(
@@ -229,4 +222,3 @@ class ISimilarity(ABC):
         TypeError
             If the input types are not supported
         """
-        pass

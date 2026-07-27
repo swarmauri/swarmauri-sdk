@@ -22,8 +22,8 @@ class IPoPSigner(ABC):
         method: str,
         url: str,
         *,
-        kid: Optional[bytes] = None,
-        jti: Optional[str] = None,
-        ath_b64u: Optional[str] = None,
+        kid: bytes | None = None,
+        jti: str | None = None,
+        ath_b64u: str | None = None,
         extra_claims: Mapping[str, object] | None = None,
     ) -> str: ...

@@ -1,11 +1,11 @@
 import logging
-import pytest
 import os
+from pathlib import Path
 
-from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
+import pytest
 from dotenv import load_dotenv
 
-from pathlib import Path
+from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
 
 load_dotenv()
 

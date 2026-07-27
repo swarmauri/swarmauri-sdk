@@ -1,13 +1,12 @@
-from queue import Queue
-from typing import Callable, Dict, Any, List, Literal
 import logging
+from queue import Queue
+from typing import Any, Callable, Dict, List, Literal
 
 from pydantic import PrivateAttr
-
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.task_mgmt_strategies.TaskMgmtStrategyBase import (
     TaskMgmtStrategyBase,
 )
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(TaskMgmtStrategyBase, "RoundRobinStrategy")

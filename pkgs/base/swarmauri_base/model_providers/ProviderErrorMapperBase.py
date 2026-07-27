@@ -2,10 +2,11 @@
 
 from typing import Any, Literal
 
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.model_providers.IProviderErrorMapper import (
     IProviderErrorMapper,
 )
+
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 class ProviderErrorMapperBase(IProviderErrorMapper, ComponentBase):

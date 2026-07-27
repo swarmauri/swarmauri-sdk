@@ -1,8 +1,10 @@
-import pytest
-import os
 import base64
+import os
+
 import httpx
+import pytest
 from dotenv import load_dotenv
+
 from swarmauri_standard.utils.base64_to_img_url import base64_to_img_url
 
 # Load environment variables

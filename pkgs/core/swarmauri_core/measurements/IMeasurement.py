@@ -1,5 +1,5 @@
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class IMeasurement(ABC):
@@ -17,4 +17,3 @@ class IMeasurement(ABC):
         Returns:
             The current value of the measurement.
         """
-        pass

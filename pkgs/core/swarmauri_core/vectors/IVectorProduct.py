@@ -10,7 +10,7 @@ class IVectorProduct(ABC):
 
     @abstractmethod
     def dot_product(
-        self, vector_a: List[float], vector_b: List[float]
+        self, vector_a: list[float], vector_b: list[float]
     ) -> float:
         """
         Calculate the dot product of two vectors.
@@ -22,12 +22,11 @@ class IVectorProduct(ABC):
         Returns:
         - float: The dot product of the two vectors.
         """
-        pass
 
     @abstractmethod
     def cross_product(
-        self, vector_a: List[float], vector_b: List[float]
-    ) -> List[float]:
+        self, vector_a: list[float], vector_b: list[float]
+    ) -> list[float]:
         """
         Calculate the cross product of two vectors.
 
@@ -38,15 +37,14 @@ class IVectorProduct(ABC):
         Returns:
         - List[float]: The cross product as a new vector.
         """
-        pass
 
     @abstractmethod
     def vector_triple_product(
         self,
-        vector_a: List[float],
-        vector_b: List[float],
-        vector_c: List[float],
-    ) -> List[float]:
+        vector_a: list[float],
+        vector_b: list[float],
+        vector_c: list[float],
+    ) -> list[float]:
         """
         Calculate the vector triple product of three vectors.
 
@@ -58,14 +56,13 @@ class IVectorProduct(ABC):
         Returns:
         - List[float]: The result of the vector triple product as a new vector.
         """
-        pass
 
     @abstractmethod
     def scalar_triple_product(
         self,
-        vector_a: List[float],
-        vector_b: List[float],
-        vector_c: List[float],
+        vector_a: list[float],
+        vector_b: list[float],
+        vector_c: list[float],
     ) -> float:
         """
         Calculate the scalar triple product of three vectors.
@@ -78,4 +75,3 @@ class IVectorProduct(ABC):
         Returns:
         - float: The scalar value result of the scalar triple product.
         """
-        pass

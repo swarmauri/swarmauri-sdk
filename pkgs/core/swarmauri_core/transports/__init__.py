@@ -1,6 +1,5 @@
 """Transport interfaces and shared exports for Swarmauri core."""
 
-from .ITransport import ITransport
 from .capabilities import TransportCapabilities
 from .enums import (
     AddressScheme,
@@ -31,6 +30,7 @@ from .i_unicast import IUnicastTransport
 from .i_websocket_client import IWebSocketClient
 from .i_websocket_connection import IWebSocketConnection, WebSocketMessage
 from .i_websocket_multiplex import IWebSocketMultiplexConnection
+from .ITransport import ITransport
 
 __all__ = [
     "AddressScheme",

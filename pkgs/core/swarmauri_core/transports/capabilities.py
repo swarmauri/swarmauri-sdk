@@ -19,9 +19,9 @@ from .enums import (
 class TransportCapabilities:
     """Advertised properties for a transport implementation."""
 
-    protocols: FrozenSet[Protocol]
+    protocols: frozenset[Protocol]
     io: IOModel
-    casts: FrozenSet[Cast]
-    features: FrozenSet[Feature]
+    casts: frozenset[Cast]
+    features: frozenset[Feature]
     security: SecurityMode
-    schemes: FrozenSet[AddressScheme]
+    schemes: frozenset[AddressScheme]

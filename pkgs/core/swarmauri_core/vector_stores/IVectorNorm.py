@@ -11,7 +11,7 @@ class IVectorNorm(ABC):
     """
 
     @abstractmethod
-    def l1_norm(self, vector: List[Union[int, float]]) -> float:
+    def l1_norm(self, vector: list[Union[int, float]]) -> float:
         """
         Calculate the L1 norm (Manhattan norm) of a vector.
 
@@ -22,10 +22,9 @@ class IVectorNorm(ABC):
         Returns:
         - float: The L1 norm of the vector.
         """
-        pass
 
     @abstractmethod
-    def l2_norm(self, vector: List[Union[int, float]]) -> float:
+    def l2_norm(self, vector: list[Union[int, float]]) -> float:
         """
         Calculate the L2 norm (Euclidean norm) of a vector.
 
@@ -36,10 +35,9 @@ class IVectorNorm(ABC):
         Returns:
         - float: The L2 norm of the vector.
         """
-        pass
 
     @abstractmethod
-    def max_norm(self, vector: List[Union[int, float]]) -> float:
+    def max_norm(self, vector: list[Union[int, float]]) -> float:
         """
         Calculate the Max norm (infinity norm) of a vector.
 
@@ -50,4 +48,3 @@ class IVectorNorm(ABC):
         Returns:
         - float: The Max norm of the vector.
         """
-        pass

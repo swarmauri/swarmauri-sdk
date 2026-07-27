@@ -10,7 +10,7 @@ WebSocketMessage: TypeAlias = str | bytes
 class IWebSocketConnection(ABC):
     connection_id: str
     state: str
-    subprotocol: Optional[str]
+    subprotocol: str | None
 
     @abstractmethod
     def send(self, message: WebSocketMessage) -> None: ...

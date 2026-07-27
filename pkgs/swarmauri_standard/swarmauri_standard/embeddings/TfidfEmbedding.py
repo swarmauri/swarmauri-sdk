@@ -1,12 +1,13 @@
-from typing import List, Literal
-import joblib
 import math
 from collections import Counter, defaultdict
-from pydantic import PrivateAttr
+from typing import List, Literal
 
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
-from swarmauri_standard.vectors.Vector import Vector
+import joblib
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
+
+from swarmauri_standard.vectors.Vector import Vector
 
 
 @ComponentBase.register_type(EmbeddingBase, "TfidfEmbedding")

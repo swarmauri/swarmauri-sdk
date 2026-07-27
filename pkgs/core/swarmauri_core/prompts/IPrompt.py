@@ -18,4 +18,3 @@ class IPrompt(ABC):
         of the prompt when called.
 
         """
-        pass

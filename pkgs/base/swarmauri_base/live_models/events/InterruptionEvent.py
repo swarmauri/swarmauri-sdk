@@ -1,9 +1,9 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from swarmauri_base.live_models.LiveEventBase import LiveEventBase
 
 
 class InterruptionEvent(LiveEventBase):
     kind: Literal["interruption"] = "interruption"
-    reason: Optional[str] = None
+    reason: str | None = None
     type: Literal["InterruptionEvent"] = "InterruptionEvent"

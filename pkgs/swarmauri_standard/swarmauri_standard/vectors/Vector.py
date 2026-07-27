@@ -1,6 +1,7 @@
 from typing import Literal
-from swarmauri_base.vectors.VectorBase import VectorBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.vectors.VectorBase import VectorBase
 
 
 @ComponentBase.register_type(VectorBase, "Vector")

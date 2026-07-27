@@ -1,13 +1,6 @@
 import asyncio
 
 import pytest
-
-from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.transports import (
-    CapabilityError,
-    TransportBase,
-    _require_caps,
-)
 from swarmauri_core.transports import (
     AddressScheme,
     Cast,
@@ -18,6 +11,13 @@ from swarmauri_core.transports import (
     TransportCapabilities,
 )
 from swarmauri_core.transports.ITransport import ITransport
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.transports import (
+    CapabilityError,
+    TransportBase,
+    _require_caps,
+)
 
 
 def test_transport_base_inheritance_contract() -> None:
@@ -42,16 +42,16 @@ class DummyTransport(TransportBase):
             schemes=frozenset({AddressScheme.UDP}),
         )
 
-    async def _start_server(self, **bind_kwargs: object) -> None:  # noqa: D401, ANN001
+    async def _start_server(self, **bind_kwargs: object) -> None:
         self.started.append(dict(bind_kwargs))
 
-    async def _stop_server(self) -> None:  # noqa: D401
+    async def _stop_server(self) -> None:
         self.stopped += 1
 
-    async def _open_client(self, **connect_kwargs: object) -> None:  # noqa: D401, ANN001
+    async def _open_client(self, **connect_kwargs: object) -> None:
         self.opened.append(dict(connect_kwargs))
 
-    async def _close_client(self) -> None:  # noqa: D401
+    async def _close_client(self) -> None:
         self.closed += 1
 
 

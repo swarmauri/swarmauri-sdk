@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.tools.FleschKincaidTool import (
     FleschKincaidTool as Tool,
 )
@@ -71,8 +72,8 @@ def test_call():
     )
 
     assert result.get("reading_ease") == expected_reading_ease, (
-        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"  # noqa: E501
+        f"Expected Reading Ease value is {expected_reading_ease}, but got {result.get('reading_ease')}"
     )
     assert result.get("grade_level") == expected_grade_level, (
-        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"  # noqa: E501
+        f"Expected Grade Level value is {expected_grade_level}, but got {result.get('grade_level')}"
     )

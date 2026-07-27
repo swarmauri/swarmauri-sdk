@@ -1,11 +1,13 @@
+import importlib
 import sys
 import types
-import importlib
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "ImportMemoryModuleTool")
@@ -29,7 +31,7 @@ class ImportMemoryModuleTool(ToolBase):
                 name="package_path",
                 input_type="string",
                 description=(
-                    "Dot-separated package path where the new module should be "  # noqa: E501
+                    "Dot-separated package path where the new module should be "
                     "inserted."
                 ),
                 required=True,

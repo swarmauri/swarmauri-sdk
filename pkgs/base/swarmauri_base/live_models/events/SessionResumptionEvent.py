@@ -1,10 +1,10 @@
-from typing import Literal, Optional
+from typing import Literal
 
 from swarmauri_base.live_models.LiveEventBase import LiveEventBase
 
 
 class SessionResumptionEvent(LiveEventBase):
     kind: Literal["session_resumption"] = "session_resumption"
-    token: Optional[str] = None
+    token: str | None = None
     resumable: bool = False
     type: Literal["SessionResumptionEvent"] = "SessionResumptionEvent"

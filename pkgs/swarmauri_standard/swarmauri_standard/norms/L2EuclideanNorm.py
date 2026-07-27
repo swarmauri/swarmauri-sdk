@@ -82,10 +82,10 @@ class L2EuclideanNorm(NormBase):
             except (TypeError, ValueError) as e:
                 logger.error(f"Failed to compute L2 norm for sequence: {e}")
                 raise ValueError(
-                    (
-                        f"Cannot compute L2 norm for sequence with non-numeric "  # noqa: E501
+                    
+                        f"Cannot compute L2 norm for sequence with non-numeric "
                         f"elements: {e}"
-                    )
+                    
                 )
         elif isinstance(x, str):
             # For strings - use ASCII/Unicode values
@@ -173,20 +173,20 @@ class L2EuclideanNorm(NormBase):
                     is_zero = len(x) == 0
                 else:
                     logger.warning(
-                        (
+                        
                             f"Definiteness check not fully implemented for "
                             f"type "
                             f"{type(x)}"
-                        )
+                        
                     )
                     return False
 
                 logger.debug(
-                    (
+                    
                         f"Checking definiteness: norm = {norm_value}, all "
                         f"elements "
                         f"zero: {is_zero}"
-                    )
+                    
                 )
                 return is_zero
             else:
@@ -229,10 +229,10 @@ class L2EuclideanNorm(NormBase):
             # Check if inputs are of the same type
             if type(x) is not type(y):
                 raise TypeError(
-                    (
+                    
                         f"Inputs must be of the same type, got {type(x)} and "
                         f"{type(y)}"
-                    )
+                    
                 )
 
             # Compute norms
@@ -275,10 +275,10 @@ class L2EuclideanNorm(NormBase):
                 norm_z <= norm_x + norm_y + 1e-10
             )  # Adding small epsilon for floating-point comparison
             logger.debug(
-                (
+                
                     f"Triangle inequality check: norm(x+y)={norm_z}, "
                     f"norm(x)+norm(y)={norm_x + norm_y}, result={result}"
-                )
+                
             )
             return result
 
@@ -339,10 +339,10 @@ class L2EuclideanNorm(NormBase):
                 scaled_x = x * scalar
             else:
                 raise TypeError(
-                    (
+                    
                         f"Absolute homogeneity check not supported for type "
                         f"{type(x)}"
-                    )
+                    
                 )
 
             # Compute the norm of the scaled input
@@ -355,10 +355,10 @@ class L2EuclideanNorm(NormBase):
             )  # Using small epsilon for floating-point comparison
 
             logger.debug(
-                (
+                
                     f"Absolute homogeneity check: norm(a*x)={norm_scaled_x}, "
                     f"|a|*norm(x)={expected}, result={result}"
-                )
+                
             )
             return result
 

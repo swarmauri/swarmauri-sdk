@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from collections.abc import Iterator, Mapping, Sequence
-from typing import Any, Mapping as TypingMapping, Optional
+from dataclasses import dataclass, field
+from typing import Any, Optional
+from typing import Mapping as TypingMapping
 
 # Local scalar aliases to avoid circular imports
 KeyId = str
@@ -14,19 +15,19 @@ Alg = str
 class Signature(Mapping[str, object]):
     """Universal signature record supporting attached and detached modes."""
 
-    kid: Optional[KeyId]
-    version: Optional[KeyVersion]
+    kid: KeyId | None
+    version: KeyVersion | None
     format: str
     mode: str
     alg: Alg
     artifact: bytes
-    hash_alg: Optional[str] = None
-    cert_chain_der: Optional[Sequence[bytes]] = None
-    headers: Optional[TypingMapping[str, Any]] = None
-    meta: Optional[TypingMapping[str, Any]] = None
-    ts: Optional[float] = None
-    sig: Optional[bytes] = field(default=None, repr=False)
-    chain: Optional[object] = field(default=None, repr=False)
+    hash_alg: str | None = None
+    cert_chain_der: Sequence[bytes] | None = None
+    headers: TypingMapping[str, Any] | None = None
+    meta: TypingMapping[str, Any] | None = None
+    ts: float | None = None
+    sig: bytes | None = field(default=None, repr=False)
+    chain: object | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         if self.sig is None and self.mode == "detached":

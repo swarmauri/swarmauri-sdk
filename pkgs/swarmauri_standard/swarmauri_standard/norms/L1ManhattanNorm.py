@@ -70,10 +70,10 @@ class L1ManhattanNorm(NormBase):
                 return float(sum(abs(float(val)) for val in x))
             except (ValueError, TypeError) as e:
                 logger.error(
-                    (
-                        f"Cannot compute L1 norm for sequence with non-numeric "  # noqa: E501
+                    
+                        f"Cannot compute L1 norm for sequence with non-numeric "
                         f"elements: {e}"
-                    )
+                    
                 )
                 raise TypeError(
                     f"L1 norm requires numeric elements in sequence: {e}"
@@ -191,11 +191,11 @@ class L1ManhattanNorm(NormBase):
             if not self._are_compatible(x, y):
                 logger.error("Inputs are not compatible for addition")
                 raise TypeError(
-                    (
+                    
                         "Inputs must be of the same type and dimension for "
                         "triangle "
                         "inequality check"
-                    )
+                    
                 )
 
             # Compute the sum of x and y
@@ -207,10 +207,10 @@ class L1ManhattanNorm(NormBase):
             norm_x_plus_y = self.compute(x_plus_y)
 
             logger.debug(
-                (
+                
                     f"Triangle inequality check: norm(x+y)={norm_x_plus_y}, "
                     f"norm(x)+norm(y)={norm_x + norm_y}"
-                )
+                
             )
 
             # Check triangle inequality
@@ -256,11 +256,11 @@ class L1ManhattanNorm(NormBase):
             expected_norm = abs(scalar) * norm_x
 
             logger.debug(
-                (
+                
                     f"Absolute homogeneity check: "
                     f"norm({scalar}*x)={norm_scaled_x}, "
                     f"|{scalar}|*norm(x)={expected_norm}"
-                )
+                
             )
 
             # Check absolute homogeneity with a small tolerance for
@@ -303,11 +303,11 @@ class L1ManhattanNorm(NormBase):
                 return all(float(val) == 0 for val in x)
             except (ValueError, TypeError):
                 raise TypeError(
-                    (
+                    
                         "Cannot check if sequence elements are zero: "
                         "non-numeric "
                         "elements"
-                    )
+                    
                 )
 
         # Handle numpy arrays

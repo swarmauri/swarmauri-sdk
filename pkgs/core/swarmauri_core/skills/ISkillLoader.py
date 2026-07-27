@@ -16,16 +16,16 @@ class ISkillLoader:
 
     def load(
         self, source: str | Path, skill_name: str | None = None
-    ) -> "ISkill":
+    ) -> ISkill:
         """Activate one complete skill bundle."""
         raise NotImplementedError
 
     def activate(
         self, source: str | Path, skill_name: str | None = None
-    ) -> "ISkill":
+    ) -> ISkill:
         """Explicit alias for loading/activating a selected skill bundle."""
         return self.load(source, skill_name=skill_name)
 
-    def load_resource(self, skill: "ISkill", relative_path: str) -> bytes:
+    def load_resource(self, skill: ISkill, relative_path: str) -> bytes:
         """Read one resource from an activated skill bundle on demand."""
         raise NotImplementedError

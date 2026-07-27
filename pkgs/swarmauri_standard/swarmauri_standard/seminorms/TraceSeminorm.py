@@ -68,8 +68,8 @@ class TraceSeminorm(SeminormBase):
                 # Trace norm is the sum of singular values
                 return float(np.sum(singular_values))
             except Exception as e:
-                logger.error(f"Error computing trace seminorm: {str(e)}")
-                raise ValueError(f"Failed to compute trace seminorm: {str(e)}")
+                logger.error(f"Error computing trace seminorm: {e!s}")
+                raise ValueError(f"Failed to compute trace seminorm: {e!s}")
 
         # Handle numpy arrays directly
         elif isinstance(x, np.ndarray):
@@ -80,11 +80,11 @@ class TraceSeminorm(SeminormBase):
                 except Exception as e:
                     logger.error(
                         f"Error computing trace seminorm for numpy array: "
-                        f"{str(e)}"
+                        f"{e!s}"
                     )
                     raise ValueError(
                         f"Failed to compute trace seminorm for numpy array: "
-                        f"{str(e)}"
+                        f"{e!s}"
                     )
             else:
                 raise TypeError(
@@ -101,10 +101,10 @@ class TraceSeminorm(SeminormBase):
                 return float(np.sum(singular_values))
             except Exception as e:
                 logger.error(
-                    f"Error computing trace seminorm for vector: {str(e)}"
+                    f"Error computing trace seminorm for vector: {e!s}"
                 )
                 raise ValueError(
-                    f"Failed to compute trace seminorm for vector: {str(e)}"
+                    f"Failed to compute trace seminorm for vector: {e!s}"
                 )
 
         else:
@@ -112,11 +112,11 @@ class TraceSeminorm(SeminormBase):
                 f"Unsupported input type for trace seminorm: {type(x)}"
             )
             raise TypeError(
-                (
+                
                     f"Trace seminorm requires a matrix or matrix-like input, "
                     f"got "
                     f"{type(x)}"
-                )
+                
             )
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -146,10 +146,10 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            (
+            
                 f"Checking triangle inequality for inputs of types {type(x)} "
                 f"and {type(y)}"
-            )
+            
         )
 
         # Ensure we can add the inputs
@@ -161,10 +161,10 @@ class TraceSeminorm(SeminormBase):
             # Check if shapes are compatible for addition
             if x_data.shape != y_data.shape:
                 logger.warning(
-                    (
+                    
                         f"Incompatible shapes for triangle inequality check: "
                         f"{x_data.shape} vs {y_data.shape}"
-                    )
+                    
                 )
                 return False
 
@@ -182,8 +182,8 @@ class TraceSeminorm(SeminormBase):
             return sum_norm <= x_norm + y_norm + epsilon
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
-            raise ValueError(f"Failed to check triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
+            raise ValueError(f"Failed to check triangle inequality: {e!s}")
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
         """
@@ -213,10 +213,10 @@ class TraceSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            (
+            
                 f"Checking scalar homogeneity for input of type {type(x)} "
                 f"with scalar {alpha}"
-            )
+            
         )
 
         try:
@@ -240,8 +240,8 @@ class TraceSeminorm(SeminormBase):
             return abs(scaled_norm - alpha_abs * x_norm) < epsilon
 
         except Exception as e:
-            logger.error(f"Error checking scalar homogeneity: {str(e)}")
-            raise ValueError(f"Failed to check scalar homogeneity: {str(e)}")
+            logger.error(f"Error checking scalar homogeneity: {e!s}")
+            raise ValueError(f"Failed to check scalar homogeneity: {e!s}")
 
     def is_degenerate(self, x: InputType) -> bool:
         """
@@ -286,5 +286,5 @@ class TraceSeminorm(SeminormBase):
             return norm_value < epsilon
 
         except Exception as e:
-            logger.error(f"Error checking degeneracy: {str(e)}")
-            raise ValueError(f"Failed to check degeneracy: {str(e)}")
+            logger.error(f"Error checking degeneracy: {e!s}")
+            raise ValueError(f"Failed to check degeneracy: {e!s}")

@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, ConfigDict
+from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 from swarmauri_base.skills.SkillBase import SkillBase
 from swarmauri_base.skills.SkillLoaderBase import SkillLoaderBase
 from swarmauri_base.skills.SkillMetadata import SkillMetadata
-from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
 
 class FileSystemSkillMixin(ISkillLoader, BaseModel):
@@ -19,9 +19,9 @@ class FileSystemSkillMixin(ISkillLoader, BaseModel):
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     @classmethod
-    def discover(cls, source: str | Path | Any) -> List[SkillMetadata]:
+    def discover(cls, source: str | Path | Any) -> list[SkillMetadata]:
         if not isinstance(source, (str, Path)):
-            records: List[SkillMetadata] = []
+            records: list[SkillMetadata] = []
             for item in source:
                 records.extend(cls.discover(item))
             return records
@@ -29,7 +29,7 @@ class FileSystemSkillMixin(ISkillLoader, BaseModel):
         root = SkillLoaderBase.resolve_root(source)
         skill_md = root / "SKILL.md"
         if not skill_md.is_file():
-            records: List[SkillMetadata] = []
+            records: list[SkillMetadata] = []
             if root.is_dir():
                 for child in sorted(root.iterdir()):
                     if child.is_dir() and (child / "SKILL.md").is_file():
@@ -121,9 +121,9 @@ class FileSystemSkillMixin(ISkillLoader, BaseModel):
     def _data_from_markdown(
         cls,
         markdown: str,
-        manifest: Dict[str, Any],
-        overrides: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        manifest: dict[str, Any],
+        overrides: dict[str, Any],
+    ) -> dict[str, Any]:
         frontmatter, instructions = SkillBase.split_frontmatter(markdown)
         data = dict(frontmatter)
         data.update(
@@ -140,7 +140,7 @@ class FileSystemSkillMixin(ISkillLoader, BaseModel):
         return data
 
     @classmethod
-    def _read_manifest(cls, path: Path) -> Dict[str, Any]:
+    def _read_manifest(cls, path: Path) -> dict[str, Any]:
         if not path.is_file():
             return {}
         parsed = yaml.safe_load(path.read_text(encoding="utf-8-sig"))
@@ -152,7 +152,7 @@ class FileSystemSkillMixin(ISkillLoader, BaseModel):
 
     @classmethod
     def _add_discovered_resources(
-        cls, root: Path, data: Dict[str, Any]
+        cls, root: Path, data: dict[str, Any]
     ) -> None:
         resource_fields = tuple(getattr(cls, "_RESOURCE_FIELDS", ()))
         for field_name in resource_fields:

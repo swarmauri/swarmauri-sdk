@@ -2,7 +2,6 @@
 
 from typing import Literal, TypedDict
 
-
 LipSyncJobStatus = Literal[
     "QUEUED",
     "RUNNING",

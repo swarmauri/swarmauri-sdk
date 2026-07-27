@@ -12,8 +12,8 @@ class IWebSocketClient(ABC):
         self,
         url: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
-        subprotocols: Optional[Sequence[str]] = None,
+        headers: Mapping[str, str] | None = None,
+        subprotocols: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> IWebSocketConnection: ...
 
@@ -22,7 +22,7 @@ class IWebSocketClient(ABC):
         self,
         url: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
-        subprotocols: Optional[Sequence[str]] = None,
+        headers: Mapping[str, str] | None = None,
+        subprotocols: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> IWebSocketConnection: ...

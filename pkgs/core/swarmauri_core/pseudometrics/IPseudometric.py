@@ -1,8 +1,9 @@
-from abc import ABC, abstractmethod
-from typing import Callable, Sequence, TypeVar, Union, Literal, List
 import logging
-from swarmauri_core.vectors.IVector import IVector
+from abc import ABC, abstractmethod
+from typing import Callable, List, Literal, Sequence, TypeVar, Union
+
 from swarmauri_core.matrices.IMatrix import IMatrix
+from swarmauri_core.vectors.IVector import IVector
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -58,7 +59,6 @@ class IPseudometric(ABC):
         ValueError
             If inputs have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def distances(
@@ -69,7 +69,7 @@ class IPseudometric(ABC):
         ys: Sequence[
             Union[VectorType, MatrixType, Sequence[T], str, Callable]
         ],
-    ) -> List[List[float]]:
+    ) -> list[list[float]]:
         """
         Calculate the pairwise distances between two collections of objects.
 
@@ -95,7 +95,6 @@ class IPseudometric(ABC):
         ValueError
             If inputs have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def check_non_negativity(
@@ -118,7 +117,6 @@ class IPseudometric(ABC):
         bool
             True if d(x,y) ≥ 0, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_symmetry(
@@ -144,7 +142,6 @@ class IPseudometric(ABC):
         bool
             True if d(x,y) = d(y,x) within tolerance, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_triangle_inequality(
@@ -173,7 +170,6 @@ class IPseudometric(ABC):
         bool
             True if d(x,z) ≤ d(x,y) + d(y,z) within tolerance, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_weak_identity(
@@ -200,4 +196,3 @@ class IPseudometric(ABC):
             True if the pseudometric properly handles the weak identity
             property
         """
-        pass

@@ -1,6 +1,7 @@
 import base64
-from PIL import Image
 from io import BytesIO
+
+from PIL import Image
 
 
 def base64_to_in_memory_img(base64_str: str) -> Image.Image:

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Awaitable, Dict, Tuple
 
 Bytes = bytes
-Headers = Dict[str, str]
+Headers = dict[str, str]
 
 
 class HttpApp(ABC):
@@ -17,7 +17,7 @@ class HttpApp(ABC):
         path: str,
         headers: Headers,
         body: Bytes,
-    ) -> Awaitable[Tuple[int, Headers, Bytes]]: ...
+    ) -> Awaitable[tuple[int, Headers, Bytes]]: ...
 
 
 class IAppServer(ABC):

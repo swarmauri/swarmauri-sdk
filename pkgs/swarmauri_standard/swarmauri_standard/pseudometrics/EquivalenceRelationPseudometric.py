@@ -91,8 +91,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             else:
                 return 1.0
         except Exception as e:
-            logger.error(f"Error calculating distance: {str(e)}")
-            raise ValueError(f"Failed to calculate distance: {str(e)}")
+            logger.error(f"Error calculating distance: {e!s}")
+            raise ValueError(f"Failed to calculate distance: {e!s}")
 
     def distances(
         self,
@@ -126,8 +126,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
                 result.append(row)
             return result
         except Exception as e:
-            logger.error(f"Error calculating distances matrix: {str(e)}")
-            raise ValueError(f"Failed to calculate distances matrix: {str(e)}")
+            logger.error(f"Error calculating distances matrix: {e!s}")
+            raise ValueError(f"Failed to calculate distances matrix: {e!s}")
 
     def check_non_negativity(
         self,
@@ -188,8 +188,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             d_yx = self.distance(y, x)
             return abs(d_xy - d_yx) <= tolerance
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
-            raise ValueError(f"Failed to check symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
+            raise ValueError(f"Failed to check symmetry: {e!s}")
 
     def check_triangle_inequality(
         self,
@@ -233,8 +233,8 @@ class EquivalenceRelationPseudometric(PseudometricBase):
             # Check triangle inequality: d(x,z) ≤ d(x,y) + d(y,z)
             return d_xz <= d_xy + d_yz + tolerance
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
-            raise ValueError(f"Failed to check triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
+            raise ValueError(f"Failed to check triangle inequality: {e!s}")
 
     def check_weak_identity(
         self,
@@ -274,5 +274,5 @@ class EquivalenceRelationPseudometric(PseudometricBase):
                 not are_equivalent and d_xy == 1.0
             )
         except Exception as e:
-            logger.error(f"Error checking weak identity: {str(e)}")
-            raise ValueError(f"Failed to check weak identity: {str(e)}")
+            logger.error(f"Error checking weak identity: {e!s}")
+            raise ValueError(f"Failed to check weak identity: {e!s}")

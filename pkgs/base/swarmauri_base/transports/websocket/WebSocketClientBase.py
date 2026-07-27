@@ -3,9 +3,9 @@
 from abc import ABC
 
 from pydantic import ConfigDict, Field
+from swarmauri_core.transports.i_websocket_client import IWebSocketClient
 
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_core.transports.i_websocket_client import IWebSocketClient
 
 
 class WebSocketClientBase(IWebSocketClient, ComponentBase, ABC):

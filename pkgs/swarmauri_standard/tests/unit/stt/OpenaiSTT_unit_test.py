@@ -1,10 +1,12 @@
 import logging
-import pytest
 import os
-from swarmauri_standard.stt.OpenaiSTT import OpenaiSTT
-from dotenv import load_dotenv
-from swarmauri_standard.utils.timeout_wrapper import timeout
 from pathlib import Path
+
+import pytest
+from dotenv import load_dotenv
+
+from swarmauri_standard.stt.OpenaiSTT import OpenaiSTT
+from swarmauri_standard.utils.timeout_wrapper import timeout
 
 # Load environment variables
 load_dotenv()

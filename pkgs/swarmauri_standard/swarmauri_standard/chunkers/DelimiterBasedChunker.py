@@ -1,5 +1,6 @@
-from typing import List, Any, Literal
 import re
+from typing import Any, List, Literal
+
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
 

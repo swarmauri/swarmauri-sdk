@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Any
+from typing import Any, List, Union
+
 from swarmauri_core.vectors.IVector import IVector
 
 
@@ -17,11 +18,11 @@ class IVectorize(ABC):
         pass
 
     @abstractmethod
-    def transform(self, data: Union[str, Any]) -> List[IVector]:
+    def transform(self, data: Union[str, Any]) -> list[IVector]:
         pass
 
     @abstractmethod
-    def fit_transform(self, data: Union[str, Any]) -> List[IVector]:
+    def fit_transform(self, data: Union[str, Any]) -> list[IVector]:
         pass
 
     @abstractmethod

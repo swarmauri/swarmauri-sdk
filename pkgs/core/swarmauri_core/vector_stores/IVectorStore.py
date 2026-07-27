@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Union
+
 from swarmauri_core.documents.IDocument import IDocument
 
 
@@ -17,17 +18,15 @@ class IVectorStore(ABC):
         Parameters:
         - document (IDocument): The document to store.
         """
-        pass
 
     @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: list[IDocument]) -> None:
         """
         Stores multiple documents in the vector store.
 
         Parameters:
         - documents (List[IDocument]): The list of documents to store.
         """
-        pass
 
     @abstractmethod
     def get_document(self, doc_id: str) -> Union[IDocument, None]:
@@ -40,17 +39,15 @@ class IVectorStore(ABC):
         Returns:
         - Union[IDocument, None]: The requested document, or None if not found.
         """
-        pass
 
     @abstractmethod
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> list[IDocument]:
         """
         Retrieves all documents stored in the vector store.
 
         Returns:
         - List[IDocument]: A list of all documents.
         """
-        pass
 
     @abstractmethod
     def delete_document(self, doc_id: str) -> None:
@@ -60,7 +57,6 @@ class IVectorStore(ABC):
         Parameters:
         - doc_id (str): The unique identifier of the document to delete.
         """
-        pass
 
     @abstractmethod
     def clear_documents(self) -> None:
@@ -68,7 +64,6 @@ class IVectorStore(ABC):
         Deletes all documents from the vector store
 
         """
-        pass
 
     @abstractmethod
     def update_document(
@@ -84,7 +79,6 @@ class IVectorStore(ABC):
         Note: It's assumed that the updated_document will retain the same
         doc_id but may have different content or metadata.
         """
-        pass
 
     @abstractmethod
     def document_count(self) -> int:

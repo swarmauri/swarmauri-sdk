@@ -108,7 +108,7 @@ class DiscreteMetric(MetricBase):
             return result
 
         except TypeError as e:
-            error_msg = f"Error calculating distances: {str(e)}"
+            error_msg = f"Error calculating distances: {e!s}"
             logger.error(error_msg)
             raise TypeError(error_msg)
 

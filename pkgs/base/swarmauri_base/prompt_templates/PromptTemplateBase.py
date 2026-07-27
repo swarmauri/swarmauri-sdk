@@ -1,9 +1,9 @@
-from typing import Dict, List, Union, Optional, Literal
-from pydantic import Field
-
 import warnings
+from typing import Literal, Union
 
+from pydantic import Field
 from swarmauri_core.prompt_templates.IPromptTemplate import IPromptTemplate
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -16,8 +16,8 @@ class PromptTemplateBase(IPromptTemplate, ComponentBase):
     """
 
     template: str = ""
-    variables: Union[List[Dict[str, str]], Dict[str, str]] = {}
-    resource: Optional[str] = Field(
+    variables: Union[list[dict[str, str]], dict[str, str]] = {}
+    resource: str | None = Field(
         default=ResourceTypes.PROMPT.value, frozen=True
     )
     type: Literal["PromptTemplateBase"] = "PromptTemplateBase"
@@ -28,21 +28,21 @@ class PromptTemplateBase(IPromptTemplate, ComponentBase):
         """
         self.template = template
 
-    def set_variables(self, variables: Dict[str, str]) -> None:
+    def set_variables(self, variables: dict[str, str]) -> None:
         """
         Sets or updates the variables to be substituted into the template.
         """
         self.variables = variables
 
-    def generate_prompt(self, variables: Dict[str, str] = None) -> str:
+    def generate_prompt(self, variables: dict[str, str] = None) -> str:
         warnings.warn("Deprecating 'generate_prompt()', use `fill()`.")
         return self.fill(variables)
 
-    def fill(self, variables: Dict[str, str] = None) -> str:
+    def fill(self, variables: dict[str, str] = None) -> str:
         variables = variables or self.variables
         return self.template.format(**variables)
 
-    def __call__(self, variables: Optional[Dict[str, str]] = None) -> str:
+    def __call__(self, variables: dict[str, str] | None = None) -> str:
         """
         Generates a prompt using the current template and provided keyword
         arguments for substitution.

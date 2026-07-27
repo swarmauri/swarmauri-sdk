@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, List, Tuple, Dict, Any
+from typing import Any, Callable, Dict, List, Tuple
 
 
 class IChainTracer(ABC):
@@ -11,7 +11,7 @@ class IChainTracer(ABC):
     @abstractmethod
     def process_chain(
         self,
-        chain: List[Tuple[Any, Callable[..., Any], List[Any], Dict[str, Any]]],
+        chain: list[tuple[Any, Callable[..., Any], list[Any], dict[str, Any]]],
     ) -> "IChainTracer":
         """
         Processes a sequence of operations defined in a chain.
@@ -27,4 +27,3 @@ class IChainTracer(ABC):
         Returns:
             IChainTracer: Returns self to allow further method chaining.
         """
-        pass

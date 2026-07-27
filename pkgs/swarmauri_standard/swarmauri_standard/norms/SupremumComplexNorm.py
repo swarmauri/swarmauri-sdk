@@ -110,7 +110,7 @@ class SupremumComplexNorm(NormBase):
                             return self.compute(values)
                     except Exception:
                         raise ValueError(
-                            f"Cannot interpret string '{x}' as complex value(s)"  # noqa: E501
+                            f"Cannot interpret string '{x}' as complex value(s)"
                         )
 
             else:
@@ -118,9 +118,9 @@ class SupremumComplexNorm(NormBase):
                 return complex(x)
 
         except Exception as e:
-            logger.error(f"Error computing supremum complex norm: {str(e)}")
+            logger.error(f"Error computing supremum complex norm: {e!s}")
             raise ValueError(
-                f"Failed to compute supremum complex norm: {str(e)}"
+                f"Failed to compute supremum complex norm: {e!s}"
             )
 
     def check_non_negativity(
@@ -151,7 +151,7 @@ class SupremumComplexNorm(NormBase):
             # (which is always true for a properly implemented complex norm)
             return abs(norm_value) >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_definiteness(
@@ -199,7 +199,7 @@ class SupremumComplexNorm(NormBase):
             return is_zero
 
         except Exception as e:
-            logger.error(f"Error checking definiteness: {str(e)}")
+            logger.error(f"Error checking definiteness: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -280,7 +280,7 @@ class SupremumComplexNorm(NormBase):
             return norm_x_plus_y <= norm_x + norm_y + epsilon
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False
 
     def check_absolute_homogeneity(
@@ -347,5 +347,5 @@ class SupremumComplexNorm(NormBase):
             return abs(norm_scalar_times_x - abs_scalar * norm_x) < epsilon
 
         except Exception as e:
-            logger.error(f"Error checking absolute homogeneity: {str(e)}")
+            logger.error(f"Error checking absolute homogeneity: {e!s}")
             return False

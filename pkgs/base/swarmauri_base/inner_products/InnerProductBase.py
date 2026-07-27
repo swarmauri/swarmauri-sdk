@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from collections.abc import Callable
+from typing import Literal, TypeVar, Union
 
 import numpy as np
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
@@ -62,10 +63,10 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            (
+            
                 f"Attempting to compute inner product between {type(a)} and "
                 f"{type(b)}"
-            )
+            
         )
         raise NotImplementedError(
             "Method 'compute' must be implemented by subclasses"
@@ -98,16 +99,16 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            (
+            
                 f"Attempting to check conjugate symmetry for {type(a)} and "
                 f"{type(b)}"
-            )
+            
         )
         raise NotImplementedError(
-            (
+            
                 "Method 'check_conjugate_symmetry' must be implemented by "
                 "subclasses"
-            )
+            
         )
 
     def check_linearity_first_argument(
@@ -146,16 +147,16 @@ class InnerProductBase(IInnerProduct, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            (
+            
                 f"Attempting to check linearity in first argument with "
                 f"alpha={alpha}, beta={beta}"
-            )
+            
         )
         raise NotImplementedError(
-            (
+            
                 "Method 'check_linearity_first_argument' must be implemented "
                 "by subclasses"
-            )
+            
         )
 
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:

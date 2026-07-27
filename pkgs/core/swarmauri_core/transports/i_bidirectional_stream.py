@@ -40,7 +40,7 @@ class IBidirectionalStreamClient(ABC):
         self,
         endpoint: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         **kwargs: Any,
     ) -> IBidirectionalStreamConnection: ...
 
@@ -49,6 +49,6 @@ class IBidirectionalStreamClient(ABC):
         self,
         endpoint: str,
         *,
-        headers: Optional[Mapping[str, str]] = None,
+        headers: Mapping[str, str] | None = None,
         **kwargs: Any,
     ) -> IBidirectionalStreamConnection: ...

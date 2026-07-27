@@ -8,7 +8,7 @@ import hmac
 import json
 import secrets
 import time
-from typing import Any, Dict, Tuple
+from typing import Any
 
 
 def base64url_encode(data: bytes) -> str:
@@ -17,7 +17,7 @@ def base64url_encode(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).decode("ascii").rstrip("=")
 
 
-def make_pkce_pair() -> Tuple[str, str]:
+def make_pkce_pair() -> tuple[str, str]:
     """Generate a PKCE verifier/challenge pair."""
 
     verifier = base64url_encode(secrets.token_bytes(32))
@@ -28,7 +28,7 @@ def make_pkce_pair() -> Tuple[str, str]:
 
 
 def sign_state(
-    secret: bytes, payload: Dict[str, Any], ttl_sec: int = 600
+    secret: bytes, payload: dict[str, Any], ttl_sec: int = 600
 ) -> str:
     """Sign and encode state to protect nonces and PKCE verifiers."""
 
@@ -42,7 +42,7 @@ def sign_state(
     return f"{body}.{mac}"
 
 
-def verify_state(secret: bytes, state: str) -> Dict[str, Any]:
+def verify_state(secret: bytes, state: str) -> dict[str, Any]:
     """Validate a signed state blob and return its decoded payload."""
 
     try:
@@ -68,8 +68,8 @@ def make_nonce() -> str:
 
 __all__ = [
     "base64url_encode",
+    "make_nonce",
     "make_pkce_pair",
     "sign_state",
     "verify_state",
-    "make_nonce",
 ]

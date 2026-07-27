@@ -1,6 +1,6 @@
 import copy
 import logging
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from swarmauri_core.programs.IProgram import DiffType, IProgram
 
@@ -25,7 +25,7 @@ class ProgramBase(IProgram, ComponentBase):
     """
 
     _program_type: ClassVar[str] = "base"
-    resource: Optional[str] = ResourceTypes.PROGRAM.value
+    resource: str | None = ResourceTypes.PROGRAM.value
 
     def clone(self) -> "IProgram":
         """
@@ -117,7 +117,7 @@ class ProgramBase(IProgram, ComponentBase):
                 elif action == "add" or action == "modify":
                     if "value" not in operation:
                         raise ValueError(
-                            f"Missing 'value' for {action} operation on key {key}"  # noqa: E501
+                            f"Missing 'value' for {action} operation on key {key}"
                         )
                     new_dict[key] = operation["value"]
                 else:

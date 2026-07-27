@@ -1,22 +1,18 @@
+import builtins
 import json
 from abc import abstractmethod
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    FrozenSet,
-    List,
     Literal,
-    Optional,
-    Type,
 )
 
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr, model_validator
 from swarmauri_core.tool_llms.IToolPredict import IToolPredict
 
-from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_base.schema_converters.SchemaConverterBase import (
     SchemaConverterBase,
 )
@@ -25,21 +21,21 @@ from swarmauri_base.utils.allowed_models import is_model_allowed
 
 @ComponentBase.register_model()
 class ToolLLMBase(IToolPredict, ModelBase):
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.TOOL_LLM.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["ToolLLMBase"] = "ToolLLMBase"
-    api_key: Optional[SecretStr] = Field(default=None, exclude=True)
-    allowed_models: List[str] = Field(default_factory=list)
+    api_key: SecretStr | None = Field(default=None, exclude=True)
+    allowed_models: list[str] = Field(default_factory=list)
     timeout: float = 600.0
     max_retries: int = Field(default=3, ge=1)
     retry_delay: float = Field(default=2.0, ge=0)
     BASE_URL: str = None
-    _headers: Dict[str, str] = PrivateAttr(default_factory=dict)
+    _headers: dict[str, str] = PrivateAttr(default_factory=dict)
 
-    capabilities: ClassVar[FrozenSet[str]] = frozenset()
-    retryable_status_codes: ClassVar[FrozenSet[int]] = frozenset(
+    capabilities: ClassVar[frozenset[str]] = frozenset()
+    retryable_status_codes: ClassVar[frozenset[int]] = frozenset(
         {408, 409, 425, 429, 500, 502, 503, 504, 529}
     )
 
@@ -49,10 +45,10 @@ class ToolLLMBase(IToolPredict, ModelBase):
         allowed_models = self.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                (
+                
                     f"Model name {name} is not allowed. Choose from "
                     f"{allowed_models}"
-                )
+                
             )
         return self
 
@@ -81,27 +77,27 @@ class ToolLLMBase(IToolPredict, ModelBase):
         self.allowed_models.remove(model)
 
     @abstractmethod
-    def get_schema_converter(self) -> Type["SchemaConverterBase"]:
+    def get_schema_converter(self) -> builtins.type["SchemaConverterBase"]:
         raise NotImplementedError(
             "get_schema_converter() not implemented in subclass yet."
         )
 
     def _schema_convert_tools(
-        self, tools: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, tools: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         converter = self.get_schema_converter()
         return [converter.convert(tools[tool]) for tool in tools]
 
     def _format_messages(
-        self, messages: List[Type[MessageBase]]
-    ) -> List[Dict[str, str]]:
+        self, messages: list[builtins.type[MessageBase]]
+    ) -> list[dict[str, str]]:
         raise NotImplementedError(
             "_format_messages() not implemented in subclass yet."
         )
 
     def _process_tool_calls(
         self, tool_calls, toolkit, messages
-    ) -> List[MessageBase]:
+    ) -> list[MessageBase]:
         """
         Processes a list of tool calls and appends the results to the messages
         list.

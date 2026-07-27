@@ -12,23 +12,23 @@ class IToolPredict(ABC):
     """
 
     @abstractmethod
-    def get_schema_converter(self) -> Type["ISchemaConvert"]:
+    def get_schema_converter(self) -> type["ISchemaConvert"]:
         pass
 
     @abstractmethod
-    def _schema_convert_tools(self, tools) -> List[Dict[str, Any]]:
+    def _schema_convert_tools(self, tools) -> list[dict[str, Any]]:
         pass
 
     @abstractmethod
     def _format_messages(
-        self, messages: List[Type["IMessage"]]
-    ) -> List[Dict[str, str]]:
+        self, messages: list[type["IMessage"]]
+    ) -> list[dict[str, str]]:
         pass
 
     @abstractmethod
     def _process_tool_calls(
         self, tool_calls, toolkit, messages
-    ) -> List[IMessage]:
+    ) -> list[IMessage]:
         pass
 
     @abstractmethod
@@ -36,39 +36,33 @@ class IToolPredict(ABC):
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     async def apredict(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     def stream(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     async def astream(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     def batch(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     async def abatch(self, *args, **kwargs) -> any:
         """
         Generate predictions based on the input data provided to the model.
         """
-        pass

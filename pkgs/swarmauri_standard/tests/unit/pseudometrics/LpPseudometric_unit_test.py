@@ -1,9 +1,9 @@
 import logging
 import math
+from unittest.mock import Mock
 
 import numpy as np
 import pytest
-from unittest.mock import Mock
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
 
 from swarmauri_standard.pseudometrics.LpPseudometric import LpPseudometric

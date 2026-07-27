@@ -24,7 +24,7 @@ class IHttpClient(ABC):
         method: str,
         path: str,
         *,
-        headers: Optional[Headers] = None,
+        headers: Headers | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> IHttpResponse: ...
@@ -35,7 +35,7 @@ class IHttpClient(ABC):
         method: str,
         path: str,
         *,
-        headers: Optional[Headers] = None,
+        headers: Headers | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> IHttpResponse: ...
@@ -46,7 +46,7 @@ class IHttpClient(ABC):
         method: str,
         path: str,
         *,
-        headers: Optional[Headers] = None,
+        headers: Headers | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> AbstractContextManager[IHttpStreamResponse]: ...
@@ -57,7 +57,7 @@ class IHttpClient(ABC):
         method: str,
         path: str,
         *,
-        headers: Optional[Headers] = None,
+        headers: Headers | None = None,
         body: bytes = b"",
         **kwargs: Any,
     ) -> AbstractAsyncContextManager[IAsyncHttpStreamResponse]: ...

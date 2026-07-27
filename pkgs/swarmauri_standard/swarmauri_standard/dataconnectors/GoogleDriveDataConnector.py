@@ -1,11 +1,12 @@
-import logging
-from urllib.parse import urlencode
-import httpx
 import base64
 import json
+import logging
 from typing import List
-from swarmauri_base.documents.DocumentBase import DocumentBase
+from urllib.parse import urlencode
+
+import httpx
 from swarmauri_base.dataconnectors.DataConnectorBase import DataConnectorBase
+from swarmauri_base.documents.DocumentBase import DocumentBase
 
 
 class GoogleDriveDataConnector(DataConnectorBase):

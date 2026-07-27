@@ -1,13 +1,13 @@
-from typing import Any, Optional, Dict, Literal
+from typing import Any, Dict, Literal, Optional
+
+from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.conversations.ConversationBase import ConversationBase
 
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
 from swarmauri_standard.messages.HumanMessage import HumanMessage
-
-from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
 
 
 @ComponentBase.register_type(AgentBase, "QAAgent")

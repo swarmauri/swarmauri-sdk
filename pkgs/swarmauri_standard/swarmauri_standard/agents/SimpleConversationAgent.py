@@ -1,12 +1,12 @@
-from typing import Any, Optional, Dict, Literal, List
+from typing import Any, Dict, List, Literal, Optional
 
-from swarmauri_standard.messages.HumanMessage import contentItem
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.conversations.ConversationBase import ConversationBase
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
+
+from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
 
 
 @ComponentBase.register_type(AgentBase, "SimpleConversationAgent")

@@ -1,9 +1,11 @@
 import ast
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "CodeExtractorTool")
@@ -33,7 +35,7 @@ class CodeExtractorTool(ToolBase):
                 name="to_be_ignored",
                 input_type="list",
                 description=(
-                    "A list of function or variable names to be ignored during "  # noqa: E501
+                    "A list of function or variable names to be ignored during "
                     "code extraction."
                 ),
                 required=False,

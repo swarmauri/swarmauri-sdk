@@ -5,6 +5,13 @@ from __future__ import annotations
 from abc import ABC
 from typing import Tuple, Type
 
+from .enums import (
+    ALL_CAPABILITIES,
+    CAPABILITY_TO_TIGRBL,
+    Capability,
+    Operation,
+    capabilities_to_tigrbl,
+)
 from .IBalanceTransfers import IBalanceTransfers
 from .IBillingProvider import IBillingProvider
 from .ICustomers import ICustomers
@@ -14,20 +21,13 @@ from .IMarketplace import IMarketplace
 from .IOnlinePayments import IOnlinePayments
 from .IPaymentMethods import IPaymentMethods
 from .IPayouts import IPayouts
-from .IPromotions import IPromotions
 from .IProductsPrices import IProductsPrices
+from .IPromotions import IPromotions
 from .IRefunds import IRefunds
 from .IReports import IReports
 from .IRisk import IRisk
 from .ISubscriptions import ISubscriptions
 from .IWebhooks import IWebhooks
-from .enums import (
-    ALL_CAPABILITIES,
-    CAPABILITY_TO_TIGRBL,
-    Capability,
-    Operation,
-    capabilities_to_tigrbl,
-)
 from .protos import (
     BalanceRefProto,
     CheckoutIntentProto,
@@ -54,7 +54,7 @@ from .protos import (
     WebhookEventProto,
 )
 
-ALL_API_STRATEGIES: Tuple[Type[ABC], ...] = (
+ALL_API_STRATEGIES: tuple[type[ABC], ...] = (
     IProductsPrices,
     IHostedCheckout,
     IOnlinePayments,

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Any
+from typing import Any, List
 
 
 class IFeature(ABC):
     @abstractmethod
-    def extract_features(self) -> List[Any]:
+    def extract_features(self) -> list[Any]:
         pass

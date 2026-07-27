@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Literal
+
 import pandas as pd
-from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 
 
 @ComponentBase.register_type(MeasurementBase, "UniquenessMeasurement")
@@ -63,10 +64,10 @@ class UniquenessMeasurement(MeasurementBase):
 
         else:
             raise ValueError(
-                (
-                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
+                
+                    "Unsupported data type. Please provide DataFrame, List, or "
                     "Dict."
-                )
+                
             )
 
     def call(

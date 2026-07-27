@@ -1,12 +1,12 @@
 import json
 from abc import abstractmethod
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import ConfigDict, Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.documents.IDocument import IDocument
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -33,10 +33,9 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         Parameters:
         - document (IDocument): The document to be added to the store.
         """
-        pass
 
     @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: list[IDocument]) -> None:
         """
         Add multiple documents to the document store in a batch operation.
 
@@ -44,10 +43,9 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         - documents (List[IDocument]): A list of documents to be added to the
           store.
         """
-        pass
 
     @abstractmethod
-    def get_document(self, doc_id: str) -> Optional[IDocument]:
+    def get_document(self, doc_id: str) -> IDocument | None:
         """
         Retrieve a single document by its identifier.
 
@@ -58,17 +56,15 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         - Optional[IDocument]: The requested document if found; otherwise,
           None.
         """
-        pass
 
     @abstractmethod
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> list[IDocument]:
         """
         Retrieve all documents stored in the document store.
 
         Returns:
         - List[IDocument]: A list of all documents in the store.
         """
-        pass
 
     @abstractmethod
     def update_document(
@@ -81,7 +77,6 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         - doc_id (str): The unique identifier of the document to update.
         - updated_document (IDocument): The updated document instance.
         """
-        pass
 
     @abstractmethod
     def delete_document(self, doc_id: str) -> None:
@@ -91,7 +86,6 @@ class DocumentStoreBase(IDocumentStore, ComponentBase):
         Parameters:
         - doc_id (str): The unique identifier of the document to delete.
         """
-        pass
 
     def document_count(self):
         return len(self.documents)

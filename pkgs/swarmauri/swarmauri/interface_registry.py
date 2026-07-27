@@ -8,10 +8,9 @@ Provides mechanisms to retrieve and manage interface classes based on resource
 namespaces.
 """
 
-from typing import Optional, Type, Dict, Any, List
 import importlib
 import logging
-
+from typing import Any
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ class InterfaceRegistry:
     namespaces.
     """
 
-    INTERFACE_IMPORT_PATHS: Dict[str, Optional[str]] = {
+    INTERFACE_IMPORT_PATHS: dict[str, str | None] = {
         "swarmauri.agents": "swarmauri_base.agents.AgentBase",
         "swarmauri.chains": "swarmauri_base.chains.ChainBase",
         "swarmauri.chunkers": "swarmauri_base.chunkers.ChunkerBase",
@@ -122,14 +121,14 @@ class InterfaceRegistry:
         "swarmauri.tokens": "swarmauri_base.tokens.TokenServiceBase",
     }
 
-    INTERFACE_REGISTRY: Dict[str, Optional[Type[Any]]] = {
+    INTERFACE_REGISTRY: dict[str, type[Any] | None] = {
         key: None for key in INTERFACE_IMPORT_PATHS
     }
 
     @classmethod
     def get_interface_for_resource(
         cls, resource_kind: str
-    ) -> Optional[Type[Any]]:
+    ) -> type[Any] | None:
         """
         Retrieve the interface class for a given resource kind.
 
@@ -160,14 +159,14 @@ class InterfaceRegistry:
             )
         else:
             logger.debug(
-                f"Retrieved interface '{interface.__name__}' for resource kind '{resource_kind}'."  # noqa: E501
+                f"Retrieved interface '{interface.__name__}' for resource kind '{resource_kind}'."
             )
 
         return interface
 
     @classmethod
     def register_interface(
-        cls, resource_kind: str, interface_class: Optional[Type[Any]]
+        cls, resource_kind: str, interface_class: type[Any] | None
     ) -> None:
         """
         Register or update the interface class for a given resource kind.
@@ -188,12 +187,12 @@ class InterfaceRegistry:
                 f"{interface_class.__module__}.{interface_class.__name__}"
             )
             logger.info(
-                f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."  # noqa: E501
+                f"Registered interface '{interface_class.__name__}' for resource kind '{resource_kind}'."
             )
         else:
             cls.INTERFACE_IMPORT_PATHS[resource_kind] = None
             logger.info(
-                f"Removed interface association for resource kind '{resource_kind}'."  # noqa: E501
+                f"Removed interface association for resource kind '{resource_kind}'."
             )
 
     @classmethod
@@ -206,7 +205,7 @@ class InterfaceRegistry:
         cls.register_interface(resource_kind, None)
 
     @classmethod
-    def list_registered_interfaces(cls) -> Dict[str, Optional[Type[Any]]]:
+    def list_registered_interfaces(cls) -> dict[str, type[Any] | None]:
         """
         List all registered resource kinds and their corresponding interfaces.
 
@@ -216,7 +215,7 @@ class InterfaceRegistry:
         return cls.INTERFACE_REGISTRY.copy()
 
     @classmethod
-    def list_registered_namespaces(cls) -> List[str]:
+    def list_registered_namespaces(cls) -> list[str]:
         """
         Lists all registered interface namespaces.
 

@@ -1,10 +1,9 @@
-from typing import Literal, TypeVar, Any
 import logging
+from typing import Any, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, PrivateAttr
-
-from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
 from swarmauri_core.inner_products.IInnerProduct import IInnerProduct
+from swarmauri_core.norms.IUseInnerProduct import IUseInnerProduct
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -49,10 +48,10 @@ class UseInnerProductMixin(IUseInnerProduct, BaseModel):
         super().__init__(*args, **kwargs)
         self._inner_product = inner_product
         logger.debug(
-            (
+            
                 f"Initialized {self.__class__.__name__} with inner product "
                 f"{inner_product}"
-            )
+            
         )
 
     def get_inner_product(self) -> Literal[IInnerProduct]:

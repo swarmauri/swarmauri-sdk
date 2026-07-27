@@ -211,7 +211,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -247,7 +247,7 @@ class DeepInfraToolModel(ToolLLMBase):
 
             agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -305,7 +305,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Add the assistant message
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -341,7 +341,7 @@ class DeepInfraToolModel(ToolLLMBase):
 
             agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -397,7 +397,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 
@@ -496,7 +496,7 @@ class DeepInfraToolModel(ToolLLMBase):
         messages = formatted_messages.copy()
 
         # Process tool calls if any
-        if "choices" in tool_response and tool_response["choices"]:
+        if tool_response.get("choices"):
             assistant_message = tool_response["choices"][0]["message"]
             messages.append(assistant_message)
 

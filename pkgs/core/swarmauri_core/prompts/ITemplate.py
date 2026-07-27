@@ -1,5 +1,5 @@
-from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Union
 
 
 class ITemplate(ABC):
@@ -19,11 +19,10 @@ class ITemplate(ABC):
             template (str): The new template string to be used for generating
             prompts.
         """
-        pass
 
     @abstractmethod
     def set_variables(
-        self, variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
+        self, variables: Union[list[dict[str, Any]], dict[str, Any]] = {}
     ) -> None:
         """
         Sets or updates the variables to be substituted into the template.
@@ -35,7 +34,6 @@ class ITemplate(ABC):
                                         and its
                                         replacement value in the template.
         """
-        pass
 
     @abstractmethod
     def generate_prompt(self, **kwargs: dict[str, Any]) -> str:
@@ -52,4 +50,3 @@ class ITemplate(ABC):
             by their
                  corresponding values provided in `kwargs`.
         """
-        pass

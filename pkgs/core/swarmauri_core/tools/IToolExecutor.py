@@ -11,9 +11,9 @@ class IToolExecutor(ABC):
         tool: Any,
         arguments: Mapping[str, Any],
         *,
-        call_id: Optional[str] = None,
-        timeout: Optional[float] = None,
-        context: Optional[Mapping[str, Any]] = None,
+        call_id: str | None = None,
+        timeout: float | None = None,
+        context: Mapping[str, Any] | None = None,
     ) -> Any: ...
 
     @abstractmethod
@@ -22,9 +22,9 @@ class IToolExecutor(ABC):
         tool: Any,
         arguments: Mapping[str, Any],
         *,
-        call_id: Optional[str] = None,
-        timeout: Optional[float] = None,
-        context: Optional[Mapping[str, Any]] = None,
+        call_id: str | None = None,
+        timeout: float | None = None,
+        context: Mapping[str, Any] | None = None,
     ) -> Any: ...
 
     @abstractmethod

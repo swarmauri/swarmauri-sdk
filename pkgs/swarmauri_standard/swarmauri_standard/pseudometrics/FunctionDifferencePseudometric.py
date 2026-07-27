@@ -11,7 +11,6 @@ from typing import (
     TypeVar,
 )
 
-
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.pseudometrics.PseudometricBase import PseudometricBase
@@ -101,19 +100,19 @@ class FunctionDifferencePseudometric(PseudometricBase):
         # Validate inputs
         if sampling_strategy == "fixed" and evaluation_points is None:
             raise ValueError(
-                (
-                    "evaluation_points must be provided when sampling_strategy "  # noqa: E501
+                
+                    "evaluation_points must be provided when sampling_strategy "
                     "is "
                     "'fixed'"
-                )
+                
             )
 
         if sampling_strategy in ["random", "grid"] and domain_bounds is None:
             raise ValueError(
-                (
+                
                     "domain_bounds must be provided when sampling_strategy is "
                     "'random' or 'grid'"
-                )
+                
             )
 
         if norm_type not in ["l1", "l2", "max"]:
@@ -161,10 +160,10 @@ class FunctionDifferencePseudometric(PseudometricBase):
             )
 
         logger.debug(
-            (
+            
                 f"Generated {len(self._sample_points)} sample points using "
                 f"{self.sampling_strategy} strategy"
-            )
+            
         )
 
     def _generate_random_points(self) -> None:
@@ -295,7 +294,7 @@ class FunctionDifferencePseudometric(PseudometricBase):
                         results.append(float(abs(value)))
                     else:
                         raise ValueError(
-                            f"Function output {value} cannot be converted to a "  # noqa: E501
+                            f"Function output {value} cannot be converted to a "
                             f"float"
                         )
             except Exception as e:
@@ -520,10 +519,10 @@ class FunctionDifferencePseudometric(PseudometricBase):
 
             if not result:
                 logger.warning(
-                    (
+                    
                         f"Symmetry check failed: d(x,y) = {dist_xy}, d(y,x) = "
                         f"{dist_yx}"
-                    )
+                    
                 )
 
             return result

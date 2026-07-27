@@ -4,8 +4,8 @@ import httpx
 import pytest
 
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.utils.provider_chat_transport import (
     apredict_chat,
     astream_chat,

@@ -1,10 +1,6 @@
 from typing import List, Literal
-from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
-from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
-    CosineSimilarityComparator,
-)
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -12,7 +8,12 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri_base.ComponentBase import ComponentBase
+
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "TfidfVectorStore")

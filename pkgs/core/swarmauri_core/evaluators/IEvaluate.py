@@ -15,7 +15,6 @@ class EvaluationError(Exception):
     or other exceptional conditions.
     """
 
-    pass
 
 
 class IEvaluate(ABC):
@@ -31,7 +30,7 @@ class IEvaluate(ABC):
     @abstractmethod
     def evaluate(
         self, program: IProgram, **kwargs
-    ) -> Tuple[float, Dict[str, Any]]:
+    ) -> tuple[float, dict[str, Any]]:
         """
         Evaluate a program and return a fitness score with metadata.
 
@@ -54,7 +53,6 @@ class IEvaluate(ABC):
             EvaluationError: If the evaluation process fails
             TypeError: If the program is not of the expected type
         """
-        pass
 
     @abstractmethod
     def reset(self) -> None:
@@ -64,4 +62,3 @@ class IEvaluate(ABC):
         This method should clear any internal state or cached data to ensure
         that the evaluator is ready for a new evaluation cycle.
         """
-        pass

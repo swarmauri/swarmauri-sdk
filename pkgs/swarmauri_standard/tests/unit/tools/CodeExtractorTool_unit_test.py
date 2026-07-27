@@ -5,8 +5,10 @@ In the CodeExtractorTool, it utilizes ast hence checks for python syntax
 Tests created must follow python syntax to avoid errors
 """
 
-import pytest
 import tempfile
+
+import pytest
+
 from swarmauri_standard.tools.CodeExtractorTool import (
     CodeExtractorTool as Tool,
 )
@@ -141,28 +143,28 @@ variable1 = 10"""
     "file_content, extract_documentation, to_be_ignored, expected_code",
     [
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
             True,
             ["function1", "variable1"],
-            '''""" module documentation string\n """\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nprint('Hello, World!')''',
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
             True,
             [],
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')''',
             False,
             [],
-            """function1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')""",  # noqa: E501
+            """function1 = lambda x: x + 1\nvariable1 = 10\nprint('Hello, World!')""",
         ),
         (
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\n# non-essentials\nif "#" in stripped_line and "non-essentials" in stripped_line:\n    break\nprint('Hello, World!')''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10\n# non-essentials\nif "#" in stripped_line and "non-essentials" in stripped_line:\n    break\nprint('Hello, World!')''',
             True,
             [],
-            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10''',  # noqa: E501
+            '''""" module documentation string\n """\nfunction1 = lambda x: x + 1\nvariable1 = 10''',
         ),
     ],
 )
@@ -189,5 +191,5 @@ def test_call(
         f"Expected str, but got {type(result.get('code')).__name__}"
     )
     assert result.get("code") == expected_code, (
-        f"Expected Extracted Code {expected_code}, but got {result.get('code')}"  # noqa: E501
+        f"Expected Extracted Code {expected_code}, but got {result.get('code')}"
     )

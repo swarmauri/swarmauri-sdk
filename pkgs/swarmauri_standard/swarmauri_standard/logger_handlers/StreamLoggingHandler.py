@@ -3,9 +3,9 @@ import sys
 from typing import Any, Literal, Optional, TextIO
 
 from swarmauri_base import FullUnion
-from swarmauri_base.ObserveBase import ObserveBase
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
+from swarmauri_base.ObserveBase import ObserveBase
 
 
 @ObserveBase.register_model()

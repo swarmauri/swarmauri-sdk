@@ -71,7 +71,7 @@ class SysLogLoggingHandler(HandlerBase):
 
             return handler
 
-        except (socket.error, OSError) as e:
+        except OSError as e:
             # Log error and fallback to a NullHandler if syslog connection
             # fails
             logging.error(

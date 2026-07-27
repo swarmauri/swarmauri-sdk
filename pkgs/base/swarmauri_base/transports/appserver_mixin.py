@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from pydantic import BaseModel
-
 from swarmauri_core.transports.i_appserver import HttpApp, IAppServer
 
 
@@ -11,7 +8,7 @@ class AppServerMixin(IAppServer, BaseModel):
     """Stores and validates an application callback for app-terminating
     transports."""
 
-    _app: Optional[HttpApp] = None
+    _app: HttpApp | None = None
 
     def set_app(self, app: HttpApp) -> None:
         if not callable(app):

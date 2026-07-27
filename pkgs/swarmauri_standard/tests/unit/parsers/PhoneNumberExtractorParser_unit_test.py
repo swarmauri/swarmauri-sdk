@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.parsers.PhoneNumberExtractorParser import (
     PhoneNumberExtractorParser as Parser,
 )

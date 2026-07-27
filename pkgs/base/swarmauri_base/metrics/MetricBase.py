@@ -1,7 +1,6 @@
 import logging
-from typing import List, Literal, Optional, Union
+from typing import Literal, Union
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.metrics.IMetric import (
     IMetric,
@@ -9,6 +8,8 @@ from swarmauri_core.metrics.IMetric import (
     MetricInputCollection,
 )
 from swarmauri_core.vectors.IVector import IVector
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 # Logger configuration
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class MetricBase(IMetric, ComponentBase):
     distance calculations.
     """
 
-    resource: Optional[str] = ResourceTypes.METRIC.value
+    resource: str | None = ResourceTypes.METRIC.value
     type: Literal["MetricBase"] = "MetricBase"
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
@@ -69,7 +70,7 @@ class MetricBase(IMetric, ComponentBase):
         self,
         x: Union[MetricInput, MetricInputCollection],
         y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+    ) -> Union[list[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
@@ -122,10 +123,10 @@ class MetricBase(IMetric, ComponentBase):
         """
         logger.debug(f"Checking non-negativity axiom for {x} and {y}")
         raise NotImplementedError(
-            (
+            
                 "The check_non_negativity method must be implemented by child "
                 "classes"
-            )
+            
         )
 
     def check_identity_of_indiscernibles(
@@ -156,10 +157,10 @@ class MetricBase(IMetric, ComponentBase):
             f"Checking identity of indiscernibles axiom for {x} and {y}"
         )
         raise NotImplementedError(
-            (
+            
                 "The check_identity_of_indiscernibles method must be "
                 "implemented by child classes"
-            )
+            
         )
 
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -218,8 +219,8 @@ class MetricBase(IMetric, ComponentBase):
             f"Checking triangle inequality axiom for {x}, {y}, and {z}"
         )
         raise NotImplementedError(
-            (
+            
                 "The check_triangle_inequality method must be implemented by "
                 "child classes"
-            )
+            
         )

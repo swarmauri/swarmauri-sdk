@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, List, Literal, Optional, TypeVar, Union
+from typing import Any, Literal, TypeVar, Union
 
 from pydantic import Field
 from swarmauri_core.documents.IDocument import IDocument
@@ -20,13 +20,13 @@ class ParserBase(IParser, ComponentBase):
     methods with parsing logic suited to their specific needs.
     """
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.PARSER.value, frozen=True
     )
     type: Literal["ParserBase"] = "ParserBase"
 
     @abstractmethod
-    def parse(self, data: Union[str, Any]) -> List[T]:
+    def parse(self, data: Union[str, Any]) -> list[T]:
         """
         Public method to parse input data (either a str or a Message) into a
         list of Document instances.
@@ -34,4 +34,3 @@ class ParserBase(IParser, ComponentBase):
         This method leverages the abstract _parse_data method which must be
         implemented by subclasses to define specific parsing logic.
         """
-        pass

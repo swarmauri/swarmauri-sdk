@@ -20,6 +20,6 @@ def _lazy_import(module_name, class_name):
         return None
     except AttributeError:
         print(
-            f"Warning: The class '{class_name}' was not found in module '{module_name}'."  # noqa: E501
+            f"Warning: The class '{class_name}' was not found in module '{module_name}'."
         )
         return None

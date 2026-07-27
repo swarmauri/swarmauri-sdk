@@ -12,25 +12,21 @@ class IGenImage(ABC):
         """
         Generate images based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     async def agenerate_image(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     def batch_generate(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        pass
 
     @abstractmethod
     async def abatch_generate(self, *args, **kwargs) -> any:
         """
         Generate images based on the input data provided to the model.
         """
-        pass

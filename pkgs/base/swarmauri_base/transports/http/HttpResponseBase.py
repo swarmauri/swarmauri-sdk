@@ -1,16 +1,15 @@
 """Reusable buffered HTTP response behavior."""
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
-
 from swarmauri_core.transports.i_http_response import IHttpResponse
 
 
 class HttpResponseBase(IHttpResponse, BaseModel):
     status_code: int
-    headers: Dict[str, str] = Field(default_factory=dict)
+    headers: dict[str, str] = Field(default_factory=dict)
     _content: bytes = PrivateAttr(default=b"")
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

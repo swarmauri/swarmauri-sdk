@@ -1,25 +1,25 @@
-from typing import Any, Optional, Dict, Literal
+from typing import Any, Dict, Literal, Optional
 
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
+from swarmauri_base.agents.AgentRetrieveMixin import AgentRetrieveMixin
+from swarmauri_base.agents.AgentSystemContextMixin import (
+    AgentSystemContextMixin,
+)
+from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_core.messages import IMessage
+
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
 from swarmauri_standard.conversations.SessionCacheConversation import (
     SessionCacheConversation,
 )
-
-from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_base.agents.AgentBase import AgentBase
-from swarmauri_base.agents.AgentRetrieveMixin import AgentRetrieveMixin
-from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
-from swarmauri_base.agents.AgentVectorStoreMixin import AgentVectorStoreMixin
-from swarmauri_base.agents.AgentSystemContextMixin import (
-    AgentSystemContextMixin,
-)
-from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
-from swarmauri_core.messages import IMessage
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 
 @ComponentBase.register_type(AgentBase, "RagAgent")

@@ -1,7 +1,7 @@
 import logging
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.vectors.IVector import IVector
 

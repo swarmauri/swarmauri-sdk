@@ -14,5 +14,5 @@ class ITool(ABC):
 
     @abstractmethod
     def batch(
-        self, inputs: List[Any], *args: Any, **kwargs: Any
-    ) -> List[ToolResult]: ...
+        self, inputs: list[Any], *args: Any, **kwargs: Any
+    ) -> list[ToolResult]: ...

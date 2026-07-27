@@ -1,6 +1,6 @@
 import asyncio
-from typing import Dict, List, Literal
 import warnings
+from typing import Dict, List, Literal
 
 import aiofiles
 import httpx
@@ -12,7 +12,7 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing OpenAIAudio from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "  # noqa: E501
+    "removed in a future version. Please use 'from swarmauri_standard.stt import "
     "OpenaiSTT' or 'from swarmauri.stt import OpenaiSTT' instead.",
     DeprecationWarning,
     stacklevel=2,

@@ -1,8 +1,8 @@
 """Synchronous proxy for an async-native live session."""
 
 import asyncio
-from collections.abc import AsyncIterator, Iterator
-from typing import Any, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from typing import Any
 
 from swarmauri_core.live_models import ILiveConfig, ILiveInput, ILiveSession
 
@@ -114,5 +114,5 @@ class SyncLiveSessionBase(ILiveSession):
     def __enter__(self) -> "SyncLiveSessionBase":
         return self
 
-    def __exit__(self, *_: Any) -> None:
+    def __exit__(self, *_: object) -> None:
         self.close()

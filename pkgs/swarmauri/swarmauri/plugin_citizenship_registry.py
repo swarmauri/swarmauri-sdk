@@ -10,7 +10,6 @@ first, second, and third-class citizens within the swarmauri framework.
 
 import logging
 from importlib.metadata import EntryPoint
-from typing import Dict, Optional
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ class PluginCitizenshipRegistry:
     """
 
     # Class variables for registries
-    FIRST_CLASS_REGISTRY: Dict[str, str] = {
+    FIRST_CLASS_REGISTRY: dict[str, str] = {
         "swarmauri.skills.DummyFileSystemSkill": (
             "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill"
         ),
@@ -751,7 +750,7 @@ class PluginCitizenshipRegistry:
         ),
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
-    SECOND_CLASS_REGISTRY: Dict[str, str] = {
+    SECOND_CLASS_REGISTRY: dict[str, str] = {
         "swarmauri.model_providers.GeminiProvider": (
             "swarmauri_provider_gemini.GeminiProvider"
         ),
@@ -918,10 +917,10 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_openrouter.OpenRouterVLM"
         ),
     }
-    THIRD_CLASS_REGISTRY: Dict[str, str] = {}
+    THIRD_CLASS_REGISTRY: dict[str, str] = {}
 
     @classmethod
-    def total_registry(cls) -> Dict[str, str]:
+    def total_registry(cls) -> dict[str, str]:
         """
         Property: total_registry
 
@@ -963,17 +962,17 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path in registry:
             logger.debug(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."  # noqa: E501
+                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."
             )
             return
 
@@ -981,10 +980,10 @@ class PluginCitizenshipRegistry:
         registry[resource_path] = module_path
         cls._KNOWN_GROUPS_CACHE = None
         logger.info(
-            (
+            
                 f"Added to {class_type}-class registry: {resource_path} -> "
                 f"{module_path}"
-            )
+            
         )
 
     @classmethod
@@ -1006,20 +1005,20 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
             )
 
         # Remove from the specific registry
@@ -1030,7 +1029,7 @@ class PluginCitizenshipRegistry:
         )
 
     @classmethod
-    def list_registry(cls, class_type: Optional[str] = None) -> Dict[str, str]:
+    def list_registry(cls, class_type: str | None = None) -> dict[str, str]:
         """
         List all entries in a specific registry or the total registry.
 
@@ -1052,17 +1051,17 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
 
         logger.debug(f"Listing {class_type}-class registry.")
         return dict(registry_map[class_type])
 
     @classmethod
-    def get_external_module_path(cls, resource_path: str) -> Optional[str]:
+    def get_external_module_path(cls, resource_path: str) -> str | None:
         """
         Get the external module path for a given resource path.
 
@@ -1073,7 +1072,7 @@ class PluginCitizenshipRegistry:
         module_path = cls.total_registry().get(resource_path)
         if module_path:
             logger.debug(
-                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."  # noqa: E501
+                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."
             )
         else:
             logger.debug(
@@ -1124,29 +1123,29 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."
             )
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
         logger.info(
-            (
+            
                 f"Updated {class_type}-class registry entry: {resource_path} "
                 f"-> {new_module_path} (was: {old_module_path})"
-            )
+            
         )
 
     @classmethod
@@ -1163,7 +1162,7 @@ class PluginCitizenshipRegistry:
         cls.remove_from_registry(class_type, resource_path)
 
     @classmethod
-    def list_all_registries(cls) -> Dict[str, Dict[str, str]]:
+    def list_all_registries(cls) -> dict[str, dict[str, str]]:
         """
         Lists all registries: first, second, third, and total.
 
@@ -1188,7 +1187,7 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_first = resource_path in cls.FIRST_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."  # noqa: E501
+            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."
         )
         return is_first
 
@@ -1203,7 +1202,7 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_second = resource_path in cls.SECOND_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."  # noqa: E501
+            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."
         )
         return is_second
 

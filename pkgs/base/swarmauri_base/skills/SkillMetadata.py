@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -11,16 +11,16 @@ class SkillMetadata(BaseModel):
 
     name: str
     description: str
-    license: Optional[str] = None
-    compatibility: Optional[str] = None
-    metadata: Dict[str, str] = Field(default_factory=dict)
+    license: str | None = None
+    compatibility: str | None = None
+    metadata: dict[str, str] = Field(default_factory=dict)
     source: str
     location: str
     model_config = ConfigDict(extra="forbid")
 
     @field_validator("metadata", mode="before")
     @classmethod
-    def normalize_metadata(cls, value: Any) -> Dict[str, str]:
+    def normalize_metadata(cls, value: Any) -> dict[str, str]:
         if value is None:
             return {}
         if not isinstance(value, dict):
@@ -50,7 +50,7 @@ class SkillMetadata(BaseModel):
 
     @field_validator("compatibility")
     @classmethod
-    def validate_compatibility(cls, value: Optional[str]) -> Optional[str]:
+    def validate_compatibility(cls, value: str | None) -> str | None:
         if value is not None and not 1 <= len(value) <= 500:
             raise ValueError("Skill compatibility must be 1-500 characters")
         return value

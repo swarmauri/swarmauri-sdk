@@ -7,7 +7,6 @@ from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
-
 from swarmauri_core.transports.i_bidirectional_stream import (
     IBidirectionalStreamConnection,
 )

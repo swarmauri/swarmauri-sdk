@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 
 class IFormatter(ABC):
@@ -9,4 +9,3 @@ class IFormatter(ABC):
     @abstractmethod
     def compile_formatter(self) -> logging.Formatter:
         """Create and return a logging.Formatter instance."""
-        pass

@@ -1,6 +1,7 @@
 from typing import Literal
-from swarmauri_base.conversations.ConversationBase import ConversationBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.conversations.ConversationBase import ConversationBase
 
 
 @ComponentBase.register_type(ConversationBase, "Conversation")

@@ -103,7 +103,7 @@ class SupremumMetric(MetricBase):
                     )
 
         except Exception as e:
-            logger.error(f"Error calculating supremum distance: {str(e)}")
+            logger.error(f"Error calculating supremum distance: {e!s}")
             raise
 
     def _calculate_supremum(
@@ -243,7 +243,7 @@ class SupremumMetric(MetricBase):
                 return self.distance(x, y)
 
         except Exception as e:
-            logger.error(f"Error calculating supremum distances: {str(e)}")
+            logger.error(f"Error calculating supremum distances: {e!s}")
             raise
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -274,7 +274,7 @@ class SupremumMetric(MetricBase):
             # Check if the distance is non-negative
             return dist >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_identity_of_indiscernibles(
@@ -323,7 +323,7 @@ class SupremumMetric(MetricBase):
             return (dist == 0) == equal
         except Exception as e:
             logger.error(
-                f"Error checking identity of indiscernibles: {str(e)}"
+                f"Error checking identity of indiscernibles: {e!s}"
             )
             return False
 
@@ -358,7 +358,7 @@ class SupremumMetric(MetricBase):
             epsilon = 1e-10
             return abs(dist_xy - dist_yx) < epsilon
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -395,5 +395,5 @@ class SupremumMetric(MetricBase):
             epsilon = 1e-10
             return dist_xz <= dist_xy + dist_yz + epsilon
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False

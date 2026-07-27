@@ -12,5 +12,5 @@ class IModel(ABC):
     """Identity and capability shape shared by every model family."""
 
     name: str
-    provider: Optional[IModelProvider]
+    provider: IModelProvider | None
     capabilities: IModelCapabilities

@@ -12,15 +12,15 @@ logger = logging.getLogger(__name__)
 MetricInput = Union[
     int,
     float,  # Scalar values
-    List[Union[int, float]],  # List of scalars
+    list[Union[int, float]],  # List of scalars
     Sequence[Union[int, float]],  # Any sequence of scalars
     IVector,  # Vector interface
     IMatrix,  # Matrix interface
-    Dict[str, Union[int, float]],  # Dictionary with numeric values
+    dict[str, Union[int, float]],  # Dictionary with numeric values
 ]
 
 # For collections of inputs
-MetricInputCollection = Union[List[MetricInput], Sequence[MetricInput]]
+MetricInputCollection = Union[list[MetricInput], Sequence[MetricInput]]
 
 
 class IMetric(ABC):
@@ -63,14 +63,13 @@ class IMetric(ABC):
         TypeError
             If input types are not supported
         """
-        pass
 
     @abstractmethod
     def distances(
         self,
         x: Union[MetricInput, MetricInputCollection],
         y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+    ) -> Union[list[float], IVector, IMatrix]:
         """
         Calculate distances between collections of points.
 
@@ -93,7 +92,6 @@ class IMetric(ABC):
         TypeError
             If input types are not supported
         """
-        pass
 
     @abstractmethod
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -112,7 +110,6 @@ class IMetric(ABC):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_identity_of_indiscernibles(
@@ -134,7 +131,6 @@ class IMetric(ABC):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_symmetry(self, x: MetricInput, y: MetricInput) -> bool:
@@ -153,7 +149,6 @@ class IMetric(ABC):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_triangle_inequality(
@@ -177,4 +172,3 @@ class IMetric(ABC):
         bool
             True if the axiom is satisfied, False otherwise
         """
-        pass

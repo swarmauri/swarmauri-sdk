@@ -1,8 +1,10 @@
-from typing import Dict, List, Generator, Any, Union, Optional, Literal
-from pydantic import Field
+from collections.abc import Generator
+from typing import Any, Literal, Union
 
+from pydantic import Field
 from swarmauri_core.prompts.IPrompt import IPrompt
 from swarmauri_core.prompts.ITemplate import ITemplate
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -14,8 +16,8 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     """
 
     template: str = ""
-    variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
-    resource: Optional[str] = Field(
+    variables: Union[list[dict[str, Any]], dict[str, Any]] = {}
+    resource: str | None = Field(
         default=ResourceTypes.PROMPT.value, frozen=True
     )
     type: Literal["PromptGeneratorBase"] = "PromptGeneratorBase"
@@ -23,10 +25,10 @@ class PromptGeneratorBase(IPrompt, ITemplate, ComponentBase):
     def set_template(self, template: str) -> None:
         self.template = template
 
-    def set_variables(self, variables: List[Dict[str, Any]]) -> None:
+    def set_variables(self, variables: list[dict[str, Any]]) -> None:
         self.variables = variables
 
-    def generate_prompt(self, variables: Dict[str, Any]) -> str:
+    def generate_prompt(self, variables: dict[str, Any]) -> str:
         """
         Generates a prompt using the provided variables if any
         else uses the next variables set in the list.

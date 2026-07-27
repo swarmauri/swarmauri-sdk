@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 
 
 class ILogger(ABC):
@@ -8,4 +8,3 @@ class ILogger(ABC):
         """
         Compiles and returns a logging.Logger instance.
         """
-        pass

@@ -22,8 +22,8 @@ class SignIntent:
     format: Format
     mode: Mode
     alg: str
-    key_ref: Optional[str] = None
-    key_id: Optional[str] = None
+    key_ref: str | None = None
+    key_id: str | None = None
     hash_alg: str = "sha256"
     options: Mapping[str, object] = field(default_factory=dict)
 

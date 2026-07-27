@@ -87,7 +87,7 @@ class ColorFormatter(FormatterBase):
                 # color
                 if record.levelname in self.colors:
                     # Prepend color code to levelname and append reset code
-                    record.levelname = f"{self.colors[record.levelname]}{record.levelname}{self.reset}"  # noqa: E501
+                    record.levelname = f"{self.colors[record.levelname]}{record.levelname}{self.reset}"
 
                 # Format the record
                 result = super().format(record)

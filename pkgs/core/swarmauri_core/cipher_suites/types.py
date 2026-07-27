@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
-from typing import Literal, TypedDict
+from typing import Any, Literal, Mapping, Sequence, TypedDict
 
 CipherOp = Literal[
     "sign",

@@ -1,8 +1,8 @@
 import pytest
+from swarmauri_core.certs.ICertService import SubjectSpec
+from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 from swarmauri_base.certs import CertServiceBase
-from swarmauri_core.certs.ICertService import SubjectSpec
-from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
 
 
 class MinimalCertService(CertServiceBase):

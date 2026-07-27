@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from pydantic import Field
 
@@ -9,5 +9,5 @@ class ToolCallEvent(LiveEventBase):
     kind: Literal["tool_call"] = "tool_call"
     call_id: str
     tool_name: str
-    arguments: Dict[str, Any] = Field(default_factory=dict)
+    arguments: dict[str, Any] = Field(default_factory=dict)
     type: Literal["ToolCallEvent"] = "ToolCallEvent"

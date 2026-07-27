@@ -25,7 +25,7 @@ class IMultiplexTransport(ABC):
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None: ...
 
     @abstractmethod
@@ -34,15 +34,15 @@ class IMultiplexTransport(ABC):
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None: ...
 
     @abstractmethod
     def receive_on(
-        self, handle: ChannelHandle, *, timeout: Optional[float] = None
+        self, handle: ChannelHandle, *, timeout: float | None = None
     ) -> bytes: ...
 
     @abstractmethod
     async def areceive_on(
-        self, handle: ChannelHandle, *, timeout: Optional[float] = None
+        self, handle: ChannelHandle, *, timeout: float | None = None
     ) -> bytes: ...

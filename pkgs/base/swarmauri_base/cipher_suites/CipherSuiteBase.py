@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping, Optional, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any
 
 from pydantic import Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.cipher_suites import (
     Alg,
     CipherOp,
@@ -14,6 +13,8 @@ from swarmauri_core.cipher_suites import (
     NormalizedDescriptor,
     ParamMapping,
 )
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -36,7 +37,7 @@ class CipherSuiteBase(ICipherSuite, ComponentBase):
         raise NotImplementedError
 
     def default_alg(
-        self, op: CipherOp, *, for_key: Optional[KeyRef] = None
+        self, op: CipherOp, *, for_key: KeyRef | None = None
     ) -> Alg:  # pragma: no cover - abstract placeholder
         raise NotImplementedError
 
@@ -44,10 +45,10 @@ class CipherSuiteBase(ICipherSuite, ComponentBase):
         self,
         *,
         op: CipherOp,
-        alg: Optional[Alg] = None,
-        key: Optional[KeyRef] = None,
-        params: Optional[ParamMapping] = None,
-        dialect: Optional[str] = None,
+        alg: Alg | None = None,
+        key: KeyRef | None = None,
+        params: ParamMapping | None = None,
+        dialect: str | None = None,
     ) -> NormalizedDescriptor:  # pragma: no cover - abstract placeholder
         raise NotImplementedError
 

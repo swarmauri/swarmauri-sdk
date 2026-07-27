@@ -1,13 +1,13 @@
 # importer.py
 
-import sys
 import importlib
 import logging
+import sys
 from importlib.machinery import ModuleSpec
 from types import ModuleType
 
-from .plugin_citizenship_registry import PluginCitizenshipRegistry
 from .interface_registry import InterfaceRegistry
+from .plugin_citizenship_registry import PluginCitizenshipRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +48,10 @@ class SwarmauriImporter:
             )
             if external_module_path:
                 logger.debug(
-                    (
+                    
                         f"Found external module mapping: {fullname} -> "
                         f"{external_module_path}"
-                    )
+                    
                 )
                 return ModuleSpec(fullname, self)
 
@@ -62,10 +62,10 @@ class SwarmauriImporter:
             if external_module_path:
                 # If we detect lazy strategy, then we utilize LazyLoader
                 logger.debug(
-                    (
+                    
                         f"Found external module mapping: {fullname} -> "
                         f"{external_module_path}"
-                    )
+                    
                 )
                 return ModuleSpec(fullname, importlib.util.LazyLoader(self))
 
@@ -80,7 +80,7 @@ class SwarmauriImporter:
 
         if spec.name in sys.modules:
             logger.debug(
-                f"Module '{spec.name}' already in sys.modules. Returning cached module."  # noqa: E501
+                f"Module '{spec.name}' already in sys.modules. Returning cached module."
             )
             return sys.modules[spec.name]
 
@@ -89,7 +89,7 @@ class SwarmauriImporter:
         )
         if external_module_path:
             logger.debug(
-                f"Importing external module '{spec.name}' from '{external_module_path}'"  # noqa: E501
+                f"Importing external module '{spec.name}' from '{external_module_path}'"
             )
             module = importlib.import_module(external_module_path)
             sys.modules[spec.name] = module

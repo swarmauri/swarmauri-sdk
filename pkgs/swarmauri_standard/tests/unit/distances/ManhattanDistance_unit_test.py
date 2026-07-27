@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.distances.ManhattanDistance import ManhattanDistance
 from swarmauri_standard.vectors.Vector import Vector
 

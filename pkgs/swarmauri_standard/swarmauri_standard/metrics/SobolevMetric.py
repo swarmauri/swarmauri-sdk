@@ -57,10 +57,10 @@ class SobolevMetric(MetricBase):
         # Create a SobolevNorm instance to handle the norm calculations
         self.norm = SobolevNorm(order=self.order, weights=self.weights)
         logger.debug(
-            (
+            
                 f"Initialized SobolevMetric with order {self.order} and "
                 f"weights {self.weights}"
-            )
+            
         )
 
     def distance(self, x: MetricInput, y: MetricInput) -> float:
@@ -91,10 +91,10 @@ class SobolevMetric(MetricBase):
             If input types are not supported
         """
         logger.debug(
-            (
+            
                 f"Calculating Sobolev distance between {type(x).__name__} "
                 f"and {type(y).__name__}"
-            )
+            
         )
 
         try:
@@ -103,11 +103,11 @@ class SobolevMetric(MetricBase):
                 callable(x) and callable(y)
             ):
                 raise TypeError(
-                    (
+                    
                         f"Inputs must be of the same type, got "
                         f"{type(x).__name__} "
                         f"and {type(y).__name__}"
-                    )
+                    
                 )
 
             # For callable functions
@@ -147,10 +147,10 @@ class SobolevMetric(MetricBase):
             elif isinstance(x, Sequence) and isinstance(y, Sequence):
                 if len(x) != len(y):
                     raise ValueError(
-                        (
+                        
                             "Sequences must have the same length for distance "
                             "calculation"
-                        )
+                        
                     )
                 diff_xy = [x[i] - y[i] for i in range(len(x))]
                 return self.norm.compute(diff_xy)
@@ -161,11 +161,11 @@ class SobolevMetric(MetricBase):
                 )
         except TypeError as e:
             # Re-raise TypeError directly
-            logger.error(f"Error calculating Sobolev distance: {str(e)}")
+            logger.error(f"Error calculating Sobolev distance: {e!s}")
             raise
         except Exception as e:
-            logger.error(f"Error calculating Sobolev distance: {str(e)}")
-            raise ValueError(f"Failed to calculate Sobolev distance: {str(e)}")
+            logger.error(f"Error calculating Sobolev distance: {e!s}")
+            raise ValueError(f"Failed to calculate Sobolev distance: {e!s}")
 
     def distances(
         self,
@@ -211,11 +211,11 @@ class SobolevMetric(MetricBase):
                 # Return vector of distances between corresponding elements
                 if x.shape[0] != y.shape[0]:
                     raise ValueError(
-                        (
+                        
                             "Vectors must have the same length for "
                             "element-wise "
                             "distances"
-                        )
+                        
                     )
                 result = x.zeros(x.shape[0])
                 for i in range(x.shape[0]):
@@ -261,16 +261,16 @@ class SobolevMetric(MetricBase):
 
             else:
                 raise TypeError(
-                    (
-                        f"Unsupported collection types: {type(x).__name__} and "  # noqa: E501
+                    
+                        f"Unsupported collection types: {type(x).__name__} and "
                         f"{type(y).__name__}"
-                    )
+                    
                 )
 
         except Exception as e:
-            logger.error(f"Error calculating Sobolev distances: {str(e)}")
+            logger.error(f"Error calculating Sobolev distances: {e!s}")
             raise ValueError(
-                f"Failed to calculate Sobolev distances: {str(e)}"
+                f"Failed to calculate Sobolev distances: {e!s}"
             )
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -295,7 +295,7 @@ class SobolevMetric(MetricBase):
             dist = self.distance(x, y)
             return dist >= 0
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             return False
 
     def check_identity_of_indiscernibles(
@@ -333,7 +333,7 @@ class SobolevMetric(MetricBase):
                 return not self._are_effectively_equal(x, y)
         except Exception as e:
             logger.error(
-                f"Error checking identity of indiscernibles: {str(e)}"
+                f"Error checking identity of indiscernibles: {e!s}"
             )
             return False
 
@@ -361,7 +361,7 @@ class SobolevMetric(MetricBase):
             # Allow for small numerical differences
             return abs(dist_xy - dist_yx) < 1e-3 * (1 + abs(dist_xy))
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -397,7 +397,7 @@ class SobolevMetric(MetricBase):
                 1 + dist_xy + dist_yz
             )
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             return False
 
     def _are_effectively_equal(self, x: MetricInput, y: MetricInput) -> bool:
@@ -455,5 +455,5 @@ class SobolevMetric(MetricBase):
                 return x == y
 
         except Exception as e:
-            logger.error(f"Error checking if inputs are equal: {str(e)}")
+            logger.error(f"Error checking if inputs are equal: {e!s}")
             return False

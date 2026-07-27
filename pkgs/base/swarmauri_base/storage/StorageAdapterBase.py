@@ -5,19 +5,21 @@ import mmap
 import os
 import re
 import tempfile
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import BinaryIO, Iterator, Optional, Literal
+from typing import BinaryIO, Literal
+
 from pydantic import Field
+from swarmauri_core.storage.IStorageAdapter import IStorageAdapter
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.storage.IStorageAdapter import IStorageAdapter
 
 
 class StorageAdapterBase(IStorageAdapter, ComponentBase):
     """Abstract base class for storage adapters."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.STORAGE_ADAPTER.value, frozen=True
     )
     type: Literal["StorageAdapterBase"] = "StorageAdapterBase"
@@ -250,5 +252,5 @@ class StorageAdapterBase(IStorageAdapter, ComponentBase):
 
     # ------------------------------------------------------------------
     @classmethod
-    def from_uri(cls, uri: str) -> "StorageAdapterBase":
+    def from_uri(cls, uri: str) -> StorageAdapterBase:
         raise NotImplementedError("from_uri() must be implemented by subclass")

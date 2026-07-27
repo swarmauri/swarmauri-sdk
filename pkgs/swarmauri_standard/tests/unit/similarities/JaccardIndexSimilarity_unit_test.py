@@ -1,6 +1,8 @@
-import pytest
 import logging
 from typing import Set
+
+import pytest
+
 from swarmauri_standard.similarities.JaccardIndexSimilarity import (
     JaccardIndexSimilarity,
 )

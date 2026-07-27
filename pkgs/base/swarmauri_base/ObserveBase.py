@@ -3,14 +3,14 @@
 from typing import (
     ClassVar,
     Literal,
-    Optional,
     TypeVar,
 )
 
 from pydantic import ConfigDict
-from swarmauri_base.YamlMixin import YamlMixin
-from swarmauri_base.ServiceMixin import ServiceMixin
+
 from swarmauri_base.DynamicBase import DynamicBase
+from swarmauri_base.ServiceMixin import ServiceMixin
+from swarmauri_base.YamlMixin import YamlMixin
 
 T = TypeVar("T", bound="ObserveBase")
 
@@ -25,7 +25,7 @@ class ObserveBase(YamlMixin, ServiceMixin, DynamicBase):
 
     # Instance-attribute type (to support deserialization)
     type: Literal["ObserveBase"] = "ObserveBase"
-    name: Optional[str] = None
+    name: str | None = None
     version: str = "0.1.0"
 
     model_config = ConfigDict(arbitrary_types_allowed=True)

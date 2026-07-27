@@ -9,12 +9,13 @@ structured dictionary.
 
 import shlex
 import subprocess
-from typing import List, Literal, Dict, Optional
+from typing import Dict, List, Literal, Optional
+
 from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
 
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ToolBase, "SubprocessTool")

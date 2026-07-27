@@ -4,12 +4,12 @@ from abc import abstractmethod
 from typing import Literal
 
 from pydantic import Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_base.models.ModelBase import ModelBase
 from swarmauri_core.live_models.ILiveConfig import ILiveConfig
 from swarmauri_core.live_models.ILiveModel import ILiveModel
 from swarmauri_core.live_models.ILiveSession import ILiveSession
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_base.models.ModelBase import ModelBase
 
 from .LiveCapabilitiesBase import LiveCapabilitiesBase
 from .LiveSessionBase import LiveSessionBase

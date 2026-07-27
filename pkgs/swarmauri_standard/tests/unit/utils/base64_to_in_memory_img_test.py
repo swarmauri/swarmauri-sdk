@@ -1,8 +1,9 @@
 import pytest
+from PIL import Image
+
 from swarmauri_standard.utils.base64_to_in_memory_img import (
     base64_to_in_memory_img,
 )  # Adjust the path
-from PIL import Image
 
 
 @pytest.fixture

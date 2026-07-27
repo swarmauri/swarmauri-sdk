@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pydantic import BaseModel
-
 from swarmauri_core.transports.i_anycast import IAnycastTransport
 from swarmauri_core.transports.i_broadcast import IBroadcastTransport
 from swarmauri_core.transports.i_multicast import IMulticastTransport
@@ -42,9 +41,9 @@ class MultiplexTransportMixin(IMultiplexTransport, BaseModel):
 __all__ = [
     "AnycastTransportMixin",
     "BroadcastTransportMixin",
+    "ChannelHandle",
     "MulticastTransportMixin",
     "MultiplexTransportMixin",
     "PeerTransportMixin",
     "UnicastTransportMixin",
-    "ChannelHandle",
 ]

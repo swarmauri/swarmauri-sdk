@@ -2,7 +2,6 @@ import logging
 import math
 from typing import List, Literal, Sequence
 
-
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.metrics.MetricBase import MetricBase
 from swarmauri_core.matrices.IMatrix import IMatrix
@@ -105,25 +104,25 @@ class EuclideanMetric(MetricBase):
                     f"Failed to compute Euclidean distance for sequences: {e}"
                 )
                 raise ValueError(
-                    (
-                        f"Cannot compute Euclidean distance for sequences with "  # noqa: E501
+                    
+                        f"Cannot compute Euclidean distance for sequences with "
                         f"non-numeric elements: {e}"
-                    )
+                    
                 )
 
         else:
             logger.error(
-                (
+                
                     f"Unsupported input types for Euclidean distance: "
                     f"{type(x)} "
                     f"and {type(y)}"
-                )
+                
             )
             raise TypeError(
-                (
+                
                     f"Euclidean distance computation not supported for types "
                     f"{type(x)} and {type(y)}"
-                )
+                
             )
 
     def distances(
@@ -160,10 +159,10 @@ class EuclideanMetric(MetricBase):
             # For matrix objects - compute pairwise distances between rows
             if x.shape[1] != y.shape[1]:
                 raise ValueError(
-                    (
-                        f"Points must have the same dimension: {x.shape[1]} != "  # noqa: E501
+                    
+                        f"Points must have the same dimension: {x.shape[1]} != "
                         f"{y.shape[1]}"
-                    )
+                    
                 )
 
             # Create distance matrix
@@ -212,10 +211,10 @@ class EuclideanMetric(MetricBase):
                 f"Unsupported collection types: {type(x)} and {type(y)}"
             )
             raise TypeError(
-                (
+                
                     f"Euclidean distances computation not supported for types "
                     f"{type(x)} and {type(y)}"
-                )
+                
             )
 
     def check_non_negativity(self, x: MetricInput, y: MetricInput) -> bool:
@@ -273,11 +272,7 @@ class EuclideanMetric(MetricBase):
             )  # Using small epsilon for floating point comparison
 
             # Check if points are equal
-            if isinstance(x, IVector) and isinstance(y, IVector):
-                is_equal = len(x) == len(y) and all(
-                    abs(x_i - y_i) < 1e-10 for x_i, y_i in zip(x, y)
-                )
-            elif isinstance(x, Sequence) and isinstance(y, Sequence):
+            if isinstance(x, IVector) and isinstance(y, IVector) or isinstance(x, Sequence) and isinstance(y, Sequence):
                 is_equal = len(x) == len(y) and all(
                     abs(x_i - y_i) < 1e-10 for x_i, y_i in zip(x, y)
                 )
@@ -285,11 +280,11 @@ class EuclideanMetric(MetricBase):
                 is_equal = x == y
 
             logger.debug(
-                (
+                
                     f"Checking identity axiom: distance = {dist}, points "
                     f"equal: "
                     f"{is_equal}"
-                )
+                
             )
 
             # Axiom is satisfied if distance is zero iff points are equal
@@ -327,10 +322,10 @@ class EuclideanMetric(MetricBase):
             is_symmetric = abs(dist_xy - dist_yx) < 1e-10
 
             logger.debug(
-                (
+                
                     f"Checking symmetry axiom: d(x,y) = {dist_xy}, d(y,x) = "
                     f"{dist_yx}, symmetric: {is_symmetric}"
-                )
+                
             )
             return is_symmetric
 
@@ -372,7 +367,7 @@ class EuclideanMetric(MetricBase):
 
             logger.debug(
                 (
-                    f"Checking triangle inequality: d(x,z) = {dist_xz}, d(x,y) "  # noqa: E501
+                    f"Checking triangle inequality: d(x,z) = {dist_xz}, d(x,y) "
                     f"+ "
                     f"d(y,z) = {dist_xy + dist_yz}, "
                 )

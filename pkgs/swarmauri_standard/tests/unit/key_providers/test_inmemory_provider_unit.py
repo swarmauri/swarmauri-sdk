@@ -1,14 +1,14 @@
 import pytest
-
-from swarmauri_standard.key_providers import InMemoryKeyProvider
 from swarmauri_base.key_providers import KeyProviderBase
 from swarmauri_core.key_providers.types import (
-    KeySpec,
-    KeyClass,
-    KeyAlg,
     ExportPolicy,
+    KeyAlg,
+    KeyClass,
+    KeySpec,
     KeyUse,
 )
+
+from swarmauri_standard.key_providers import InMemoryKeyProvider
 
 
 @pytest.mark.unit

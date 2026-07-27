@@ -15,6 +15,6 @@ class IMulticastTransport(ABC):
         group: Sequence[str],
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         """Send data to a multicast group."""

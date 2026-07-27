@@ -1,6 +1,6 @@
 """Common provider authentication settings."""
 
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field, SecretStr
 
@@ -8,6 +8,6 @@ from swarmauri_base.ComponentBase import ComponentBase
 
 
 class ProviderAuthBase(ComponentBase):
-    api_key: Optional[SecretStr] = Field(default=None, exclude=True)
-    token: Optional[SecretStr] = Field(default=None, exclude=True)
+    api_key: SecretStr | None = Field(default=None, exclude=True)
+    token: SecretStr | None = Field(default=None, exclude=True)
     type: Literal["ProviderAuthBase"] = "ProviderAuthBase"

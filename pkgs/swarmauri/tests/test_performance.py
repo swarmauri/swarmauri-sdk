@@ -4,10 +4,9 @@ import string
 import sys
 import time
 import types
+from importlib.metadata import EntryPoint
 
 import pytest
-
-from importlib.metadata import EntryPoint
 
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 from swarmauri.plugin_manager import invalidate_entry_point_cache
@@ -48,10 +47,10 @@ def test_startup_and_first_class_registration_performance() -> None:
     PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY = original_registry
 
     print(
-        (
+        
             f"Startup: {startup_time:.4f}s, First-class registration: "
             f"{registration_time:.4f}s"
-        )
+        
     )
 
     assert startup_time >= 0

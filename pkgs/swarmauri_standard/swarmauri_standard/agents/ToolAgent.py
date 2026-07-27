@@ -1,18 +1,17 @@
 import logging
-from pydantic import ConfigDict
-from typing import Any, Optional, Dict, Literal, List
+from typing import Any, Dict, List, Literal, Optional
 
-from swarmauri_standard.messages.HumanMessage import HumanMessage
+from pydantic import ConfigDict
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentToolMixin import AgentToolMixin
-from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-
-
+from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_core.messages import IMessage
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
+
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 
 @ComponentBase.register_type(AgentBase, "ToolAgent")

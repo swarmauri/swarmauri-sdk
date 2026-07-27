@@ -1,6 +1,7 @@
 """Unit tests for ``ComponentBase``."""
 
 import pytest
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 

@@ -67,10 +67,10 @@ class TanimotoSimilarity(SimilarityBase):
             # Check dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
+                    
                         f"Input vectors must have the same dimensions: "
                         f"{x_array.shape} != {y_array.shape}"
-                    )
+                    
                 )
 
             # Check for zero vectors
@@ -81,7 +81,7 @@ class TanimotoSimilarity(SimilarityBase):
 
             return x_array, y_array
         except Exception as e:
-            logger.error(f"Input validation error: {str(e)}")
+            logger.error(f"Input validation error: {e!s}")
             raise
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -158,7 +158,7 @@ class TanimotoSimilarity(SimilarityBase):
             logger.debug(f"Tanimoto similarity: {tanimoto}")
             return float(tanimoto)
         except Exception as e:
-            logger.error(f"Error calculating Tanimoto similarity: {str(e)}")
+            logger.error(f"Error calculating Tanimoto similarity: {e!s}")
             raise
 
     def similarities(
@@ -210,10 +210,10 @@ class TanimotoSimilarity(SimilarityBase):
                     # Check dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            (
-                                f"Input vectors must have the same dimensions: "  # noqa: E501
+                            
+                                f"Input vectors must have the same dimensions: "
                                 f"{x_array.shape} != {y_array.shape}"
-                            )
+                            
                         )
 
                     # Check for zero vector
@@ -240,7 +240,7 @@ class TanimotoSimilarity(SimilarityBase):
 
                 except Exception as e:
                     logger.warning(
-                        f"Error calculating individual similarity: {str(e)}"
+                        f"Error calculating individual similarity: {e!s}"
                     )
                     results.append(
                         float("nan")
@@ -249,7 +249,7 @@ class TanimotoSimilarity(SimilarityBase):
             return results
         except Exception as e:
             logger.error(
-                f"Error calculating multiple Tanimoto similarities: {str(e)}"
+                f"Error calculating multiple Tanimoto similarities: {e!s}"
             )
             raise
 
@@ -280,7 +280,7 @@ class TanimotoSimilarity(SimilarityBase):
             # Tanimoto dissimilarity is 1 - similarity
             return 1.0 - self.similarity(x, y)
         except Exception as e:
-            logger.error(f"Error calculating Tanimoto dissimilarity: {str(e)}")
+            logger.error(f"Error calculating Tanimoto dissimilarity: {e!s}")
             raise
 
     def check_bounded(self) -> bool:
@@ -342,7 +342,7 @@ class TanimotoSimilarity(SimilarityBase):
             # issues
             return abs(similarity_value - 1.0) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
+            logger.error(f"Error checking reflexivity: {e!s}")
             raise
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -381,7 +381,7 @@ class TanimotoSimilarity(SimilarityBase):
             # issues
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise
 
     def check_identity_of_discernibles(
@@ -454,5 +454,5 @@ class TanimotoSimilarity(SimilarityBase):
                 # We already know similarity < 1, so they're not proportional
                 return True
         except Exception as e:
-            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            logger.error(f"Error checking identity of discernibles: {e!s}")
             raise

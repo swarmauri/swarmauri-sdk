@@ -22,5 +22,5 @@ class IVectorStoreComparator(ABC):
     @abstractmethod
     def score_many(
         self, query: ComparableValue, candidates: Sequence[ComparableValue]
-    ) -> List[float]:
+    ) -> list[float]:
         """Compute retrieval scores for multiple candidates."""

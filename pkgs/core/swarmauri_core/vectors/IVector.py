@@ -9,4 +9,3 @@ class IVector(ABC):
     such as machine learning, information retrieval, and similarity search.
     """
 
-    pass

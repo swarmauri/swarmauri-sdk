@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Union, Any
+from typing import Any, List, Union
 
 
 class IChunker(ABC):
@@ -14,5 +14,5 @@ class IChunker(ABC):
     """
 
     @abstractmethod
-    def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> List[Any]:
+    def chunk_text(self, text: Union[str, Any], *args, **kwargs) -> list[Any]:
         pass

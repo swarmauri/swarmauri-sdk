@@ -6,14 +6,14 @@ from typing import AsyncIterator, Dict, Iterator, List, Literal
 
 import httpx
 from pydantic import PrivateAttr, SecretStr, model_validator
-from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing OpenAIAudioTTS from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts import "  # noqa: E501
+    "removed in a future version. Please use 'from swarmauri_standard.tts import "
     "OpenaiTTS' or 'from swarmauri.tts import OpenaiTTS' instead.",
     DeprecationWarning,
     stacklevel=2,
@@ -93,10 +93,10 @@ class OpenAIAudioTTS(LLMBase):
         allowed_voices = values.allowed_voices
         if voice and voice not in allowed_voices:
             raise ValueError(
-                (
+                
                     f"Model name {voice} is not allowed. Choose from "
                     f"{allowed_voices}"
-                )
+                
             )
         return values
 

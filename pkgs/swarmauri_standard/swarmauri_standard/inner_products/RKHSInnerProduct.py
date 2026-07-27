@@ -87,9 +87,9 @@ class RKHSInnerProduct(InnerProductBase):
             logger.debug(f"Inner product result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error computing RKHS inner product: {str(e)}")
+            logger.error(f"Error computing RKHS inner product: {e!s}")
             raise TypeError(
-                f"Inputs not supported by kernel function: {str(e)}"
+                f"Inputs not supported by kernel function: {e!s}"
             )
 
     def check_conjugate_symmetry(
@@ -175,10 +175,10 @@ class RKHSInnerProduct(InnerProductBase):
             If the inputs don't support linear combinations
         """
         logger.debug(
-            (
+            
                 f"Checking linearity in first argument with alpha={alpha}, "
                 f"beta={beta}"
-            )
+            
         )
 
         # Check if inputs support linear combinations
@@ -254,10 +254,10 @@ class RKHSInnerProduct(InnerProductBase):
             True if the kernel is positive definite, False otherwise
         """
         logger.debug(
-            (
+            
                 f"Checking if kernel is positive definite using "
                 f"{len(vectors)} vectors"
-            )
+            
         )
 
         n = len(vectors)

@@ -1,11 +1,11 @@
 from abc import ABC
 
 from pydantic import ConfigDict, Field
-
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.transports.i_bidirectional_stream import (
     IBidirectionalStreamClient,
 )
+
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 class BidirectionalStreamClientBase(

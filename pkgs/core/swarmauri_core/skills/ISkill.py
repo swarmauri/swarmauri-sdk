@@ -8,10 +8,10 @@ class ISkill(ABC):
     name: str
     description: str
     instructions: str
-    license: Optional[str]
-    compatibility: Optional[str]
-    metadata: Dict[str, str]
-    allowed_tools: List[str]
-    references: List[str]
-    scripts: List[str]
-    assets: List[str]
+    license: str | None
+    compatibility: str | None
+    metadata: dict[str, str]
+    allowed_tools: list[str]
+    references: list[str]
+    scripts: list[str]
+    assets: list[str]

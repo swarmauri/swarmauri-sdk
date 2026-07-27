@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from swarmauri_standard.embeddings.OpenAIEmbedding import OpenAIEmbedding
 from dotenv import load_dotenv
+
+from swarmauri_standard.embeddings.OpenAIEmbedding import OpenAIEmbedding
 
 load_dotenv()
 

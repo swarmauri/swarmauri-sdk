@@ -1,7 +1,7 @@
 import logging
 import socket
-import unittest.mock as mock
 from logging.handlers import SysLogHandler
+from unittest import mock
 
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -188,7 +188,7 @@ def test_compile_handler_socket_error():
     with (
         mock.patch(
             "swarmauri_standard.logger_handlers.SysLogLoggingHandler.SysLogHandler",
-            side_effect=socket.error("Connection refused"),
+            side_effect=OSError("Connection refused"),
         ),
         mock.patch("logging.error") as mock_log_error,
         mock.patch("logging.NullHandler") as mock_null_handler,

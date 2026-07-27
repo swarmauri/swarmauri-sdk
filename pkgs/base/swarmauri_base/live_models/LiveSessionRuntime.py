@@ -2,8 +2,9 @@
 
 import asyncio
 import threading
+from collections.abc import Awaitable, Callable
 from concurrent.futures import Future
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 
 class LiveSessionRuntime:

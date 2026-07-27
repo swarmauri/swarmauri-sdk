@@ -1,10 +1,12 @@
 import csv
 from io import StringIO
-from typing import List, Any, Literal
-from swarmauri_core.documents.IDocument import IDocument
-from swarmauri_standard.documents.Document import Document
-from swarmauri_base.parsers.ParserBase import ParserBase
+from typing import Any, List, Literal
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.parsers.ParserBase import ParserBase
+from swarmauri_core.documents.IDocument import IDocument
+
+from swarmauri_standard.documents.Document import Document
 
 
 @ComponentBase.register_type(ParserBase, "CSVParser")

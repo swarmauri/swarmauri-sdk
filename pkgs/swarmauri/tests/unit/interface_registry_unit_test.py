@@ -1,8 +1,8 @@
 import pytest
-
-from swarmauri.interface_registry import InterfaceRegistry
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.key_providers.KeyProviderBase import KeyProviderBase
+
+from swarmauri.interface_registry import InterfaceRegistry
 
 
 @pytest.fixture(autouse=True)

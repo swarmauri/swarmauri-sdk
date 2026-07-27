@@ -9,7 +9,7 @@ from .IProviderErrorMapper import IProviderErrorMapper
 
 class IModelProvider(ABC):
     provider_name: str
-    base_url: Optional[str]
+    base_url: str | None
     default_headers: Mapping[str, str]
     catalog: IModelCatalog
     error_mapper: IProviderErrorMapper
@@ -21,5 +21,5 @@ class IModelProvider(ABC):
     def connection_config(
         self,
         capability: str,
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> Any: ...

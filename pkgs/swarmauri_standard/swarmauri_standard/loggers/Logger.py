@@ -6,4 +6,3 @@ from swarmauri_base.loggers.LoggerBase import LoggerBase
 class Logger(LoggerBase):
     """Concrete implementation of LoggerBase"""
 
-    pass

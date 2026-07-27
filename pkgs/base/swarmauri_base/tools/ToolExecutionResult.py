@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel
 
@@ -12,10 +12,10 @@ ToolExecutionStatus = Literal[
 
 
 class ToolExecutionResult(BaseModel):
-    call_id: Optional[str] = None
-    tool_name: Optional[str] = None
+    call_id: str | None = None
+    tool_name: str | None = None
     status: ToolExecutionStatus = "completed"
     value: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     cancelled: bool = False
     type: Literal["ToolExecutionResult"] = "ToolExecutionResult"

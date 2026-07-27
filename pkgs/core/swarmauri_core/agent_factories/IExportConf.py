@@ -12,7 +12,7 @@ class IExportConf(ABC):
     """
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Serializes the agent factory's configuration to a dictionary.
 
@@ -20,7 +20,6 @@ class IExportConf(ABC):
             Dict[str, Any]: A dictionary representation of the factory's
             configuration.
         """
-        pass
 
     @abstractmethod
     def to_json(self) -> str:
@@ -30,7 +29,6 @@ class IExportConf(ABC):
         Returns:
             str: A JSON string representation of the factory's configuration.
         """
-        pass
 
     @abstractmethod
     def to_file(self, file_path: str) -> None:
@@ -42,4 +40,3 @@ class IExportConf(ABC):
             file_path (str): The path to the file where the configuration
             should be saved.
         """
-        pass

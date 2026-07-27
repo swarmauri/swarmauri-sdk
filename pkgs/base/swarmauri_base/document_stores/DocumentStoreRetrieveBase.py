@@ -1,12 +1,12 @@
 from abc import abstractmethod
-from typing import List, Literal
+from typing import Literal
 
 from pydantic import ConfigDict, Field
+from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
+from swarmauri_core.documents.IDocument import IDocument
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.retrievers.RetrieverBase import RetrieverBase
-from swarmauri_core.document_stores.IDocumentRetrieve import IDocumentRetrieve
-from swarmauri_core.documents.IDocument import IDocument
 
 
 @ComponentBase.register_model()
@@ -16,7 +16,7 @@ class DocumentStoreRetrieveBase(IDocumentRetrieve, RetrieverBase):
     type: Literal["DocumentStoreRetrieveBase"] = "DocumentStoreRetrieveBase"
 
     @abstractmethod
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[IDocument]:
         """
         Retrieve the top_k most relevant documents based on the given query.
 
@@ -27,4 +27,3 @@ class DocumentStoreRetrieveBase(IDocumentRetrieve, RetrieverBase):
         Returns:
             List[IDocument]: A list of the top_k most relevant documents.
         """
-        pass

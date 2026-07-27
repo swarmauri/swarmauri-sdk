@@ -148,7 +148,7 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Computed Lp norm with p={self.p}: {norm_value}")
             return float(norm_value)
         except Exception as e:
-            logger.error(f"Error computing Lp norm: {str(e)}")
+            logger.error(f"Error computing Lp norm: {e!s}")
             raise
 
     def check_non_negativity(
@@ -177,7 +177,7 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Non-negativity check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in non-negativity check: {str(e)}")
+            logger.error(f"Error in non-negativity check: {e!s}")
             return False
 
     def check_definiteness(
@@ -216,7 +216,7 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Definiteness check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in definiteness check: {str(e)}")
+            logger.error(f"Error in definiteness check: {e!s}")
             return False
 
     def check_triangle_inequality(
@@ -256,11 +256,11 @@ class GeneralLpNorm(NormBase):
             # Ensure arrays have the same shape
             if x_array.shape != y_array.shape:
                 raise TypeError(
-                    (
+                    
                         "Inputs must have the same shape for triangle "
                         "inequality "
                         "check"
-                    )
+                    
                 )
 
             # Compute norms
@@ -278,7 +278,7 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Triangle inequality check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in triangle inequality check: {str(e)}")
+            logger.error(f"Error in triangle inequality check: {e!s}")
             return False
 
     def check_absolute_homogeneity(
@@ -329,5 +329,5 @@ class GeneralLpNorm(NormBase):
             logger.debug(f"Absolute homogeneity check result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error in absolute homogeneity check: {str(e)}")
+            logger.error(f"Error in absolute homogeneity check: {e!s}")
             return False

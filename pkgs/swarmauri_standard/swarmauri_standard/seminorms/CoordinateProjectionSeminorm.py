@@ -58,10 +58,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
 
         self.projection_indices = projection_indices
         logger.info(
-            (
+            
                 f"Initialized CoordinateProjectionSeminorm with projection "
                 f"indices: {projection_indices}"
-            )
+            
         )
 
     def compute(self, x: InputType) -> float:
@@ -125,10 +125,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(components):
             raise ValueError(
-                (
-                    f"Projection index {max_index} out of bounds for vector of "  # noqa: E501
+                
+                    f"Projection index {max_index} out of bounds for vector of "
                     f"length {len(components)}"
-                )
+                
             )
 
         # Project onto the selected coordinates
@@ -170,10 +170,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(flattened):
             raise ValueError(
-                (
-                    f"Projection index {max_index} out of bounds for flattened "  # noqa: E501
+                
+                    f"Projection index {max_index} out of bounds for flattened "
                     f"matrix of length {len(flattened)}"
-                )
+                
             )
 
         # Project onto the selected coordinates
@@ -209,11 +209,11 @@ class CoordinateProjectionSeminorm(SeminormBase):
         )
         if max_index >= len(x):
             raise ValueError(
-                (
+                
                     f"Projection index {max_index} out of bounds for sequence "
                     f"of "
                     f"length {len(x)}"
-                )
+                
             )
 
         # Project onto the selected coordinates
@@ -251,10 +251,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            (
+            
                 f"Checking triangle inequality for inputs of types {type(x)} "
                 f"and {type(y)}"
-            )
+            
         )
 
         # Compute norms
@@ -262,9 +262,7 @@ class CoordinateProjectionSeminorm(SeminormBase):
         norm_y = self.compute(y)
 
         # Compute x + y
-        if isinstance(x, IVector) and isinstance(y, IVector):
-            sum_xy = x + y
-        elif isinstance(x, IMatrix) and isinstance(y, IMatrix):
+        if isinstance(x, IVector) and isinstance(y, IVector) or isinstance(x, IMatrix) and isinstance(y, IMatrix):
             sum_xy = x + y
         elif isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)):
             if len(x) != len(y):
@@ -280,10 +278,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             sum_xy = x + y
         else:
             raise TypeError(
-                (
+                
                     f"Unsupported or incompatible input types: {type(x)} and "
                     f"{type(y)}"
-                )
+                
             )
 
         # Compute norm of the sum
@@ -322,10 +320,10 @@ class CoordinateProjectionSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            (
+            
                 f"Checking scalar homogeneity for input of type {type(x)} "
                 f"with scalar {alpha}"
-            )
+            
         )
 
         # Compute ||x||

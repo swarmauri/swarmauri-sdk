@@ -1,16 +1,17 @@
 from abc import abstractmethod
-from typing import Optional, List, Literal
-from pydantic import ConfigDict, model_validator, Field
+from typing import Literal
 
+from pydantic import ConfigDict, Field, model_validator
 from swarmauri_core.llms.IPredict import IPredict
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.utils.allowed_models import is_model_allowed
 
 
 @ComponentBase.register_model()
 class OCRBase(IPredict, ComponentBase):
-    allowed_models: List[str] = []
-    resource: Optional[str] = Field(
+    allowed_models: list[str] = []
+    resource: str | None = Field(
         default=ResourceTypes.OCR.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
@@ -23,10 +24,10 @@ class OCRBase(IPredict, ComponentBase):
         allowed_models = values.allowed_models
         if name and not is_model_allowed(name, allowed_models):
             raise ValueError(
-                (
+                
                     f"Model name {name} is not allowed. Choose from "
                     f"{allowed_models}"
-                )
+                
             )
         return values
 

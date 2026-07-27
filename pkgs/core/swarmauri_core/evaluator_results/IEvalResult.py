@@ -23,11 +23,10 @@ class IEvalResult(ABC):
         float
             The numerical score of the evaluation.
         """
-        pass
 
     @property
     @abstractmethod
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         """
         Get additional metadata about the evaluation.
 
@@ -36,7 +35,6 @@ class IEvalResult(ABC):
         Dict[str, Any]
             Dictionary containing metadata about the evaluation.
         """
-        pass
 
     @property
     @abstractmethod
@@ -49,4 +47,3 @@ class IEvalResult(ABC):
         IProgram
             The program that was evaluated.
         """
-        pass

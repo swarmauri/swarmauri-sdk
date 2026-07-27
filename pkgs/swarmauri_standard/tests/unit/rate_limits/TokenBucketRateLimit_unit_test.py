@@ -1,9 +1,11 @@
 import time
+
 import pytest
+from swarmauri_base.ComponentBase import ResourceTypes
+
 from swarmauri_standard.rate_limits.TokenBucketRateLimit import (
     TokenBucketRateLimit,
 )
-from swarmauri_base.ComponentBase import ResourceTypes
 
 
 @pytest.fixture

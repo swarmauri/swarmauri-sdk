@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+
 from swarmauri_core.messages.IMessage import IMessage
 
 
@@ -11,36 +12,31 @@ class IConversation(ABC):
     """
 
     @property
-    def history(self) -> List[IMessage]:
+    def history(self) -> list[IMessage]:
         """
         Provides read-only access to the conversation history.
         """
-        pass
 
     @abstractmethod
     def add_message(self, message: IMessage):
         """
         Adds a message to the conversation history.
         """
-        pass
 
     @abstractmethod
-    def add_messages(self, messages: List[IMessage]):
+    def add_messages(self, messages: list[IMessage]):
         """
         Adds multiple messages to the conversation history.
         """
-        pass
 
     @abstractmethod
-    def get_last(self) -> Optional[IMessage]:
+    def get_last(self) -> IMessage | None:
         """
         Retrieves the latest message from the conversation history.
         """
-        pass
 
     @abstractmethod
     def clear_history(self) -> None:
         """
         Clears the conversation history.
         """
-        pass

@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.distances.ChebyshevDistance import ChebyshevDistance
 from swarmauri_standard.vectors.Vector import Vector
 

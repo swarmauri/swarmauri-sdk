@@ -19,7 +19,6 @@ class IAgentCommands(ABC):
         Returns:
             Any: The response payload.
         """
-        pass
 
     @abstractmethod
     async def ainvoke(self, request: Any) -> Any:
@@ -32,10 +31,9 @@ class IAgentCommands(ABC):
         Returns:
             Any: The response payload.
         """
-        pass
 
     @abstractmethod
-    def batch(self, requests: List[Any]) -> List[Any]:
+    def batch(self, requests: list[Any]) -> list[Any]:
         """
         Handles batched invocation requests synchronously.
 
@@ -45,10 +43,9 @@ class IAgentCommands(ABC):
         Returns:
             List[Any]: A list of responses.
         """
-        pass
 
     @abstractmethod
-    async def abatch(self, requests: List[Any]) -> List[Any]:
+    async def abatch(self, requests: list[Any]) -> list[Any]:
         """
         Handles batched invocation requests asynchronously.
 
@@ -58,7 +55,6 @@ class IAgentCommands(ABC):
         Returns:
             List[Any]: A list of responses.
         """
-        pass
 
     @abstractmethod
     def stream(self, request: Any) -> Any:
@@ -71,7 +67,6 @@ class IAgentCommands(ABC):
         Returns:
             Any: A streaming response.
         """
-        pass
 
     @abstractmethod
     def get_schema_config(self) -> dict:
@@ -81,4 +76,3 @@ class IAgentCommands(ABC):
         Returns:
             dict: The schema configuration.
         """
-        pass

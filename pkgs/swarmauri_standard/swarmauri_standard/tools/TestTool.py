@@ -70,4 +70,4 @@ class TestTool(ToolBase):
             sp.Popen(cmd) if isinstance(cmd, list) else sp.Popen([cmd])
             return {"program": f"Program Opened: {program}"}
         except Exception as e:
-            return {"error": f"Failed to open program: {str(e)}"}
+            return {"error": f"Failed to open program: {e!s}"}

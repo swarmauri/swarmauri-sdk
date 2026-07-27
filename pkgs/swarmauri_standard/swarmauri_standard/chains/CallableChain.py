@@ -1,7 +1,8 @@
-from typing import Any, Callable, List, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
+
 from swarmauri_core.chains.ICallableChain import (
-    ICallableChain,
     CallableDefinition,
+    ICallableChain,
 )
 
 

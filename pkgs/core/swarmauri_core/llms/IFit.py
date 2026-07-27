@@ -11,4 +11,3 @@ class IFit(ABC):
         """
         Train the model on the provided dataset.
         """
-        pass

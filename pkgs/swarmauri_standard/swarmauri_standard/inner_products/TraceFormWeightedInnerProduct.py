@@ -65,10 +65,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             # Ensure the weight matrix is a numpy array
             weight_matrix = np.array(weight_matrix)
             logger.info(
-                (
+                
                     f"Initialized with weight matrix of shape "
                     f"{weight_matrix.shape}"
-                )
+                
             )
         kwargs["weight_matrix"] = weight_matrix
         super().__init__(**kwargs)
@@ -105,10 +105,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             dimensions
         """
         logger.debug(
-            (
+            
                 f"Computing weighted trace inner product between {type(a)} "
                 f"and {type(b)}"
-            )
+            
         )
 
         # Convert inputs to numpy arrays if they aren't already
@@ -153,7 +153,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             logger.debug(f"Inner product result: {result}")
             return result if np.iscomplexobj(result) else float(result)
         except Exception as e:
-            logger.error(f"Error computing inner product: {str(e)}")
+            logger.error(f"Error computing inner product: {e!s}")
             raise
 
     def check_conjugate_symmetry(
@@ -195,11 +195,11 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
         if not is_hermitian:
             logger.debug(
-                (
+                
                     "Weight matrix is not Hermitian, conjugate symmetry does "
                     "not "
                     "hold"
-                )
+                
             )
             return False
 
@@ -215,14 +215,14 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             result = np.isclose(ip_ab, ip_ba_conj, rtol=1e-4, atol=1e-6)
 
             logger.debug(
-                (
+                
                     f"Conjugate symmetry values: <a,b>={ip_ab}, "
                     f"<b,a>*={ip_ba_conj}, diff={abs(ip_ab - ip_ba_conj)}"
-                )
+                
             )
             return bool(result)
         except Exception as e:
-            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            logger.error(f"Error checking conjugate symmetry: {e!s}")
             return False
 
     def check_linearity_first_argument(
@@ -256,10 +256,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            (
+            
                 f"Checking linearity in first argument with alpha={alpha}, "
                 f"beta={beta}"
-            )
+            
         )
 
         try:
@@ -274,10 +274,10 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             # Check if dimensions are compatible
             if a1.shape != a2.shape:
                 logger.error(
-                    (
+                    
                         f"Incompatible dimensions: a1.shape={a1.shape}, "
                         f"a2.shape={a2.shape}"
-                    )
+                    
                 )
                 return False
 
@@ -292,7 +292,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             logger.debug(f"Linearity check result: {result}")
             return bool(result)
         except Exception as e:
-            logger.error(f"Error checking linearity: {str(e)}")
+            logger.error(f"Error checking linearity: {e!s}")
             return False
 
     def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
@@ -325,11 +325,11 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
 
             if not is_psd:
                 logger.debug(
-                    (
+                    
                         "Weight matrix is not positive semi-definite, "
                         "positivity does "
                         "not hold"
-                    )
+                    
                 )
                 return False
 
@@ -358,7 +358,7 @@ class TraceFormWeightedInnerProduct(InnerProductBase):
             logger.debug(f"Positivity check result: {result}")
             return bool(result)
         except Exception as e:
-            logger.error(f"Error checking positivity: {str(e)}")
+            logger.error(f"Error checking positivity: {e!s}")
             return False
 
     def set_weight_matrix(self, weight_matrix: np.ndarray) -> None:

@@ -1,10 +1,12 @@
 import logging
-from typing import List, Optional, Any
+from typing import Any
+
 from pydantic import Field
 from swarmauri_core.loggers.ILogger import ILogger
+
+from swarmauri_base import FullUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
-from swarmauri_base import FullUnion
 
 
 @ObserveBase.register_model()
@@ -18,10 +20,10 @@ class LoggerBase(ILogger, ObserveBase):
     """
 
     name: str = __name__
-    handlers: List[FullUnion[HandlerBase]] = []
+    handlers: list[FullUnion[HandlerBase]] = []
     default_level: int = logging.INFO
     default_format: str = "[%(name)s][%(levelname)s] %(message)s"
-    logger: Optional[Any] = Field(exclude=True, default=None)
+    logger: Any | None = Field(exclude=True, default=None)
 
     def model_post_init(self, *args, **kwargs):
         """Initialize the LoggerBase instance.

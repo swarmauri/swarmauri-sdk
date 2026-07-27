@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
+
 from swarmauri_core.agents.IAgent import IAgent
 
 
@@ -21,7 +22,6 @@ class IAgentRegistrationAPI(ABC):
         Returns:
             bool: True if the registration succeeded; False otherwise.
         """
-        pass
 
     @abstractmethod
     def update_agent(self, agent_id: str, updated_agent: IAgent) -> bool:
@@ -38,7 +38,6 @@ class IAgentRegistrationAPI(ABC):
         Returns:
             bool: True if the update was successful; False otherwise.
         """
-        pass
 
     @abstractmethod
     def remove_agent(self, agent_id: str) -> bool:
@@ -51,10 +50,9 @@ class IAgentRegistrationAPI(ABC):
         Returns:
             bool: True if the removal was successful; False otherwise.
         """
-        pass
 
     @abstractmethod
-    def get_agent(self, agent_id: str) -> Optional[IAgent]:
+    def get_agent(self, agent_id: str) -> IAgent | None:
         """
         Retrieve an agent's instance from its unique identifier.
 
@@ -64,10 +62,9 @@ class IAgentRegistrationAPI(ABC):
         Returns:
             Optional[IAgent]: The IAgent instance if found; None otherwise.
         """
-        pass
 
     @abstractmethod
-    def list_agents(self) -> List[IAgent]:
+    def list_agents(self) -> list[IAgent]:
         """
         List all registered agents.
 
@@ -75,4 +72,3 @@ class IAgentRegistrationAPI(ABC):
             List[IAgent]: A list containing instances of all registered
             IAgents.
         """
-        pass

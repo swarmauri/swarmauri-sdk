@@ -1,8 +1,10 @@
 import re
 from typing import Any, Dict, List, Literal
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
+
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "FleschKincaidTool")
@@ -150,9 +152,7 @@ class FleschKincaidTool(ToolBase):
 
         for index, char in enumerate(word):
             if char in vowels:
-                if index == 0:
-                    syllables += 1
-                elif prev_char not in vowels:
+                if index == 0 or prev_char not in vowels:
                     syllables += 1
             prev_char = char
 

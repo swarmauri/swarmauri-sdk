@@ -11,6 +11,6 @@ class IBroadcastTransport(ABC):
 
     @abstractmethod
     async def broadcast(
-        self, data: bytes, *, timeout: Optional[float] = None
+        self, data: bytes, *, timeout: float | None = None
     ) -> None:
         """Broadcast data to all peers reachable by the transport."""

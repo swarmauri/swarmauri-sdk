@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IWebhooks
 from swarmauri_core.billing.protos import WebhookEventProto
 
-from .utils import extract_raw_payload
 from .refs import WebhookEventRef
+from .utils import extract_raw_payload
 
 
 class WebhooksMixin(IWebhooks, BaseModel):

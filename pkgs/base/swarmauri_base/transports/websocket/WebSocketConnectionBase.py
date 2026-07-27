@@ -3,11 +3,10 @@
 import asyncio
 from abc import abstractmethod
 from collections.abc import AsyncIterator, Iterator
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
-
 from swarmauri_core.transports.i_websocket_connection import (
     IWebSocketConnection,
     WebSocketMessage,
@@ -19,7 +18,7 @@ from .WebSocketState import WebSocketState
 class WebSocketConnectionBase(IWebSocketConnection, BaseModel):
     connection_id: str = Field(default_factory=lambda: str(uuid4()))
     state: str = WebSocketState.NEW.value
-    subprotocol: Optional[str] = None
+    subprotocol: str | None = None
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     @staticmethod

@@ -5,8 +5,8 @@ from typing import Dict, List, Literal
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tts.TTSBase import TTSBase
 
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
@@ -83,17 +83,17 @@ class PlayhtTTS(TTSBase):
 
         if model not in self.allowed_models:
             raise ValueError(
-                (
+                
                     f"{model} voice engine not allowed. Choose from "
                     f"{self.allowed_models}"
-                )
+                
             )
         if voice and voice not in self.allowed_voices:
             raise ValueError(
-                (
-                    f"Voice name {voice} is not allowed for this {model} voice "  # noqa: E501
+                
+                    f"Voice name {voice} is not allowed for this {model} voice "
                     f"engine. Choose from {self.allowed_voices}"
-                )
+                
             )
 
     @retry_on_status_codes((429, 529), max_retries=1)
