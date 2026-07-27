@@ -18,7 +18,10 @@ and next page positions, avoiding full-file output.
 
 ## Features
 
-- Reads at most the requested page size into the result.
+- Restricts reads to service-configured filesystem roots by default.
+- Rejects symlinks unless the service owner explicitly opts in.
+- Caps page size, scanned lines and bytes, individual-line size, elapsed
+  time, and returned bytes.
 - Navigates up or down using one-based line anchors.
 - Returns line numbers and explicit previous/next page positions.
 - Clamps an anchor beyond EOF to the final available page.
@@ -39,9 +42,11 @@ pip install swarmauri_tool_scrollfile
 ## Usage
 
 ```python
+from pathlib import Path
+
 from swarmauri_tool_scrollfile import ScrollFileTool
 
-tool = ScrollFileTool()
+tool = ScrollFileTool(allowed_roots=[str(Path("logs").resolve())])
 first_page = tool("logs/application.log")
 
 if first_page["has_next"]:
@@ -68,20 +73,48 @@ previous_page = tool(
 Each result contains `lines`, `start_line`, `end_line`, `page_size`,
 `has_previous`, `has_next`, `previous_start_line`, and `next_start_line`.
 
+## Security and Resource Limits
+
+`file_path` is agent-controlled, but filesystem policy is not. The service
+owner configures `allowed_roots` when creating the tool; requested paths are
+canonically resolved and must remain inside one of those roots. Paths
+containing symlinks are rejected by default, and the resolved target must be a
+regular file.
+
+```python
+tool = ScrollFileTool(
+    allowed_roots=["/srv/application-logs", "/srv/reports"],
+)
+```
+
+The default root is the process working directory. Set `allow_symlinks=True`
+only when following symlinks is part of the trusted service configuration.
+`allow_unrestricted_paths=True` is a privileged opt-in that disables root
+containment; use it only when the process already runs in a least-privilege
+filesystem sandbox.
+
+Each call enforces service-owned limits: at most 100 returned lines, 100,000
+scanned lines, 8 MiB scanned data, 64 KiB per line, 256 KiB returned content,
+and two seconds of file-reading time. Exceeding a limit raises `ValueError`
+rather than returning a partial or ambiguous page.
+
 ## Workflow Integration
 
 ```python
 from swarmauri_standard.tools.ToolCollection import ToolCollection
 from swarmauri_tool_scrollfile import ScrollFileTool
 
-tools = ToolCollection(tools=[ScrollFileTool()])
+tools = ToolCollection(
+    tools=[ScrollFileTool(allowed_roots=["/srv/application-logs"])]
+)
 ```
 
 ## Performance
 
 The tool streams from the start of the file to the requested page and holds at
-most one page plus one lookahead line in memory. Memory use is `O(page_size)`;
-runtime is `O(start_line + page_size)` for a stateless request.
+most one page plus one lookahead line in memory, subject to the limits above.
+Memory use is `O(page_size)`; runtime is `O(start_line + page_size)` for a
+stateless request.
 
 ## License
 
