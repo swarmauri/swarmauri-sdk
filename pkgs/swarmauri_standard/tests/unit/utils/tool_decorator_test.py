@@ -61,7 +61,8 @@ def test_tool_decorator_complex_types():
 
     @tool
     def process_data(
-        items: List[str], options: Dict[str, Any] = None
+        items: List[str],
+        options: Dict[str, Any] = None,  # noqa: RUF013
     ) -> List[str]:
         """Process a list of items with optional configuration."""
 

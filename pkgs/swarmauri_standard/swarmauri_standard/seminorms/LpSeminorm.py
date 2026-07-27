@@ -82,9 +82,7 @@ class LpSeminorm(SeminormBase):
         TypeError
             If the input type is not supported
         """
-        if isinstance(x, IVector):
-            return np.array(x.to_array())
-        elif isinstance(x, IMatrix):
+        if isinstance(x, (IVector, IMatrix)):
             return np.array(x.to_array())
         elif isinstance(x, (list, tuple, np.ndarray)):
             # Don't force dtype=float which discards imaginary parts
