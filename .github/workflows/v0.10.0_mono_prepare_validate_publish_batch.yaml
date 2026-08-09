@@ -20,9 +20,13 @@ on:
       set_version:
         description: "Version (e.g. 0.2.0 or 0.2.0.dev1)"
         required: false
+      cadence_seconds:
+        description: "Minimum delay before each package publication"
+        required: false
+        default: "300"
 
 concurrency:
-  group: v0.10.0-mono-prepare-validate-publish-batch-${{ github.run_id }}
+  group: v0.10.0-mono-prepare-validate-publish-batch
   cancel-in-progress: false
 
 permissions:
@@ -328,6 +332,21 @@ jobs:
       - name: Install libsodium for sodium package
         if: ${{ matrix.package_name == 'swarmauri_crypto_sodium' }}
         run: sudo apt-get update && sudo apt-get install -y libsodium-dev
+
+      - name: Enforce publication cadence
+        env:
+          CADENCE_SECONDS: ${{ github.event.inputs.cadence_seconds }}
+        run: |
+          if ! [[ "$CADENCE_SECONDS" =~ ^[0-9]+$ ]]; then
+            echo "cadence_seconds must be a non-negative integer."
+            exit 1
+          fi
+          if [ "$CADENCE_SECONDS" -gt 3600 ]; then
+            echo "cadence_seconds must not exceed 3600 seconds."
+            exit 1
+          fi
+          echo "Waiting ${CADENCE_SECONDS}s before publishing ${{ matrix.package_name }}."
+          sleep "$CADENCE_SECONDS"
 
       - name: Build
         run: |
