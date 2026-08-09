@@ -362,6 +362,8 @@ jobs:
 
       - name: Publish
         id: publish
+        env:
+          CADENCE_SECONDS: ${{ github.event.inputs.cadence_seconds }}
         run: |
           set -o pipefail
           cd pkgs
@@ -395,7 +397,7 @@ jobs:
             exit 0
           fi
 
-          max_attempts=16
+          max_attempts=72
           for attempt in $(seq 1 "$max_attempts"); do
             if pypi_has_release; then
               echo "PyPI now has ${PACKAGE_NAME}==${VERSION}; skipping duplicate publish."
@@ -414,8 +416,11 @@ jobs:
               exit 1
             fi
             if grep -Eiq "429|Too many new projects created|Too Many Requests" "$publish_log"; then
-              sleep_seconds=3600
-              echo "PyPI rate limit detected; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
+              sleep_seconds="$CADENCE_SECONDS"
+              if [ "$sleep_seconds" -lt 300 ]; then
+                sleep_seconds=300
+              fi
+              echo "PyPI rate limit detected; retrying at the publication cadence in ${sleep_seconds}s (${attempt}/${max_attempts})."
             else
               sleep_seconds=$((attempt * 30))
               echo "Publish failed; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
