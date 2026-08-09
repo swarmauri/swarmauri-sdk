@@ -14,7 +14,7 @@ on:
         description: "Batch label for logging"
         required: false
       bump_type:
-        description: "Bump type {major,minor,patch,finalize}"
+        description: "Bump type {major,minor,patch,finalize,preserve}"
         required: false
         default: "patch"
       set_version:
@@ -151,7 +151,10 @@ jobs:
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
 
-          if [ -n "${{ github.event.inputs.set_version }}" ]; then
+          if [ "${{ github.event.inputs.bump_type }}" = "preserve" ] && [ -z "${{ github.event.inputs.set_version }}" ]; then
+            echo "Preserving the prepared version for $PACKAGE_NAME."
+            exit 0
+          elif [ -n "${{ github.event.inputs.set_version }}" ]; then
             VERSION_ARG="--set ${{ github.event.inputs.set_version }}"
           else
             VERSION_ARG="--bump ${{ github.event.inputs.bump_type }}"
