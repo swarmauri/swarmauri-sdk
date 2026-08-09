@@ -22,6 +22,7 @@ PLUGIN_NAME = __name__.split(".")[0]
 STANDARD_LICENSES = {
     "mit",
     "mit license",
+    "mit-cmu",
     "apache-2.0",
     "apache license",
     "apache license 2.0",
@@ -40,6 +41,7 @@ STANDARD_LICENSES = {
     "bsd-3-clause license",
     "python software foundation license",
     "python-2.0",
+    "psf-2.0",
     "gpl",
     "gnu general public license",
     "lgpl",
@@ -169,7 +171,11 @@ class DependencyPath:
 
 def _license_from_dist(dist) -> str:
     meta = dist.metadata
-    license_str = meta.get("License", "").strip()
+    # PEP 639 metadata uses License-Expression in place of the legacy License
+    # field and license classifiers. Prefer the machine-readable SPDX value.
+    license_str = meta.get("License-Expression", "").strip()
+    if not license_str:
+        license_str = meta.get("License", "").strip()
     if license_str and ("\n" in license_str or len(license_str) > 100):
         for pattern in LICENSE_PATTERNS:
             if pattern.lower() in license_str.lower():
