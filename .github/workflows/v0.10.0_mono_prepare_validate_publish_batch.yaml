@@ -102,6 +102,17 @@ jobs:
               if requires_approval:
                   approval_entries.append(entry)
 
+          # PyPI currently permits four new project creations per rolling day:
+          # https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955
+          # Existing projects do not count toward this guard because they do not
+          # require approval above.
+          max_new_projects = 4
+          if len(approval_entries) > max_new_projects:
+              raise RuntimeError(
+                  f"Batch contains {len(approval_entries)} new projects; "
+                  f"split it into batches of at most {max_new_projects}."
+              )
+
           matrix = {"include": matrix_entries}
           approval_required = "true" if approval_entries else "false"
           approval_members = ", ".join(
@@ -397,7 +408,7 @@ jobs:
             exit 0
           fi
 
-          max_attempts=72
+          max_attempts=3
           for attempt in $(seq 1 "$max_attempts"); do
             if pypi_has_release; then
               echo "PyPI now has ${PACKAGE_NAME}==${VERSION}; skipping duplicate publish."
