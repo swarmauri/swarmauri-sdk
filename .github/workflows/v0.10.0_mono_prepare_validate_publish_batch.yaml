@@ -307,7 +307,7 @@ jobs:
 
   release:
     needs: [commit, set-matrix, pypi_approval_gate]
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, testing]
     if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     timeout-minutes: 360
     strategy:
@@ -368,7 +368,8 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           VERSION=$(python -c "import toml; print(toml.load('${MEMBER}/pyproject.toml')['project']['version'])")
           echo "Version: $VERSION"
-          if python - "$PACKAGE_NAME" "$VERSION" <<'PY'
+          pypi_has_release() {
+            python - "$PACKAGE_NAME" "$VERSION" <<'PY'
           import sys
           import urllib.error
           import urllib.request
@@ -383,7 +384,9 @@ jobs:
                   sys.exit(1)
               raise
           PY
-          then
+          }
+
+          if pypi_has_release; then
             echo "PyPI already has ${PACKAGE_NAME}==${VERSION}; skipping publish."
             echo "published=false" >> "$GITHUB_OUTPUT"
             exit 0
@@ -391,6 +394,11 @@ jobs:
 
           max_attempts=16
           for attempt in $(seq 1 "$max_attempts"); do
+            if pypi_has_release; then
+              echo "PyPI now has ${PACKAGE_NAME}==${VERSION}; skipping duplicate publish."
+              echo "published=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             publish_log=$(mktemp)
             if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}" 2>&1 | tee "$publish_log"; then
               echo "published=true" >> "$GITHUB_OUTPUT"
