@@ -8,13 +8,14 @@ from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 pytestmark = pytest.mark.unit
 
 
-def test_synclabs_lipsync_is_first_class_video_lipsync() -> None:
+def test_synclabs_lipsync_is_second_class_video_lipsync() -> None:
+    resource_path = "swarmauri.video_lipsync.SyncLabsLipSync"
+
     assert (
-        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
-            "swarmauri.video_lipsync.SyncLabsLipSync"
-        ]
+        PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY[resource_path]
         == "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
     )
+    assert resource_path not in PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY
 
 
 def test_video_lipsync_namespace_uses_lipsync_base() -> None:

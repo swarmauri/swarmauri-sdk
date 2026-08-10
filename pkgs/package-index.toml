@@ -1972,18 +1972,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_video_lipsync_synclabs"
-path = "standards/swarmauri_video_lipsync_synclabs"
-layer = "40-standards"
-order = 0
-family = "video"
-role = "atomic-concrete"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_xmp_gif"
 path = "standards/swarmauri_xmp_gif"
 layer = "40-standards"
@@ -3542,6 +3530,18 @@ path = "community/swarmauri_tool_zapierhook"
 layer = "50-community"
 order = 0
 family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_video_lipsync_synclabs"
+path = "community/swarmauri_video_lipsync_synclabs"
+layer = "50-community"
+order = 0
+family = "video"
 role = "atomic-concrete"
 maturity = "community"
 workspace = true

@@ -364,9 +364,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
         "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
         "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
-        "swarmauri.video_lipsync.SyncLabsLipSync": (
-            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
-        ),
         "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
@@ -751,6 +748,9 @@ class PluginCitizenshipRegistry:
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.video_lipsync.SyncLabsLipSync": (
+            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
+        ),
         "swarmauri.model_providers.GeminiProvider": (
             "swarmauri_provider_gemini.GeminiProvider"
         ),

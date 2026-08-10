@@ -8,7 +8,7 @@ Swarmauri lip-sync video generation. `SyncLabsLipSync` implements the common
 misrepresenting progress events as streamed video.
 
 [![PyPI Downloads](https://static.pepy.tech/badge/swarmauri_video_lipsync_synclabs)](https://pepy.tech/projects/swarmauri_video_lipsync_synclabs)
-[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_video_lipsync_synclabs.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_video_lipsync_synclabs/)
+[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_video_lipsync_synclabs.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_video_lipsync_synclabs/)
 [![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_video_lipsync_synclabs/)
 [![License](https://img.shields.io/pypi/l/swarmauri_video_lipsync_synclabs)](https://pypi.org/project/swarmauri_video_lipsync_synclabs/)
 [![PyPI Version](https://img.shields.io/pypi/v/swarmauri_video_lipsync_synclabs)](https://pypi.org/project/swarmauri_video_lipsync_synclabs/)
