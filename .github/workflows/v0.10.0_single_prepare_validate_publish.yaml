@@ -13,6 +13,15 @@ on:
       member:
         description: "Specify a specific member to run the workflow for"
         required: true
+      publish_mode:
+        description: "PyPI authentication mode"
+        required: false
+        type: choice
+        default: "auto"
+        options:
+          - auto
+          - trusted
+          - token
 
 concurrency:
   group: dev-branch-prepare-workflow-${{ github.event.inputs.member }}
@@ -230,6 +239,14 @@ jobs:
     needs: [commit, package-info, pypi_approval_gate]
     runs-on: ubuntu-latest
     if: ${{ !cancelled() && needs.commit.result == 'success' && (needs.package-info.outputs.requires_approval != 'true' || needs.pypi_approval_gate.result == 'success') }}
+    environment:
+      name: pypi-trusted-publishing
+      url: https://pypi.org/project/${{ needs.package-info.outputs.package_name }}/
+    permissions:
+      actions: read
+      contents: write
+      deployments: write
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -253,13 +270,87 @@ jobs:
           echo "::notice::Building: $PACKAGE_NAME ($MEMBER)"
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
-      - name: Publish
+      - name: Resolve PyPI authentication mode
+        id: pypi_auth
+        env:
+          REQUESTED_MODE: ${{ github.event.inputs.publish_mode || 'auto' }}
+          REQUIRES_APPROVAL: ${{ needs.package-info.outputs.requires_approval }}
         run: |
-          cd pkgs
-          MEMBER="${{ github.event.inputs.member }}"
-          PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
-          echo "::notice::Publishing: $PACKAGE_NAME ($MEMBER)"
-          uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}"
+          case "$REQUESTED_MODE" in
+            auto)
+              if [ "$REQUIRES_APPROVAL" = "true" ]; then
+                MODE="trusted"
+              else
+                MODE="token"
+              fi
+              ;;
+            trusted|token)
+              MODE="$REQUESTED_MODE"
+              ;;
+            *)
+              echo "Unsupported publish mode: $REQUESTED_MODE"
+              exit 1
+              ;;
+          esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "::notice::Resolved PyPI authentication mode: $MODE"
+
+      - name: Publish with Trusted Publishing
+        if: ${{ steps.pypi_auth.outputs.mode == 'trusted' }}
+        uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
+        with:
+          publish-mode: trusted
+          packages-dir: pkgs/distout
+          skip-existing: true
+
+      - name: Publish with API token
+        if: ${{ steps.pypi_auth.outputs.mode == 'token' }}
+        uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
+        with:
+          publish-mode: token
+          packages-dir: pkgs/distout
+          api-token: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+          skip-existing: true
+
+      - name: Verify PyPI release artifacts
+        env:
+          MEMBER: ${{ github.event.inputs.member }}
+          PACKAGE_NAME: ${{ needs.package-info.outputs.package_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import time
+          import tomllib
+          import urllib.error
+          import urllib.request
+
+          member = os.environ["MEMBER"]
+          package_name = os.environ["PACKAGE_NAME"]
+          with open(pathlib.Path("pkgs") / member / "pyproject.toml", "rb") as fh:
+              version = tomllib.load(fh)["project"]["version"]
+          expected = {path.name for path in pathlib.Path("pkgs/distout").iterdir() if path.is_file()}
+          url = f"https://pypi.org/pypi/{package_name}/{version}/json"
+
+          for attempt in range(1, 13):
+              try:
+                  with urllib.request.urlopen(url) as response:
+                      payload = json.load(response)
+                  actual = {entry["filename"] for entry in payload["urls"]}
+                  missing = expected - actual
+                  if not missing:
+                      print(f"Verified {package_name}=={version}: {sorted(actual)}")
+                      break
+                  print(f"Attempt {attempt}/12: missing artifacts: {sorted(missing)}")
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 404:
+                      raise
+                  print(f"Attempt {attempt}/12: release is not visible yet.")
+              if attempt == 12:
+                  raise RuntimeError(f"PyPI verification failed for {package_name}=={version}")
+              time.sleep(5)
+          PY
 
       - name: Prepare release variables
         id: prepare_release

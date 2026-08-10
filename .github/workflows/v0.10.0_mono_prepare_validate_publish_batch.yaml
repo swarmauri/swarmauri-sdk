@@ -24,6 +24,15 @@ on:
         description: "Minimum delay before each package publication"
         required: false
         default: "300"
+      publish_mode:
+        description: "PyPI authentication mode"
+        required: false
+        type: choice
+        default: "auto"
+        options:
+          - auto
+          - trusted
+          - token
 
 concurrency:
   group: v0.10.0-mono-prepare-validate-publish-batch
@@ -324,6 +333,14 @@ jobs:
     runs-on: [self-hosted, Linux, X64, testing]
     if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     timeout-minutes: 360
+    environment:
+      name: pypi-trusted-publishing
+      url: https://pypi.org/project/${{ matrix.package_name }}/
+    permissions:
+      actions: read
+      contents: write
+      deployments: write
+      id-token: write
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
@@ -371,74 +388,87 @@ jobs:
           echo "Package name: $PACKAGE_NAME"
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
 
-      - name: Publish
-        id: publish
+      - name: Resolve PyPI authentication mode
+        id: pypi_auth
         env:
-          CADENCE_SECONDS: ${{ github.event.inputs.cadence_seconds }}
+          REQUESTED_MODE: ${{ github.event.inputs.publish_mode || 'auto' }}
+          REQUIRES_APPROVAL: ${{ matrix.requires_approval }}
         run: |
-          set -o pipefail
-          cd pkgs
-          MEMBER="${{ matrix.member }}"
-          echo "Publishing workspace member: $MEMBER"
-          PACKAGE_NAME="${{ matrix.package_name }}"
-          echo "Package name: $PACKAGE_NAME"
-          VERSION=$(python -c "import toml; print(toml.load('${MEMBER}/pyproject.toml')['project']['version'])")
-          echo "Version: $VERSION"
-          pypi_has_release() {
-            python - "$PACKAGE_NAME" "$VERSION" <<'PY'
-          import sys
+          case "$REQUESTED_MODE" in
+            auto)
+              if [ "$REQUIRES_APPROVAL" = "true" ]; then
+                MODE="trusted"
+              else
+                MODE="token"
+              fi
+              ;;
+            trusted|token)
+              MODE="$REQUESTED_MODE"
+              ;;
+            *)
+              echo "Unsupported publish mode: $REQUESTED_MODE"
+              exit 1
+              ;;
+          esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Resolved PyPI authentication mode: $MODE"
+
+      - name: Publish with Trusted Publishing
+        if: ${{ steps.pypi_auth.outputs.mode == 'trusted' }}
+        uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
+        with:
+          publish-mode: trusted
+          packages-dir: pkgs/distout
+          skip-existing: true
+
+      - name: Publish with API token
+        if: ${{ steps.pypi_auth.outputs.mode == 'token' }}
+        uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
+        with:
+          publish-mode: token
+          packages-dir: pkgs/distout
+          api-token: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+          skip-existing: true
+
+      - name: Verify PyPI release artifacts
+        env:
+          MEMBER: ${{ matrix.member }}
+          PACKAGE_NAME: ${{ matrix.package_name }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import time
+          import tomllib
           import urllib.error
           import urllib.request
 
-          package_name, version = sys.argv[1:3]
+          member = os.environ["MEMBER"]
+          package_name = os.environ["PACKAGE_NAME"]
+          with open(pathlib.Path("pkgs") / member / "pyproject.toml", "rb") as fh:
+              version = tomllib.load(fh)["project"]["version"]
+          expected = {path.name for path in pathlib.Path("pkgs/distout").iterdir() if path.is_file()}
           url = f"https://pypi.org/pypi/{package_name}/{version}/json"
-          try:
-              with urllib.request.urlopen(url) as response:
-                  sys.exit(0 if response.status == 200 else 1)
-          except urllib.error.HTTPError as exc:
-              if exc.code == 404:
-                  sys.exit(1)
-              raise
+
+          for attempt in range(1, 13):
+              try:
+                  with urllib.request.urlopen(url) as response:
+                      payload = json.load(response)
+                  actual = {entry["filename"] for entry in payload["urls"]}
+                  missing = expected - actual
+                  if not missing:
+                      print(f"Verified {package_name}=={version}: {sorted(actual)}")
+                      break
+                  print(f"Attempt {attempt}/12: missing artifacts: {sorted(missing)}")
+              except urllib.error.HTTPError as exc:
+                  if exc.code != 404:
+                      raise
+                  print(f"Attempt {attempt}/12: release is not visible yet.")
+              if attempt == 12:
+                  raise RuntimeError(f"PyPI verification failed for {package_name}=={version}")
+              time.sleep(5)
           PY
-          }
-
-          if pypi_has_release; then
-            echo "PyPI already has ${PACKAGE_NAME}==${VERSION}; skipping publish."
-            echo "published=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          max_attempts=3
-          for attempt in $(seq 1 "$max_attempts"); do
-            if pypi_has_release; then
-              echo "PyPI now has ${PACKAGE_NAME}==${VERSION}; skipping duplicate publish."
-              echo "published=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            publish_log=$(mktemp)
-            if uv publish --directory "$MEMBER" distout/* --token "${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}" 2>&1 | tee "$publish_log"; then
-              echo "published=true" >> "$GITHUB_OUTPUT"
-              rm -f "$publish_log"
-              exit 0
-            fi
-            if [ "$attempt" = "$max_attempts" ]; then
-              echo "Publish failed after ${attempt} attempts."
-              rm -f "$publish_log"
-              exit 1
-            fi
-            if grep -Eiq "429|Too many new projects created|Too Many Requests" "$publish_log"; then
-              sleep_seconds="$CADENCE_SECONDS"
-              if [ "$sleep_seconds" -lt 300 ]; then
-                sleep_seconds=300
-              fi
-              echo "PyPI rate limit detected; retrying at the publication cadence in ${sleep_seconds}s (${attempt}/${max_attempts})."
-            else
-              sleep_seconds=$((attempt * 30))
-              echo "Publish failed; retrying in ${sleep_seconds}s (${attempt}/${max_attempts})."
-            fi
-            rm -f "$publish_log"
-            sleep "$sleep_seconds"
-          done
 
       - name: Prepare release variables
         id: prepare_release
