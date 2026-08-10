@@ -269,6 +269,8 @@ jobs:
           PACKAGE_NAME="${{ needs.package-info.outputs.package_name }}"
           echo "::notice::Building: $PACKAGE_NAME ($MEMBER)"
           uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+          mkdir -p "$MEMBER/distout/publish"
+          cp "$MEMBER"/distout/*.whl "$MEMBER"/distout/*.tar.gz "$MEMBER/distout/publish/"
 
       - name: Resolve PyPI authentication mode
         id: pypi_auth
@@ -300,7 +302,7 @@ jobs:
         uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
         with:
           publish-mode: trusted
-          packages-dir: pkgs/${{ github.event.inputs.member }}/distout
+          packages-dir: pkgs/${{ github.event.inputs.member }}/distout/publish
           skip-existing: true
 
       - name: Publish with API token
@@ -308,7 +310,7 @@ jobs:
         uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
         with:
           publish-mode: token
-          packages-dir: pkgs/${{ github.event.inputs.member }}/distout
+          packages-dir: pkgs/${{ github.event.inputs.member }}/distout/publish
           api-token: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
           skip-existing: true
 
@@ -330,7 +332,7 @@ jobs:
           package_name = os.environ["PACKAGE_NAME"]
           with open(pathlib.Path("pkgs") / member / "pyproject.toml", "rb") as fh:
               version = tomllib.load(fh)["project"]["version"]
-          dist_dir = pathlib.Path("pkgs") / member / "distout"
+          dist_dir = pathlib.Path("pkgs") / member / "distout" / "publish"
           expected = {path.name for path in dist_dir.iterdir() if path.is_file()}
           url = f"https://pypi.org/pypi/{package_name}/{version}/json"
 
