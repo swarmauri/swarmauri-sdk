@@ -195,6 +195,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.storage_adapters.S3StorageAdapter": (
             "swarmauri_storage_s3.S3StorageAdapter"
         ),
+        "swarmauri.storage_adapters.WebDAVStorageAdapter": (
+            "swarmauri_storage_webdav.WebDAVStorageAdapter"
+        ),
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
