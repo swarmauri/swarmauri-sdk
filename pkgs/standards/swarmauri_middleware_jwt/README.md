@@ -1,96 +1,93 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
-<p align="center">
-    <a href="https://pepy.tech/project/swarmauri_middleware_jwt/">
-        <img src="https://static.pepy.tech/badge/swarmauri_middleware_jwt/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwt/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwt.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri_middleware_jwt/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_middleware_jwt/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_middleware_jwt" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_middleware_jwt/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_middleware_jwt?label=swarmauri_middleware_jwt&color=green" alt="PyPI - swarmauri_middleware_jwt"/></a>
-    <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+# Swarmauri JWT Middleware
 
-# Swarmauri Middleware JWT
+`swarmauri_middleware_jwt` is the ASGI adapter for authenticating compact JWT
+Bearer credentials. It delegates JWS verification to `swarmauri_signing_jws`
+and framework-neutral claim policy to `swarmauri_tokens_jwt`.
 
-`JWTMiddleware` validates JSON Web Tokens (JWT) issued to FastAPI-based
-Swarmauri services. The middleware expects a ``Bearer`` token in the
-``Authorization`` header, decodes it with the configured secret and algorithm,
-and stores the decoded payload on ``request.state.jwt_payload``. Requests with
-missing or invalid tokens receive an HTTP 401 response.
+[![PyPI Downloads](https://static.pepy.tech/badge/swarmauri_middleware_jwt)](https://pepy.tech/projects/swarmauri_middleware_jwt)
+[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwt.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_middleware_jwt/)
+[![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_middleware_jwt/)
+[![License](https://img.shields.io/pypi/l/swarmauri_middleware_jwt)](https://pypi.org/project/swarmauri_middleware_jwt/)
+[![PyPI Version](https://img.shields.io/pypi/v/swarmauri_middleware_jwt)](https://pypi.org/project/swarmauri_middleware_jwt/)
+
+## Features
+
+- Extracts RFC 6750-style Bearer credentials without coupling extraction to
+  token semantics.
+- Verifies compact HMAC JWS signatures with an explicit algorithm allowlist.
+- Applies reusable JWT policy for temporal, issuer, audience, required-claim,
+  scope, and role validation.
+- Stores authenticated claims on a configurable request-state attribute.
+- Supports synchronous manual verification and asynchronous middleware flows.
+- Uses Starlette request and exception contracts and works with FastAPI.
 
 ## Installation
 
-### pip
+```bash
+uv add swarmauri_middleware_jwt
+```
 
 ```bash
 pip install swarmauri_middleware_jwt
 ```
 
-### Poetry
-
-```bash
-poetry add swarmauri_middleware_jwt
-```
-
-### uv
-
-```bash
-# Install uv (see https://docs.astral.sh/uv/) if it is not already available
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Use uv to add the middleware to your environment
-uv pip install swarmauri_middleware_jwt
-```
-
-## Example
-
-The example below attaches ``JWTMiddleware`` to a FastAPI application, issues a
-token using ``PyJWT``, and performs a request that reads the decoded payload
-from ``request.state``.
+## Usage
 
 ```python
-from fastapi import FastAPI, Request
-from starlette.testclient import TestClient
-import jwt
+import asyncio
+import time
 
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_middleware_jwt import JWTMiddleware
+from swarmauri_signing_jws import JwsSignerVerifier
+
+SECRET = "replace-with-at-least-32-secret-bytes"
+
+async def protected(request: Request) -> JSONResponse:
+    return JSONResponse({"subject": request.state.jwt_payload["sub"]})
 
 
-SECRET_KEY = "change-me"
-
-app = FastAPI()
-
-# Register the middleware with the FastAPI app
-jwt_middleware = JWTMiddleware(secret_key=SECRET_KEY)
-app.middleware("http")(jwt_middleware.dispatch)
-
-
-@app.get("/protected")
-async def protected_route(request: Request):
-    return {"subject": request.state.jwt_payload["sub"]}
+routes = Starlette(routes=[Route("/protected", protected)])
+jwt_middleware = JWTMiddleware(
+    secret_key=SECRET,
+    app=routes,
+    issuer="https://identity.example.com",
+    audience="swarmauri-api",
+    required_claims={"sub", "iat", "exp"},
+)
+app = jwt_middleware
 
 
-def run_example() -> dict:
-    token = jwt.encode({"sub": "demo-user"}, SECRET_KEY, algorithm="HS256")
-    client = TestClient(app)
-    response = client.get(
-        "/protected", headers={"Authorization": f"Bearer {token}"}
+async def issue_example_token() -> str:
+    now = int(time.time())
+    return await JwsSignerVerifier().sign_compact(
+        payload={
+            "sub": "demo-user",
+            "iat": now,
+            "exp": now + 300,
+            "iss": "https://identity.example.com",
+            "aud": "swarmauri-api",
+        },
+        alg=JWAAlg.HS256,
+        key={"kind": "raw", "key": SECRET, "alg": "HS256"},
+        typ="JWT",
     )
-    response.raise_for_status()
-    return response.json()
 
 
-if __name__ == "__main__":
-    print(run_example())
+token = asyncio.run(issue_example_token())
+assert jwt_middleware.verify_token(token)["sub"] == "demo-user"
 ```
 
-## Want to help?
+For asymmetric keys or managed key providers, use
+`swarmauri_tokens_jwt.JWTTokenService` and pass an appropriate verifier into
+your application boundary.
 
-If you want to contribute to swarmauri-sdk, read up on our
-[guidelines for contributing](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md)
-that will help you get started.
+## Contributing
 
+See the repository [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).

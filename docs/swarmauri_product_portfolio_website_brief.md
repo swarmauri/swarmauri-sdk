@@ -395,8 +395,8 @@ Packages to showcase:
 - `swarmauri_transport_asgi`
 - `swarmauri_transport_h2`
 - `swarmauri_transport_wsjsonrpcmux`
-- `swarmauri_middleware_auth`
 - `swarmauri_middleware_jwt`
+- `swarmauri_tokens_jwt`
 - `swarmauri_middleware_jsonrpc`
 - `swarmauri_middleware_cors`
 - `swarmauri_middleware_ratelimit`

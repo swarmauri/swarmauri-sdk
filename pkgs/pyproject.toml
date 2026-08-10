@@ -290,7 +290,6 @@ members = [
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyproviders_mirrored",
-    "standards/swarmauri_middleware_auth",
     "standards/swarmauri_middleware_bulkhead",
     "standards/swarmauri_middleware_cachecontrol",
     "standards/swarmauri_middleware_cors",
@@ -575,7 +574,6 @@ swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_metric_hamming = { workspace = true }
-swarmauri_middleware_auth = { workspace = true }
 swarmauri_middleware_bulkhead = { workspace = true }
 swarmauri_middleware_cachecontrol = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }

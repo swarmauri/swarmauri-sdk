@@ -1,6 +1,7 @@
+from .BearerTokenExtractor import BearerTokenError, BearerTokenExtractor
 from .JWTMiddleware import JWTMiddleware
 
-__all__ = ["JWTMiddleware"]
+__all__ = ["BearerTokenError", "BearerTokenExtractor", "JWTMiddleware"]
 
 try:
     from importlib.metadata import PackageNotFoundError, version

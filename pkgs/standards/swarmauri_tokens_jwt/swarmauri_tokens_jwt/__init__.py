@@ -5,5 +5,10 @@ verifying JSON Web Tokens within the Swarmauri framework.
 """
 
 from .JWTTokenService import JWTTokenService
+from .JWTClaimsValidator import JWTClaimsValidationError, JWTClaimsValidator
 
-__all__ = ["JWTTokenService"]
+__all__ = [
+    "JWTClaimsValidationError",
+    "JWTClaimsValidator",
+    "JWTTokenService",
+]

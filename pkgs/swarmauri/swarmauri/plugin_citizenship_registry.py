@@ -687,9 +687,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.logger_formatters.LoggerFormatter": (
             "swarmauri_standard.logger_formatters.LoggerFormatter"
         ),
-        "swarmauri.middlewares.AuthMiddleware": (
-            "swarmauri_middleware_auth.AuthMiddleware"
-        ),
         "swarmauri.middlewares.BulkheadMiddleware": (
             "swarmauri_middleware_bulkhead.BulkheadMiddleware"
         ),
@@ -704,6 +701,9 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.middlewares.GzipCompressionMiddleware": (
             "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware"
+        ),
+        "swarmauri.middlewares.JWTMiddleware": (
+            "swarmauri_middleware_jwt.JWTMiddleware"
         ),
         "swarmauri.middlewares.LlamaGuardMiddleware": (
             "swarmauri_middleware_llamaguard.LlamaGuardMiddleware"

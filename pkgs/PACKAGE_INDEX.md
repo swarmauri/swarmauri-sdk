@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 187 | 187 | first-party split standard packages |
+| `40-standards` | 186 | 186 | first-party split standard packages |
 | `50-community` | 125 | 125 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
@@ -140,7 +140,6 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_middleware_httpsig](standards/swarmauri_middleware_httpsig/) | `standards/swarmauri_middleware_httpsig` | `middleware` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_jsonrpc](standards/swarmauri_middleware_jsonrpc/) | `standards/swarmauri_middleware_jsonrpc` | `middleware` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_jwksverifier](standards/swarmauri_middleware_jwksverifier/) | `standards/swarmauri_middleware_jwksverifier` | `middleware` | `atomic-concrete` | `standard` | yes |
-| `40.0` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `standards/swarmauri_middleware_jwt` | `middleware` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_llamaguard](standards/swarmauri_middleware_llamaguard/) | `standards/swarmauri_middleware_llamaguard` | `middleware` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_logging](standards/swarmauri_middleware_logging/) | `standards/swarmauri_middleware_logging` | `middleware` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_ratelimit](standards/swarmauri_middleware_ratelimit/) | `standards/swarmauri_middleware_ratelimit` | `middleware` | `atomic-concrete` | `standard` | yes |
@@ -240,12 +239,12 @@ fail validation because they make composition order ambiguous.
 | `40.1` | [swarmauri_transport_h2](standards/swarmauri_transport_h2/) | `standards/swarmauri_transport_h2` | `transport` | `composite-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_tts_playht](standards/swarmauri_tts_playht/) | `standards/swarmauri_tts_playht` | `tts` | `composite-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_vectorstore_doc2vec](standards/swarmauri_vectorstore_doc2vec/) | `standards/swarmauri_vectorstore_doc2vec` | `vectorstore` | `composite-concrete` | `standard` | yes |
-| `40.2` | [swarmauri_middleware_auth](standards/swarmauri_middleware_auth/) | `standards/swarmauri_middleware_auth` | `middleware` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_signing_dpop](standards/swarmauri_signing_dpop/) | `standards/swarmauri_signing_dpop` | `signing` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `standards/swarmauri_tokens_jwt` | `tokens` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_toolkit_containertoolkit](standards/swarmauri_toolkit_containertoolkit/) | `standards/swarmauri_toolkit_containertoolkit` | `toolkit` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_toolkit_runtime](standards/swarmauri_toolkit_runtime/) | `standards/swarmauri_toolkit_runtime` | `toolkit` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_transport_https_unicast](standards/swarmauri_transport_https_unicast/) | `standards/swarmauri_transport_https_unicast` | `transport` | `orchestrator` | `standard` | yes |
+| `40.3` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `standards/swarmauri_middleware_jwt` | `middleware` | `orchestrator` | `standard` | yes |
 
 ### `50-community`
 
@@ -554,7 +553,6 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_middleware_httpsig](standards/swarmauri_middleware_httpsig/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_middleware_jsonrpc](standards/swarmauri_middleware_jsonrpc/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_middleware_jwksverifier](standards/swarmauri_middleware_jwksverifier/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
-| [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_middleware_llamaguard](standards/swarmauri_middleware_llamaguard/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_middleware_logging](standards/swarmauri_middleware_logging/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_middleware_ratelimit](standards/swarmauri_middleware_ratelimit/) | `middleware` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -664,12 +662,17 @@ fail validation because they make composition order ambiguous.
 
 | Package | Family | Role | Source | Composes | Order reason |
 |---|---|---|---|---:|---|
-| [swarmauri_middleware_auth](standards/swarmauri_middleware_auth/) | `middleware` | `orchestrator` | `inferred` | 1 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
 | [swarmauri_signing_dpop](standards/swarmauri_signing_dpop/) | `signing` | `orchestrator` | `inferred` | 1 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
 | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `tokens` | `orchestrator` | `inferred` | 1 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
 | [swarmauri_toolkit_containertoolkit](standards/swarmauri_toolkit_containertoolkit/) | `toolkit` | `orchestrator` | `inferred` | 3 | orchestrator signal from metadata for swarmauri_toolkit_containertoolkit |
 | [swarmauri_toolkit_runtime](standards/swarmauri_toolkit_runtime/) | `toolkit` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_toolkit_runtime |
 | [swarmauri_transport_https_unicast](standards/swarmauri_transport_https_unicast/) | `transport` | `orchestrator` | `inferred` | 4 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
+
+### `40.3`
+
+| Package | Family | Role | Source | Composes | Order reason |
+|---|---|---|---|---:|---|
+| [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `middleware` | `orchestrator` | `inferred` | 2 | raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2 |
 
 ### `50.0`
 
@@ -1301,7 +1304,6 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_middleware_httpsig](standards/swarmauri_middleware_httpsig/) | `40-standards` | `standards/swarmauri_middleware_httpsig` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_jsonrpc](standards/swarmauri_middleware_jsonrpc/) | `40-standards` | `standards/swarmauri_middleware_jsonrpc` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_jwksverifier](standards/swarmauri_middleware_jwksverifier/) | `40-standards` | `standards/swarmauri_middleware_jwksverifier` | `atomic-concrete` | `standard` | yes |
-| `40.0` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `40-standards` | `standards/swarmauri_middleware_jwt` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_llamaguard](standards/swarmauri_middleware_llamaguard/) | `40-standards` | `standards/swarmauri_middleware_llamaguard` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_logging](standards/swarmauri_middleware_logging/) | `40-standards` | `standards/swarmauri_middleware_logging` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_ratelimit](standards/swarmauri_middleware_ratelimit/) | `40-standards` | `standards/swarmauri_middleware_ratelimit` | `atomic-concrete` | `standard` | yes |
@@ -1309,7 +1311,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_middleware_session](standards/swarmauri_middleware_session/) | `40-standards` | `standards/swarmauri_middleware_session` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_stdio](standards/swarmauri_middleware_stdio/) | `40-standards` | `standards/swarmauri_middleware_stdio` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_time](standards/swarmauri_middleware_time/) | `40-standards` | `standards/swarmauri_middleware_time` | `atomic-concrete` | `standard` | yes |
-| `40.2` | [swarmauri_middleware_auth](standards/swarmauri_middleware_auth/) | `40-standards` | `standards/swarmauri_middleware_auth` | `orchestrator` | `standard` | yes |
+| `40.3` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `40-standards` | `standards/swarmauri_middleware_jwt` | `orchestrator` | `standard` | yes |
 | `50.0` | [swarmauri_middleware_circuitbreaker](community/swarmauri_middleware_circuitbreaker/) | `50-community` | `community/swarmauri_middleware_circuitbreaker` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_middleware_ratepolicy](community/swarmauri_middleware_ratepolicy/) | `50-community` | `community/swarmauri_middleware_ratepolicy` | `atomic-concrete` | `community` | yes |
 

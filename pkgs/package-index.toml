@@ -1036,18 +1036,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_middleware_jwt"
-path = "standards/swarmauri_middleware_jwt"
-layer = "40-standards"
-order = 0
-family = "middleware"
-role = "atomic-concrete"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_middleware_llamaguard"
 path = "standards/swarmauri_middleware_llamaguard"
 layer = "40-standards"
@@ -2247,19 +2235,6 @@ order_reason = "raised to order 1 because it depends on same-layer package swarm
 composes = ["swarmauri_embedding_doc2vec"]
 
 [[packages]]
-name = "swarmauri_middleware_auth"
-path = "standards/swarmauri_middleware_auth"
-layer = "40-standards"
-order = 2
-family = "middleware"
-role = "orchestrator"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
-composes = ["swarmauri_signing_jws"]
-
-[[packages]]
 name = "swarmauri_signing_dpop"
 path = "standards/swarmauri_signing_dpop"
 layer = "40-standards"
@@ -2284,6 +2259,19 @@ workspace = true
 order_source = "inferred"
 order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
 composes = ["swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_middleware_jwt"
+path = "standards/swarmauri_middleware_jwt"
+layer = "40-standards"
+order = 3
+family = "middleware"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2"
+composes = ["swarmauri_signing_jws", "swarmauri_tokens_jwt"]
 
 [[packages]]
 name = "swarmauri_toolkit_containertoolkit"
