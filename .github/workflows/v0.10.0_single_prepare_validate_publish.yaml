@@ -400,7 +400,20 @@ jobs:
           cd pkgs/${{ github.event.inputs.member }}
           mkdir -p release_artifacts
           ZIP_PATH=release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
-          zip -j "$ZIP_PATH" distout/*.whl distout/*.tar.gz
+          python - "$ZIP_PATH" <<'PY'
+          import glob
+          import pathlib
+          import sys
+          import zipfile
+
+          zip_path = sys.argv[1]
+          artifacts = sorted(glob.glob("distout/*.whl") + glob.glob("distout/*.tar.gz"))
+          if not artifacts:
+              raise SystemExit("No distribution artifacts found to archive.")
+          with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+              for artifact in artifacts:
+                  archive.write(artifact, arcname=pathlib.Path(artifact).name)
+          PY
           echo "::notice::Artifacts zipped to: $ZIP_PATH"
 
       - name: Create GitHub Release
