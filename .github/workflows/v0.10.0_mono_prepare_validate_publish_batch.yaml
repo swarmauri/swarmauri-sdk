@@ -418,7 +418,7 @@ jobs:
         uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
         with:
           publish-mode: trusted
-          packages-dir: pkgs/distout
+          packages-dir: pkgs/${{ matrix.member }}/distout
           skip-existing: true
 
       - name: Publish with API token
@@ -426,7 +426,7 @@ jobs:
         uses: cobycloud/actions/actions/pypi-publish@0d4599186861a2e4205ac655e5a06de3cd35dc2c
         with:
           publish-mode: token
-          packages-dir: pkgs/distout
+          packages-dir: pkgs/${{ matrix.member }}/distout
           api-token: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
           skip-existing: true
 
@@ -448,7 +448,8 @@ jobs:
           package_name = os.environ["PACKAGE_NAME"]
           with open(pathlib.Path("pkgs") / member / "pyproject.toml", "rb") as fh:
               version = tomllib.load(fh)["project"]["version"]
-          expected = {path.name for path in pathlib.Path("pkgs/distout").iterdir() if path.is_file()}
+          dist_dir = pathlib.Path("pkgs") / member / "distout"
+          expected = {path.name for path in dist_dir.iterdir() if path.is_file()}
           url = f"https://pypi.org/pypi/{package_name}/{version}/json"
 
           for attempt in range(1, 13):
