@@ -540,8 +540,63 @@ jobs:
           PY
           echo "Artifacts zipped to: $ZIP_PATH"
 
-      - name: Create GitHub Release
+      - name: Check GitHub release state
+        id: check_github_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.prepare_release.outputs.tag }}
+          EXPECTED_ASSET: ${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+          EXPECTED_PRERELEASE: ${{ steps.prepare_release.outputs.prerelease }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          tag = urllib.parse.quote(os.environ["RELEASE_TAG"], safe="")
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{repository}/releases/tags/{tag}",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+          try:
+              with urllib.request.urlopen(request) as response:
+                  release = json.load(response)
+          except urllib.error.HTTPError as exc:
+              if exc.code != 404:
+                  raise
+              release = None
+
+          expected_asset = os.environ["EXPECTED_ASSET"]
+          expected_prerelease = os.environ["EXPECTED_PRERELEASE"].lower() == "true"
+          complete = bool(
+              release
+              and not release["draft"]
+              and release["prerelease"] == expected_prerelease
+              and expected_asset in {asset["name"] for asset in release["assets"]}
+          )
+          public_incomplete = bool(release and not release["draft"] and not complete)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(f"complete={str(complete).lower()}", file=output)
+              print(f"public_incomplete={str(public_incomplete).lower()}", file=output)
+          print(f"GitHub release complete: {complete}")
+          PY
+
+      - name: Reject incomplete immutable release
+        if: steps.check_github_release.outputs.public_incomplete == 'true'
+        run: |
+          echo "A public release exists without the expected immutable asset. Remove only that release object, retain the tag, and retry."
+          exit 1
+
+      - name: Create draft GitHub Release and upload assets
         id: create_release
+        if: steps.check_github_release.outputs.complete != 'true'
         uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -549,8 +604,46 @@ jobs:
           tag_name: ${{ steps.prepare_release.outputs.tag }}
           name: ${{ steps.prepare_release.outputs.tag }}
           body: ${{ steps.generate_release_notes.outputs.release_notes }}
-          draft: false
+          draft: true
           prerelease: ${{ steps.prepare_release.outputs.prerelease }}
           overwrite_files: true
           files: |
             pkgs/${{ matrix.member }}/release_artifacts/${{ steps.prepare_release.outputs.package_name }}-${{ steps.prepare_release.outputs.version }}.zip
+
+      - name: Publish GitHub Release
+        if: steps.check_github_release.outputs.complete != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ steps.create_release.outputs.id }}
+          PRERELEASE: ${{ steps.prepare_release.outputs.prerelease }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          release_id = os.environ["RELEASE_ID"]
+          payload = json.dumps(
+              {
+                  "draft": False,
+                  "prerelease": os.environ["PRERELEASE"].lower() == "true",
+              }
+          ).encode()
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{repository}/releases/{release_id}",
+              data=payload,
+              method="PATCH",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "Content-Type": "application/json",
+                  "X-GitHub-Api-Version": "2022-11-28",
+              },
+          )
+          with urllib.request.urlopen(request) as response:
+              release = json.load(response)
+          if release["draft"]:
+              raise RuntimeError("GitHub release remained a draft after publication.")
+          print(f"Published GitHub release: {release['html_url']}")
+          PY
