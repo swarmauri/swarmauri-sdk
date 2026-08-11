@@ -6,85 +6,129 @@ from typing import Any, Literal
 from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.vlms.VLMBase import VLMBase
+from swarmauri_core.transports.i_http_client import IHttpClient
+from swarmauri_core.transports.i_http_retry_policy import IHttpRetryPolicy
+from swarmauri_provider_openrouter import (
+    OpenRouterModelCatalog,
+    OpenRouterProvider,
+    OpenRouterProviderPreferences,
+)
 
-from ._internal.catalog import OpenRouterModelCatalog
+from ._client import (
+    aclose_client,
+    arequest,
+    build_openrouter_client,
+    close_client,
+    request,
+)
 from ._internal.common import add_assistant_response, compact, format_messages
-from ._internal.routing import OpenRouterProviderPreferences
-from ._internal.transport import OpenRouterTransport
 
 
 @ComponentBase.register_type(VLMBase, "OpenRouterVLM")
 class OpenRouterVLM(VLMBase):
     """Route image-aware conversations through OpenRouter."""
 
-    api_key: SecretStr = Field(exclude=True)
+    api_key: SecretStr | None = Field(default=None, exclude=True)
     name: str = "openrouter/auto"
     type: Literal["OpenRouterVLM"] = "OpenRouterVLM"
     base_url: str = "https://openrouter.ai/api/v1"
     site_url: str | None = None
     app_name: str | None = None
     timeout: float = 600.0
-    provider: OpenRouterProviderPreferences | None = None
+    max_retries: int = Field(default=3, ge=1)
+    routing: OpenRouterProviderPreferences | None = None
     allowed_models: list[str] = Field(default_factory=list)
-    _transport: OpenRouterTransport = PrivateAttr()
+    _provider: OpenRouterProvider = PrivateAttr()
+    _http_client: IHttpClient = PrivateAttr()
 
-    def __init__(self, **data: Any):
+    def __init__(
+        self,
+        *,
+        provider: OpenRouterProvider
+        | OpenRouterProviderPreferences
+        | None = None,
+        routing: OpenRouterProviderPreferences | None = None,
+        http_client: IHttpClient | None = None,
+        retry_policy: IHttpRetryPolicy | None = None,
+        **data: Any,
+    ) -> None:
+        if isinstance(provider, OpenRouterProviderPreferences):
+            routing = provider
+            provider = None
+        if routing is not None:
+            data["routing"] = routing
         super().__init__(**data)
-        headers = {
-            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
-            "Content-Type": "application/json",
-        }
-        if self.site_url:
-            headers["HTTP-Referer"] = self.site_url
-        if self.app_name:
-            headers["X-OpenRouter-Title"] = self.app_name
-        self._transport = OpenRouterTransport(
-            self.base_url, headers, self.timeout
+        self._provider = provider or OpenRouterProvider(
+            api_key=self.api_key,
+            base_url=self.base_url,
+            site_url=self.site_url,
+            app_name=self.app_name,
+            timeout=self.timeout,
+            max_retries=self.max_retries,
+        )
+        if self._provider.api_key is None:
+            raise ValueError(
+                "api_key or an authenticated provider is required"
+            )
+        self.base_url = self._provider.base_url or self.base_url
+        self._http_client = build_openrouter_client(
+            provider=self._provider,
+            http_client=http_client,
+            retry_policy=retry_policy,
         )
 
     @property
     def catalog(self) -> OpenRouterModelCatalog:
-        """Return an explicit live model-discovery client."""
-        return OpenRouterModelCatalog(self._transport)
+        return self._provider.catalog
+
+    def refresh_catalog(self) -> list[dict[str, Any]]:
+        response = request(self._provider, self._http_client, "models.list")
+        return self.catalog.load_response(response.json())
+
+    async def arefresh_catalog(self) -> list[dict[str, Any]]:
+        response = await arequest(
+            self._provider, self._http_client, "models.list"
+        )
+        return self.catalog.load_response(response.json())
 
     def _payload(self, conversation: Any, **kwargs: Any) -> dict[str, Any]:
         return compact(
             {
                 "model": self.name,
                 "messages": format_messages(conversation.history),
-                "provider": self.provider.model_dump(exclude_none=True)
-                if self.provider
+                "provider": self.routing.model_dump(exclude_none=True)
+                if self.routing
                 else None,
                 **kwargs,
             }
         )
 
     def predict_vision(self, conversation: Any, **kwargs: Any) -> Any:
-        """Generate a response to a multimodal conversation."""
-        response = self._transport.request(
-            "POST",
-            "chat/completions",
+        response = request(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            model=self.name,
             json_data=self._payload(conversation, **kwargs),
         )
         return add_assistant_response(conversation, response.json())
 
     async def apredict_vision(self, conversation: Any, **kwargs: Any) -> Any:
-        """Generate a multimodal response asynchronously."""
-        response = await self._transport.arequest(
-            "POST",
-            "chat/completions",
+        response = await arequest(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            model=self.name,
             json_data=self._payload(conversation, **kwargs),
         )
         return add_assistant_response(conversation, response.json())
 
     def batch(self, conversations: list[Any], **kwargs: Any) -> list[Any]:
-        """Generate responses for multimodal conversations."""
         return [self.predict_vision(item, **kwargs) for item in conversations]
 
     async def abatch(
         self, conversations: list[Any], max_concurrent: int = 5, **kwargs: Any
     ) -> list[Any]:
-        """Generate multimodal responses with bounded concurrency."""
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def run(item: Any) -> Any:
@@ -92,3 +136,9 @@ class OpenRouterVLM(VLMBase):
                 return await self.apredict_vision(item, **kwargs)
 
         return await asyncio.gather(*(run(item) for item in conversations))
+
+    def close(self) -> None:
+        close_client(self._http_client)
+
+    async def aclose(self) -> None:
+        await aclose_client(self._http_client)

@@ -763,6 +763,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.model_providers.OpenAIProvider": (
             "swarmauri_provider_openai.OpenAIProvider"
         ),
+        "swarmauri.model_providers.OpenRouterProvider": (
+            "swarmauri_provider_openrouter.OpenRouterProvider"
+        ),
         "swarmauri.model_providers.XAIProvider": (
             "swarmauri_provider_xai.XAIProvider"
         ),

@@ -1600,6 +1600,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_storage_webdav"
+path = "standards/swarmauri_storage_webdav"
+layer = "40-standards"
+order = 0
+family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tokens_dpopboundjwt"
 path = "standards/swarmauri_tokens_dpopboundjwt"
 layer = "40-standards"
@@ -1816,18 +1828,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_transport_retry"
-path = "standards/swarmauri_transport_retry"
-layer = "40-standards"
-order = 0
-family = "transport"
-role = "atomic-concrete"
-maturity = "standard"
-workspace = true
-order_source = "explicit"
-order_reason = "concrete retry policy and execution for HTTP client contracts"
-
-[[packages]]
 name = "swarmauri_transport_meshsidecarhttp2"
 path = "standards/swarmauri_transport_meshsidecarhttp2"
 layer = "40-standards"
@@ -1862,6 +1862,18 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_transport_retry"
+path = "standards/swarmauri_transport_retry"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "explicit"
+order_reason = "concrete retry policy and execution for HTTP client contracts"
 
 [[packages]]
 name = "swarmauri_transport_sseoutbound"
@@ -2273,19 +2285,6 @@ order_reason = "raised to order 2 because it depends on same-layer package swarm
 composes = ["swarmauri_signing_jws"]
 
 [[packages]]
-name = "swarmauri_middleware_jwt"
-path = "standards/swarmauri_middleware_jwt"
-layer = "40-standards"
-order = 3
-family = "middleware"
-role = "orchestrator"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2"
-composes = ["swarmauri_signing_jws", "swarmauri_tokens_jwt"]
-
-[[packages]]
 name = "swarmauri_toolkit_containertoolkit"
 path = "standards/swarmauri_toolkit_containertoolkit"
 layer = "40-standards"
@@ -2322,6 +2321,19 @@ workspace = true
 order_source = "inferred"
 order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
 composes = ["swarmauri_certs_x509verify", "swarmauri_cipher_suite_tls13", "swarmauri_middleware_httpsig", "swarmauri_signing_jws"]
+
+[[packages]]
+name = "swarmauri_middleware_jwt"
+path = "standards/swarmauri_middleware_jwt"
+layer = "40-standards"
+order = 3
+family = "middleware"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2"
+composes = ["swarmauri_signing_jws", "swarmauri_tokens_jwt"]
 
 [[packages]]
 name = "swarmauri_billing_adyen"
@@ -2624,32 +2636,8 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_llm_azureopenai"
-path = "community/swarmauri_llm_azureopenai"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_llm_cerebras"
 path = "community/swarmauri_llm_cerebras"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
-name = "swarmauri_llm_cloudflare"
-path = "community/swarmauri_llm_cloudflare"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2698,6 +2686,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_llm_falai"
 path = "community/swarmauri_llm_falai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_gemini"
+path = "community/swarmauri_llm_gemini"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2768,8 +2768,8 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_llm_nvidia_nim"
-path = "community/swarmauri_llm_nvidia_nim"
+name = "swarmauri_llm_openai"
+path = "community/swarmauri_llm_openai"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -3537,18 +3537,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_video_lipsync_synclabs"
-path = "community/swarmauri_video_lipsync_synclabs"
-layer = "50-community"
-order = 0
-family = "video"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-
-[[packages]]
 name = "swarmauri_vectorstore_annoy"
 path = "community/swarmauri_vectorstore_annoy"
 layer = "50-community"
@@ -3676,6 +3664,18 @@ order_reason = "single-capability package by default"
 composes = ["swarmauri_embedding_doc2vec"]
 
 [[packages]]
+name = "swarmauri_video_lipsync_synclabs"
+path = "community/swarmauri_video_lipsync_synclabs"
+layer = "50-community"
+order = 0
+family = "video"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_live_model_amazon_nova"
 path = "community/swarmauri_live_model_amazon_nova"
 layer = "50-community"
@@ -3741,8 +3741,8 @@ order_reason = "depends on 2 internal concrete packages"
 composes = ["swarmauri_provider_xai", "swarmauri_transport_websocket"]
 
 [[packages]]
-name = "swarmauri_llm_gemini"
-path = "community/swarmauri_llm_gemini"
+name = "swarmauri_llm_azureopenai"
+path = "community/swarmauri_llm_azureopenai"
 layer = "50-community"
 order = 1
 family = "llm"
@@ -3751,11 +3751,11 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_gemini", "swarmauri_transport_httpx"]
+composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
-name = "swarmauri_llm_openai"
-path = "community/swarmauri_llm_openai"
+name = "swarmauri_llm_cloudflare"
+path = "community/swarmauri_llm_cloudflare"
 layer = "50-community"
 order = 1
 family = "llm"
@@ -3764,11 +3764,11 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_openai", "swarmauri_transport_httpx"]
+composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
-name = "swarmauri_llm_openrouter"
-path = "community/swarmauri_llm_openrouter"
+name = "swarmauri_llm_nvidia_nim"
+path = "community/swarmauri_llm_nvidia_nim"
 layer = "50-community"
 order = 1
 family = "llm"
@@ -3776,7 +3776,8 @@ role = "composite-concrete"
 maturity = "community"
 workspace = true
 order_source = "inferred"
-order_reason = "composite signal from metadata for swarmauri_llm_openrouter"
+order_reason = "depends on 2 internal concrete packages"
+composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 name = "swarmauri_llm_xai"
@@ -3788,12 +3789,8 @@ role = "composite-concrete"
 maturity = "community"
 workspace = true
 order_source = "inferred"
-order_reason = "provider, HTTP adapter, and retry-policy composition"
-composes = [
-  "swarmauri_provider_xai",
-  "swarmauri_transport_httpx",
-  "swarmauri_transport_retry",
-]
+order_reason = "depends on 3 internal concrete packages"
+composes = ["swarmauri_provider_xai", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 name = "swarmauri_matrix_hamming74"
@@ -3809,6 +3806,18 @@ order_reason = "raised to order 1 because it depends on same-layer package swarm
 composes = ["swarmauri_metric_hamming"]
 
 [[packages]]
+name = "swarmauri_provider_openrouter"
+path = "community/swarmauri_provider_openrouter"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "explicit"
+order_reason = "provider configuration without transport execution"
+
+[[packages]]
 name = "swarmauri_vectorstore_mlm"
 path = "community/swarmauri_vectorstore_mlm"
 layer = "50-community"
@@ -3820,6 +3829,19 @@ workspace = true
 order_source = "inferred"
 order_reason = "raised to order 1 because it depends on same-layer package swarmauri_embedding_mlm at 50.0"
 composes = ["swarmauri_embedding_mlm"]
+
+[[packages]]
+name = "swarmauri_llm_openrouter"
+path = "community/swarmauri_llm_openrouter"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "explicit"
+order_reason = "OpenRouter models compose provider configuration with shared HTTP and retry transports"
+composes = ["swarmauri_provider_openrouter", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 name = "swarmauri_toolkit_github"
@@ -4230,6 +4252,18 @@ family = "snt"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tests_component"
+path = "experimental/swarmauri_tests_component"
+layer = "70-experimental"
+order = 0
+family = "tests"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
 

@@ -1,0 +1,47 @@
+[project]
+name = "swarmauri_provider_openrouter"
+version = "0.1.0.dev1"
+description = "OpenRouter provider configuration, routing, catalogs, errors, and tool schemas for Swarmauri."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = { file = "LICENSE" }
+dependencies = ["swarmauri_core", "swarmauri_base"]
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+keywords = [
+  "swarmauri",
+  "provider",
+  "openrouter",
+  "model routing",
+  "model catalog",
+  "tool calling",
+]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[project.entry-points."swarmauri.model_providers"]
+OpenRouterProvider = "swarmauri_provider_openrouter:OpenRouterProvider"
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+ignore = ["N999", "RUF012"]

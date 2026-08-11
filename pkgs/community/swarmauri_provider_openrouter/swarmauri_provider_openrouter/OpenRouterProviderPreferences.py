@@ -1,12 +1,10 @@
-"""Define provider-routing preferences supported by OpenRouter."""
-
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
 
 class OpenRouterProviderPreferences(BaseModel):
-    """Configure OpenRouter provider selection and data handling."""
+    """Configure OpenRouter upstream-provider selection and data handling."""
 
     order: list[str] | None = None
     allow_fallbacks: bool = True

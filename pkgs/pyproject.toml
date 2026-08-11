@@ -78,6 +78,7 @@ members = [
     "community/swarmauri_provider_amazon_nova",
     "community/swarmauri_provider_gemini",
     "community/swarmauri_provider_openai",
+    "community/swarmauri_provider_openrouter",
     "community/swarmauri_provider_qwen",
     "community/swarmauri_provider_xai",
     "community/swarmauri_llm_gemini",
@@ -558,6 +559,7 @@ swarmauri_live_model_xai = { workspace = true }
 swarmauri_provider_amazon_nova = { workspace = true }
 swarmauri_provider_gemini = { workspace = true }
 swarmauri_provider_openai = { workspace = true }
+swarmauri_provider_openrouter = { workspace = true }
 swarmauri_provider_qwen = { workspace = true }
 swarmauri_provider_xai = { workspace = true }
 swarmauri_llm_gemini = { workspace = true }

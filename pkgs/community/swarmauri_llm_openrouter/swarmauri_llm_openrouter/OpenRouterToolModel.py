@@ -12,60 +12,101 @@ from swarmauri_base.schema_converters.SchemaConverterBase import (
     SchemaConverterBase,
 )
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
+from swarmauri_core.transports.i_http_client import IHttpClient
+from swarmauri_core.transports.i_http_retry_policy import IHttpRetryPolicy
+from swarmauri_provider_openrouter import (
+    OpenRouterModelCatalog,
+    OpenRouterProvider,
+    OpenRouterProviderPreferences,
+    OpenRouterToolSchemaConverter,
+)
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
-from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
-    OpenAISchemaConverter,
-)
 
-from ._internal.catalog import OpenRouterModelCatalog
+from ._client import (
+    aclose_client,
+    arequest,
+    astream_events,
+    build_openrouter_client,
+    close_client,
+    request,
+    stream_events,
+)
 from ._internal.common import compact, delta_text, format_messages
-from ._internal.routing import OpenRouterProviderPreferences
-from ._internal.transport import OpenRouterTransport
 
 
 @ComponentBase.register_type(ToolLLMBase, "OpenRouterToolModel")
 class OpenRouterToolModel(ToolLLMBase):
     """Route Swarmauri toolkit calls through OpenRouter-compatible models."""
 
-    api_key: SecretStr = Field(exclude=True)
+    api_key: SecretStr | None = Field(default=None, exclude=True)
     name: str = "openrouter/auto"
     type: Literal["OpenRouterToolModel"] = "OpenRouterToolModel"
     BASE_URL: str = "https://openrouter.ai/api/v1"
     base_url: str = "https://openrouter.ai/api/v1"
     site_url: str | None = None
     app_name: str | None = None
-    provider: OpenRouterProviderPreferences | None = None
+    routing: OpenRouterProviderPreferences | None = None
     allowed_models: list[str] = Field(default_factory=list)
-    _transport: OpenRouterTransport = PrivateAttr()
+    _provider: OpenRouterProvider = PrivateAttr()
+    _http_client: IHttpClient = PrivateAttr()
 
-    def __init__(self, **data: Any):
+    def __init__(
+        self,
+        *,
+        provider: OpenRouterProvider
+        | OpenRouterProviderPreferences
+        | None = None,
+        routing: OpenRouterProviderPreferences | None = None,
+        http_client: IHttpClient | None = None,
+        retry_policy: IHttpRetryPolicy | None = None,
+        **data: Any,
+    ) -> None:
+        if isinstance(provider, OpenRouterProviderPreferences):
+            routing = provider
+            provider = None
+        if routing is not None:
+            data["routing"] = routing
         super().__init__(**data)
-        headers = {
-            "Authorization": f"Bearer {self.api_key.get_secret_value()}",
-            "Content-Type": "application/json",
-        }
-        if self.site_url:
-            headers["HTTP-Referer"] = self.site_url
-        if self.app_name:
-            headers["X-OpenRouter-Title"] = self.app_name
-        self._transport = OpenRouterTransport(
-            self.base_url, headers, self.timeout
+        self._provider = provider or OpenRouterProvider(
+            api_key=self.api_key,
+            base_url=self.base_url,
+            site_url=self.site_url,
+            app_name=self.app_name,
+            timeout=self.timeout,
+            max_retries=self.max_retries,
+        )
+        if self._provider.api_key is None:
+            raise ValueError(
+                "api_key or an authenticated provider is required"
+            )
+        self.base_url = self._provider.base_url or self.base_url
+        self._http_client = build_openrouter_client(
+            provider=self._provider,
+            http_client=http_client,
+            retry_policy=retry_policy,
         )
 
     @property
     def catalog(self) -> OpenRouterModelCatalog:
-        """Return an explicit live model-discovery client."""
-        return OpenRouterModelCatalog(self._transport)
+        return self._provider.catalog
+
+    def refresh_catalog(self) -> list[dict[str, Any]]:
+        response = request(self._provider, self._http_client, "models.list")
+        return self.catalog.load_response(response.json())
+
+    async def arefresh_catalog(self) -> list[dict[str, Any]]:
+        response = await arequest(
+            self._provider, self._http_client, "models.list"
+        )
+        return self.catalog.load_response(response.json())
 
     def get_schema_converter(self) -> builtins.type[SchemaConverterBase]:
-        """Return the OpenAI-compatible tool schema converter."""
-        return OpenAISchemaConverter
+        return OpenRouterToolSchemaConverter
 
     def _schema_convert_tools(
         self, tools: dict[str, Any]
     ) -> list[dict[str, Any]]:
-        """Convert tools with an instantiated schema converter."""
         converter = self.get_schema_converter()()
         return [converter.convert(tool) for tool in tools.values()]
 
@@ -80,8 +121,8 @@ class OpenRouterToolModel(ToolLLMBase):
                 if toolkit
                 else None,
                 "tool_choice": tool_choice if toolkit else None,
-                "provider": self.provider.model_dump(exclude_none=True)
-                if self.provider
+                "provider": self.routing.model_dump(exclude_none=True)
+                if self.routing
                 else None,
                 **kwargs,
             }
@@ -119,10 +160,11 @@ class OpenRouterToolModel(ToolLLMBase):
         multiturn: bool = True,
         **kwargs: Any,
     ) -> Any:
-        """Request, execute, and optionally complete client-side tool calls."""
-        response = self._transport.request(
-            "POST",
-            "chat/completions",
+        response = request(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            model=self.name,
             json_data=self._payload(
                 conversation, toolkit, tool_choice, **kwargs
             ),
@@ -142,18 +184,21 @@ class OpenRouterToolModel(ToolLLMBase):
             messages = self._execute_tool_calls(
                 conversation, toolkit, assistant
             )
-            final_payload = compact(
-                {
-                    "model": self.name,
-                    "messages": messages,
-                    "provider": self.provider.model_dump(exclude_none=True)
-                    if self.provider
-                    else None,
-                    **kwargs,
-                }
-            )
-            final = self._transport.request(
-                "POST", "chat/completions", json_data=final_payload
+            final = request(
+                self._provider,
+                self._http_client,
+                "chat.completions",
+                model=self.name,
+                json_data=compact(
+                    {
+                        "model": self.name,
+                        "messages": messages,
+                        "provider": self.routing.model_dump(exclude_none=True)
+                        if self.routing
+                        else None,
+                        **kwargs,
+                    }
+                ),
             ).json()
             conversation.add_message(
                 AgentMessage(
@@ -170,10 +215,11 @@ class OpenRouterToolModel(ToolLLMBase):
         multiturn: bool = True,
         **kwargs: Any,
     ) -> Any:
-        """Execute the tool-calling workflow asynchronously."""
-        response = await self._transport.arequest(
-            "POST",
-            "chat/completions",
+        response = await arequest(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            model=self.name,
             json_data=self._payload(
                 conversation, toolkit, tool_choice, **kwargs
             ),
@@ -190,15 +236,17 @@ class OpenRouterToolModel(ToolLLMBase):
             messages = self._execute_tool_calls(
                 conversation, toolkit, assistant
             )
-            final = await self._transport.arequest(
-                "POST",
-                "chat/completions",
+            final = await arequest(
+                self._provider,
+                self._http_client,
+                "chat.completions",
+                model=self.name,
                 json_data=compact(
                     {
                         "model": self.name,
                         "messages": messages,
-                        "provider": self.provider.model_dump(exclude_none=True)
-                        if self.provider
+                        "provider": self.routing.model_dump(exclude_none=True)
+                        if self.routing
                         else None,
                         **kwargs,
                     }
@@ -220,7 +268,6 @@ class OpenRouterToolModel(ToolLLMBase):
         tool_choice: Any = "auto",
         **kwargs: Any,
     ) -> Iterator[str]:
-        """Resolve tools, then stream the final assistant response."""
         self.predict(
             conversation, toolkit, tool_choice, multiturn=False, **kwargs
         )
@@ -232,12 +279,20 @@ class OpenRouterToolModel(ToolLLMBase):
                 "model": self.name,
                 "messages": messages,
                 "stream": True,
+                "provider": self.routing.model_dump(exclude_none=True)
+                if self.routing
+                else None,
                 **kwargs,
             }
         )
-        for event in self._transport.stream("chat/completions", payload):
-            delta = delta_text(event)
-            if delta:
+        for event in stream_events(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            payload,
+            model=self.name,
+        ):
+            if delta := delta_text(event):
                 content.append(delta)
                 yield delta
         conversation.add_message(AgentMessage(content="".join(content)))
@@ -249,7 +304,6 @@ class OpenRouterToolModel(ToolLLMBase):
         tool_choice: Any = "auto",
         **kwargs: Any,
     ) -> AsyncIterator[str]:
-        """Resolve tools, then stream the final response asynchronously."""
         await self.apredict(
             conversation, toolkit, tool_choice, multiturn=False, **kwargs
         )
@@ -261,26 +315,30 @@ class OpenRouterToolModel(ToolLLMBase):
                 "model": self.name,
                 "messages": messages,
                 "stream": True,
+                "provider": self.routing.model_dump(exclude_none=True)
+                if self.routing
+                else None,
                 **kwargs,
             }
         )
-        async for event in self._transport.astream(
-            "chat/completions", payload
+        async for event in astream_events(
+            self._provider,
+            self._http_client,
+            "chat.completions",
+            payload,
+            model=self.name,
         ):
-            delta = delta_text(event)
-            if delta:
+            if delta := delta_text(event):
                 content.append(delta)
                 yield delta
         conversation.add_message(AgentMessage(content="".join(content)))
 
     def batch(self, conversations: list[Any], **kwargs: Any) -> list[Any]:
-        """Run tool workflows sequentially."""
         return [self.predict(item, **kwargs) for item in conversations]
 
     async def abatch(
         self, conversations: list[Any], max_concurrent: int = 5, **kwargs: Any
     ) -> list[Any]:
-        """Run tool workflows with bounded concurrency."""
         semaphore = asyncio.Semaphore(max_concurrent)
 
         async def run(item: Any) -> Any:
@@ -288,3 +346,9 @@ class OpenRouterToolModel(ToolLLMBase):
                 return await self.apredict(item, **kwargs)
 
         return await asyncio.gather(*(run(item) for item in conversations))
+
+    def close(self) -> None:
+        close_client(self._http_client)
+
+    async def aclose(self) -> None:
+        await aclose_client(self._http_client)
