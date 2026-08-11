@@ -19,6 +19,7 @@
 - API-key authentication with Azure's `api-key` header.
 - Refreshable Microsoft Entra bearer-token providers kept outside serialized state.
 - Sync, async, streaming, and batch workflows against the current `/openai/v1` API.
+- Persistent, injectable Swarmauri HTTP clients with conservative rate-limit retries.
 
 ## Installation
 
@@ -50,5 +51,7 @@ print(conversation.get_last().content)
 ```
 
 For keyless authentication, omit `api_key` and pass a callable as `token_provider`; it is invoked for every request so refreshed Entra tokens are used. Use `AzureOpenAIToolModel` with a Swarmauri `Toolkit` for function calling.
+
+Pass an `IHttpClient` as `http_client` to integrate a custom transport or to test without network access. Pass an `IHttpRetryPolicy` as `retry_policy` to replace the default policy, which retries safe reads and rate-limited chat submissions without replaying failed POST requests for generic server errors.
 
 See the [Azure OpenAI chat REST reference](https://learn.microsoft.com/en-us/rest/api/microsoft-foundry/azureopenai/chat) and [Entra authentication guide](https://learn.microsoft.com/en-us/azure/foundry/foundry-models/how-to/configure-entra-id).

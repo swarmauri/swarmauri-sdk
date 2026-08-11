@@ -14,11 +14,20 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["httpx>=0.27", "swarmauri_base", "swarmauri_standard"]
+dependencies = [
+  "swarmauri_base",
+  "swarmauri_core",
+  "swarmauri_standard",
+  "swarmauri_transport_httpx",
+  "swarmauri_transport_retry",
+]
 
 [tool.uv.sources]
 swarmauri_base = { workspace = true }
+swarmauri_core = { workspace = true }
 swarmauri_standard = { workspace = true }
+swarmauri_transport_httpx = { workspace = true }
+swarmauri_transport_retry = { workspace = true }
 
 [project.entry-points."swarmauri.llms"]
 NvidiaNIMModel = "swarmauri_llm_nvidia_nim:NvidiaNIMModel"
