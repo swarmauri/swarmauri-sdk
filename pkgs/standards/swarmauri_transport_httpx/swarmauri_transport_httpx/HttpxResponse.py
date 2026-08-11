@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
 from pydantic import PrivateAttr
 from swarmauri_base.transports.http.HttpResponseBase import HttpResponseBase
+from swarmauri_core.transports.http_errors import HttpStatusError
 
 
 class HttpxResponse(HttpResponseBase):
@@ -20,4 +22,11 @@ class HttpxResponse(HttpResponseBase):
         return result
 
     def raise_for_status(self) -> None:
-        self._response.raise_for_status()
+        try:
+            self._response.raise_for_status()
+        except httpx.HTTPStatusError as error:
+            raise HttpStatusError(
+                str(error),
+                status_code=self.status_code,
+                response=self,
+            ) from error

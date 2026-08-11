@@ -560,6 +560,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.transports.HttpsUnicastTransport": (
             "swarmauri_transport_https_unicast.HttpsUnicastTransport"
         ),
+        "swarmauri.transports.RetryingHttpClient": (
+            "swarmauri_transport_retry.RetryingHttpClient"
+        ),
         "swarmauri.transports.PubSubTransport": (
             "swarmauri_standard.transports.PubSubTransport"
         ),

@@ -1,10 +1,12 @@
 from collections.abc import Iterator
 from typing import Any
 
+import httpx
 from pydantic import PrivateAttr
 from swarmauri_base.transports.http.HttpStreamResponseBase import (
     HttpStreamResponseBase,
 )
+from swarmauri_core.transports.http_errors import HttpStatusError
 
 
 class HttpxStreamResponse(HttpStreamResponseBase):
@@ -29,4 +31,11 @@ class HttpxStreamResponse(HttpStreamResponseBase):
         return self._response.json()
 
     def raise_for_status(self) -> None:
-        self._response.raise_for_status()
+        try:
+            self._response.raise_for_status()
+        except httpx.HTTPStatusError as error:
+            raise HttpStatusError(
+                str(error),
+                status_code=self.status_code,
+                response=self,
+            ) from error

@@ -17,12 +17,19 @@ from .i_bidirectional_stream import (
 )
 from .i_broadcast import IBroadcastTransport
 from .i_http_client import IHttpClient
+from .http_errors import (
+    HttpRequestError,
+    HttpStatusError,
+    HttpTransportError,
+)
+from .i_http_retry_policy import IHttpRetryPolicy
 from .i_http_response import IHttpResponse
 from .i_http_stream_response import (
     IAsyncHttpStreamResponse,
     IHttpStreamResponse,
 )
 from .i_multicast import IMulticastTransport
+from .i_managed_http_client import IManagedHttpClient
 from .i_multiplex import ChannelHandle, IMultiplexTransport
 from .i_peer import IPeerTransport
 from .i_runnable import Handler, IRunnable, Role
@@ -46,8 +53,10 @@ __all__ = [
     "IBidirectionalStreamConnection",
     "IBroadcastTransport",
     "IHttpClient",
+    "IHttpRetryPolicy",
     "IHttpResponse",
     "IHttpStreamResponse",
+    "IManagedHttpClient",
     "IMulticastTransport",
     "IMultiplexTransport",
     "IOModel",
@@ -63,4 +72,7 @@ __all__ = [
     "SecurityMode",
     "TransportCapabilities",
     "WebSocketMessage",
+    "HttpRequestError",
+    "HttpStatusError",
+    "HttpTransportError",
 ]

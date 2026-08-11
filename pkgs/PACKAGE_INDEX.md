@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 186 | 186 | first-party split standard packages |
+| `40-standards` | 187 | 187 | first-party split standard packages |
 | `50-community` | 125 | 125 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 36 | 12 | incubating and planning-stage packages |
@@ -208,6 +208,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `standards/swarmauri_transport_meshsidecarhttp2` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_mtlsunicast](standards/swarmauri_transport_mtlsunicast/) | `standards/swarmauri_transport_mtlsunicast` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_quic](standards/swarmauri_transport_quic/) | `standards/swarmauri_transport_quic` | `transport` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_transport_retry](standards/swarmauri_transport_retry/) | `standards/swarmauri_transport_retry` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_sseoutbound](standards/swarmauri_transport_sseoutbound/) | `standards/swarmauri_transport_sseoutbound` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_sshtunnel](standards/swarmauri_transport_sshtunnel/) | `standards/swarmauri_transport_sshtunnel` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_stdio](standards/swarmauri_transport_stdio/) | `standards/swarmauri_transport_stdio` | `transport` | `atomic-concrete` | `standard` | yes |
@@ -621,6 +622,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_mtlsunicast](standards/swarmauri_transport_mtlsunicast/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_quic](standards/swarmauri_transport_quic/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_transport_retry](standards/swarmauri_transport_retry/) | `transport` | `atomic-concrete` | `explicit` | 0 | concrete retry policy and execution for HTTP client contracts |
 | [swarmauri_transport_sseoutbound](standards/swarmauri_transport_sseoutbound/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_sshtunnel](standards/swarmauri_transport_sshtunnel/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_stdio](standards/swarmauri_transport_stdio/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -803,7 +805,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_llm_gemini](community/swarmauri_llm_gemini/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
 | [swarmauri_llm_openai](community/swarmauri_llm_openai/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
 | [swarmauri_llm_openrouter](community/swarmauri_llm_openrouter/) | `llm` | `composite-concrete` | `inferred` | 0 | composite signal from metadata for swarmauri_llm_openrouter |
-| [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
+| [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `llm` | `composite-concrete` | `inferred` | 3 | provider, HTTP adapter, and retry-policy composition |
 | [swarmauri_matrix_hamming74](community/swarmauri_matrix_hamming74/) | `matrix` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_metric_hamming at 50.0 |
 | [swarmauri_vectorstore_mlm](community/swarmauri_vectorstore_mlm/) | `vectorstore` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_embedding_mlm at 50.0 |
 
@@ -1582,6 +1584,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `40-standards` | `standards/swarmauri_transport_meshsidecarhttp2` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_mtlsunicast](standards/swarmauri_transport_mtlsunicast/) | `40-standards` | `standards/swarmauri_transport_mtlsunicast` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_quic](standards/swarmauri_transport_quic/) | `40-standards` | `standards/swarmauri_transport_quic` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_transport_retry](standards/swarmauri_transport_retry/) | `40-standards` | `standards/swarmauri_transport_retry` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_sseoutbound](standards/swarmauri_transport_sseoutbound/) | `40-standards` | `standards/swarmauri_transport_sseoutbound` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_sshtunnel](standards/swarmauri_transport_sshtunnel/) | `40-standards` | `standards/swarmauri_transport_sshtunnel` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_stdio](standards/swarmauri_transport_stdio/) | `40-standards` | `standards/swarmauri_transport_stdio` | `atomic-concrete` | `standard` | yes |

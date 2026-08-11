@@ -1816,6 +1816,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_transport_retry"
+path = "standards/swarmauri_transport_retry"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "explicit"
+order_reason = "concrete retry policy and execution for HTTP client contracts"
+
+[[packages]]
 name = "swarmauri_transport_meshsidecarhttp2"
 path = "standards/swarmauri_transport_meshsidecarhttp2"
 layer = "40-standards"
@@ -3776,8 +3788,12 @@ role = "composite-concrete"
 maturity = "community"
 workspace = true
 order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_xai", "swarmauri_transport_httpx"]
+order_reason = "provider, HTTP adapter, and retry-policy composition"
+composes = [
+  "swarmauri_provider_xai",
+  "swarmauri_transport_httpx",
+  "swarmauri_transport_retry",
+]
 
 [[packages]]
 name = "swarmauri_matrix_hamming74"

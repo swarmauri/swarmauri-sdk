@@ -8,6 +8,8 @@
 
 - Synchronous and asynchronous buffered requests.
 - Genuine synchronous and asynchronous streaming contexts.
+- Persistent connection pooling with explicit ownership and cleanup.
+- Caller-supplied HTTPX clients for testing and custom network stacks.
 - Provider-neutral Swarmauri HTTP interfaces.
 
 ## Installation
@@ -20,3 +22,13 @@ pip install swarmauri_transport_httpx
 ## Usage
 
 Use `HttpxClient.request`/`arequest` for buffered responses and `stream`/`astream` for incremental response processing.
+
+```python
+from swarmauri_transport_httpx import HttpxClient
+
+with HttpxClient(base_url="https://api.example.com") as client:
+    response = client.request("GET", "/models")
+    response.raise_for_status()
+```
+
+Injected `httpx.Client` and `httpx.AsyncClient` instances remain caller-owned and are never closed by the adapter.

@@ -7,6 +7,8 @@
 ## Features
 
 - xAI authentication, endpoints, catalogs, errors, and tool schemas.
+- Capability-aware chat, model-listing, and realtime connection configs.
+- Runtime authorization with credentials excluded from serialized configs.
 - Shared provider resource for xAI model families.
 
 ## Installation
@@ -15,4 +17,12 @@
 
 ## Usage
 
-Inject `XAIProvider(api_key=...)` into an xAI model adapter.
+```python
+from swarmauri_provider_xai import XAIProvider
+
+provider = XAIProvider(api_key="...")
+config = provider.connection_config("chat.completions", model="grok-4.3")
+headers = provider.authorize(config)
+```
+
+Inject the provider into an xAI model adapter; the provider describes the connection but never performs network I/O.
