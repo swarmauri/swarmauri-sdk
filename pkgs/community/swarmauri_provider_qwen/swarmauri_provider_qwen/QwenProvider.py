@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 
 from .QwenAuthConfig import QwenAuthConfig
@@ -9,6 +10,7 @@ from .QwenErrorMapper import QwenErrorMapper
 from .QwenModelCatalog import QwenModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "QwenProvider")
 class QwenProvider(ModelProviderBase):
     provider_name: Literal["qwen"] = "qwen"
     endpoints: QwenEndpoints = Field(default_factory=QwenEndpoints)

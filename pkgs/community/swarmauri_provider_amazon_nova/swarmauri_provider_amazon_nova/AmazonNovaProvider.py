@@ -2,6 +2,7 @@ from typing import Literal
 from urllib.parse import quote
 
 from pydantic import Field, SecretStr, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from swarmauri_base.model_providers.ProviderConnectionConfig import (
     ProviderConnectionConfig,
@@ -13,6 +14,7 @@ from .AmazonNovaErrorMapper import AmazonNovaErrorMapper
 from .AmazonNovaModelCatalog import AmazonNovaModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "AmazonNovaProvider")
 class AmazonNovaProvider(ModelProviderBase):
     provider_name: Literal["amazon_nova"] = "amazon_nova"
     access_key_id: SecretStr | None = Field(default=None, exclude=True)

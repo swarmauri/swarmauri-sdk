@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -13,6 +14,7 @@ from .QwenOmniRealtimeConfigMapper import QwenOmniRealtimeConfigMapper
 from .QwenOmniRealtimeSession import QwenOmniRealtimeSession
 
 
+@ComponentBase.register_type(LiveModelBase, "QwenOmniRealtimeModel")
 class QwenOmniRealtimeModel(LiveModelBase):
     name: str = "qwen-omni-turbo-realtime"
     provider: QwenProvider = Field(default_factory=QwenProvider)

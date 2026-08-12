@@ -19,6 +19,7 @@ class AwsEventStreamConnection(BidirectionalStreamConnectionBase):
 
     _stream: Any = PrivateAttr()
     _receiver: Any = PrivateAttr(default=None)
+    _stream_closed: bool = PrivateAttr(default=False)
     _codec: AwsEventStreamCodec = PrivateAttr(
         default_factory=AwsEventStreamCodec
     )
@@ -45,7 +46,7 @@ class AwsEventStreamConnection(BidirectionalStreamConnectionBase):
         receiver = await self._output_receiver()
         event = await receiver.receive()
         if event is None:
-            self.state = BidirectionalStreamState.CLOSED.value
+            await self._close_stream()
             raise EOFError("AWS event stream ended")
         return self._codec.decode(event)
 
@@ -63,9 +64,16 @@ class AwsEventStreamConnection(BidirectionalStreamConnectionBase):
             except EOFError:
                 return
 
-    async def aclose(self) -> None:
-        if self.state == BidirectionalStreamState.CLOSED.value:
+    async def _close_stream(self) -> None:
+        if self._stream_closed:
+            self.state = BidirectionalStreamState.CLOSED.value
             return
         self.state = BidirectionalStreamState.CLOSING.value
-        await self._stream.close()
-        self.state = BidirectionalStreamState.CLOSED.value
+        try:
+            await self._stream.close()
+        finally:
+            self._stream_closed = True
+            self.state = BidirectionalStreamState.CLOSED.value
+
+    async def aclose(self) -> None:
+        await self._close_stream()

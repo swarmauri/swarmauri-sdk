@@ -1,5 +1,6 @@
 from typing import Any, Literal
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -12,6 +13,7 @@ from .GeminiLiveConfigMapper import GeminiLiveConfigMapper
 from .GeminiLiveSession import GeminiLiveSession
 
 
+@ComponentBase.register_type(LiveModelBase, "GeminiLiveModel")
 class GeminiLiveModel(LiveModelBase):
     name: str = "gemini-3.1-flash-live-preview"
     provider: GeminiProvider = Field(default_factory=GeminiProvider)

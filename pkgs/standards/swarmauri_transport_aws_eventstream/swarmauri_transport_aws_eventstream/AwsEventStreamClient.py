@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import warnings
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import unquote, urlsplit
 
 from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.transports.bidirectional.BidirectionalStreamClientBase import (  # noqa: E501
     BidirectionalStreamClientBase,
 )
@@ -14,12 +15,16 @@ from swarmauri_base.transports.bidirectional.BidirectionalStreamClientBase impor
 from .AwsEventStreamConnection import AwsEventStreamConnection
 
 
+@ComponentBase.register_type(
+    BidirectionalStreamClientBase, "AwsEventStreamClient"
+)
 class AwsEventStreamClient(BidirectionalStreamClientBase):
     """Open Bedrock bidirectional streams through AWS's Smithy SDK."""
 
     region: str = "us-east-1"
     sdk_client_factory: Any = Field(default=None, exclude=True)
-    type: str = "AwsEventStreamClient"
+    type: Literal["AwsEventStreamClient"] = "AwsEventStreamClient"
+    resource: str = Field(default=ResourceTypes.TRANSPORT.value, frozen=True)
 
     @staticmethod
     def _run_sync(awaitable: Any) -> Any:
@@ -27,6 +32,9 @@ class AwsEventStreamClient(BidirectionalStreamClientBase):
             asyncio.get_running_loop()
         except RuntimeError:
             return asyncio.run(awaitable)
+        close = getattr(awaitable, "close", None)
+        if close is not None:
+            close()
         raise RuntimeError("Use aconnect() inside an event loop")
 
     @staticmethod
@@ -144,6 +152,8 @@ class AwsEventStreamClient(BidirectionalStreamClientBase):
 
         client_type, config_type, input_type = self._default_sdk()
         split = urlsplit(endpoint)
+        if split.scheme not in {"http", "https"} or not split.netloc:
+            raise ValueError("endpoint must be an absolute HTTP or HTTPS URL")
         endpoint_uri = f"{split.scheme}://{split.netloc}"
         config = config_type(
             region=region,

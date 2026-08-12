@@ -1,5 +1,6 @@
 from typing import Any, Literal
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -12,6 +13,7 @@ from .OpenAIRealtimeConfigMapper import OpenAIRealtimeConfigMapper
 from .OpenAIRealtimeSession import OpenAIRealtimeSession
 
 
+@ComponentBase.register_type(LiveModelBase, "OpenAIRealtimeModel")
 class OpenAIRealtimeModel(LiveModelBase):
     name: str = "gpt-realtime"
     provider: OpenAIProvider = Field(default_factory=OpenAIProvider)

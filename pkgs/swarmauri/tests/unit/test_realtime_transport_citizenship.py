@@ -1,11 +1,19 @@
+import pytest
+
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
 
-def test_realtime_transport_citizenship():
+@pytest.mark.parametrize(
+    ("public_name", "target"),
+    [
+        ("HttpxClient", "swarmauri_transport_httpx.HttpxClient"),
+        ("WebSocketClient", "swarmauri_transport_websocket.WebSocketClient"),
+        (
+            "AwsEventStreamClient",
+            "swarmauri_transport_aws_eventstream.AwsEventStreamClient",
+        ),
+    ],
+)
+def test_realtime_transport_citizenship(public_name, target):
     registry = PluginCitizenshipRegistry.SECOND_CLASS_REGISTRY
-    assert registry["swarmauri.transports.HttpxClient"] == (
-        "swarmauri_transport_httpx.HttpxClient"
-    )
-    assert registry["swarmauri.transports.WebSocketClient"] == (
-        "swarmauri_transport_websocket.WebSocketClient"
-    )
+    assert registry[f"swarmauri.transports.{public_name}"] == target

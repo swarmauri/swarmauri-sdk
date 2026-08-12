@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -13,6 +14,7 @@ from .XAIRealtimeConfigMapper import XAIRealtimeConfigMapper
 from .XAIRealtimeSession import XAIRealtimeSession
 
 
+@ComponentBase.register_type(LiveModelBase, "XAIRealtimeModel")
 class XAIRealtimeModel(LiveModelBase):
     name: str = "grok-realtime"
     provider: XAIProvider = Field(default_factory=XAIProvider)

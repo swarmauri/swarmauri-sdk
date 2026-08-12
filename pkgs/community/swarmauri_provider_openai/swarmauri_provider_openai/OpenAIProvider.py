@@ -1,6 +1,7 @@
 from typing import Any, Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from swarmauri_base.model_providers.ProviderConnectionConfig import (
     ProviderConnectionConfig,
@@ -12,6 +13,7 @@ from .OpenAIErrorMapper import OpenAIErrorMapper
 from .OpenAIModelCatalog import OpenAIModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "OpenAIProvider")
 class OpenAIProvider(ModelProviderBase):
     provider_name: Literal["openai"] = "openai"
     endpoints: OpenAIEndpoints = Field(default_factory=OpenAIEndpoints)

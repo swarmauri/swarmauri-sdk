@@ -1,11 +1,14 @@
 from typing import Literal
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
+from swarmauri_base.live_models.LiveModelBase import LiveModelBase
 
 from .OpenAIRealtimeModel import OpenAIRealtimeModel
 from .OpenAIRealtimeSession import OpenAIRealtimeSession
 
 
+@ComponentBase.register_type(LiveModelBase, "OpenAIResponsesWSModel")
 class OpenAIResponsesWSModel(OpenAIRealtimeModel):
     type: Literal["OpenAIResponsesWSModel"] = "OpenAIResponsesWSModel"
 

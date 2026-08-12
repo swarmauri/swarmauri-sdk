@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -16,6 +17,7 @@ from .NovaSonicConfigMapper import NovaSonicConfigMapper
 from .NovaSonicLiveSession import NovaSonicLiveSession
 
 
+@ComponentBase.register_type(LiveModelBase, "NovaSonicLiveModel")
 class NovaSonicLiveModel(LiveModelBase):
     name: str = "amazon.nova-sonic-v1:0"
     provider: AmazonNovaProvider = Field(default_factory=AmazonNovaProvider)

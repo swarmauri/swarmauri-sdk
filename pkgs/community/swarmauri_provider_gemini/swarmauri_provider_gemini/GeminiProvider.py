@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from swarmauri_base.model_providers.ProviderConnectionConfig import (
     ProviderConnectionConfig,
@@ -12,6 +13,7 @@ from .GeminiErrorMapper import GeminiErrorMapper
 from .GeminiModelCatalog import GeminiModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "GeminiProvider")
 class GeminiProvider(ModelProviderBase):
     provider_name: Literal["gemini"] = "gemini"
     endpoints: GeminiEndpoints = Field(default_factory=GeminiEndpoints)

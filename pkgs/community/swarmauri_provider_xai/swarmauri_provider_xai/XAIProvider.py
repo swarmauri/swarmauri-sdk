@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from swarmauri_base.model_providers.ProviderConnectionConfig import (
     ProviderConnectionConfig,
@@ -12,6 +13,7 @@ from .XAIErrorMapper import XAIErrorMapper
 from .XAIModelCatalog import XAIModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "XAIProvider")
 class XAIProvider(ModelProviderBase):
     provider_name: Literal["xai"] = "xai"
     endpoints: XAIEndpoints = Field(default_factory=XAIEndpoints)
