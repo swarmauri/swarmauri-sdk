@@ -70,6 +70,43 @@ def test_generates_all_five_proofs(component_suite):
     )
 
 
+def test_serialization_proof_compares_json_semantics(pytester):
+    """Accept stable values even when equivalent JSON key order changes."""
+    pytester.makeconftest(
+        """
+        import json
+        from typing import ClassVar, Literal
+
+        from swarmauri_base.ComponentBase import ComponentBase
+        from swarmauri_tests_component import ComponentSpec
+
+        @ComponentBase.register_type(ComponentBase, "ReorderedModel")
+        class ReorderedModel(ComponentBase):
+            type: Literal["ReorderedModel"] = "ReorderedModel"
+            values: frozenset[str] = frozenset({"alpha", "beta"})
+            _sort_next: ClassVar[bool] = False
+
+            def model_dump_json(self, **kwargs):
+                payload = json.loads(super().model_dump_json(**kwargs))
+                type(self)._sort_next = not type(self)._sort_next
+                return json.dumps(payload, sort_keys=type(self)._sort_next)
+
+        def pytest_swarmauri_component_specs():
+            return [
+                ComponentSpec(
+                    component_class=ReorderedModel,
+                    init_kwargs={},
+                    expected_resource="ComponentBase",
+                    expected_name=None,
+                    base_class=ComponentBase,
+                )
+            ]
+        """
+    )
+    result = pytester.runpytest("-p", "swarmauri_tests_component", "-q")
+    result.assert_outcomes(passed=5)
+
+
 @pytest.mark.parametrize(
     ("type_name", "override", "failed_proof"),
     [

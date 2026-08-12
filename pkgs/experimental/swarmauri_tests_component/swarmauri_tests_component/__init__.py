@@ -139,7 +139,8 @@ class ComponentProofItem(pytest.Item):
         restored = self.spec.component_class.model_validate(
             {**payload, **dict(self.spec.round_trip_overrides)}
         )
-        assert restored.model_dump_json() == serialized
+        restored_payload = json.loads(restored.model_dump_json())
+        assert restored_payload == payload
         assert restored.id == component.id
         assert restored.type == component.type
         assert restored.name == component.name
