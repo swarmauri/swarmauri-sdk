@@ -3,8 +3,10 @@ from typing import Literal
 
 from pydantic import Field, SecretStr
 from swarmauri_base.model_providers.ProviderAuthBase import ProviderAuthBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderAuthBase, "AmazonNovaAuthConfig")
 class AmazonNovaAuthConfig(ProviderAuthBase):
     access_key_id: SecretStr | None = Field(default=None, exclude=True)
     secret_access_key: SecretStr | None = Field(default=None, exclude=True)

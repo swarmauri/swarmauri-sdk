@@ -76,6 +76,29 @@ def output(payload: bytes):
     )
 
 
+def _public_methods(cls):
+    return {
+        name
+        for name, value in cls.__dict__.items()
+        if not name.startswith("_")
+        and name != "model_post_init"
+        and (callable(value) or isinstance(value, (classmethod, staticmethod)))
+    }
+
+
+def test_public_method_inventory_is_exhaustive():
+    assert _public_methods(AwsEventStreamCodec) == {"encode", "decode"}
+    assert _public_methods(AwsEventStreamConnection) == {
+        "from_stream",
+        "asend",
+        "areceive",
+        "iter_events",
+        "aiter_events",
+        "aclose",
+    }
+    assert _public_methods(AwsEventStreamError) == set()
+
+
 @pytest.mark.asyncio
 async def test_connection_translates_events_and_closes():
     stream = Stream(output(b'{"event":{"textOutput":{"content":"hi"}}}'))
@@ -147,6 +170,13 @@ async def test_close_failure_still_reaches_terminal_state():
 async def test_iterator_stops_on_stream_end():
     connection = AwsEventStreamConnection.from_stream(Stream())
     assert [event async for event in connection.aiter_events()] == []
+
+
+def test_sync_iterator_receives_until_stream_end():
+    connection = AwsEventStreamConnection.from_stream(
+        Stream(output(b'{"sequence":1}'))
+    )
+    assert list(connection.iter_events()) == [{"sequence": 1}]
 
 
 def test_codec_maps_aws_exception_events():

@@ -70,8 +70,8 @@ def test_generates_all_five_proofs(component_suite):
     )
 
 
-def test_serialization_proof_compares_json_semantics(pytester):
-    """Accept stable values even when equivalent JSON key order changes."""
+def test_serialization_proof_compares_python_semantics(pytester):
+    """Accept round trips of unordered values regardless of JSON ordering."""
     pytester.makeconftest(
         """
         import json
@@ -105,6 +105,65 @@ def test_serialization_proof_compares_json_semantics(pytester):
     )
     result = pytester.runpytest("-p", "swarmauri_tests_component", "-q")
     result.assert_outcomes(passed=5)
+
+
+def test_executes_sync_and_async_method_proofs(pytester):
+    pytester.makeconftest(
+        """
+        from typing import Literal
+
+        from swarmauri_base.ComponentBase import ComponentBase
+        from swarmauri_tests_component import ComponentSpec, MethodSpec
+
+        @ComponentBase.register_type(ComponentBase, "MethodModel")
+        class MethodModel(ComponentBase):
+            type: Literal["MethodModel"] = "MethodModel"
+
+            def ping(self): return "pong"
+            async def aping(self): return "apong"
+
+        def prove_ping(component):
+            assert component.ping() == "pong"
+
+        async def prove_aping(component):
+            assert await component.aping() == "apong"
+
+        def pytest_swarmauri_component_specs():
+            return [ComponentSpec(
+                MethodModel, {}, "ComponentBase", None, ComponentBase,
+                method_specs=(
+                    MethodSpec("ping", prove_ping),
+                    MethodSpec("aping", prove_aping),
+                ),
+            )]
+        """
+    )
+    result = pytester.runpytest("-p", "swarmauri_tests_component", "-q")
+    result.assert_outcomes(passed=7)
+
+
+def test_rejects_missing_public_method_proof(pytester):
+    pytester.makeconftest(
+        """
+        from typing import Literal
+        from swarmauri_base.ComponentBase import ComponentBase
+        from swarmauri_tests_component import ComponentSpec
+
+        @ComponentBase.register_type(ComponentBase, "UnprovenModel")
+        class UnprovenModel(ComponentBase):
+            type: Literal["UnprovenModel"] = "UnprovenModel"
+            def unproven(self): return None
+
+        def pytest_swarmauri_component_specs():
+            return [ComponentSpec(
+                UnprovenModel, {}, "ComponentBase", None, ComponentBase,
+                method_specs=(),
+            )]
+        """
+    )
+    result = pytester.runpytest("-p", "swarmauri_tests_component", "-q")
+    assert result.ret != 0
+    assert "missing=['unproven']" in result.stderr.str()
 
 
 @pytest.mark.parametrize(

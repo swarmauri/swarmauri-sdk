@@ -1,12 +1,14 @@
 from collections.abc import Mapping
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from swarmauri_base.model_providers.ProviderAuthBase import ProviderAuthBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderAuthBase, "OpenAIAuthConfig")
 class OpenAIAuthConfig(ProviderAuthBase):
-    api_key: SecretStr | None = None
+    api_key: SecretStr | None = Field(default=None, exclude=True)
     organization: str | None = None
     project: str | None = None
     type: Literal["OpenAIAuthConfig"] = "OpenAIAuthConfig"
