@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 188 | 188 | first-party split standard packages |
+| `40-standards` | 189 | 189 | first-party split standard packages |
 | `50-community` | 126 | 126 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 37 | 13 | incubating and planning-stage packages |
@@ -204,6 +204,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_tool_matplotlib](standards/swarmauri_tool_matplotlib/) | `standards/swarmauri_tool_matplotlib` | `tool` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tool_skill_execution](standards/swarmauri_tool_skill_execution/) | `standards/swarmauri_tool_skill_execution` | `tool` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_asgi](standards/swarmauri_transport_asgi/) | `standards/swarmauri_transport_asgi` | `transport` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_transport_aws_eventstream](standards/swarmauri_transport_aws_eventstream/) | `standards/swarmauri_transport_aws_eventstream` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_h2mux](standards/swarmauri_transport_h2mux/) | `standards/swarmauri_transport_h2mux` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_httpx](standards/swarmauri_transport_httpx/) | `standards/swarmauri_transport_httpx` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `standards/swarmauri_transport_meshsidecarhttp2` | `transport` | `atomic-concrete` | `standard` | yes |
@@ -621,6 +622,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_tool_matplotlib](standards/swarmauri_tool_matplotlib/) | `tool` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tool_skill_execution](standards/swarmauri_tool_skill_execution/) | `tool` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_asgi](standards/swarmauri_transport_asgi/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_transport_aws_eventstream](standards/swarmauri_transport_aws_eventstream/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_h2mux](standards/swarmauri_transport_h2mux/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_httpx](standards/swarmauri_transport_httpx/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1588,6 +1590,7 @@ fail validation because they make composition order ambiguous.
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
 | `40.0` | [swarmauri_transport_asgi](standards/swarmauri_transport_asgi/) | `40-standards` | `standards/swarmauri_transport_asgi` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_transport_aws_eventstream](standards/swarmauri_transport_aws_eventstream/) | `40-standards` | `standards/swarmauri_transport_aws_eventstream` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_h2mux](standards/swarmauri_transport_h2mux/) | `40-standards` | `standards/swarmauri_transport_h2mux` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_httpx](standards/swarmauri_transport_httpx/) | `40-standards` | `standards/swarmauri_transport_httpx` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_meshsidecarhttp2](standards/swarmauri_transport_meshsidecarhttp2/) | `40-standards` | `standards/swarmauri_transport_meshsidecarhttp2` | `atomic-concrete` | `standard` | yes |

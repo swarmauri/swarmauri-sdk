@@ -3,8 +3,12 @@
 import json
 
 import toml
-import tomllib
 from pydantic import BaseModel, ValidationError
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+    import tomli as tomllib
 
 
 class TomlMixin(BaseModel):
