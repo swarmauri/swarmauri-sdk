@@ -1,7 +1,11 @@
 from typing import Any, Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
+from swarmauri_base.model_providers.ProviderConnectionConfig import (
+    ProviderConnectionConfig,
+)
 
 from .OpenAIAuthConfig import OpenAIAuthConfig
 from .OpenAIEndpoints import OpenAIEndpoints
@@ -9,6 +13,7 @@ from .OpenAIErrorMapper import OpenAIErrorMapper
 from .OpenAIModelCatalog import OpenAIModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "OpenAIProvider")
 class OpenAIProvider(ModelProviderBase):
     provider_name: Literal["openai"] = "openai"
     endpoints: OpenAIEndpoints = Field(default_factory=OpenAIEndpoints)
@@ -43,8 +48,25 @@ class OpenAIProvider(ModelProviderBase):
             self.default_headers.setdefault("OpenAI-Project", self.project)
         return self
 
-    def connection_options(self) -> dict[str, Any]:
-        options = super().connection_options()
-        if self.api_key is not None:
-            options["api_key"] = self.api_key.get_secret_value()
-        return options
+    def connection_config(
+        self,
+        capability: str,
+        model: str | None = None,
+    ) -> ProviderConnectionConfig:
+        endpoint = self.endpoints.resolve(capability)
+        headers = dict(self.default_headers)
+        query: dict[str, str] = {}
+        transport_options: dict[str, Any] = {}
+        if capability == "realtime.connect":
+            headers["OpenAI-Beta"] = "realtime=v1"
+            if model is not None:
+                query["model"] = model
+        elif capability == "api":
+            transport_options = super().connection_options()
+        return ProviderConnectionConfig(
+            endpoint=endpoint,
+            headers=headers,
+            query=query,
+            transport_options=transport_options,
+            auth_context=self.auth,
+        )

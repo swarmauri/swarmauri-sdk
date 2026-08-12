@@ -21,6 +21,7 @@ class LiveSessionBase(ILiveSession, ComponentBase):
     state: str = LiveSessionState.NEW.value
     terminal_error: Any = Field(default=None, exclude=True)
     type: Literal["LiveSessionBase"] = "LiveSessionBase"
+    resource: Literal["LiveSession"] = "LiveSession"
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     _events: asyncio.Queue[LiveEventBase | None] = PrivateAttr(

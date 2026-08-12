@@ -52,3 +52,28 @@ def test_model_provider_resolves_and_authorizes_connection() -> None:
 
     assert config.endpoint == "https://example.test/v1"
     assert provider.authorize(config) == {}
+    prepared = provider.prepare_connection("models.list")
+    assert prepared.resolved_url() == "https://example.test/v1"
+
+
+def test_connection_config_resolves_encoded_query_without_mutation() -> None:
+    config = ProviderConnectionConfig(
+        endpoint="wss://example.test/live?version=1",
+        query={"model": "model/name"},
+    )
+
+    assert config.resolved_url() == (
+        "wss://example.test/live?version=1&model=model%2Fname"
+    )
+    assert config.query == {"model": "model/name"}
+
+
+def test_connection_config_rejects_missing_endpoint() -> None:
+    config = ProviderConnectionConfig()
+
+    try:
+        config.resolved_url()
+    except ValueError as error:
+        assert "no endpoint" in str(error)
+    else:
+        raise AssertionError("connection without endpoint was resolved")

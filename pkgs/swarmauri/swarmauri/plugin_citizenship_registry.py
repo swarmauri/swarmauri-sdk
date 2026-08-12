@@ -802,6 +802,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.transports.WebSocketClient": (
             "swarmauri_transport_websocket.WebSocketClient"
         ),
+        "swarmauri.transports.AwsEventStreamClient": (
+            "swarmauri_transport_aws_eventstream.AwsEventStreamClient"
+        ),
         "swarmauri.tools.QueryImageVectorStoreTool": (
             "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"
         ),

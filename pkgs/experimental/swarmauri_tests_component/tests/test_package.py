@@ -8,7 +8,14 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10
     import tomli as tomllib
 
-from swarmauri_tests_component import ComponentSpec, PROOFS, __version__
+from swarmauri_tests_component import (
+    ComponentSpec,
+    MethodSpec,
+    PROOFS,
+    __version__,
+    live_session_method_specs,
+    model_catalog_method_specs,
+)
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,6 +29,9 @@ def _project_version() -> str:
 def test_public_contract_is_importable():
     """Expose the declaration type and the canonical five-proof set."""
     assert ComponentSpec.__name__ == "ComponentSpec"
+    assert MethodSpec.__name__ == "MethodSpec"
+    assert callable(live_session_method_specs)
+    assert callable(model_catalog_method_specs)
     assert PROOFS == (
         "construction",
         "identity",
