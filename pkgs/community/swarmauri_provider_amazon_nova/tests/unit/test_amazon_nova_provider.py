@@ -1,4 +1,5 @@
 from swarmauri_provider_amazon_nova import AmazonNovaProvider
+from swarmauri_core.model_providers import IProviderAuth, IProviderEndpoint
 
 
 def test_provider_defaults():
@@ -23,3 +24,16 @@ def test_explicit_credentials_are_forwarded_but_not_serialized():
     assert "access_key_id" not in dumped
     assert "secret_access_key" not in dumped
     assert "session_token" not in dumped
+
+
+def test_provider_implements_auth_and_endpoint_contracts():
+    provider = AmazonNovaProvider(access_key_id="access")
+
+    assert isinstance(provider.auth, IProviderAuth)
+    assert isinstance(provider.endpoints, IProviderEndpoint)
+    assert provider.endpoints.resolve("bedrock.runtime") == provider.base_url
+    assert provider.auth.apply({"Accept": "application/json"}) == {
+        "Accept": "application/json"
+    }
+    config = provider.connection_config("bedrock.runtime")
+    assert "access" not in config.model_dump_json()

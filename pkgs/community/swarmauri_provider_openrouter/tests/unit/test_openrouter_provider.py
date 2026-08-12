@@ -1,6 +1,7 @@
 from importlib.metadata import entry_points
 
 import pytest
+from swarmauri_core.model_providers import IProviderAuth, IProviderEndpoint
 
 from swarmauri_provider_openrouter import (
     OpenRouterModelCatalog,
@@ -20,6 +21,8 @@ def test_provider_builds_authorized_capability_config():
         "chat.completions", model="openai/gpt-4o-mini"
     )
 
+    assert isinstance(provider.auth, IProviderAuth)
+    assert isinstance(provider.endpoints, IProviderEndpoint)
     assert config.endpoint == "https://openrouter.ai/api/v1/chat/completions"
     assert config.transport_options["model"] == "openai/gpt-4o-mini"
     assert provider.authorize(config) == {

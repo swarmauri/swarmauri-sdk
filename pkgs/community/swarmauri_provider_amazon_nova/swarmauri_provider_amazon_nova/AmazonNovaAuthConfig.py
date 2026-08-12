@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Literal
 
 from pydantic import Field, SecretStr
@@ -10,3 +11,7 @@ class AmazonNovaAuthConfig(ProviderAuthBase):
     session_token: SecretStr | None = Field(default=None, exclude=True)
     profile: str | None = None
     type: Literal["AmazonNovaAuthConfig"] = "AmazonNovaAuthConfig"
+
+    def apply(self, headers: Mapping[str, str]) -> dict[str, str]:
+        """Preserve headers; the AWS transport applies request-aware SigV4."""
+        return dict(headers)

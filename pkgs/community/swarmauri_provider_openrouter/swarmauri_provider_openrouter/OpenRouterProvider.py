@@ -2,8 +2,8 @@ from typing import Any, Literal
 
 from pydantic import Field, model_validator
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
-from swarmauri_base.model_providers.ProviderConnectionConfigBase import (
-    ProviderConnectionConfigBase,
+from swarmauri_base.model_providers.ProviderConnectionConfig import (
+    ProviderConnectionConfig,
 )
 
 from .OpenRouterAuthConfig import OpenRouterAuthConfig
@@ -50,26 +50,12 @@ class OpenRouterProvider(ModelProviderBase):
         self,
         capability: str,
         model: str | None = None,
-    ) -> ProviderConnectionConfigBase:
-        endpoints = {
-            "chat.completions": self.endpoints.resolve(
-                self.endpoints.chat_completions_path
-            ),
-            "models.list": self.endpoints.resolve(self.endpoints.models_path),
-            "images.generate": self.endpoints.resolve(
-                self.endpoints.image_generations_path
-            ),
-        }
-        try:
-            endpoint = endpoints[capability]
-        except KeyError as error:
-            raise ValueError(
-                f"OpenRouter does not support capability {capability!r}"
-            ) from error
+    ) -> ProviderConnectionConfig:
+        endpoint = self.endpoints.resolve(capability)
         options: dict[str, Any] = super().connection_options()
         if model is not None:
             options["model"] = model
-        return ProviderConnectionConfigBase(
+        return ProviderConnectionConfig(
             endpoint=endpoint,
             headers={
                 **self.default_headers,
@@ -81,7 +67,7 @@ class OpenRouterProvider(ModelProviderBase):
         )
 
     @staticmethod
-    def authorize(config: ProviderConnectionConfigBase) -> dict[str, str]:
+    def authorize(config: ProviderConnectionConfig) -> dict[str, str]:
         auth = config.auth_context
         if not isinstance(auth, OpenRouterAuthConfig):
             raise TypeError(

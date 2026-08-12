@@ -2,8 +2,8 @@ from typing import Any, Literal
 
 from pydantic import Field, model_validator
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
-from swarmauri_base.model_providers.ProviderConnectionConfigBase import (
-    ProviderConnectionConfigBase,
+from swarmauri_base.model_providers.ProviderConnectionConfig import (
+    ProviderConnectionConfig,
 )
 
 from .XAIAuthConfig import XAIAuthConfig
@@ -40,27 +40,15 @@ class XAIProvider(ModelProviderBase):
         self,
         capability: str,
         model: str | None = None,
-    ) -> ProviderConnectionConfigBase:
-        endpoints = {
-            "chat.completions": self.endpoints.resolve(
-                self.endpoints.chat_completions_path
-            ),
-            "models.list": self.endpoints.resolve(self.endpoints.models_path),
-            "realtime.connect": self.endpoints.websocket_url,
-        }
-        try:
-            endpoint = endpoints[capability]
-        except KeyError as error:
-            raise ValueError(
-                f"xAI does not support capability {capability!r}"
-            ) from error
+    ) -> ProviderConnectionConfig:
+        endpoint = self.endpoints.resolve(capability)
         # Keep credentials in the excluded auth context. The legacy
         # connection_options method still exposes api_key for existing live
         # model consumers, but connection configurations must serialize safely.
         options = super().connection_options()
         if model is not None:
             options["model"] = model
-        return ProviderConnectionConfigBase(
+        return ProviderConnectionConfig(
             endpoint=endpoint,
             headers={
                 **self.default_headers,
@@ -72,7 +60,7 @@ class XAIProvider(ModelProviderBase):
         )
 
     @staticmethod
-    def authorize(config: ProviderConnectionConfigBase) -> dict[str, str]:
+    def authorize(config: ProviderConnectionConfig) -> dict[str, str]:
         auth = config.auth_context
         if not isinstance(auth, XAIAuthConfig):
             raise TypeError("xAI connection configuration has no auth context")

@@ -8,7 +8,9 @@ from swarmauri_core.model_providers.IModelProvider import IModelProvider
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 from .ModelCatalogBase import ModelCatalogBase
-from .ProviderConnectionConfigBase import ProviderConnectionConfigBase
+from .ProviderAuthBase import ProviderAuthBase
+from .ProviderConnectionConfig import ProviderConnectionConfig
+from .ProviderEndpointBase import ProviderEndpointBase
 from .ProviderErrorMapperBase import ProviderErrorMapperBase
 
 
@@ -21,6 +23,12 @@ class ModelProviderBase(IModelProvider, ComponentBase):
     project: str | None = None
     region: str | None = None
     default_headers: dict[str, str] = Field(default_factory=dict)
+    endpoints: ProviderEndpointBase = Field(
+        default_factory=ProviderEndpointBase
+    )
+    auth: ProviderAuthBase = Field(
+        default_factory=ProviderAuthBase, exclude=True
+    )
     catalog: ModelCatalogBase = Field(default_factory=ModelCatalogBase)
     error_mapper: ProviderErrorMapperBase = Field(
         default_factory=ProviderErrorMapperBase
@@ -44,9 +52,23 @@ class ModelProviderBase(IModelProvider, ComponentBase):
         self,
         capability: str,
         model: str | None = None,
-    ) -> ProviderConnectionConfigBase:
-        return ProviderConnectionConfigBase(
-            endpoint=self.base_url,
+    ) -> ProviderConnectionConfig:
+        endpoint = self.endpoints.resolve(capability)
+        return ProviderConnectionConfig(
+            endpoint=endpoint,
             headers=dict(self.default_headers),
-            transport_options=self.connection_options(),
+            # Call the base implementation deliberately. Some legacy concrete
+            # providers still expose credentials from connection_options(); a
+            # serializable connection DTO must keep them in auth_context only.
+            transport_options=ModelProviderBase.connection_options(self),
+            auth_context=self.auth,
         )
+
+    @staticmethod
+    def authorize(config: ProviderConnectionConfig) -> dict[str, str]:
+        auth = config.auth_context
+        if not isinstance(auth, ProviderAuthBase):
+            raise TypeError(
+                "Provider connection configuration has no auth context"
+            )
+        return dict(auth.apply(config.headers))

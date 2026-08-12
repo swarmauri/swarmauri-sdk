@@ -1,8 +1,12 @@
 from swarmauri_provider_xai import XAIProvider
+from swarmauri_core.model_providers import IProviderAuth, IProviderEndpoint
 
 
 def test_provider_defaults():
-    assert XAIProvider().provider_name == "xai"
+    provider = XAIProvider()
+    assert provider.provider_name == "xai"
+    assert isinstance(provider.auth, IProviderAuth)
+    assert isinstance(provider.endpoints, IProviderEndpoint)
 
 
 def test_authorized_config_does_not_serialize_key():
