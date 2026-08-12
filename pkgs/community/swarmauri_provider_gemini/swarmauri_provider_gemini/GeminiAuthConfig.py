@@ -16,3 +16,10 @@ class GeminiAuthConfig(ProviderAuthBase):
         if self.api_key is not None:
             authorized["x-goog-api-key"] = self.api_key.get_secret_value()
         return authorized
+
+    def apply_query(self, query: Mapping[str, str]) -> dict[str, str]:
+        authorized = dict(query)
+        if self.api_key is None:
+            raise ValueError("GeminiProvider requires an api_key")
+        authorized["key"] = self.api_key.get_secret_value()
+        return authorized

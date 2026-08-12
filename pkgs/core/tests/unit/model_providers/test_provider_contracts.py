@@ -26,6 +26,9 @@ def test_complete_contracts_are_instantiable() -> None:
         def apply(self, headers: Mapping[str, str]) -> Mapping[str, str]:
             return headers
 
+        def apply_query(self, query: Mapping[str, str]) -> Mapping[str, str]:
+            return query
+
     class Endpoint(IProviderEndpoint):
         def resolve(self, capability: str) -> str:
             return f"https://example.test/{capability}"

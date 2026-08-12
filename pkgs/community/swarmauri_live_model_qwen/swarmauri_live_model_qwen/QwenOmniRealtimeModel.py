@@ -29,12 +29,12 @@ class QwenOmniRealtimeModel(LiveModelBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     async def aconnect(self, config: LiveConfigBase):
-        api_key = self.provider.connection_options().get("api_key")
-        if not api_key:
-            raise ValueError("QwenProvider requires an api_key")
+        connection_config = self.provider.prepare_connection(
+            "realtime.connect", model=self.name
+        )
         connection = await self.transport.aconnect(
-            self.provider.endpoints.websocket_url,
-            headers={"Authorization": f"Bearer {api_key}"},
+            connection_config.resolved_url(),
+            headers=connection_config.headers,
         )
         return await QwenOmniRealtimeSession.create(
             connection, QwenOmniRealtimeConfigMapper().map(config)

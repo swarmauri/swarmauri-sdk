@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import Field, model_validator
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
@@ -26,9 +26,3 @@ class QwenProvider(ModelProviderBase):
         elif self.auth.api_key is not None:
             self.api_key = self.auth.api_key
         return self
-
-    def connection_options(self) -> dict[str, Any]:
-        options = super().connection_options()
-        if self.api_key:
-            options["api_key"] = self.api_key.get_secret_value()
-        return options

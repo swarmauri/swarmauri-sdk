@@ -1,7 +1,10 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import Field, model_validator
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
+from swarmauri_base.model_providers.ProviderConnectionConfig import (
+    ProviderConnectionConfig,
+)
 
 from .GeminiAuthConfig import GeminiAuthConfig
 from .GeminiEndpoints import GeminiEndpoints
@@ -29,8 +32,13 @@ class GeminiProvider(ModelProviderBase):
             self.api_key = self.auth.api_key
         return self
 
-    def connection_options(self) -> dict[str, Any]:
-        options = super().connection_options()
-        if self.api_key is not None:
-            options["api_key"] = self.api_key.get_secret_value()
-        return options
+    def prepare_connection(
+        self, capability: str, model: str | None = None
+    ) -> ProviderConnectionConfig:
+        if capability != "live.connect":
+            return super().prepare_connection(capability, model)
+
+        config = self.connection_config(capability, model)
+        return config.model_copy(
+            update={"query": dict(self.auth.apply_query(config.query))}
+        )

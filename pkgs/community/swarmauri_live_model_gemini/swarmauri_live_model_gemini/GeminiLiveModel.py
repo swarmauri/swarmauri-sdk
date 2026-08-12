@@ -1,6 +1,4 @@
 from typing import Any, Literal
-from urllib.parse import quote
-
 from pydantic import ConfigDict, Field
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
@@ -32,10 +30,12 @@ class GeminiLiveModel(LiveModelBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     async def aconnect(self, config: LiveConfigBase) -> GeminiLiveSession:
-        api_key = self.provider.connection_options().get("api_key")
-        if not api_key:
-            raise ValueError("GeminiProvider requires an api_key")
-        url = f"{self.provider.endpoints.websocket_url}?key={quote(api_key)}"
-        connection = await self.transport.aconnect(url)
+        connection_config = self.provider.prepare_connection(
+            "live.connect", model=self.name
+        )
+        connection = await self.transport.aconnect(
+            connection_config.resolved_url(),
+            headers=connection_config.headers,
+        )
         setup = GeminiLiveConfigMapper().map(self.name, config)
         return await GeminiLiveSession.create(connection, setup)

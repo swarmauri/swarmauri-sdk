@@ -10,11 +10,11 @@ class OpenAIResponsesWSModel(OpenAIRealtimeModel):
     type: Literal["OpenAIResponsesWSModel"] = "OpenAIResponsesWSModel"
 
     async def aconnect(self, config: LiveConfigBase) -> OpenAIRealtimeSession:
-        api_key = self.provider.connection_options().get("api_key")
-        if not api_key:
-            raise ValueError("OpenAIProvider requires an api_key")
+        connection_config = self.provider.prepare_connection(
+            "responses.connect", model=self.name
+        )
         connection = await self.transport.aconnect(
-            self.provider.endpoints.responses_websocket_url,
-            headers={"Authorization": f"Bearer {api_key}"},
+            connection_config.resolved_url(),
+            headers=connection_config.headers,
         )
         return await OpenAIRealtimeSession.create(connection)

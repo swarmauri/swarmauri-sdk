@@ -11,8 +11,9 @@ class XAIAuthConfig(ProviderAuthBase):
 
     def apply(self, headers: Mapping[str, str]) -> dict[str, str]:
         authorized = dict(headers)
-        if self.api_key is not None:
-            authorized["Authorization"] = (
-                f"Bearer {self.api_key.get_secret_value()}"
-            )
+        if self.api_key is None:
+            raise ValueError("XAIProvider requires an api_key")
+        authorized["Authorization"] = (
+            f"Bearer {self.api_key.get_secret_value()}"
+        )
         return authorized
