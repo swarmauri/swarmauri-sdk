@@ -1,0 +1,55 @@
+[project]
+name = "layout-engine-swarmakit-vue"
+version = "0.1.0"
+authors = [
+    { name = "Jacob Stewart", email = "jacob@swarmauri.com" },
+]
+description = "Swarmakit Vue preset catalog and runtime helpers for layout-engine manifests."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "fastapi>=0.115",
+    "layout-engine>=0.1.1",
+    "orjson>=3.9",
+    "uvicorn>=0.30",
+]
+keywords = [
+    "layout",
+    "ssr",
+    "vue",
+    "swarmakit",
+    "components",
+    "fastapi",
+]
+
+[tool.uv.sources]
+layout-engine = { path = "../layout_engine" }
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/layout_engine_swarmakit_vue"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "httpx>=0.27",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"
