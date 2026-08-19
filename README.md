@@ -222,8 +222,8 @@ Billing provider packages:
 
 ## Documentation
 
-- [Dynamic schemas guide](infra/docs/swarmauri-sdk/docs/guide/dynamic_schemas.md)
-- [Swarmauri namespace call flow](pkgs/swarmauri/docs/callflow.md)
+> ⚠️ The following documentation pages are currently being restructured — links will be restored in the next release: *Dynamic schemas guide*, *Swarmauri namespace call flow*.
+
 - [Swarmauri citizenship notes](pkgs/swarmauri/docs/citizenship.md)
 - [Contribution guide](CONTRIBUTING.md)
 - [Style guide](STYLE_GUIDE.md)
