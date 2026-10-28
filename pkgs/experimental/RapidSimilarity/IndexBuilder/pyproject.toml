@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson-python", "ninja", "pybind11", "uv"]
+requires = ["meson-python", "ninja", "pybind11", "uv>=0.13.6"]
 build-backend = "mesonpy"
 
 [project]
@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "uv"]
+dev = ["pytest", "uv>=0.13.6"]
 
 [tool.pytest.ini_options]
 markers = [
