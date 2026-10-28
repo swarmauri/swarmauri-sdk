@@ -3,8 +3,10 @@ from typing import Literal
 from swarmauri_base.model_providers.ProviderEndpointBase import (
     ProviderEndpointBase,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderEndpointBase, "XAIEndpoints")
 class XAIEndpoints(ProviderEndpointBase):
     base_url: str = "https://api.x.ai/v1"
     chat_completions_path: str = "/chat/completions"

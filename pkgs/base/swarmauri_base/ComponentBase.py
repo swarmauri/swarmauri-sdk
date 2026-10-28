@@ -61,6 +61,7 @@ class ResourceTypes(Enum):
     MODEL = "Model"
     MODEL_PROVIDER = "ModelProvider"
     LIVE_MODEL = "LiveModel"
+    LIVE_SESSION = "LiveSession"
     CHAIN = "Chain"
     CHAIN_METHOD = "ChainMethod"
     CHUNKER = "Chunker"

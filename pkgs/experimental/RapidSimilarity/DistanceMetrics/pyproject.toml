@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "uv"]
+dev = ["pytest", "uv>=0.13.6"]
 
 [tool.pytest.ini_options]
 markers = [

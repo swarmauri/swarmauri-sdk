@@ -17,3 +17,8 @@ def test_provider_implements_auth_and_endpoint_contracts():
     config = provider.connection_config("live.connect")
     assert config.endpoint.startswith("wss://")
     assert "secret" not in config.model_dump_json()
+    assert "key" not in config.query
+    prepared = provider.prepare_connection("live.connect")
+    assert prepared.query == {"key": "secret"}
+    assert prepared.resolved_url().endswith("?key=secret")
+    assert "api_key" not in prepared.transport_options

@@ -28,3 +28,14 @@ def test_provider_rejects_unknown_capability():
         assert "unknown" in str(error)
     else:
         raise AssertionError("unknown xAI capability was accepted")
+
+
+def test_prepared_realtime_connection_has_auth_but_no_secret_option():
+    provider = XAIProvider(api_key="secret")
+    prepared = provider.prepare_connection(
+        "realtime.connect", model="grok-realtime"
+    )
+
+    assert prepared.endpoint == "wss://api.x.ai/v1/realtime"
+    assert prepared.headers["Authorization"] == "Bearer secret"
+    assert "api_key" not in prepared.transport_options

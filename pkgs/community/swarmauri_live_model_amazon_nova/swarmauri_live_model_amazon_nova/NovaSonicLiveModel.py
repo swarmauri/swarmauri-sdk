@@ -1,21 +1,29 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
 from swarmauri_base.live_models.LiveConfigBase import LiveConfigBase
 from swarmauri_base.live_models.LiveModelBase import LiveModelBase
+from swarmauri_core.transports.i_bidirectional_stream import (
+    IBidirectionalStreamClient,
+)
 from swarmauri_provider_amazon_nova import AmazonNovaProvider
+from swarmauri_transport_aws_eventstream import AwsEventStreamClient
 
 from .NovaSonicConfigMapper import NovaSonicConfigMapper
 from .NovaSonicLiveSession import NovaSonicLiveSession
 
 
+@ComponentBase.register_type(LiveModelBase, "NovaSonicLiveModel")
 class NovaSonicLiveModel(LiveModelBase):
     name: str = "amazon.nova-sonic-v1:0"
     provider: AmazonNovaProvider = Field(default_factory=AmazonNovaProvider)
-    transport: Any | None = Field(default=None, exclude=True)
+    transport: IBidirectionalStreamClient = Field(
+        default_factory=AwsEventStreamClient, exclude=True
+    )
     capabilities: LiveCapabilitiesBase = Field(
         default_factory=lambda: LiveCapabilitiesBase(
             input_modalities=frozenset({"text", "audio"}),
@@ -28,17 +36,13 @@ class NovaSonicLiveModel(LiveModelBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     async def aconnect(self, config: LiveConfigBase):
-        if self.transport is None:
-            raise ValueError(
-                "NovaSonicLiveModel requires an "
-                "IBidirectionalStreamClient transport"
-            )
-        endpoint = (
-            f"{self.provider.base_url}/model/{self.name}"
-            "/invoke-with-bidirectional-stream"
+        connection_config = self.provider.prepare_connection(
+            "live.connect", model=self.name
         )
         connection = await self.transport.aconnect(
-            endpoint, **self.provider.connection_options()
+            connection_config.resolved_url(),
+            headers=connection_config.headers,
+            **connection_config.transport_options,
         )
         return await NovaSonicLiveSession.create(
             connection, NovaSonicConfigMapper().map(self.name, config)
