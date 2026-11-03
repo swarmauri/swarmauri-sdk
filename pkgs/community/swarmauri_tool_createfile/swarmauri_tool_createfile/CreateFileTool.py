@@ -26,7 +26,9 @@ class CreateFileTool(ToolBase):
             Parameter(
                 name="content",
                 input_type="string",
-                description="Initial text content. Defaults to an empty file.",
+                description=(
+                    "Initial text content. Defaults to an empty file."
+                ),
                 required=False,
             ),
         ]
@@ -52,22 +54,17 @@ class CreateFileTool(ToolBase):
             "bytes_written": ...}``. On a refused write ``{"created": False,
             "path": ..., "error": ...}``.
 
-        The call never overwrites: an existing file or directory at the path,
-        a missing parent directory, and any OS-level write failure are all
-        reported through ``error`` rather than raised, so an agent can read the
-        reason and choose another path.
+        The creation is atomic. The destination is opened in exclusive-create
+        mode, so an existing file and a dangling symlink both fail here rather
+        than being truncated by a later write; checking existence first and
+        writing afterwards would leave a window between the two, and a
+        dangling symlink reads as free to ``exists()``.
+
+        Nothing is raised: a missing parent directory, an occupied path, and
+        an OS-level write failure are all reported through ``error`` so an
+        agent can read the reason and choose another path.
         """
         target = Path(path).expanduser()
-
-        if target.exists():
-            return {
-                "created": False,
-                "path": str(target),
-                "error": (
-                    f"Something already exists at {target}. "
-                    "Nothing was written."
-                ),
-            }
 
         if not target.parent.exists():
             return {
@@ -80,8 +77,34 @@ class CreateFileTool(ToolBase):
             }
 
         try:
-            target.write_text(content, encoding="utf-8")
+            handle = target.open("x", encoding="utf-8", newline="")
+        except FileExistsError:
+            return {
+                "created": False,
+                "path": str(target),
+                "error": (
+                    f"Something already exists at {target}. "
+                    "Nothing was written."
+                ),
+            }
         except OSError as exc:
+            return {
+                "created": False,
+                "path": str(target),
+                "error": f"Could not create {target}: {exc}",
+            }
+
+        try:
+            with handle:
+                handle.write(content)
+        except OSError as exc:
+            # This call created the file, so removing it cannot destroy data
+            # belonging to anyone else. Leaving a partial file behind would
+            # also make the caller's retry fail as "already exists".
+            try:
+                target.unlink()
+            except OSError:
+                pass
             return {
                 "created": False,
                 "path": str(target),

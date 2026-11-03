@@ -1,3 +1,6 @@
+import builtins
+from pathlib import Path
+
 import pytest
 
 from swarmauri_tool_createfile.CreateFileTool import CreateFileTool as Tool
@@ -111,3 +114,53 @@ def test_expands_a_home_relative_path(tmp_path, monkeypatch):
     assert result["created"] is True
     assert result["path"] == str(tmp_path / "note.txt")
     assert (tmp_path / "note.txt").read_text(encoding="utf-8") == "hi\n"
+
+
+@pytest.mark.unit
+def test_refuses_a_dangling_symlink(tmp_path):
+    """A dangling symlink must not be written through."""
+    link = tmp_path / "link.txt"
+    missing = tmp_path / "missing.txt"
+    try:
+        link.symlink_to(missing)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available on this platform")
+
+    result = Tool()(path=str(link), content="hello\n")
+
+    assert result["created"] is False
+    assert not missing.exists()
+
+
+@pytest.mark.unit
+def test_removes_the_partial_file_when_the_write_fails(tmp_path, monkeypatch):
+    """A failed write must not leave a partial file behind."""
+    target = tmp_path / "note.txt"
+    real_open = Path.open
+
+    class FailingHandle:
+        """Stands in for a successfully created file whose write then fails."""
+
+        def __enter__(self):
+            with builtins.open(str(target), "w", encoding="utf-8") as created:
+                created.write("partial")
+            return self
+
+        def __exit__(self, *exc_info):
+            return False
+
+        def write(self, data):
+            raise OSError("No space left on device")
+
+    def fake_open(self, *args, **kwargs):
+        if self == target:
+            return FailingHandle()
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "open", fake_open)
+
+    result = Tool()(path=str(target), content="hello\n")
+
+    assert result["created"] is False
+    assert "No space left" in str(result["error"])
+    assert not target.exists()
