@@ -115,6 +115,7 @@ members = [
     "community/swarmauri_tool_dalechallreadability",
     "community/swarmauri_tool_downloadpdf",
     "community/swarmauri_tool_entityrecognition",
+    "community/swarmauri_tool_findfile",
     "community/swarmauri_tool_folium",
     "community/swarmauri_tool_getmethodsignature",
     "community/swarmauri_tool_queryimagevectorstore",
