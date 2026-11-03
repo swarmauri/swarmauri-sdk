@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from swarmauri_tool_listfiles.ListFilesTool import ListFilesTool as Tool
@@ -123,3 +125,37 @@ def test_expands_a_home_relative_path(tmp_path, monkeypatch):
 
     assert result["count"] == 1
     assert result["entries"][0]["name"] == "note.txt"
+
+
+@pytest.mark.unit
+def test_full_paths_report_the_entry_not_a_symlink_target(tmp_path):
+    """A symlink entry must be addressable by the path that is returned."""
+    real = tmp_path / "real.txt"
+    real.write_text("x", encoding="utf-8")
+    link = tmp_path / "link.txt"
+    try:
+        link.symlink_to(real)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available on this platform")
+
+    result = Tool()(path=str(tmp_path), full_paths=True)
+
+    entry = next(
+        item for item in result["entries"] if item["name"] == "link.txt"
+    )
+    assert entry["path"] == str(tmp_path / "link.txt")
+
+
+@pytest.mark.unit
+def test_unsearchable_probe_returns_an_error(tmp_path, monkeypatch):
+    """A probe that raises must be reported, not propagated."""
+
+    def denied(self):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(Path, "exists", denied)
+
+    result = Tool()(path=str(tmp_path))
+
+    assert result["entries"] == []
+    assert "Could not read" in str(result["error"])

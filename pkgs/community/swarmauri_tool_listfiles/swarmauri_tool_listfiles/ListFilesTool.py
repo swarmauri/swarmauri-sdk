@@ -8,6 +8,16 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+def _failure(target: Path, message: str) -> Dict[str, object]:
+    """The empty result shape carrying an explanatory error."""
+    return {
+        "path": str(target),
+        "count": 0,
+        "entries": [],
+        "error": message,
+    }
+
+
 @ComponentBase.register_type(ToolBase, "ListFilesTool")
 class ListFilesTool(ToolBase):
     """List the files and directories directly inside a folder."""
@@ -62,26 +72,23 @@ class ListFilesTool(ToolBase):
         """
         target = Path(path).expanduser()
 
-        if not target.exists():
-            return {
-                "path": str(target),
-                "count": 0,
-                "entries": [],
-                "error": f"{target} does not exist.",
-            }
-
-        if not target.is_dir():
-            return {
-                "path": str(target),
-                "count": 0,
-                "entries": [],
-                "error": (
+        try:
+            if not target.exists():
+                return _failure(target, f"{target} does not exist.")
+            if not target.is_dir():
+                return _failure(
+                    target,
                     f"{target} is not a directory. "
-                    "This tool lists folders, not files."
-                ),
-            }
+                    "This tool lists folders, not files.",
+                )
+        except OSError as exc:
+            # exists() and is_dir() are not total: a path below a directory
+            # this process cannot search raises rather than returning False.
+            return _failure(target, f"Could not read {target}: {exc}")
 
+        root = target.absolute()
         entries: List[Dict[str, object]] = []
+
         try:
             for child in target.iterdir():
                 entry: Dict[str, object] = {
@@ -89,15 +96,14 @@ class ListFilesTool(ToolBase):
                     "is_dir": child.is_dir(),
                 }
                 if full_paths:
-                    entry["path"] = str(child.resolve())
+                    # absolute(), not resolve(): the caller asked for the path
+                    # of this entry, not of whatever a symlink points at. A
+                    # cyclic link also makes resolve() raise RuntimeError,
+                    # which no OSError handler would catch.
+                    entry["path"] = str(root / child.name)
                 entries.append(entry)
         except OSError as exc:
-            return {
-                "path": str(target),
-                "count": 0,
-                "entries": [],
-                "error": f"Could not read {target}: {exc}",
-            }
+            return _failure(target, f"Could not read {target}: {exc}")
 
         entries.sort(key=lambda entry: str(entry["name"]).lower())
 
