@@ -18,9 +18,7 @@ class ListFilesTool(ToolBase):
             Parameter(
                 name="path",
                 input_type="string",
-                description=(
-                    "Directory to list. A leading ~ is expanded."
-                ),
+                description=("Directory to list. A leading ~ is expanded."),
                 required=True,
             ),
             Parameter(

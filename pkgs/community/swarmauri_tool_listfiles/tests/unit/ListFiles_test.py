@@ -110,7 +110,12 @@ def test_a_file_path_reports_an_error(tmp_path):
 
 @pytest.mark.unit
 def test_expands_a_home_relative_path(tmp_path, monkeypatch):
+    # expanduser consults HOME on POSIX and USERPROFILE on Windows; patch both
+    # so the test never touches the developer's real home directory.
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("HOMEDRIVE", tmp_path.drive or "")
+    monkeypatch.setenv("HOMEPATH", str(tmp_path)[len(tmp_path.drive) :])
     (tmp_path / "note.txt").write_text("x", encoding="utf-8")
     tool = Tool()
 
