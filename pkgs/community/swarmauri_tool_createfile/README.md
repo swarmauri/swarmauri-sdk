@@ -45,7 +45,12 @@ pip install swarmauri_tool_createfile
 ## Usage
 
 ```python
+from pathlib import Path
+
 from swarmauri_tool_createfile import CreateFileTool
+
+# The tool does not create parent directories, so make the parent first.
+Path("/tmp/reports").mkdir(parents=True, exist_ok=True)
 
 tool = CreateFileTool()
 

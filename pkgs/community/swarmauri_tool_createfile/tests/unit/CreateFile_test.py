@@ -106,7 +106,12 @@ def test_writes_utf8_content(tmp_path):
 
 @pytest.mark.unit
 def test_expands_a_home_relative_path(tmp_path, monkeypatch):
+    # expanduser consults HOME on POSIX and USERPROFILE on Windows; patch both
+    # so the test never touches the developer's real home directory.
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    monkeypatch.setenv("HOMEDRIVE", tmp_path.drive or "")
+    monkeypatch.setenv("HOMEPATH", str(tmp_path)[len(tmp_path.drive) :])
     tool = Tool()
 
     result = tool(path="~/note.txt", content="hi\n")
