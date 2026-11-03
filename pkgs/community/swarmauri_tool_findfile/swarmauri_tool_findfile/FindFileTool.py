@@ -10,6 +10,11 @@ from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
 
+def _raise_walk_error(error: OSError) -> None:
+    """Surface a walk error instead of letting os.walk drop that subtree."""
+    raise error
+
+
 @ComponentBase.register_type(ToolBase, "FindFileTool")
 class FindFileTool(ToolBase):
     """Find files under a directory by name or wildcard pattern."""
@@ -73,16 +78,25 @@ class FindFileTool(ToolBase):
         make the walk run forever. Directories are not returned; this tool
         answers "which files match", not "what is here".
         """
-        target = Path(path).expanduser()
+        target = Path(path).expanduser().absolute()
 
-        if not target.exists():
-            return self._failure(target, pattern, f"{target} does not exist.")
-
-        if not target.is_dir():
+        try:
+            if not target.exists():
+                return self._failure(
+                    target, pattern, f"{target} does not exist."
+                )
+            if not target.is_dir():
+                return self._failure(
+                    target,
+                    pattern,
+                    f"{target} is not a directory. "
+                    "This tool searches folders.",
+                )
+        except OSError as exc:
+            # exists() and is_dir() are not total: a path below a directory
+            # this process cannot search raises rather than returning False.
             return self._failure(
-                target,
-                pattern,
-                f"{target} is not a directory. This tool searches folders.",
+                target, pattern, f"Could not read {target}: {exc}"
             )
 
         lowered = pattern.lower()
@@ -90,7 +104,11 @@ class FindFileTool(ToolBase):
 
         try:
             if recursive:
-                for root, _dirs, files in os.walk(target, followlinks=False):
+                for root, _dirs, files in os.walk(
+                    target,
+                    followlinks=False,
+                    onerror=_raise_walk_error,
+                ):
                     matches.extend(
                         os.path.join(root, name)
                         for name in files
@@ -104,6 +122,9 @@ class FindFileTool(ToolBase):
                     and fnmatch.fnmatch(child.name.lower(), lowered)
                 )
         except OSError as exc:
+            # os.walk suppresses scandir errors unless onerror raises, which
+            # would otherwise turn an unreadable subtree into a smaller result
+            # set reported as success.
             return self._failure(
                 target, pattern, f"Could not read {target}: {exc}"
             )

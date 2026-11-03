@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pytest
 
 from swarmauri_tool_findfile.FindFileTool import FindFileTool as Tool
@@ -44,7 +47,7 @@ def test_matches_a_wildcard(tmp_path):
 
     result = Tool()(path=str(tmp_path), pattern="*.log")
 
-    names = sorted(path.rsplit("/", 1)[-1] for path in result["matches"])
+    names = sorted(Path(path).name for path in result["matches"])
     assert names == ["app.log", "worker.log"]
 
 
@@ -68,9 +71,7 @@ def test_single_character_wildcard(tmp_path):
 
     result = Tool()(path=str(tmp_path), pattern="a?.txt")
 
-    assert [path.rsplit("/", 1)[-1] for path in result["matches"]] == [
-        "a1.txt"
-    ]
+    assert [Path(path).name for path in result["matches"]] == ["a1.txt"]
 
 
 @pytest.mark.unit
@@ -166,3 +167,46 @@ def test_expands_a_home_relative_path(tmp_path, monkeypatch):
     result = Tool()(path="~", pattern="*.txt")
 
     assert result["count"] == 1
+
+
+@pytest.mark.unit
+def test_a_relative_root_still_returns_absolute_matches(tmp_path, monkeypatch):
+    """The documented contract is absolute paths, whatever was passed in."""
+    (tmp_path / "a.txt").write_text("x", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = Tool()(path=".", pattern="*.txt")
+
+    assert result["path"] == str(tmp_path)
+    assert result["matches"] == [str(tmp_path / "a.txt")]
+
+
+@pytest.mark.unit
+def test_unsearchable_probe_returns_an_error(tmp_path, monkeypatch):
+    """A probe that raises must be reported, not propagated."""
+
+    def denied(self):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(Path, "exists", denied)
+
+    result = Tool()(path=str(tmp_path), pattern="*")
+
+    assert result["matches"] == []
+    assert "Could not read" in str(result["error"])
+
+
+@pytest.mark.unit
+def test_walk_errors_are_reported_not_swallowed(tmp_path, monkeypatch):
+    """os.walk drops unreadable subtrees unless onerror raises."""
+
+    def failing_walk(root, followlinks=False, onerror=None):
+        onerror(OSError("cannot list"))
+        return iter(())
+
+    monkeypatch.setattr(os, "walk", failing_walk)
+
+    result = Tool()(path=str(tmp_path), pattern="*.txt", recursive=True)
+
+    assert result["matches"] == []
+    assert "Could not read" in str(result["error"])
