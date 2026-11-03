@@ -1,5 +1,6 @@
 import pytest
 
+from swarmauri_standard.documents.Document import Document
 from swarmauri_tool_addcontenttorag.AddContentToRAGTool import (
     AddContentToRAGTool as Tool,
 )
@@ -13,6 +14,16 @@ class FakeKnowledgeBase:
 
     def add_documents(self, documents):
         self.documents.extend(documents)
+
+
+class AttributeOnlyStore:
+    """Reads ``doc.content`` immediately, the way the standard stores do."""
+
+    def __init__(self):
+        self.contents = []
+
+    def add_documents(self, documents):
+        self.contents.extend(document.content for document in documents)
 
 
 def _tool_with(store):
@@ -79,7 +90,31 @@ def test_adds_content_to_the_store():
 
     assert result["added"] == 1
     assert result["content_length"] == len("alpha beta")
-    assert store.documents == [{"content": "alpha beta", "metadata": {}}]
+    assert len(store.documents) == 1
+    assert store.documents[0].content == "alpha beta"
+    assert store.documents[0].metadata == {}
+
+
+@pytest.mark.unit
+def test_passes_document_instances_not_mappings():
+    """IVectorStore.add_documents takes IDocument, not dicts."""
+    store = FakeKnowledgeBase()
+    tool = _tool_with(store)
+
+    tool(content="alpha")
+
+    assert isinstance(store.documents[0], Document)
+
+
+@pytest.mark.unit
+def test_works_with_a_store_that_reads_attributes_immediately():
+    """Matches TfidfVectorStore and friends, which evaluate doc.content."""
+    store = AttributeOnlyStore()
+    tool = _tool_with(store)
+
+    tool(content="alpha")
+
+    assert store.contents == ["alpha"]
 
 
 @pytest.mark.unit
@@ -89,7 +124,10 @@ def test_passes_metadata_tags():
 
     tool(content="alpha", metadata={"source": "handbook", "page": 4})
 
-    assert store.documents[0]["metadata"] == {"source": "handbook", "page": 4}
+    assert store.documents[0].metadata == {
+        "source": "handbook",
+        "page": 4,
+    }
 
 
 @pytest.mark.unit
@@ -101,7 +139,7 @@ def test_does_not_share_the_caller_metadata_mapping():
     tool(content="alpha", metadata=tags)
     tags["source"] = "changed"
 
-    assert store.documents[0]["metadata"]["source"] == "handbook"
+    assert store.documents[0].metadata["source"] == "handbook"
 
 
 @pytest.mark.unit

@@ -4,6 +4,7 @@ from pydantic import ConfigDict, Field
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.tools.Parameter import Parameter
 
 
@@ -75,10 +76,13 @@ class AddContentToRAGTool(ToolBase):
         if not content.strip():
             raise ValueError("content must not be blank")
 
-        document = {
-            "content": content,
-            "metadata": dict(metadata or {}),
-        }
+        # IVectorStore.add_documents takes IDocument instances, not dicts:
+        # the standard stores read attributes such as ``doc.content`` straight
+        # away, so a mapping would fail on every one of them.
+        document = Document(
+            content=content,
+            metadata=dict(metadata or {}),
+        )
 
         try:
             self.knowledge_base.add_documents([document])
@@ -88,5 +92,5 @@ class AddContentToRAGTool(ToolBase):
         return {
             "added": 1,
             "content_length": len(content),
-            "metadata": document["metadata"],
+            "metadata": document.metadata,
         }
