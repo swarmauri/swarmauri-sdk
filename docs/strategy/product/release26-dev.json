@@ -16,7 +16,8 @@
     "Published core/base 0.11.0.dev2 wheels lack provider and live-model interfaces.",
     "Only development releases are authorized.",
     "All 78 exact-isolation test runs passed across Python 3.10, 3.11, and 3.12; 60 wheel/source metadata checks passed.",
-    "PyPI-only installation with prereleases selected HTTPX 1.0.dev6, which lacks AsyncClient. HTTPX transport 0.1.0.dev5 constrains HTTPX below 1; Azure OpenAI 0.11.0.dev3 raises its transport minimum."
+    "PyPI-only installation with prereleases selected HTTPX 1.0.dev6, which lacks AsyncClient. HTTPX transport 0.1.0.dev5 constrains HTTPX below 1; Azure OpenAI 0.11.0.dev3 raises its transport minimum.",
+    "The shared standard distribution also constrains HTTPX below 1 in 0.11.0.dev6; scoped consumers require that compatible development version."
   ],
   "assumptions": [
     "Existing repository publication credentials remain authorized."
@@ -43,7 +44,7 @@
     {
       "name": "swarmauri_standard",
       "member": "swarmauri_standard",
-      "version": "0.11.0.dev5"
+      "version": "0.11.0.dev6"
     }
   ],
   "risks": [
@@ -225,7 +226,7 @@
       {
         "name": "swarmauri_standard",
         "member": "swarmauri_standard",
-        "version": "0.11.0.dev5"
+        "version": "0.11.0.dev6"
       }
     ],
     "batches": [
