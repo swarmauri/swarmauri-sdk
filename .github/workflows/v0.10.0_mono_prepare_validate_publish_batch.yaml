@@ -24,11 +24,6 @@ on:
         description: "Minimum delay before each package publication"
         required: false
         default: "300"
-      per_package_environment:
-        description: "Use the package name as the trusted-publishing environment"
-        type: boolean
-        required: false
-        default: false
       publish_mode:
         description: "PyPI authentication mode"
         required: false
@@ -341,7 +336,7 @@ jobs:
     if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     timeout-minutes: 360
     environment:
-      name: ${{ github.event.inputs.per_package_environment == 'true' && matrix.package_name || 'pypi-trusted-publishing' }}
+      name: pypi-trusted-publishing
       url: https://pypi.org/project/${{ matrix.package_name }}/
     permissions:
       actions: read
@@ -351,7 +346,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
-      max-parallel: ${{ github.event.inputs.publish_mode == 'trusted' && 4 || 1 }}
+      max-parallel: 1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

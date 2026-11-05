@@ -45,7 +45,7 @@
     }
   ],
   "risks": [
-    "PyPI permits four new projects per day; stop on rate limiting and retain the queue.",
+    "Token publication is limited to four new projects per day. Trusted publishers must be registered and consumed one at a time when sharing the same repository/workflow/environment.",
     "Provider network behavior is tested using mocked transports; real service calls require provider credentials."
   ],
   "metrics": {
@@ -372,9 +372,10 @@
     "inputs": {
       "bump_type": "preserve",
       "publish_mode": "token",
-      "cadence_seconds": "300"
+      "cadence_seconds": "0"
     },
-    "publication_status": "not started"
+    "publication_status": "not started",
+    "publication_sequence": "Publish first four using token mode; then register and publish each remaining package through the shared trusted-publishing environment, one at a time."
   },
   "rollback": [
     "Do not overwrite or delete published files. Stop the train if verification fails; use a subsequent development version for corrections."
