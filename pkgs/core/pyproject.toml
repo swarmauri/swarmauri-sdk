@@ -45,6 +45,7 @@ requires-python = ">=3.10,<3.15"
 
 [dependency-groups]
 dev = [
+"tomli>=2.0; python_version < '3.11'",
 "flake8>=7.0",
 "pytest>=8.0",
 "pytest-asyncio>=0.24.0",

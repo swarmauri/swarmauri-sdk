@@ -24,6 +24,11 @@ on:
         description: "Minimum delay before each package publication"
         required: false
         default: "300"
+      per_package_environment:
+        description: "Use the package name as the trusted-publishing environment"
+        type: boolean
+        required: false
+        default: false
       publish_mode:
         description: "PyPI authentication mode"
         required: false
@@ -69,6 +74,7 @@ jobs:
         id: get-matrix
         env:
           MEMBERS_JSON: ${{ github.event.inputs.members_json }}
+          PUBLISH_MODE: ${{ github.event.inputs.publish_mode }}
         run: |
           cd pkgs
           python - <<'PY'
@@ -111,11 +117,12 @@ jobs:
               if requires_approval:
                   approval_entries.append(entry)
 
-          # PyPI currently permits four new project creations per rolling day:
-          # https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955
-          # Existing projects do not count toward this guard because they do not
-          # require approval above.
-          max_new_projects = 4
+          # Token publication permits four new projects per day. Trusted
+          # publishing uses separately registered pending publishers; cap that
+          # batch at PyPI's 100 registrations per user/IP per 24 hours.
+          # https://docs.pypi.org/trusted-publishers/troubleshooting/
+          # Existing projects do not count toward the new-project guard.
+          max_new_projects = 100 if os.environ.get("PUBLISH_MODE") == "trusted" else 4
           if len(approval_entries) > max_new_projects:
               raise RuntimeError(
                   f"Batch contains {len(approval_entries)} new projects; "
@@ -189,7 +196,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check .
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check .
 
       - name: Ruff lint check
         run: |
@@ -198,7 +205,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check .
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check .
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -207,7 +214,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest tests -vvv
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest tests -vvv
 
       - name: Create patch for changes
         if: always()
@@ -334,7 +341,7 @@ jobs:
     if: ${{ !cancelled() && needs.commit.result == 'success' && needs.set-matrix.outputs.has_members == 'true' && (needs.set-matrix.outputs.approval_required != 'true' || needs.pypi_approval_gate.result == 'success') }}
     timeout-minutes: 360
     environment:
-      name: pypi-trusted-publishing
+      name: ${{ github.event.inputs.per_package_environment == 'true' && matrix.package_name || 'pypi-trusted-publishing' }}
       url: https://pypi.org/project/${{ matrix.package_name }}/
     permissions:
       actions: read
@@ -344,7 +351,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.set-matrix.outputs.matrix) }}
       fail-fast: false
-      max-parallel: 1
+      max-parallel: ${{ github.event.inputs.publish_mode == 'trusted' && 4 || 1 }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

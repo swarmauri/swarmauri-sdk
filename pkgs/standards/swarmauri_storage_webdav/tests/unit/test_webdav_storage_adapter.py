@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 from importlib.metadata import entry_points, version
 from pathlib import Path
+
 try:
     import tomllib
 except ModuleNotFoundError:

@@ -60,7 +60,6 @@ HttpsUnicastTransport = "swarmauri_transport_https_unicast:HttpsUnicastTransport
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
-swarmauri_certs_self_signed = { workspace = true }
 swarmauri_certs_x509verify = { workspace = true }
 swarmauri_cipher_suite_tls13 = { workspace = true }
 swarmauri_middleware_httpsig = { workspace = true }
@@ -93,7 +92,6 @@ dev = [
     "pytest-timeout>=2.3.1",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
-    "swarmauri_certs_self_signed",
 ]
 
 [build-system]
