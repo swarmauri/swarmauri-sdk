@@ -24,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "httpx>=0.27.0",
+    "httpx>=0.27.0,<1",
     "swarmauri_core>=0.11.0.dev5",
     "swarmauri_base>=0.11.0.dev5",
     "swarmauri_certs_x509verify",

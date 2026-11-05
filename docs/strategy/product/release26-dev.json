@@ -4,7 +4,7 @@
   "id": "swarmauri-release26-dev",
   "version": "0.1.0",
   "owner": "Jacob Stewart",
-  "status": "candidate",
+  "status": "validated",
   "review_date": "2026-11-05",
   "sources": [
     "AGENTS.md",
@@ -14,7 +14,9 @@
   "facts": [
     "All 26 scoped project names returned HTTP 404 from PyPI on 2026-11-05.",
     "Published core/base 0.11.0.dev2 wheels lack provider and live-model interfaces.",
-    "Only development releases are authorized."
+    "Only development releases are authorized.",
+    "All 78 exact-isolation test runs passed across Python 3.10, 3.11, and 3.12; 60 wheel/source metadata checks passed.",
+    "PyPI-only installation with prereleases selected HTTPX 1.0.dev6, which lacks AsyncClient. HTTPX transport 0.1.0.dev5 constrains HTTPX below 1; Azure OpenAI 0.11.0.dev3 raises its transport minimum."
   ],
   "assumptions": [
     "Existing repository publication credentials remain authorized."
@@ -50,7 +52,11 @@
   ],
   "metrics": {
     "requested_packages": 26,
-    "new_projects_per_batch": 4
+    "new_projects_per_batch": 4,
+    "package_python_test_runs": 78,
+    "package_python_test_runs_passed": 78,
+    "built_distributions": 60,
+    "installed_entry_points_loaded": 35
   },
   "acceptance_criteria": [
     "Package tests pass in isolation on Python 3.10, 3.11, and 3.12.",
@@ -62,7 +68,7 @@
     {
       "name": "swarmauri_transport_httpx",
       "member": "standards/swarmauri_transport_httpx",
-      "version": "0.1.0.dev4"
+      "version": "0.1.0.dev5"
     },
     {
       "name": "swarmauri_transport_retry",
@@ -132,7 +138,7 @@
     {
       "name": "swarmauri_llm_azureopenai",
       "member": "community/swarmauri_llm_azureopenai",
-      "version": "0.11.0.dev2"
+      "version": "0.11.0.dev3"
     },
     {
       "name": "swarmauri_llm_cloudflare",
@@ -227,7 +233,7 @@
         {
           "name": "swarmauri_transport_httpx",
           "member": "standards/swarmauri_transport_httpx",
-          "version": "0.1.0.dev4"
+          "version": "0.1.0.dev5"
         },
         {
           "name": "swarmauri_transport_retry",
@@ -303,7 +309,7 @@
         {
           "name": "swarmauri_llm_azureopenai",
           "member": "community/swarmauri_llm_azureopenai",
-          "version": "0.11.0.dev2"
+          "version": "0.11.0.dev3"
         },
         {
           "name": "swarmauri_llm_cloudflare",
@@ -374,7 +380,7 @@
       "publish_mode": "token",
       "cadence_seconds": "0"
     },
-    "publication_status": "not started",
+    "publication_status": "Shared prerequisites published; first four token releases in progress, followed by sequential trusted publishing.",
     "publication_sequence": "Publish first four using token mode; then register and publish each remaining package through the shared trusted-publishing environment, one at a time."
   },
   "rollback": [
