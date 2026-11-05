@@ -4,12 +4,42 @@
   "id": "swarmauri-release26-dev",
   "version": "0.1.0",
   "owner": "Jacob Stewart",
-  "status": "validated",
+  "status": "verified",
   "review_date": "2026-11-05",
   "sources": [
     "AGENTS.md",
     ".github/workflows/v0.10.0_mono_prepare_validate_publish_batch.yaml",
-    "https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955"
+    "https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955",
+    "https://pypi.org/pypi/swarmauri_transport_httpx/0.1.0.dev5/json",
+    "https://pypi.org/pypi/swarmauri_transport_retry/0.1.0.dev1/json",
+    "https://pypi.org/pypi/swarmauri_transport_aws_eventstream/0.1.0.dev1/json",
+    "https://pypi.org/pypi/swarmauri_provider_amazon_nova/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_provider_openai/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_provider_gemini/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_provider_qwen/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_provider_xai/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_provider_openrouter/0.1.0.dev1/json",
+    "https://pypi.org/pypi/swarmauri_live_model_amazon_nova/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_live_model_gemini/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_live_model_openai/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_live_model_qwen/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_live_model_xai/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_llm_azureopenai/0.11.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_llm_cloudflare/0.11.0.dev2/json",
+    "https://pypi.org/pypi/swarmauri_llm_nvidia_nim/0.11.0.dev2/json",
+    "https://pypi.org/pypi/swarmauri_llm_openrouter/0.1.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_llm_xai/0.11.0.dev4/json",
+    "https://pypi.org/pypi/swarmauri_tool_getmethodsignature/0.11.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_tool_queryimagevectorstore/0.11.0.dev2/json",
+    "https://pypi.org/pypi/swarmauri_tool_queryknowledgebase/0.11.0.dev3/json",
+    "https://pypi.org/pypi/swarmauri_video_lipsync_synclabs/0.1.0.dev4/json",
+    "https://pypi.org/pypi/swarmauri_storage_webdav/0.11.0.dev1/json",
+    "https://pypi.org/pypi/swarmauri_transport_https_unicast/0.11.0.dev5/json",
+    "https://pypi.org/pypi/swarmauri_transport_tcpunicast/0.11.0.dev6/json",
+    "https://pypi.org/pypi/swarmauri_core/0.11.0.dev5/json",
+    "https://pypi.org/pypi/swarmauri_typing/0.11.0.dev4/json",
+    "https://pypi.org/pypi/swarmauri_base/0.11.0.dev5/json",
+    "https://pypi.org/pypi/swarmauri_standard/0.11.0.dev6/json"
   ],
   "facts": [
     "All 26 scoped project names returned HTTP 404 from PyPI on 2026-11-05.",
@@ -17,7 +47,8 @@
     "Only development releases are authorized.",
     "All 78 exact-isolation test runs passed across Python 3.10, 3.11, and 3.12; 60 wheel/source metadata checks passed.",
     "PyPI-only installation with prereleases selected HTTPX 1.0.dev6, which lacks AsyncClient. HTTPX transport 0.1.0.dev5 constrains HTTPX below 1; Azure OpenAI 0.11.0.dev3 raises its transport minimum.",
-    "The shared standard distribution also constrains HTTPX below 1 in 0.11.0.dev6; scoped consumers require that compatible development version."
+    "The shared standard distribution also constrains HTTPX below 1 in 0.11.0.dev6; scoped consumers require that compatible development version.",
+    "Exact development versions have wheel/source artifacts on PyPI and published GitHub prereleases with assets; all 30 final wheels load 35 entry points on Python 3.10, 3.11, and 3.12."
   ],
   "assumptions": [
     "Existing repository publication credentials remain authorized."
@@ -57,7 +88,13 @@
     "package_python_test_runs": 78,
     "package_python_test_runs_passed": 78,
     "built_distributions": 60,
-    "installed_entry_points_loaded": 35
+    "installed_entry_points_loaded": 35,
+    "requested_packages_published": 26,
+    "prerequisite_packages_published": 4,
+    "remaining_packages": 0,
+    "development_only": true,
+    "public_pypi_install_checks": 3,
+    "entry_points_per_install": 35
   },
   "acceptance_criteria": [
     "Package tests pass in isolation on Python 3.10, 3.11, and 3.12.",
@@ -229,162 +266,348 @@
         "version": "0.11.0.dev6"
       }
     ],
-    "batches": [
-      [
-        {
-          "name": "swarmauri_transport_httpx",
-          "member": "standards/swarmauri_transport_httpx",
-          "version": "0.1.0.dev5"
-        },
-        {
-          "name": "swarmauri_transport_retry",
-          "member": "standards/swarmauri_transport_retry",
-          "version": "0.1.0.dev1"
-        },
-        {
-          "name": "swarmauri_transport_aws_eventstream",
-          "member": "standards/swarmauri_transport_aws_eventstream",
-          "version": "0.1.0.dev1"
-        },
-        {
-          "name": "swarmauri_provider_amazon_nova",
-          "member": "community/swarmauri_provider_amazon_nova",
-          "version": "0.1.0.dev3"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_provider_openai",
-          "member": "community/swarmauri_provider_openai",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_provider_gemini",
-          "member": "community/swarmauri_provider_gemini",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_provider_qwen",
-          "member": "community/swarmauri_provider_qwen",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_provider_xai",
-          "member": "community/swarmauri_provider_xai",
-          "version": "0.1.0.dev3"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_provider_openrouter",
-          "member": "community/swarmauri_provider_openrouter",
-          "version": "0.1.0.dev1"
-        },
-        {
-          "name": "swarmauri_live_model_amazon_nova",
-          "member": "community/swarmauri_live_model_amazon_nova",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_live_model_gemini",
-          "member": "community/swarmauri_live_model_gemini",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_live_model_openai",
-          "member": "community/swarmauri_live_model_openai",
-          "version": "0.1.0.dev3"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_live_model_qwen",
-          "member": "community/swarmauri_live_model_qwen",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_live_model_xai",
-          "member": "community/swarmauri_live_model_xai",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_llm_azureopenai",
-          "member": "community/swarmauri_llm_azureopenai",
-          "version": "0.11.0.dev3"
-        },
-        {
-          "name": "swarmauri_llm_cloudflare",
-          "member": "community/swarmauri_llm_cloudflare",
-          "version": "0.11.0.dev2"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_llm_nvidia_nim",
-          "member": "community/swarmauri_llm_nvidia_nim",
-          "version": "0.11.0.dev2"
-        },
-        {
-          "name": "swarmauri_llm_openrouter",
-          "member": "community/swarmauri_llm_openrouter",
-          "version": "0.1.0.dev3"
-        },
-        {
-          "name": "swarmauri_llm_xai",
-          "member": "community/swarmauri_llm_xai",
-          "version": "0.11.0.dev4"
-        },
-        {
-          "name": "swarmauri_tool_getmethodsignature",
-          "member": "community/swarmauri_tool_getmethodsignature",
-          "version": "0.11.0.dev3"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_tool_queryimagevectorstore",
-          "member": "community/swarmauri_tool_queryimagevectorstore",
-          "version": "0.11.0.dev2"
-        },
-        {
-          "name": "swarmauri_tool_queryknowledgebase",
-          "member": "community/swarmauri_tool_queryknowledgebase",
-          "version": "0.11.0.dev3"
-        },
-        {
-          "name": "swarmauri_video_lipsync_synclabs",
-          "member": "community/swarmauri_video_lipsync_synclabs",
-          "version": "0.1.0.dev4"
-        },
-        {
-          "name": "swarmauri_storage_webdav",
-          "member": "standards/swarmauri_storage_webdav",
-          "version": "0.11.0.dev1"
-        }
-      ],
-      [
-        {
-          "name": "swarmauri_transport_https_unicast",
-          "member": "standards/swarmauri_transport_https_unicast",
-          "version": "0.11.0.dev5"
-        },
-        {
-          "name": "swarmauri_transport_tcpunicast",
-          "member": "standards/swarmauri_transport_tcpunicast",
-          "version": "0.11.0.dev6"
-        }
-      ]
-    ],
     "workflow": "v0.10.0_mono_prepare_validate_publish_batch.yaml",
     "inputs": {
       "bump_type": "preserve",
       "publish_mode": "token",
       "cadence_seconds": "0"
     },
-    "publication_status": "Shared prerequisites published; first four token releases in progress, followed by sequential trusted publishing.",
-    "publication_sequence": "Publish first four using token mode; then register and publish each remaining package through the shared trusted-publishing environment, one at a time."
+    "publication_status": "All scoped development versions and required shared prerequisites published and verified.",
+    "publication_sequence": "Publish first four using token mode; then register and publish each remaining package through the shared trusted-publishing environment, one at a time.",
+    "initial_token_projects": [
+      "swarmauri_transport_httpx",
+      "swarmauri_transport_retry",
+      "swarmauri_transport_aws_eventstream",
+      "swarmauri_provider_amazon_nova"
+    ],
+    "trusted_publication_order": [
+      "swarmauri_provider_openai",
+      "swarmauri_provider_gemini",
+      "swarmauri_provider_qwen",
+      "swarmauri_provider_xai",
+      "swarmauri_provider_openrouter",
+      "swarmauri_live_model_amazon_nova",
+      "swarmauri_live_model_gemini",
+      "swarmauri_live_model_openai",
+      "swarmauri_live_model_qwen",
+      "swarmauri_live_model_xai",
+      "swarmauri_llm_azureopenai",
+      "swarmauri_llm_cloudflare",
+      "swarmauri_llm_nvidia_nim",
+      "swarmauri_llm_openrouter",
+      "swarmauri_llm_xai",
+      "swarmauri_tool_getmethodsignature",
+      "swarmauri_tool_queryimagevectorstore",
+      "swarmauri_tool_queryknowledgebase",
+      "swarmauri_video_lipsync_synclabs",
+      "swarmauri_storage_webdav",
+      "swarmauri_transport_https_unicast",
+      "swarmauri_transport_tcpunicast"
+    ]
   },
   "rollback": [
     "Do not overwrite or delete published files. Stop the train if verification fails; use a subsequent development version for corrections."
+  ],
+  "publication_evidence": [
+    {
+      "name": "swarmauri_transport_httpx",
+      "version": "0.1.0.dev5",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_transport_httpx/0.1.0.dev5/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_transport_httpx%3D%3D0.1.0.dev5",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41986744064",
+      "wheel_sha256": "f66447ac1f4b820fd41c25ba52f74d76a1f9e1f23aa7fb9f967540b22bbe9321",
+      "sdist_sha256": "0ba3f4306f723c2ea451d84f4de975a8eda95cf35caf755b13fa342023de991a"
+    },
+    {
+      "name": "swarmauri_transport_retry",
+      "version": "0.1.0.dev1",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_transport_retry/0.1.0.dev1/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_transport_retry%3D%3D0.1.0.dev1",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982173203",
+      "wheel_sha256": "685570c41d5e3556aa37fc8f1dbb76739396385f0f20a2a04fa38155e65fe69d",
+      "sdist_sha256": "b9de26e97d1e8f7652efc7eb4ed9379b400c1448cea30c171cbe8bae9739c492"
+    },
+    {
+      "name": "swarmauri_transport_aws_eventstream",
+      "version": "0.1.0.dev1",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_transport_aws_eventstream/0.1.0.dev1/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_transport_aws_eventstream%3D%3D0.1.0.dev1",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982173203",
+      "wheel_sha256": "53761d9177f9e3002d2add342dddb561f1cc7672d44bcc66adca724f024b5eba",
+      "sdist_sha256": "421b4d8fbbb40a5a515e14f0beb30bf230a9e4b2732cc9ea5f970a0de0a6f6b3"
+    },
+    {
+      "name": "swarmauri_provider_amazon_nova",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_amazon_nova/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_amazon_nova%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982173203",
+      "wheel_sha256": "5c7ac965a07845ec4a1f3f3a2ce548c127ff6b74007cd1d5012cd46d8deb9814",
+      "sdist_sha256": "dd96053e470b3e83c3c699af3fa1d96abf5eaf4fb9625ce144fb11a70a7585db"
+    },
+    {
+      "name": "swarmauri_provider_openai",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_openai/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_openai%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982926784",
+      "wheel_sha256": "37a9fcd540a64b22c5345850da2eddd9d2c3aad6386ddaa8347674c96dafba9e",
+      "sdist_sha256": "a6015da94ad9618315156c6a9a4418b573d087d76b7aab3ea955470339a2e0a5"
+    },
+    {
+      "name": "swarmauri_provider_gemini",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_gemini/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_gemini%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41983676416",
+      "wheel_sha256": "875cb1f870d1d7bdd434732ecdb08cd2ba6f3f95c30aaf83f73701dec40f9159",
+      "sdist_sha256": "a72933d9d152a38e913d46c6d5344d630f65496be0613dc0f935427af0d1c4de"
+    },
+    {
+      "name": "swarmauri_provider_qwen",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_qwen/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_qwen%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41984020724",
+      "wheel_sha256": "58ccceb8b35f49808c81fb9290498f614e8d968f6b55fc3d1641b6e89dd897c6",
+      "sdist_sha256": "e7ca2a281222bb595c4fe062693c1d8e66edb964542ea87ccbdbe5fb19440294"
+    },
+    {
+      "name": "swarmauri_provider_xai",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_xai/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_xai%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41984260090",
+      "wheel_sha256": "866d7a9adb1d5221cc141e4a7594a72dee442917438394a2282df309a14d937c",
+      "sdist_sha256": "057ab9d565306bca3d4c1dff5edeac7b5135f163395b7cc0ab830f92da878f41"
+    },
+    {
+      "name": "swarmauri_provider_openrouter",
+      "version": "0.1.0.dev1",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_provider_openrouter/0.1.0.dev1/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_provider_openrouter%3D%3D0.1.0.dev1",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41984466634",
+      "wheel_sha256": "c9ce67b5ce86580a7f3cdaf2f960a20dcd9d2d53644920e2ae79e6db3b15fa78",
+      "sdist_sha256": "a688470d55a7c04cbb93f8900185644c483ca950fae2f10568551d009bc8f4a2"
+    },
+    {
+      "name": "swarmauri_live_model_amazon_nova",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_live_model_amazon_nova/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_live_model_amazon_nova%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41984704318",
+      "wheel_sha256": "bf8f4d9e5f521e1c7826ae32c25540b0f7060224069587ee1a01c88ae9d68850",
+      "sdist_sha256": "90964abc550a9061b4cdd9f8cf626ea218abec9c3a352f64eb72456ec1a7e481"
+    },
+    {
+      "name": "swarmauri_live_model_gemini",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_live_model_gemini/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_live_model_gemini%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41984933234",
+      "wheel_sha256": "4df8185e47dc580e39bbeac3c22a3e42994d665f8d48535ca4bf01a5bc2c8505",
+      "sdist_sha256": "d45af9f11d375c524841be75af1d3f3273ce66b34c888580644fc5fcea2044ee"
+    },
+    {
+      "name": "swarmauri_live_model_openai",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_live_model_openai/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_live_model_openai%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41985152289",
+      "wheel_sha256": "e9cc18397a54f7574d4c5c2b47b5c34b3b2c5653977fc15ea083f00ec4c8278b",
+      "sdist_sha256": "edf0128046e082ce2ee01d4c71950ab8f8f82bd706da717433f9c9fb8287f406"
+    },
+    {
+      "name": "swarmauri_live_model_qwen",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_live_model_qwen/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_live_model_qwen%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41985380336",
+      "wheel_sha256": "a7c62719c4dfa34be9e02f2022127ba62e0e0f61f7101fe97ae639ad1b3f8e0e",
+      "sdist_sha256": "d4566c2078698c79bc33b9b94c01e8adcf91eece907283bd5a8c76edec8df0ee"
+    },
+    {
+      "name": "swarmauri_live_model_xai",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_live_model_xai/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_live_model_xai%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41985586835",
+      "wheel_sha256": "8d175803c5aba018df5a8cdfbbb65da6162690da1bec39c284588d73fd488312",
+      "sdist_sha256": "52787ed37660f27c940c7bab5a89a0ea864e6c5ae1c60bbb5eb5597a038e2a94"
+    },
+    {
+      "name": "swarmauri_llm_azureopenai",
+      "version": "0.11.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_llm_azureopenai/0.11.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_llm_azureopenai%3D%3D0.11.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41987880485",
+      "wheel_sha256": "e06cd39db44141b94726d0207aa23280e1d042a20468229ce3ba2fed60b18868",
+      "sdist_sha256": "2c9ee4ce37429b4490f1133527ec9ed3b8a3a526f77ada8849846e8a3a5d13d5"
+    },
+    {
+      "name": "swarmauri_llm_cloudflare",
+      "version": "0.11.0.dev2",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_llm_cloudflare/0.11.0.dev2/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_llm_cloudflare%3D%3D0.11.0.dev2",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41988254298",
+      "wheel_sha256": "0f1bd0dac253cc0cb66ecc609148a74c4764b191248db4020d57afa45db1b6be",
+      "sdist_sha256": "83dd89fcc94a3363405a3f40cc6fe782055901e7e23f3bfc8e9c6e4973e484f0"
+    },
+    {
+      "name": "swarmauri_llm_nvidia_nim",
+      "version": "0.11.0.dev2",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_llm_nvidia_nim/0.11.0.dev2/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_llm_nvidia_nim%3D%3D0.11.0.dev2",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41988578519",
+      "wheel_sha256": "8e762e279e3b67a366ddb5ee4b6860ebe16cade707396e46c6c6e541a975817e",
+      "sdist_sha256": "dc7f8212fd3f6b9927b280fee22a03153945603df6d979e709a0ad8825f99d5b"
+    },
+    {
+      "name": "swarmauri_llm_openrouter",
+      "version": "0.1.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_llm_openrouter/0.1.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_llm_openrouter%3D%3D0.1.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41988830574",
+      "wheel_sha256": "1ea4daf304f8e1ffe0fa6bb9fad50bbf4923bd29e5ce8122966075934df30b15",
+      "sdist_sha256": "d6f17c77bb4c4bc69a693d53a43acea317c85a3e445ad1042788faee099b41c4"
+    },
+    {
+      "name": "swarmauri_llm_xai",
+      "version": "0.11.0.dev4",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_llm_xai/0.11.0.dev4/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_llm_xai%3D%3D0.11.0.dev4",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41989088663",
+      "wheel_sha256": "23f7a59cc8abb25bf7a2ae1ed8d26c5d5844e749ab4c18081d79fe828fee4a01",
+      "sdist_sha256": "eeb13128102f0ca8a488cecdffba7f58e8b3e3b66c3f2d7adb0a5b245ff84435"
+    },
+    {
+      "name": "swarmauri_tool_getmethodsignature",
+      "version": "0.11.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_tool_getmethodsignature/0.11.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_tool_getmethodsignature%3D%3D0.11.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41989299494",
+      "wheel_sha256": "e58214ebaf0535baca372a963b73e786b79e40447c1b7b391a4b0199e67fc4a6",
+      "sdist_sha256": "e0c3cc7d2d4c88aca67a23d029476f2520421361240807e8a6168512bdcacc3a"
+    },
+    {
+      "name": "swarmauri_tool_queryimagevectorstore",
+      "version": "0.11.0.dev2",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_tool_queryimagevectorstore/0.11.0.dev2/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_tool_queryimagevectorstore%3D%3D0.11.0.dev2",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41989520584",
+      "wheel_sha256": "165a0b484cd5ffffa816084295fd3955df663fa4ad9a353a49ac6b50ff57c42a",
+      "sdist_sha256": "fd5f896ba2e857c9289393c87fbd5fd1708e362b533ea7bf546f19918b7da859"
+    },
+    {
+      "name": "swarmauri_tool_queryknowledgebase",
+      "version": "0.11.0.dev3",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_tool_queryknowledgebase/0.11.0.dev3/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_tool_queryknowledgebase%3D%3D0.11.0.dev3",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41989831915",
+      "wheel_sha256": "2c02a2ce894df196b5433e1cac8669d044d1b25691ca590d1757810e012d4ff2",
+      "sdist_sha256": "403ff273faeac8d073d400ef4f1b46ca26e240d25d05171c32f5068a33624427"
+    },
+    {
+      "name": "swarmauri_video_lipsync_synclabs",
+      "version": "0.1.0.dev4",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_video_lipsync_synclabs/0.1.0.dev4/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_video_lipsync_synclabs%3D%3D0.1.0.dev4",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41990046629",
+      "wheel_sha256": "9002e86938b757c98ea3b5d5e5e8d44e9de28c64190cbf53f438572a06d46666",
+      "sdist_sha256": "7b8afddf38c5cde196ab675406e19d8720514aa5e29598ccbf50b6863466dc5c"
+    },
+    {
+      "name": "swarmauri_storage_webdav",
+      "version": "0.11.0.dev1",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_storage_webdav/0.11.0.dev1/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_storage_webdav%3D%3D0.11.0.dev1",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41990273401",
+      "wheel_sha256": "2971b97cf7ec8db2264bb282549b1a84a7907bb2f05e248a6a05547c7101bce3",
+      "sdist_sha256": "ab874bca62be8b2821cbedb1e0493127665f535197a824e572172993fd815a92"
+    },
+    {
+      "name": "swarmauri_transport_https_unicast",
+      "version": "0.11.0.dev5",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_transport_https_unicast/0.11.0.dev5/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_transport_https_unicast%3D%3D0.11.0.dev5",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41990539709",
+      "wheel_sha256": "9f6be686b6efcb375cbde45551d7d8970e63828464e960d97c4deb8cf7982015",
+      "sdist_sha256": "40b4088649ceea510d17195c74e5ec5841edb2e89ef2d54f1e55e4bed838e9a5"
+    },
+    {
+      "name": "swarmauri_transport_tcpunicast",
+      "version": "0.11.0.dev6",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_transport_tcpunicast/0.11.0.dev6/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_transport_tcpunicast%3D%3D0.11.0.dev6",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41990789071",
+      "wheel_sha256": "b09ff671106c13f76234ed12a27a48ea6ecd698b6071c2a93abdddf92249ff60",
+      "sdist_sha256": "f241962a4858200646a8be23abc8db9bf435ec4027c730944c7ebab080c23ee8"
+    },
+    {
+      "name": "swarmauri_core",
+      "version": "0.11.0.dev5",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_core/0.11.0.dev5/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_core%3D%3D0.11.0.dev5",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982139786",
+      "wheel_sha256": "983728f4e21864b4de0d1067ad644ef7b774c466250e255de37aa5c679bdcb1f",
+      "sdist_sha256": "8b62be3741f9eba11f3e38ba6fdd4b212c58b23e5fcd7449fb64db68cf6684ee"
+    },
+    {
+      "name": "swarmauri_typing",
+      "version": "0.11.0.dev4",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_typing/0.11.0.dev4/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_typing%3D%3D0.11.0.dev4",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982139786",
+      "wheel_sha256": "1662bf10875e1cfbdb7039f389821c704122b10916f6a7616a372632ca44d5e3",
+      "sdist_sha256": "dbc8eaa1e932b910a8e26326f6b881d4ec6accc331517b770586cef70d640486"
+    },
+    {
+      "name": "swarmauri_base",
+      "version": "0.11.0.dev5",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_base/0.11.0.dev5/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_base%3D%3D0.11.0.dev5",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41982139786",
+      "wheel_sha256": "454cbab1a2022e0961bd75ce2c387462f30580da8e89a857d588f899bb78811e",
+      "sdist_sha256": "4c3637c84e5c01e8bf39207cf19fdb5424a9718e43b5b5c501e604a9611641bc"
+    },
+    {
+      "name": "swarmauri_standard",
+      "version": "0.11.0.dev6",
+      "status": "published",
+      "pypi_url": "https://pypi.org/project/swarmauri_standard/0.11.0.dev6/",
+      "github_release": "https://github.com/swarmauri/swarmauri-sdk/releases/tag/swarmauri_standard%3D%3D0.11.0.dev6",
+      "workflow_run": "https://github.com/swarmauri/swarmauri-sdk/actions/runs/41987421076",
+      "wheel_sha256": "06fe8a69ed8426e97bbdc8d2feaa8f5c5bb997006c786d070952f919a697c655",
+      "sdist_sha256": "8b556cd0710761bb7fd622260d51ef80dae82c17fb7f1c33cdae4fa54437ae0b"
+    }
   ]
 }
