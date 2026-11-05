@@ -80,4 +80,4 @@ dev = [
 ]
 
 [project.entry-points.'swarmauri.middlewares']
-ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhandling:ExceptionHandlingMiddleware'"
+ExceptionHandlingMiddleware = "swarmauri_middleware_exceptionhandling:ExceptionHandlingMiddleware"

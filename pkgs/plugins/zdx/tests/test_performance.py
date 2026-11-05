@@ -1,3 +1,4 @@
+import pytest
 import os
 import sys
 import time
@@ -110,6 +111,7 @@ def _timed(func, docs_root: Path) -> float:
     return time.perf_counter() - start
 
 
+@pytest.mark.perf
 def test_process_target_speed(tmp_path: Path) -> None:
     baseline_root = tmp_path / "baseline"
     optimized_root = tmp_path / "optimized"

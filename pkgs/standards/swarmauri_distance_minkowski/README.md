@@ -29,7 +29,7 @@ Use it only as a compatibility shim while migrating away from the deprecated `Di
 
 - Re-exports the deprecated `MinkowskiDistance` compatibility shim.
 - Emits a `DeprecationWarning` on import.
-- Remains compatible only with Swarmauri packages earlier than `0.10.0`.
+- Supports the current Swarmauri `0.11` development release; dependencies remain capped below `0.12`, when these deprecated wrappers are scheduled for removal.
 
 ## Migration Example
 

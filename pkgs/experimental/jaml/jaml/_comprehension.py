@@ -60,7 +60,9 @@ def _evaluate_comprehension(node, global_env, context=None):
             )
             results.append(node.header_expr.resolved)
         else:
-            logger.debug(f"[_evaluate_comprehension] resolving pair: {node.pair}")
+            logger.debug(
+                f"[_evaluate_comprehension] resolving pair: {node.pair}"
+            )
             node.pair.resolve(global_env, env)
             k, v = node.pair.resolved
             logger.debug(
@@ -86,7 +88,9 @@ def _evaluate_comprehension(node, global_env, context=None):
 # ────────────────────────────────────────────────────────────────
 
 
-def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]:
+def iter_environments(
+    clauses, global_env, local_env, context
+) -> Iterator[dict]:
     from ._ast_nodes import AliasClauseNode, BaseNode
 
     clause_list = clauses.clauses
@@ -106,7 +110,9 @@ def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]
             and hasattr(iterable, "render")
             and type(iterable).render is not BaseNode.render
         ):
-            iterable_vals = iterable.render(global_env, {**local_env, **env}, context)
+            iterable_vals = iterable.render(
+                global_env, {**local_env, **env}, context
+            )
         else:
             if hasattr(iterable, "resolve"):
                 iterable.resolve(global_env, {**local_env, **env})

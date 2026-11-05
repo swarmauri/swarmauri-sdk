@@ -26,9 +26,14 @@ def resolve_scoped_variable(var_name, data):
 # ⑥ strip surrounding quotes from plain strings
 def _strip_quotes(obj: Any) -> Any:
     if isinstance(obj, dict):
-        return {k: _strip_quotes(v) for k, v in obj.items()}
+        return {
+            k: _strip_quotes(v) for k, v in obj.items() if k != "__comments__"
+        }
     if isinstance(obj, list):
         return [_strip_quotes(v) for v in obj]
+    if isinstance(obj, str) and obj.startswith(('"""', "'''")):
+        if obj.endswith(obj[:3]):
+            return obj[3:-3].strip("\n")
     if (
         isinstance(obj, str)
         and len(obj) >= 2

@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-import tomllib
+
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 from ..transport_dependency_helpers import (
     _transport_requirements_from_distribution,
@@ -9,7 +13,7 @@ from ..transport_dependency_helpers import (
 )
 
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[2]
+PACKAGE_ROOT = Path(__file__).resolve().parents[3]
 PYPROJECT_PATH = PACKAGE_ROOT / "pyproject.toml"
 TRANSPORT_PACKAGE = "swarmauri_transport_asgi"
 
@@ -30,7 +34,9 @@ def test_asgi_transport_listed_in_transports_optional_dependency_group():
     optional_dependencies = _load_optional_dependencies()
 
     transports_group = optional_dependencies["transports"]
-    assert any(dep.startswith(f"{TRANSPORT_PACKAGE}>=") for dep in transports_group)
+    assert any(
+        dep.startswith(f"{TRANSPORT_PACKAGE}>=") for dep in transports_group
+    )
 
 
 def test_asgi_transport_has_dedicated_optional_dependency_key():
@@ -42,8 +48,8 @@ def test_asgi_transport_has_dedicated_optional_dependency_key():
 
 
 def test_asgi_transport_dependency_presence_differs_between_swarmauri_canon_http_and_httpx():
-    swarmauri_canon_http_requirements = _transport_requirements_from_distribution(
-        "swarmauri_canon_http"
+    swarmauri_canon_http_requirements = (
+        _transport_requirements_from_distribution("swarmauri_canon_http")
     )
     httpx_requirements = _transport_requirements_from_distribution("httpx")
 

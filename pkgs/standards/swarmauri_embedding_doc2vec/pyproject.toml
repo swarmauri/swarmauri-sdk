@@ -20,7 +20,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "gensim==4.3.3",
+    "gensim>=4.4,<5",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",

@@ -13,14 +13,14 @@ import httpx
 import aiohttp
 import asyncio
 from pydantic import PrivateAttr
-from swarmauri_core.typing import SubclassUnion
+from swarmauri_base import SubclassUnion
 
-from swarmauri.messages.base.MessageBase import MessageBase
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.messages.concrete.HumanMessage import HumanMessage, contentItem
-from swarmauri.messages.concrete.FunctionMessage import FunctionMessage
-from swarmauri.llms.base.LLMBase import LLMBase
-from swarmauri.schema_converters.concrete.ShuttleAISchemaConverter import (
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage, contentItem
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+from swarmauri_base.llms.LLMBase import LLMBase
+from swarmauri_standard.schema_converters.ShuttleAISchemaConverter import (
     ShuttleAISchemaConverter,
 )
 

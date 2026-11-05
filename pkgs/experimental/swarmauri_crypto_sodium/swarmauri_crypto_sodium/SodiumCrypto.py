@@ -17,6 +17,7 @@ from __future__ import annotations
 import os
 import secrets
 import sys
+from pathlib import Path
 from ctypes import (
     CDLL,
     POINTER,
@@ -60,6 +61,17 @@ _WRAP_ALG = "X25519-SEAL-WRAP"
 
 # ---------- libsodium loader ----------
 def _load_libsodium() -> CDLL:
+    name = (
+        "libsodium.dll"
+        if sys.platform == "win32"
+        else "libsodium.dylib"
+        if sys.platform == "darwin"
+        else "libsodium.so"
+    )
+    bundled = Path(__file__).with_name(name)
+    if bundled.is_file():
+        return CDLL(str(bundled))
+
     # First try to use bundled extension module
     try:
         import _sodium_loader

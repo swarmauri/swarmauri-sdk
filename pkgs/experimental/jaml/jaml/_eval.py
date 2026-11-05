@@ -45,7 +45,12 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
         ast.Is,
         ast.IsNot,
     }
-    _funcs = {"enumerate": enumerate, "false": False, "true": True, "null": None}
+    _funcs = {
+        "enumerate": enumerate,
+        "false": False,
+        "true": True,
+        "null": None,
+    }
 
     # ── helpers ───────────────────────────────────────────────────────
     def _eval(node: ast.AST):
@@ -81,7 +86,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
             obj = _eval(node.value)
             attr = node.attr
             if attr.startswith("_"):
-                raise ValueError("Access to private/protected attributes is disallowed")
+                raise ValueError(
+                    "Access to private/protected attributes is disallowed"
+                )
             # Treat dict-like objects as attribute-accessible by key
             if isinstance(obj, dict):
                 if attr in obj:
@@ -106,7 +113,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
         # arithmetic / unary ops -----------------------------------------
         if isinstance(node, ast.BinOp):
             if type(node.op) not in _ops:
-                raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
+                raise ValueError(
+                    f"Unsupported operator: {type(node.op).__name__}"
+                )
             return _ops[type(node.op)](_eval(node.left), _eval(node.right))
         if isinstance(node, ast.UnaryOp):
             operand = _eval(node.operand)
@@ -114,7 +123,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
                 return +operand
             if isinstance(node.op, ast.USub):
                 return -operand
-            raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+            raise ValueError(
+                f"Unsupported unary operator: {type(node.op).__name__}"
+            )
 
         # boolean ops -----------------------------------------------------
         if isinstance(node, ast.BoolOp):
@@ -136,7 +147,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
                 cmp = _eval(comp)
                 t = type(op_node)
                 if t not in _cmpops:
-                    raise ValueError(f"Unsupported comparison operator: {t.__name__}")
+                    raise ValueError(
+                        f"Unsupported comparison operator: {t.__name__}"
+                    )
                 ok = (
                     (t is ast.Eq and left == cmp)
                     or (t is ast.NotEq and left != cmp)
@@ -187,7 +200,9 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
                     prev = local_env.get(name, object())
                     local_env[name] = item
                     try:
-                        if gen.ifs and not all(_eval(cond) for cond in gen.ifs):
+                        if gen.ifs and not all(
+                            _eval(cond) for cond in gen.ifs
+                        ):
                             continue
                         yield from _comp_recurse(gen_idx + 1)
                     finally:
@@ -209,12 +224,16 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
         if isinstance(node, ast.Subscript):
             value = _eval(node.value)
             slice_val = _eval(
-                node.slice.value if isinstance(node.slice, ast.Index) else node.slice
+                node.slice.value
+                if isinstance(node.slice, ast.Index)
+                else node.slice
             )
             return value[slice_val]
 
         # fallback --------------------------------------------------------
-        raise ValueError(f"Unsupported expression element: {type(node).__name__}")
+        raise ValueError(
+            f"Unsupported expression element: {type(node).__name__}"
+        )
 
     # ── entry-point ─────────────────────────────────────────────────────
     try:

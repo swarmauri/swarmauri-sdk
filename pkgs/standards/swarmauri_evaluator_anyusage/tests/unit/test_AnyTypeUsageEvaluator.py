@@ -65,10 +65,10 @@ def test_get_python_files(evaluator, mock_program):
         files = evaluator._get_python_files(mock_program)
 
         assert len(files) == 2
-        assert "/path/to/program/file1.py" in files
-        assert "/path/to/program/dir1/file3.py" in files
-        assert "/path/to/program/file2.txt" not in files
-        assert "/path/to/program/dir1/file4.md" not in files
+        assert os.path.join("/path/to/program", "file1.py") in files
+        assert os.path.join("/path/to/program/dir1", "file3.py") in files
+        assert os.path.join("/path/to/program", "file2.txt") not in files
+        assert os.path.join("/path/to/program/dir1", "file4.md") not in files
 
 
 @pytest.mark.unit
@@ -85,7 +85,7 @@ def test_get_python_files_no_path(evaluator):
 
         mock_getcwd.assert_called_once()
         assert len(files) == 1
-        assert "/current/dir/file1.py" in files
+        assert os.path.join("/current/dir", "file1.py") in files
 
 
 @pytest.mark.unit

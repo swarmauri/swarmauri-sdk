@@ -10,6 +10,7 @@ errors appropriately.
 """
 
 import pytest
+from importlib import import_module
 from unittest.mock import patch, MagicMock
 from nbformat import NotebookNode
 
@@ -48,8 +49,11 @@ def test_tool_initialization() -> None:
     assert len(tool.parameters) == 2, "Expected exactly two default parameters"
 
 
-@patch(
-    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool"
+    ),
+    "PythonExporter",
 )
 def test_export_notebook_success(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
@@ -76,8 +80,11 @@ def test_export_notebook_success(
     )
 
 
-@patch(
-    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool"
+    ),
+    "PythonExporter",
 )
 def test_export_notebook_with_template(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode
@@ -105,8 +112,11 @@ def test_export_notebook_with_template(
     )
 
 
-@patch(
-    "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool.PythonExporter"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexportpython.JupyterExportPythonTool"
+    ),
+    "PythonExporter",
 )
 def test_export_notebook_failure(
     mock_exporter_class: MagicMock, mock_notebook: NotebookNode

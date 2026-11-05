@@ -26,7 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3.15",
 ]
 requires-python = ">=3.10,<3.16"
-dependencies = []
+dependencies = [
+    "tomli>=2; python_version < '3.11'",]
 
 keywords = [
     "swarmauri",

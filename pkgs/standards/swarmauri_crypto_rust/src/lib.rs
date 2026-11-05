@@ -287,7 +287,7 @@ impl KeyRef {
 
 /// Python module definition
 #[pymodule]
-fn _rust_crypto(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _rust_crypto(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RustCrypto>()?;
     m.add_class::<AEADCiphertext>()?;
     m.add_class::<WrappedKey>()?;

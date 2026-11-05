@@ -1,3 +1,4 @@
+from importlib import import_module
 from datetime import datetime
 from unittest import mock
 
@@ -113,8 +114,11 @@ class TestCacheControlMiddleware:
 
         earlier_time = datetime.fromtimestamp(modified_since - 100)
 
-        with mock.patch(
-            "swarmauri_middleware_cachecontrol.CacheControlMiddleware.datetime"
+        with mock.patch.object(
+            import_module(
+                "swarmauri_middleware_cachecontrol.CacheControlMiddleware"
+            ),
+            "datetime",
         ) as mock_datetime:
             mock_datetime.now.return_value = earlier_time
             mock_datetime.strptime = datetime.strptime

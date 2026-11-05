@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import json
 import logging
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
@@ -19,7 +20,9 @@ from .rate_limit import InMemoryRateLimiter
 
 logger = logging.getLogger(__name__)
 
-ManifestBuilder = Callable[[], Mapping[str, Any] | MutableMapping[str, Any] | Any]
+ManifestBuilder = Callable[
+    [], Mapping[str, Any] | MutableMapping[str, Any] | Any
+]
 
 
 @dataclass(slots=True)
@@ -101,11 +104,16 @@ def mount_layout_app(
             validate_client_setup_code(ui_hooks.client_setup)
         except ValueError as e:
             logger.error(f"Client setup validation failed: {e}")
-            raise ValueError(f"Security validation failed for client_setup: {e}") from e
+            raise ValueError(
+                f"Security validation failed for client_setup: {e}"
+            ) from e
 
     resolved_title = layout_options.title or title
     router_options = layout_options.router or RouterOptions()
-    accent_palette = {**DEFAULT_PALETTE, **(layout_options.accent_palette or {})}
+    accent_palette = {
+        **DEFAULT_PALETTE,
+        **(layout_options.accent_palette or {}),
+    }
 
     import_map = {
         "vue": "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.js",
@@ -154,7 +162,9 @@ def mount_layout_app(
         binding_script = _render_binding_script(realtime.bindings)
         if binding_script:
             if ui_hooks.client_setup:
-                ui_hooks.client_setup = f"{ui_hooks.client_setup}\n{binding_script}"
+                ui_hooks.client_setup = (
+                    f"{ui_hooks.client_setup}\n{binding_script}"
+                )
             else:
                 ui_hooks.client_setup = binding_script
 
@@ -225,16 +235,29 @@ def mount_layout_app(
             await hub.stop_publishers()
             await hub.disconnect_all()
 
-        app.add_event_handler("startup", _start_realtime)
-        app.add_event_handler("shutdown", _stop_realtime)
-
     # Cleanup rate limiter on shutdown
     if rate_limiter:
 
         async def _stop_rate_limiter() -> None:  # noqa: D401
             await rate_limiter.stop_cleanup()
 
-        app.add_event_handler("shutdown", _stop_rate_limiter)
+    if (realtime and hub and ws_route) or rate_limiter:
+        previous_lifespan = app.router.lifespan_context
+
+        @asynccontextmanager
+        async def layout_lifespan(application):
+            async with previous_lifespan(application) as state:
+                if realtime and hub and ws_route:
+                    await _start_realtime()
+                try:
+                    yield state
+                finally:
+                    if rate_limiter:
+                        await _stop_rate_limiter()
+                    if realtime and hub and ws_route:
+                        await _stop_realtime()
+
+        app.router.lifespan_context = layout_lifespan
 
 
 def _create_layout_router(
@@ -262,9 +285,9 @@ def _create_layout_router(
         if router_options.enable_multipage and router_options.page_param:
             requested = request.query_params.get(router_options.page_param)
             if requested:
-                payload.setdefault("meta", {}).setdefault("page", {})["requested"] = (
-                    requested
-                )
+                payload.setdefault("meta", {}).setdefault("page", {})[
+                    "requested"
+                ] = requested
         _inject_realtime_metadata(payload, realtime, ws_route)
         return JSONResponse(content=payload)
 
@@ -298,7 +321,9 @@ def _create_layout_router(
                 try:
                     payload = await request.json()
                 except (json.JSONDecodeError, ValueError) as e:
-                    logger.warning(f"Invalid JSON payload for event '{event_id}': {e}")
+                    logger.warning(
+                        f"Invalid JSON payload for event '{event_id}': {e}"
+                    )
                     raise HTTPException(
                         status_code=400, detail="Invalid JSON payload"
                     ) from e
@@ -343,7 +368,9 @@ def _create_layout_router(
                     extra={
                         "event_id": event_id,
                         "method": request.method,
-                        "client": str(request.client) if request.client else "unknown",
+                        "client": str(request.client)
+                        if request.client
+                        else "unknown",
                         "error_type": type(e).__name__,
                         "error": str(e),
                     },

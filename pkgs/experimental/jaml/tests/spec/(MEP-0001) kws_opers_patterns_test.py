@@ -67,7 +67,7 @@ def test_single_quote_string():
     source = "single = 'Hello, World!'"
     data = loads(source)
     # Expect that the value has been unquoted correctly.
-    assert data["single"] == "'Hello, World!'"
+    assert data["single"] == "Hello, World!"
 
 
 @pytest.mark.spec
@@ -76,7 +76,7 @@ def test_double_quote_string():
     source = 'single = "Hello, World!"'
     data = loads(source)
     # Expect that the value has been unquoted correctly.
-    assert data["single"] == '"Hello, World!"'
+    assert data["single"] == "Hello, World!"
 
 
 @pytest.mark.spec
@@ -86,7 +86,7 @@ def test_triple_single_quote_string():
     # The inner value should be: """One\nTwo\nThree"""
     source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
-    expected = "'''\"\"\"One\nTwo\nThree\"\"\"'''"
+    expected = '"""One\nTwo\nThree"""'
     assert data["triple_single"] == expected
 
 
@@ -96,7 +96,7 @@ def test_triple_double_quote_string():
     # The JML source contains a triple-double quoted string with embedded newlines.
     source = 'triple_double = """Line1\nLine2\nLine3"""'
     data = loads(source)
-    expected = '"""Line1\nLine2\nLine3"""'
+    expected = "Line1\nLine2\nLine3"
     assert data["triple_double"] == expected
 
 
@@ -137,7 +137,7 @@ def test_arithmetic_operators():
 
 @pytest.mark.spec
 @pytest.mark.mep0001
-# @pytest.mark.xfail(reason="Spec not fully implemented – pipeline operator not fully enforced")
+# @pytest.mark.xfail(reason="Spec not fully implemented â€“ pipeline operator not fully enforced")
 def test_pipeline_operator():
     """
     Tests the pipeline operator usage: data | transform | filter
@@ -173,7 +173,7 @@ def test_membership_operators():
 
 @pytest.mark.spec
 @pytest.mark.mep0001
-# @pytest.mark.xfail(reason="Spec not fully implemented – merge operator not recognized yet.")
+# @pytest.mark.xfail(reason="Spec not fully implemented â€“ merge operator not recognized yet.")
 def test_merge_operator():
     """
     Verifies reservation of '<<' to merge tables or inline tables.

@@ -65,19 +65,23 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 
 # ────────────────────────────────────────────────────────────────────────────────
 # ① expand global- and local-scope f-strings
-def _eval_fstrings(mapping: Dict[str, Any]):
+def _eval_fstrings(mapping: Dict[str, Any], global_data=None):
+    if global_data is None:
+        global_data = mapping
     for key, val in list(mapping.items()):
-        if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
+        if isinstance(val, str) and (
+            val.startswith('f"') or val.startswith("f'")
+        ):
             # Skip context-scoped placeholders (${…}), only expand static f-strings
             if "${" not in val:
                 mapping[key] = _evaluate_f_string(
                     val,
-                    global_data=mapping,
+                    global_data=global_data,
                     local_data=mapping,
                     context={},
                 )
         elif isinstance(val, dict):
-            _eval_fstrings(val)
+            _eval_fstrings(val, global_data)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -108,7 +112,9 @@ def _evaluate_f_string(
 
     # Must begin with f"… or f'…
     if not (f_str.startswith('f"') or f_str.startswith("f'")):
-        print("[DEBUG _fstring._evaluate_f_string] Not an f-string; returning as‑is.")
+        print(
+            "[DEBUG _fstring._evaluate_f_string] Not an f-string; returning as‑is."
+        )
         return f_str
 
     # Strip leading f and its surrounding quotes
@@ -191,13 +197,20 @@ def _evaluate_f_string(
         return str(value)
 
     substituted = _VAR_RE.sub(repl, inner)
-    print("[DEBUG _fstring._evaluate_f_string] After substitution:", substituted)
+    print(
+        "[DEBUG _fstring._evaluate_f_string] After substitution:", substituted
+    )
 
     # If the whole string now looks like a simple literal/expression, eval it
-    if re.fullmatch(r"[\d\s+\-*/().]+|true|false|null", substituted, flags=re.I):
+    if re.fullmatch(
+        r"[\d\s+\-*/().]+|true|false|null", substituted, flags=re.I
+    ):
         try:
             evaluated = safe_eval(substituted, local_env=local_data)
-            print("[DEBUG _fstring._evaluate_f_string] safe_eval result:", evaluated)
+            print(
+                "[DEBUG _fstring._evaluate_f_string] safe_eval result:",
+                evaluated,
+            )
             return str(evaluated)
         except Exception as exc:
             print("[DEBUG _fstring._evaluate_f_string] safe_eval failed:", exc)

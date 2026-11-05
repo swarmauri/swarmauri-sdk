@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_experimental"
 version = "0.11.0.dev1"
-description = "This repository includes experimental components. (Inactive: experimental packages are now standalone.)"
+description = "Deprecated experimental umbrella; migrate to standalone Swarmauri packages."
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -29,14 +29,19 @@ dependencies = [
     "openai",
     "pydantic",
     "httpx",
-    "tensorflow",
+    "aiohttp>=3.9",
     "torch",
     "transformers>=4.45.0",
     "typing_extensions",
 ]
 
+[project.optional-dependencies]
+vision = ["deepface>=0.0.93", "tensorflow>=2.16"]
+manifold = ["pacmap>=0.8"]
+
 [dependency-groups]
 dev = [
+    "python-dotenv>=1",
     "flake8>=7.0",
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",

@@ -1,8 +1,8 @@
 from typing import Union, List, Dict, Any, Optional, Literal
 import numpy as np
-from deepface import DeepFace
-from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
-from swarmauri.embeddings.base.VisionEmbeddingBase import VisionEmbeddingBase
+from swarmauri_experimental.vcms.base.DeepFaceBase import get_deepface
+from swarmauri_experimental.vcms.base.DeepFaceBase import DeepFaceBase
+from swarmauri_base.embeddings.VisionEmbeddingBase import VisionEmbeddingBase
 from pydantic import Field
 
 
@@ -27,7 +27,7 @@ class DeepFaceEmbedder(DeepFaceBase, VisionEmbeddingBase):
             embeddings and related information.
         """
         try:
-            result = DeepFace.represent(
+            result = get_deepface().represent(
                 img_path=img_path,
                 model_name=self.name,
                 detector_backend=self.detector_backend,

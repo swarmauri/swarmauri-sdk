@@ -2,6 +2,7 @@
 name = "swarmauri_tests_pylicense"
 version = "0.11.0.dev3"
 description = "Pytest plugin reporting dependency licenses"
+dependencies = ["pytest>=8", "packaging>=24.2", "tomli>=2; python_version < '3.11'"]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_tests_pylicense", "swarmauri", "experimental"]
 license = "Apache-2.0"

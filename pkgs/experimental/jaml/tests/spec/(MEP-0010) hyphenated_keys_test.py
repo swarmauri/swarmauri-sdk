@@ -46,7 +46,7 @@ build-backend = "poetry.core.masonry.api"
     assert "build-backend" in data["project"], (
         "Hyphenated key name missing from parsed data"
     )
-    assert data["project"]["build-backend"] == '"poetry.core.masonry.api"'
+    assert data["project"]["build-backend"] == "poetry.core.masonry.api"
 
     # Now confirm round-trip
     ast = round_trip_loads(toml_str)
@@ -115,7 +115,9 @@ my-Key: str = "SomeValue"
     reserialized = ast.dumps()
 
     # Expect exact case preservation
-    assert "[Build-System]" in reserialized, "Section name case changed unexpectedly"
+    assert "[Build-System]" in reserialized, (
+        "Section name case changed unexpectedly"
+    )
     assert 'my-Key: str = "SomeValue"' in reserialized, (
         "Key name case changed unexpectedly"
     )

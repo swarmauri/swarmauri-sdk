@@ -28,9 +28,9 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
+swarmauri_core = { path = "../../core" }
+swarmauri_base = { path = "../../base" }
+swarmauri_standard = { path = "../../swarmauri_standard" }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

@@ -55,7 +55,7 @@ transports = [
 
 
 [tool.uv.sources]
-swarmauri_transport_asgi = { workspace = true }
+swarmauri_transport_asgi = { path = "../../standards/swarmauri_transport_asgi" }
 swarmauri_transport_h2 = { workspace = true }
 swarmauri_transport_h2mux = { workspace = true }
 swarmauri_transport_meshsidecarhttp2 = { workspace = true }
@@ -91,5 +91,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [dependency-groups]
 dev = [
+    "requests>=2.32",
+    "httpx[http2]>=0.27",
     "ruff>=0.11.0",
 ]

@@ -27,10 +27,10 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-swarmauri_core = { workspace = true }
-swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
-swarmauri_embedding_tfidf = { workspace = true }
+swarmauri_core = { path = "../../core" }
+swarmauri_base = { path = "../../base" }
+swarmauri_standard = { path = "../../swarmauri_standard" }
+swarmauri_embedding_tfidf = { path = "../swarmauri_embedding_tfidf" }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

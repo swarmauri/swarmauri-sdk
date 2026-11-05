@@ -210,7 +210,10 @@ class SobolevNorm(NormBase):
         try:
             y_values = np.array([func(x) for x in x_values])
             # Compute approximate L2 norm using trapezoidal rule
-            return np.sqrt(np.trapz(y_values**2, x_values))
+            trapezoid = getattr(np, "trapezoid", None)
+            if trapezoid is None:  # NumPy 1.x
+                trapezoid = np.trapz
+            return np.sqrt(trapezoid(y_values**2, x_values))
         except Exception as e:
             logger.error(f"Error evaluating function: {e!s}")
             raise ValueError(f"Failed to evaluate function norm: {e!s}")

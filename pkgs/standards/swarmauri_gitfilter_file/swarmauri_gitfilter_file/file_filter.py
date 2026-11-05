@@ -19,5 +19,11 @@ class FileFilter(FileStorageAdapter, GitFilterBase):
         path = Path(uri[7:]).resolve()
         return cls(output_dir=path)
 
+    def _full_key(self, key: str, *, allow_empty: bool = True) -> Path:
+        # Keep the public sha256:<digest> object ID, but use a portable path.
+        if key.startswith("sha256:"):
+            key = "sha256/" + key[len("sha256:") :]
+        return super()._full_key(key, allow_empty=allow_empty)
+
 
 __all__ = ["FileFilter"]

@@ -1,5 +1,9 @@
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
+#include <cmath>
 #include <vector>
 #include <algorithm>
 
@@ -18,61 +22,12 @@ std::vector<int> exact_nearest_neighbors(const std::vector<float>& dataset, floa
     return neighbors;
 }
 
-// Python wrapper for exact_nearest_neighbors
-static PyObject* py_exact_nearest_neighbors(PyObject* self, PyObject* args) {
-    PyObject* py_dataset;
-    float query;
-    size_t k;
 
-    // Parse the input tuple
-    if (!PyArg_ParseTuple(args, "Ofn", &py_dataset, &query, &k)) {
-        return NULL;
-    }
-
-    // Convert input NumPy array to std::vector<float>
-    PyArrayObject* dataset_array = reinterpret_cast<PyArrayObject*>(py_dataset);
-    if (!PyArray_Check(dataset_array)) {
-        PyErr_SetString(PyExc_TypeError, "Input must be a NumPy array");
-        return NULL;
-    }
-
-    npy_intp* shape = PyArray_DIMS(dataset_array);
-    size_t size = shape[0];
-    std::vector<float> dataset(size);
-    for (size_t i = 0; i < size; ++i) {
-        dataset[i] = static_cast<float>(*reinterpret_cast<float*>(PyArray_GETPTR1(dataset_array, i)));
-    }
-
-    // Call the exact nearest neighbors function
-    std::vector<int> neighbors = exact_nearest_neighbors(dataset, query, k);
-
-    // Create a new Python list to return the results
-    PyObject* py_neighbors = PyList_New(neighbors.size());
-    for (size_t i = 0; i < neighbors.size(); ++i) {
-        PyList_SetItem(py_neighbors, i, PyLong_FromSize_t(neighbors[i]));
-    }
-
-    return py_neighbors;
-}
-
-// Module method definitions
-static PyMethodDef QueryEngineMethods[] = {
-    {"exact_nearest_neighbors", py_exact_nearest_neighbors, METH_VARARGS, "Find exact nearest neighbors"},
-    {NULL, NULL, 0, NULL}  // Sentinel
-};
-
-// Module definition
-static struct PyModuleDef queryenginemodule = {
-    PyModuleDef_HEAD_INIT,
-    "QueryEngine",   // name of module
-    NULL,            // module documentation, may be NULL
-    -1,              // size of per-interpreter state of the module,
-                     // or -1 if the module keeps state in global variables.
-    QueryEngineMethods
-};
-
-// Module initialization
-PyMODINIT_FUNC PyInit_QueryEngine(void) {
-    import_array();  // Necessary for NumPy API initialization
-    return PyModule_Create(&queryenginemodule);
+PYBIND11_MODULE(exact_query, module) {
+    module.def("exact_nearest_neighbors", [](py::array_t<float, py::array::c_style | py::array::forcecast> values, float query, py::ssize_t k) {
+        if (values.ndim() != 1) throw py::value_error("Expected a one-dimensional dataset");
+        if (values.size() == 0) throw py::index_error("Dataset is empty");
+        if (k < 0) throw py::value_error("k must be nonnegative");
+        return exact_nearest_neighbors({values.data(), values.data() + values.size()}, query, static_cast<size_t>(k));
+    });
 }

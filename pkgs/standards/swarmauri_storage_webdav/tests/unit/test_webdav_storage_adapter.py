@@ -295,7 +295,9 @@ def test_invalid_auth_combinations(server: WebDAVFixture) -> None:
 
 
 def test_storage_entry_points_declared() -> None:
-    data = tomllib.loads(Path("pyproject.toml").read_text())
+    data = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text()
+    )
     target = (
         "swarmauri_storage_webdav.webdav_storage_adapter:WebDAVStorageAdapter"
     )

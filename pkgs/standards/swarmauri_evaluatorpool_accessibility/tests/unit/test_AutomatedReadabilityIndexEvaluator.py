@@ -1,3 +1,4 @@
+from importlib import import_module
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -138,8 +139,11 @@ def test_extract_text_from_program_txt(
 @patch("os.path.exists")
 @patch("builtins.open")
 @patch("markdown.markdown")
-@patch(
-    "swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator.BeautifulSoup"
+@patch.object(
+    import_module(
+        "swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator"
+    ),
+    "BeautifulSoup",
 )
 def test_extract_text_from_program_md(
     mock_soup, mock_markdown, mock_open, mock_exists, evaluator, mock_program
@@ -174,8 +178,11 @@ def test_extract_text_from_program_md(
 @pytest.mark.unit
 @patch("os.path.exists")
 @patch("builtins.open")
-@patch(
-    "swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator.BeautifulSoup"
+@patch.object(
+    import_module(
+        "swarmauri_evaluatorpool_accessibility.AutomatedReadabilityIndexEvaluator"
+    ),
+    "BeautifulSoup",
 )
 def test_extract_text_from_program_html(
     mock_soup, mock_open, mock_exists, evaluator, mock_program

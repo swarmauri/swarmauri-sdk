@@ -28,7 +28,7 @@ name = "  Jeff  "
     out = ast.dumps()
     # parse again
     data_again = loads(out)
-    assert data_again["settings"]["name"] == '"  Jeff  "'
+    assert data_again["settings"]["name"] == "  Jeff  "
 
 
 @pytest.mark.spec
@@ -44,7 +44,7 @@ def test_trailing_whitespace_after_value_ignored():
 title = "Dev"     
 """
     data = loads(toml_str)
-    assert data["settings"]["title"] == '"Dev"', (
+    assert data["settings"]["title"] == "Dev", (
         "Trailing whitespace after 'Dev' should be ignored"
     )
 
@@ -68,7 +68,9 @@ key    =    "value"
     # Excessive whitespace normalized to single space in the output
     out = ast.dumps()
     # For example, might check if out has 'key = "value"' (one space).
-    assert 'key = "value"' in out, f"Expected normalized space around '='. Got: {out}"
+    assert 'key = "value"' in out, (
+        f"Expected normalized space around '='. Got: {out}"
+    )
 
 
 @pytest.mark.spec

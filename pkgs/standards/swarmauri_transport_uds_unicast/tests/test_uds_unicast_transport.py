@@ -61,6 +61,9 @@ async def test_recv_returns_bytes() -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    not hasattr(asyncio, "start_unix_server"), reason="Requires Unix sockets"
+)
 async def test_start_server_unlinks_existing_socket(
     monkeypatch, tmp_path
 ) -> None:
@@ -110,6 +113,10 @@ async def test_stop_server_closes_and_unlinks(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+@pytest.mark.skipif(
+    not hasattr(asyncio, "open_unix_connection"),
+    reason="Requires Unix sockets",
+)
 async def test_open_client_sets_streams(monkeypatch, tmp_path) -> None:
     path = tmp_path / "uds.sock"
     reader = object()
