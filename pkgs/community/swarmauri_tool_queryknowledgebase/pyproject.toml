@@ -14,7 +14,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["swarmauri_base", "swarmauri_standard"]
+dependencies = ["swarmauri_base>=0.11.0.dev5", "swarmauri_standard>=0.11.0.dev5"]
 
 [tool.uv.sources]
 swarmauri_base = { workspace = true }

@@ -20,9 +20,9 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.27.0,<1",
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
+    "swarmauri_core>=0.11.0.dev5",
+    "swarmauri_base>=0.11.0.dev5",
+    "swarmauri_standard>=0.11.0.dev5",
 ]
 keywords = [
     "swarmauri",

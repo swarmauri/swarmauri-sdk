@@ -40,8 +40,9 @@ def _connect(model):
 async def _aconnect(model):
     model.provider = QwenProvider(api_key="test-key")
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_qwen.QwenOmniRealtimeModel.QwenOmniRealtimeSession.create",
+    with patch.object(
+        QwenOmniRealtimeSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"

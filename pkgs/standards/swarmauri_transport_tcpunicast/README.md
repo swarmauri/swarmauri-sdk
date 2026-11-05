@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_transport_tcpunicast/">
@@ -14,9 +14,16 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport ? TCP Unicast
+# Swarmauri Transport TCP Unicast
 
 `swarmauri-transport-tcpunicast` offers a lightweight TCP harness for prototyping Swarmauri agents.
+
+## Features
+
+- Async TCP client and server contexts for one active peer.
+- Reliable, ordered byte streams with configurable send and receive timeouts.
+- Swarmauri transport capability discovery and lifecycle helpers.
+- Support for Python 3.10 through 3.12.
 
 ## Installation
 

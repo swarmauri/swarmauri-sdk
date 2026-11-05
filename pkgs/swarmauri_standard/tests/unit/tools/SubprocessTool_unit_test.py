@@ -1,4 +1,5 @@
-import platform
+import subprocess
+import sys
 
 import pytest
 
@@ -30,11 +31,9 @@ def test_serialization():
 
 @pytest.mark.unit
 def test_call():
-    system = platform.system().lower()
-    if system.startswith("windows"):
-        command = "cmd /c echo hello"
-    else:
-        command = "echo hello"
+    command = subprocess.list2cmdline(
+        [sys.executable, "-c", "print( 'hello' )"]
+    )
 
     tool = Tool()
     result = tool(command=command, shell=True)

@@ -1,0 +1,382 @@
+{
+  "contract_version": "1.0.0",
+  "artifact_type": "release",
+  "id": "swarmauri-release26-dev",
+  "version": "0.1.0",
+  "owner": "Jacob Stewart",
+  "status": "candidate",
+  "review_date": "2026-11-05",
+  "sources": [
+    "AGENTS.md",
+    ".github/workflows/v0.10.0_mono_prepare_validate_publish_batch.yaml",
+    "https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955"
+  ],
+  "facts": [
+    "All 26 scoped project names returned HTTP 404 from PyPI on 2026-11-05.",
+    "Published core/base 0.11.0.dev2 wheels lack provider and live-model interfaces.",
+    "Only development releases are authorized."
+  ],
+  "assumptions": [
+    "Existing repository publication credentials remain authorized."
+  ],
+  "inferences": [
+    "Compatible shared development releases are required before the new packages can be installed."
+  ],
+  "dependencies": [
+    {
+      "name": "swarmauri_core",
+      "member": "core",
+      "version": "0.11.0.dev5"
+    },
+    {
+      "name": "swarmauri_typing",
+      "member": "typing",
+      "version": "0.11.0.dev4"
+    },
+    {
+      "name": "swarmauri_base",
+      "member": "base",
+      "version": "0.11.0.dev5"
+    },
+    {
+      "name": "swarmauri_standard",
+      "member": "swarmauri_standard",
+      "version": "0.11.0.dev5"
+    }
+  ],
+  "risks": [
+    "PyPI permits four new projects per day; stop on rate limiting and retain the queue.",
+    "Provider network behavior is tested using mocked transports; real service calls require provider credentials."
+  ],
+  "metrics": {
+    "requested_packages": 26,
+    "new_projects_per_batch": 4
+  },
+  "acceptance_criteria": [
+    "Package tests pass in isolation on Python 3.10, 3.11, and 3.12.",
+    "Package lint, wheel/source builds, metadata checks, and installed entry-point checks pass.",
+    "Published development version has wheel and source artifacts verified on PyPI."
+  ],
+  "release_version": "development versions per scope",
+  "scope": [
+    {
+      "name": "swarmauri_transport_httpx",
+      "member": "standards/swarmauri_transport_httpx",
+      "version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_transport_retry",
+      "member": "standards/swarmauri_transport_retry",
+      "version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_transport_aws_eventstream",
+      "member": "standards/swarmauri_transport_aws_eventstream",
+      "version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_provider_amazon_nova",
+      "member": "community/swarmauri_provider_amazon_nova",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_openai",
+      "member": "community/swarmauri_provider_openai",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_gemini",
+      "member": "community/swarmauri_provider_gemini",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_qwen",
+      "member": "community/swarmauri_provider_qwen",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_xai",
+      "member": "community/swarmauri_provider_xai",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_openrouter",
+      "member": "community/swarmauri_provider_openrouter",
+      "version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_live_model_amazon_nova",
+      "member": "community/swarmauri_live_model_amazon_nova",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_gemini",
+      "member": "community/swarmauri_live_model_gemini",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_openai",
+      "member": "community/swarmauri_live_model_openai",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_qwen",
+      "member": "community/swarmauri_live_model_qwen",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_xai",
+      "member": "community/swarmauri_live_model_xai",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_llm_azureopenai",
+      "member": "community/swarmauri_llm_azureopenai",
+      "version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_llm_cloudflare",
+      "member": "community/swarmauri_llm_cloudflare",
+      "version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_llm_nvidia_nim",
+      "member": "community/swarmauri_llm_nvidia_nim",
+      "version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_llm_openrouter",
+      "member": "community/swarmauri_llm_openrouter",
+      "version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_llm_xai",
+      "member": "community/swarmauri_llm_xai",
+      "version": "0.11.0.dev4"
+    },
+    {
+      "name": "swarmauri_tool_getmethodsignature",
+      "member": "community/swarmauri_tool_getmethodsignature",
+      "version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_tool_queryimagevectorstore",
+      "member": "community/swarmauri_tool_queryimagevectorstore",
+      "version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_tool_queryknowledgebase",
+      "member": "community/swarmauri_tool_queryknowledgebase",
+      "version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_video_lipsync_synclabs",
+      "member": "community/swarmauri_video_lipsync_synclabs",
+      "version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_storage_webdav",
+      "member": "standards/swarmauri_storage_webdav",
+      "version": "0.11.0.dev1"
+    },
+    {
+      "name": "swarmauri_transport_https_unicast",
+      "member": "standards/swarmauri_transport_https_unicast",
+      "version": "0.11.0.dev5"
+    },
+    {
+      "name": "swarmauri_transport_tcpunicast",
+      "member": "standards/swarmauri_transport_tcpunicast",
+      "version": "0.11.0.dev6"
+    }
+  ],
+  "gates": [
+    "Local validation",
+    "GitHub Actions validation",
+    "Existing protected new-package approval gate",
+    "PyPI artifact verification"
+  ],
+  "artifacts": [
+    "Wheel and source distribution for every scoped version"
+  ],
+  "rollout": {
+    "prerequisites": [
+      {
+        "name": "swarmauri_core",
+        "member": "core",
+        "version": "0.11.0.dev5"
+      },
+      {
+        "name": "swarmauri_typing",
+        "member": "typing",
+        "version": "0.11.0.dev4"
+      },
+      {
+        "name": "swarmauri_base",
+        "member": "base",
+        "version": "0.11.0.dev5"
+      },
+      {
+        "name": "swarmauri_standard",
+        "member": "swarmauri_standard",
+        "version": "0.11.0.dev5"
+      }
+    ],
+    "batches": [
+      [
+        {
+          "name": "swarmauri_transport_httpx",
+          "member": "standards/swarmauri_transport_httpx",
+          "version": "0.1.0.dev4"
+        },
+        {
+          "name": "swarmauri_transport_retry",
+          "member": "standards/swarmauri_transport_retry",
+          "version": "0.1.0.dev1"
+        },
+        {
+          "name": "swarmauri_transport_aws_eventstream",
+          "member": "standards/swarmauri_transport_aws_eventstream",
+          "version": "0.1.0.dev1"
+        },
+        {
+          "name": "swarmauri_provider_amazon_nova",
+          "member": "community/swarmauri_provider_amazon_nova",
+          "version": "0.1.0.dev3"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_provider_openai",
+          "member": "community/swarmauri_provider_openai",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_provider_gemini",
+          "member": "community/swarmauri_provider_gemini",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_provider_qwen",
+          "member": "community/swarmauri_provider_qwen",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_provider_xai",
+          "member": "community/swarmauri_provider_xai",
+          "version": "0.1.0.dev3"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_provider_openrouter",
+          "member": "community/swarmauri_provider_openrouter",
+          "version": "0.1.0.dev1"
+        },
+        {
+          "name": "swarmauri_live_model_amazon_nova",
+          "member": "community/swarmauri_live_model_amazon_nova",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_live_model_gemini",
+          "member": "community/swarmauri_live_model_gemini",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_live_model_openai",
+          "member": "community/swarmauri_live_model_openai",
+          "version": "0.1.0.dev3"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_live_model_qwen",
+          "member": "community/swarmauri_live_model_qwen",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_live_model_xai",
+          "member": "community/swarmauri_live_model_xai",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_llm_azureopenai",
+          "member": "community/swarmauri_llm_azureopenai",
+          "version": "0.11.0.dev2"
+        },
+        {
+          "name": "swarmauri_llm_cloudflare",
+          "member": "community/swarmauri_llm_cloudflare",
+          "version": "0.11.0.dev2"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_llm_nvidia_nim",
+          "member": "community/swarmauri_llm_nvidia_nim",
+          "version": "0.11.0.dev2"
+        },
+        {
+          "name": "swarmauri_llm_openrouter",
+          "member": "community/swarmauri_llm_openrouter",
+          "version": "0.1.0.dev3"
+        },
+        {
+          "name": "swarmauri_llm_xai",
+          "member": "community/swarmauri_llm_xai",
+          "version": "0.11.0.dev4"
+        },
+        {
+          "name": "swarmauri_tool_getmethodsignature",
+          "member": "community/swarmauri_tool_getmethodsignature",
+          "version": "0.11.0.dev3"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_tool_queryimagevectorstore",
+          "member": "community/swarmauri_tool_queryimagevectorstore",
+          "version": "0.11.0.dev2"
+        },
+        {
+          "name": "swarmauri_tool_queryknowledgebase",
+          "member": "community/swarmauri_tool_queryknowledgebase",
+          "version": "0.11.0.dev3"
+        },
+        {
+          "name": "swarmauri_video_lipsync_synclabs",
+          "member": "community/swarmauri_video_lipsync_synclabs",
+          "version": "0.1.0.dev4"
+        },
+        {
+          "name": "swarmauri_storage_webdav",
+          "member": "standards/swarmauri_storage_webdav",
+          "version": "0.11.0.dev1"
+        }
+      ],
+      [
+        {
+          "name": "swarmauri_transport_https_unicast",
+          "member": "standards/swarmauri_transport_https_unicast",
+          "version": "0.11.0.dev5"
+        },
+        {
+          "name": "swarmauri_transport_tcpunicast",
+          "member": "standards/swarmauri_transport_tcpunicast",
+          "version": "0.11.0.dev6"
+        }
+      ]
+    ],
+    "workflow": "v0.10.0_mono_prepare_validate_publish_batch.yaml",
+    "inputs": {
+      "bump_type": "preserve",
+      "publish_mode": "token",
+      "cadence_seconds": "300"
+    },
+    "publication_status": "not started"
+  },
+  "rollback": [
+    "Do not overwrite or delete published files. Stop the train if verification fails; use a subsequent development version for corrections."
+  ]
+}

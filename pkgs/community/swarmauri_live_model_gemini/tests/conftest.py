@@ -37,8 +37,9 @@ def _connect(model):
 async def _aconnect(model):
     model.provider = GeminiProvider(api_key="test-key")
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_gemini.GeminiLiveModel.GeminiLiveSession.create",
+    with patch.object(
+        GeminiLiveSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"

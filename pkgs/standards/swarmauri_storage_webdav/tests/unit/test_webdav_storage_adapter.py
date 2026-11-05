@@ -3,7 +3,10 @@ from __future__ import annotations
 import io
 from importlib.metadata import entry_points, version
 from pathlib import Path
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 from urllib.parse import unquote
 from xml.sax.saxutils import escape
 

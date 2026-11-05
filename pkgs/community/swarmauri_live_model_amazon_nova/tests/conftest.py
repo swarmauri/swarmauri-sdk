@@ -38,8 +38,9 @@ def _connect(model):
 
 async def _aconnect(model):
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_amazon_nova.NovaSonicLiveModel.NovaSonicLiveSession.create",
+    with patch.object(
+        NovaSonicLiveSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"

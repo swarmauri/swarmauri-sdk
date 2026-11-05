@@ -60,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for matrix generation
         run: pip install toml
@@ -155,7 +155,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for testing
         run: pip install uv pytest toml
@@ -189,7 +189,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check .
 
       - name: Ruff lint check
         run: |
@@ -198,7 +198,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check .
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -207,7 +207,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest tests -vvv
 
       - name: Create patch for changes
         if: always()
@@ -248,7 +248,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Download patch artifacts
         uses: actions/download-artifact@v4
@@ -355,7 +355,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install build tooling
         run: pip install uv pytest toml

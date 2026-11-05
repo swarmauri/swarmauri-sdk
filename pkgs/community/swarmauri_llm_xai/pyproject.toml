@@ -15,12 +15,12 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
-  "swarmauri_base",
-  "swarmauri_core",
-  "swarmauri_provider_xai",
-  "swarmauri_standard",
-  "swarmauri_transport_httpx",
-  "swarmauri_transport_retry",
+  "swarmauri_base>=0.11.0.dev5",
+  "swarmauri_core>=0.11.0.dev5",
+  "swarmauri_provider_xai>=0.1.0.dev3",
+  "swarmauri_standard>=0.11.0.dev5",
+  "swarmauri_transport_httpx>=0.1.0.dev4",
+  "swarmauri_transport_retry>=0.1.0.dev1",
 ]
 
 [tool.uv.sources]

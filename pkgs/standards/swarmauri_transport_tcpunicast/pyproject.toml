@@ -7,8 +7,8 @@ requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = { file = "LICENSE" }
 dependencies = [
-    "swarmauri-base",
-    "swarmauri-core",
+    "swarmauri-base>=0.11.0.dev5",
+    "swarmauri-core>=0.11.0.dev5",
 ]
 keywords = [
     "swarmauri",
@@ -25,7 +25,7 @@ keywords = [
     "tcpunicast",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Topic :: Internet",
@@ -43,6 +43,9 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/swarmauri/swarmauri-sdk"
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.transports"]
+TCPUnicast = "swarmauri_transport_tcpunicast:TCPUnicast"
 
 [build-system]
 requires = ["poetry-core>=1.8.0"]

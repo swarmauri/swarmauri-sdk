@@ -61,8 +61,8 @@ dependencies = [
 "aiofiles",
 "rich",
 "typing_extensions",
-"swarmauri_core",
-"swarmauri_base",
+"swarmauri_core>=0.11.0.dev5",
+"swarmauri_base>=0.11.0.dev5",
 ]
 
 

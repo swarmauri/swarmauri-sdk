@@ -24,12 +24,12 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_provider_openrouter",
-    "swarmauri_standard",
-    "swarmauri_transport_httpx",
-    "swarmauri_transport_retry",
+    "swarmauri_core>=0.11.0.dev5",
+    "swarmauri_base>=0.11.0.dev5",
+    "swarmauri_provider_openrouter>=0.1.0.dev1",
+    "swarmauri_standard>=0.11.0.dev5",
+    "swarmauri_transport_httpx>=0.1.0.dev4",
+    "swarmauri_transport_retry>=0.1.0.dev1",
 ]
 keywords = [
     "swarmauri",
