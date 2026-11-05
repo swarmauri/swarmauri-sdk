@@ -6,7 +6,7 @@ description = "s3fs-backed S3 storage adapter for SwarmauriSDK"
 readme = "README.md"
 license = "Apache-2.0"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.16"
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
@@ -17,6 +17,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
     "s3fs",

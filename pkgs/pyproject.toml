@@ -3,7 +3,7 @@ name = "swarmauri_monorepo"
 version = "0.6.2.dev3"
 description = "Monorepo for multiple interdependent Swarmauri Python packages"
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "Programming Language :: Python",
@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 package = false

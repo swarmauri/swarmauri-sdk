@@ -3,7 +3,7 @@ name = "swarmauri_transport_h2mux"
 version = "0.11.0.dev4"
 description = "Core HTTP/2 multiplexer transport for Swarmauri agents." 
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = { file = "LICENSE" }
 dependencies = [
@@ -37,6 +37,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]

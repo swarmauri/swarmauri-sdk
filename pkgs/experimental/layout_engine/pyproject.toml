@@ -5,7 +5,7 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "Swiss-grid inspired, format-agnostic layout engine with SSR+SSG, atom & MFE registries."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
     "jinja2>=3.1",
