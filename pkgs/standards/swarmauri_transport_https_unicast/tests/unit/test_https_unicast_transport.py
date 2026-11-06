@@ -3,24 +3,24 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
-import tomllib
+from datetime import datetime, timedelta, timezone
+from ipaddress import ip_address
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 import httpx
 import pytest
-from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from swarmauri_base.ComponentBase import ResourceTypes
 from swarmauri_base.DynamicBase import DynamicBase
 from swarmauri_base.transports import TransportBase
-from swarmauri_certs_self_signed import SelfSignedCertificate
-from swarmauri_core.crypto.types import (
-    ExportPolicy,
-    JWAAlg,
-    KeyRef,
-    KeyType,
-    KeyUse,
-)
+from swarmauri_core.crypto.types import JWAAlg
 from swarmauri_core.transports import (
     AddressScheme,
     Feature,
@@ -46,22 +46,30 @@ def _self_signed_loopback_cert() -> bytes:
     private_key = rsa.generate_private_key(
         public_exponent=65537, key_size=2048
     )
-    private_pem = private_key.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.PKCS8,
-        serialization.NoEncryption(),
+    subject = x509.Name(
+        [x509.NameAttribute(x509.NameOID.COMMON_NAME, "127.0.0.1")]
     )
-    key_ref = KeyRef(
-        kid="https-unicast-test",
-        version=1,
-        type=KeyType.RSA,
-        uses=(KeyUse.SIGN,),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
-        material=private_pem,
+    now = datetime.now(timezone.utc)
+    cert = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - timedelta(minutes=1))
+        .not_valid_after(now + timedelta(days=1))
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None), critical=True
+        )
+        .add_extension(
+            x509.SubjectAlternativeName(
+                [x509.IPAddress(ip_address("127.0.0.1"))]
+            ),
+            critical=False,
+        )
+        .sign(private_key, hashes.SHA256())
     )
-    return SelfSignedCertificate.tls_server(
-        "127.0.0.1", ip_addrs=("127.0.0.1",)
-    ).issue(key_ref)
+    return cert.public_bytes(serialization.Encoding.PEM)
 
 
 @pytest.mark.unit

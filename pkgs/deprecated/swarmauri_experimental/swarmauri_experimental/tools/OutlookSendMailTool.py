@@ -1,7 +1,7 @@
 import httpx
 from typing import Dict
-from swarmauri.tools.concrete.ToolBase import ToolBase
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_standard.tools.ToolBase import ToolBase
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 class OutlookSendMailTool(ToolBase):

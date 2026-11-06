@@ -15,10 +15,9 @@ class GithubRepoTool(ToolBase):
                 name="action",
                 input_type="string",
                 description=(
-                    "The action to perform on the GitHub API, e.g., "(
-                        "'create_repo', 'delete_repo', 'update_repo', and "
-                        "'get_repo'"
-                    )
+                    "The action to perform on the GitHub API, e.g., "
+                    "'create_repo', 'delete_repo', 'update_repo', "
+                    "and 'get_repo'"
                 ),
                 required=True,
             ),

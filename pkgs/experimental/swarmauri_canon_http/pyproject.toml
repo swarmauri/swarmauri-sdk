@@ -3,7 +3,7 @@ name = "swarmauri_canon_http"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 classifiers = [
     "Development Status :: 1 - Planning",
     "License :: OSI Approved :: Apache Software License",
@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri_canon_http", "swarmauri", "experimental"]
@@ -54,7 +55,7 @@ transports = [
 
 
 [tool.uv.sources]
-swarmauri_transport_asgi = { workspace = true }
+swarmauri_transport_asgi = { path = "../../standards/swarmauri_transport_asgi" }
 swarmauri_transport_h2 = { workspace = true }
 swarmauri_transport_h2mux = { workspace = true }
 swarmauri_transport_meshsidecarhttp2 = { workspace = true }
@@ -90,5 +91,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [dependency-groups]
 dev = [
+    "requests>=2.32",
+    "httpx[http2]>=0.27",
     "ruff>=0.11.0",
 ]

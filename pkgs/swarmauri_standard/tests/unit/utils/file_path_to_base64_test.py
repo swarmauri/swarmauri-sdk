@@ -1,7 +1,9 @@
 import base64
 import os
+from io import BytesIO
 from pathlib import Path
 
+from PIL import Image
 from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 
 # Get the current working directory
@@ -14,11 +16,10 @@ def test_file_path_to_base64():
     # Call the function to get the base64 result
     result = file_path_to_base64(test_image_path)
 
-    # Manually load the image and convert it to base64 to compare
-    with open(test_image_path, "rb") as img_file:
-        expected = base64.b64encode(img_file.read()).decode("utf-8")
-
-    # Assert the result is the expected base64 string
-    assert result == expected, (
-        "Base64 conversion of the image does not match the expected output."
-    )
+    # PNG re-encoding can change compression without changing image pixels.
+    with Image.open(test_image_path) as expected:
+        with Image.open(BytesIO(base64.b64decode(result))) as actual:
+            assert actual.format == "PNG"
+            assert actual.mode == expected.mode
+            assert actual.size == expected.size
+            assert actual.tobytes() == expected.tobytes()

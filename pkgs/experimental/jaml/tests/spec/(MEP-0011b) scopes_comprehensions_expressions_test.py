@@ -28,7 +28,7 @@ def test_context_scoped_var_resolve():
     print(data, "\n\n")
     assert data["test"]["module"]["name"] == "example"
 
-    resolved_config = data.resolve(data)
+    resolved_config = data.resolve()
     assert resolved_config["test"]["name"] == "example.py"
 
     rendered_data = data.render(context={})

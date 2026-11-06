@@ -1,5 +1,5 @@
 import pytest
-from swarmauri.vcms.concrete.DeepFaceVCM import DeepFaceVCM
+from swarmauri_experimental.vcms.concrete.DeepFaceVCM import DeepFaceVCM
 
 
 @pytest.mark.unit

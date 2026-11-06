@@ -3,12 +3,12 @@ name = "swarmauri_transport_tcpunicast"
 version = "0.11.0.dev6"
 description = "Basic TCP unicast transport for Swarmauri prototyping."
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = { file = "LICENSE" }
 dependencies = [
-    "swarmauri-base",
-    "swarmauri-core",
+    "swarmauri-base>=0.11.0.dev5",
+    "swarmauri-core>=0.11.0.dev5",
 ]
 keywords = [
     "swarmauri",
@@ -25,7 +25,7 @@ keywords = [
     "tcpunicast",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Topic :: Internet",
@@ -38,11 +38,15 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]
 Homepage = "https://github.com/swarmauri/swarmauri-sdk"
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.transports"]
+TCPUnicast = "swarmauri_transport_tcpunicast:TCPUnicast"
 
 [build-system]
 requires = ["poetry-core>=1.8.0"]

@@ -1,16 +1,20 @@
 import asyncio
 from contextlib import suppress
+from typing import Literal
 
 from pydantic import PrivateAttr
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
 )
 from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .NovaSonicCodec import NovaSonicCodec
 
 
+@ComponentBase.register_type(LiveSessionBase, "NovaSonicLiveSession")
 class NovaSonicLiveSession(LiveSessionBase):
+    type: Literal["NovaSonicLiveSession"] = "NovaSonicLiveSession"
     _connection = PrivateAttr()
     _codec = PrivateAttr(default_factory=NovaSonicCodec)
     _receiver = PrivateAttr(default=None)

@@ -1,7 +1,12 @@
-from typing import Any, Literal
+from typing import Literal
+from urllib.parse import quote
 
 from pydantic import Field, SecretStr, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
+from swarmauri_base.model_providers.ProviderConnectionConfig import (
+    ProviderConnectionConfig,
+)
 
 from .AmazonNovaAuthConfig import AmazonNovaAuthConfig
 from .AmazonNovaEndpoints import AmazonNovaEndpoints
@@ -9,6 +14,7 @@ from .AmazonNovaErrorMapper import AmazonNovaErrorMapper
 from .AmazonNovaModelCatalog import AmazonNovaModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "AmazonNovaProvider")
 class AmazonNovaProvider(ModelProviderBase):
     provider_name: Literal["amazon_nova"] = "amazon_nova"
     access_key_id: SecretStr | None = Field(default=None, exclude=True)
@@ -52,11 +58,29 @@ class AmazonNovaProvider(ModelProviderBase):
             self.profile = self.auth.profile
         return self
 
-    def connection_options(self) -> dict[str, Any]:
-        options = super().connection_options()
-        options.update({"region": self.region, "profile": self.profile})
-        for name in ("access_key_id", "secret_access_key", "session_token"):
-            secret = getattr(self, name)
-            if secret is not None:
-                options[name] = secret.get_secret_value()
-        return options
+    def connection_config(
+        self, capability: str, model: str | None = None
+    ) -> ProviderConnectionConfig:
+        endpoint = self.endpoints.resolve(capability)
+        options: dict[str, object] = {"region": self.region}
+        if self.profile is not None:
+            options["profile"] = self.profile
+        if model is not None:
+            options["model_id"] = model
+            endpoint = (
+                f"{endpoint.rstrip('/')}/model/{quote(model, safe='')}"
+                "/invoke-with-bidirectional-stream"
+            )
+        return ProviderConnectionConfig(
+            endpoint=endpoint,
+            transport_options=options,
+            auth_context=self.auth,
+        )
+
+    def prepare_connection(
+        self, capability: str, model: str | None = None
+    ) -> ProviderConnectionConfig:
+        config = super().prepare_connection(capability, model)
+        options = dict(config.transport_options)
+        options.update(self.auth.sdk_credentials())
+        return config.model_copy(update={"transport_options": options})

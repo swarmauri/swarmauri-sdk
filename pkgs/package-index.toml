@@ -1804,6 +1804,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_transport_aws_eventstream"
+path = "standards/swarmauri_transport_aws_eventstream"
+layer = "40-standards"
+order = 0
+family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_transport_h2mux"
 path = "standards/swarmauri_transport_h2mux"
 layer = "40-standards"
@@ -3009,6 +3021,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_provider_openrouter"
+path = "community/swarmauri_provider_openrouter"
+layer = "50-community"
+order = 0
+family = "provider"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "explicit"
+order_reason = "provider configuration without transport execution"
+
+[[packages]]
 name = "swarmauri_provider_qwen"
 path = "community/swarmauri_provider_qwen"
 layer = "50-community"
@@ -3686,7 +3710,7 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_amazon_nova", "swarmauri_transport_h2"]
+composes = ["swarmauri_provider_amazon_nova", "swarmauri_transport_aws_eventstream"]
 
 [[packages]]
 name = "swarmauri_live_model_gemini"
@@ -3780,6 +3804,19 @@ order_reason = "depends on 2 internal concrete packages"
 composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
+name = "swarmauri_llm_openrouter"
+path = "community/swarmauri_llm_openrouter"
+layer = "50-community"
+order = 1
+family = "llm"
+role = "composite-concrete"
+maturity = "community"
+workspace = true
+order_source = "explicit"
+order_reason = "OpenRouter models compose provider configuration with shared HTTP and retry transports"
+composes = ["swarmauri_provider_openrouter", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
+
+[[packages]]
 name = "swarmauri_llm_xai"
 path = "community/swarmauri_llm_xai"
 layer = "50-community"
@@ -3806,18 +3843,6 @@ order_reason = "raised to order 1 because it depends on same-layer package swarm
 composes = ["swarmauri_metric_hamming"]
 
 [[packages]]
-name = "swarmauri_provider_openrouter"
-path = "community/swarmauri_provider_openrouter"
-layer = "50-community"
-order = 0
-family = "provider"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "explicit"
-order_reason = "provider configuration without transport execution"
-
-[[packages]]
 name = "swarmauri_vectorstore_mlm"
 path = "community/swarmauri_vectorstore_mlm"
 layer = "50-community"
@@ -3829,19 +3854,6 @@ workspace = true
 order_source = "inferred"
 order_reason = "raised to order 1 because it depends on same-layer package swarmauri_embedding_mlm at 50.0"
 composes = ["swarmauri_embedding_mlm"]
-
-[[packages]]
-name = "swarmauri_llm_openrouter"
-path = "community/swarmauri_llm_openrouter"
-layer = "50-community"
-order = 1
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "explicit"
-order_reason = "OpenRouter models compose provider configuration with shared HTTP and retry transports"
-composes = ["swarmauri_provider_openrouter", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 name = "swarmauri_toolkit_github"

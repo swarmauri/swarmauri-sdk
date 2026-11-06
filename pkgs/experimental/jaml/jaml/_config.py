@@ -19,7 +19,10 @@ class SectionProxy(MutableMapping):
 
     def _cur_dict(self):
         # grab the nested dict at top‑level key self._prefix
-        return self._config._data[self._prefix]
+        current = self._config._data
+        for part in self._prefix.split("."):
+            current = current[part]
+        return current
 
     def __getitem__(self, key: str) -> Any:
         cur = self._cur_dict()
@@ -66,6 +69,7 @@ class Config(MutableMapping):
     def __init__(self, ast: "Config.StartNode"):
         self._ast = ast
         self._data = ast.data
+        self._rendered_source = None
         print("[DEBUG CONFIG INIT]:", self._data, self._ast)
 
     def __getitem__(self, key: str) -> Any:
@@ -101,7 +105,8 @@ class Config(MutableMapping):
 
         normalized = _normalize(key)
         return any(
-            isinstance(k, str) and _normalize(k) == normalized for k in self._data
+            isinstance(k, str) and _normalize(k) == normalized
+            for k in self._data
         )
 
     # ──────────────────────────────────────────────────────── helpers
@@ -176,158 +181,68 @@ class Config(MutableMapping):
         return assign_node.value
 
     def _sync_ast(self, dotted: str, value: Any):
-        print(dotted, value, type(value))
-        """
-        Sync the underlying AST with mutations to the Config mapping.
+        """Update one assignment while preserving its annotation and section."""
+        from lark import Token
+        from ._ast_nodes import AssignmentNode, BaseNode, SectionNode
+        from ._legacy import _literal
 
-        • `dotted` – key in dotted-path form, e.g. "server.port" or "section.key"
-        • `value`  – new Python value or AST node assigned by the user
-        """
-        from ._ast_nodes import (
-            AssignmentNode,
-            BaseNode,
-            FoldedExpressionNode,
-            SectionNode,
-            SingleQuotedStringNode,
-            IntegerNode,
-            FloatNode,
-            BooleanNode,
-            NullNode,
-        )
-
-        # Locate the raw data mapping slot
-        cur = self._ast.data
+        self._rendered_source = None
         parts = dotted.split(".")
+        current = self._ast.data
         for part in parts[:-1]:
-            cur = cur.setdefault(part, {})
+            current = current.setdefault(part, {})
         key = parts[-1]
-
-        # ──────────────────────────────────────────────────
-        # Handle assignments inside sections (e.g., "section.key")
-        if len(parts) > 1:
-            section_name = parts[0]
-            for node in self._ast.lines:
-                if (
-                    isinstance(node, SectionNode)
-                    and getattr(node.header, "value", None) == section_name
-                ):
-                    for content in node.contents:
-                        if (
-                            isinstance(content, AssignmentNode)
-                            and content.identifier.value == key
-                        ):
-                            # If the old value was a folded-expression (or the new string looks like one),
-                            # reparse it back into a FoldedExpressionNode so resolve() will evaluate it.
-                            if isinstance(content.value, FoldedExpressionNode) or (
-                                isinstance(value, str)
-                                and value.strip().startswith("<(")
-                                and value.strip().endswith(")>")
-                            ):
-                                new_node = self._reparse_value(value)
-                                content.value = new_node
-                                content.resolved = None
-                                cur[key] = new_node
-                            else:
-                                # For other raw strings (e.g. list comprehensions), keep as-is
-                                content.value = value
-                                content.resolved = None
-                                cur[key] = value
-                            return
-
-        # ──────────────────────────────────────────────────
-        # Fallback to top-level assignments
-        for node in self._ast.lines:
-            print(key, node, type(node))
-            if not (isinstance(node, AssignmentNode) and node.identifier.value == key):
-                print("\n\nbad?")
-                continue
-            try:
-                old = node
-                print(old, type(old))
-
-                # wholesale reparse for any AST-backed node updated via a string
-                if (
-                    isinstance(old.value, BaseNode)
-                    and isinstance(value, str)
-                    and not isinstance(old, SingleQuotedStringNode)
-                ):
-                    new_node = self._reparse_value(value)
-                    node.value = new_node
-                    node.resolved = None
-                    cur[key] = new_node
-                    break
-
-                # Direct AST node replacement
-                if isinstance(value, BaseNode):
-                    node.value = value
-                    node.resolved = None
-                    cur[key] = value
-                    break
-
-                # folded-expression string update (when old was already FoldedExpressionNode)
-                if isinstance(value, str) and isinstance(old, FoldedExpressionNode):
-                    new_node = self._reparse_value(value)
-                    node.value = new_node
-                    node.resolved = None
-                    cur[key] = new_node
-                    break
-
-                # Literal updates: string
-                if isinstance(value, str) and isinstance(old, SingleQuotedStringNode):
-                    lit = value if value.startswith(('"', "'")) else f'"{value}"'
-                    old.origin = lit
-                    old.value = value
-                    node.resolved = value
-                    cur[key] = value
-                    break
-
-                # Literal updates: integer
-                if isinstance(value, int) and isinstance(old, IntegerNode):
-                    sval = str(value)
-                    old.origin = sval
-                    old.value = sval
-                    old.resolved = value
-                    cur[key] = value
-                    break
-
-                # Literal updates: float
-                if isinstance(value, float) and isinstance(old, FloatNode):
-                    sval = str(value)
-                    old.origin = sval
-                    old.value = sval
-                    old.resolved = value
-                    cur[key] = value
-                    break
-
-                # Literal updates: boolean
-                if isinstance(value, bool) and isinstance(old, BooleanNode):
-                    bval = "true" if value else "false"
-                    old.origin = bval
-                    old.value = bval
-                    old.resolved = value
-                    cur[key] = value
-                    break
-
-                # Literal updates: null
-                if value is None and isinstance(old, NullNode):
-                    old.resolved = None
-                    cur[key] = None
-                    break
-
-                # Fallback: replace node outright
-                print("\n\nfalling back...")
-                node.value = value
-                node.resolved = value
-                cur[key] = value
-                break
-
-            except Exception as e:
-                print(f"_config.Config._sync_ast() failed: '{e}'")
+        prefix = ".".join(parts[:-1])
+        contents = self._ast.lines
+        if prefix:
+            section = next(
+                (
+                    node
+                    for node in self._ast.lines
+                    if isinstance(node, SectionNode)
+                    and getattr(node.header, "value", None) == prefix
+                ),
+                None,
+            )
+            if section is None:
+                raise KeyError(prefix)
+            contents = section.contents
+        if isinstance(value, BaseNode):
+            replacement = value
+        elif isinstance(value, str) and value.strip().startswith("<("):
+            replacement = self._reparse_value(value)
+        elif isinstance(value, str) and value.strip().startswith(
+            ('"', "'", 'f"', "f'", "[", "{", "`")
+        ):
+            replacement = value
+        else:
+            replacement = self._reparse_value(_literal(value))
+        assignment = next(
+            (
+                node
+                for node in contents
+                if isinstance(node, AssignmentNode)
+                and node.identifier.value == key
+            ),
+            None,
+        )
+        if assignment is None:
+            assignment = AssignmentNode()
+            assignment.identifier = Token("IDENTIFIER", key)
+            assignment.equals = Token("SETTER", "=")
+            contents.append(assignment)
+        assignment.value = replacement
+        assignment.resolved = None
+        current[key] = replacement
 
     # round‑trip helpers ------------------------------------------------------
     def dumps(self) -> str:
         """Emit the configuration exactly as it would appear on disk."""
+        if self._rendered_source is not None:
+            return self._rendered_source
         return self._ast.emit()
+
+    to_jml = dumps
 
     dump = staticmethod(lambda obj, fp: fp.write(Config.dumps(obj)))  # type: ignore
 
@@ -355,12 +270,16 @@ class Config(MutableMapping):
         # ② expand conditional headers
         for node in list(self._ast.lines):
             header = getattr(node, "header", None)
-            if isinstance(node, (SectionNode, TableArraySectionNode)) and isinstance(
+            if isinstance(
+                node, (SectionNode, TableArraySectionNode)
+            ) and isinstance(
                 header, (TableArrayHeaderNode, ComprehensionHeaderNode)
             ):  # ← broaden test
                 raw_key = header.origin
                 expr = raw_key
-                logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
+                logger.debug(
+                    "②a processing header raw_key=%s expr=%s", raw_key, expr
+                )
 
                 # -- strip alias clauses like "as %{alias}" before placeholder work --
                 expr = re.sub(r"\s+as\s+%\{[^}]+\}", "", expr)
@@ -370,7 +289,9 @@ class Config(MutableMapping):
                     if var in self._data:
                         v = self._data[var]
                         if isinstance(v, str):
-                            v = v.strip("\"'")  # ➞ strip any surrounding quotes
+                            v = v.strip(
+                                "\"'"
+                            )  # ➞ strip any surrounding quotes
                         return repr(v)
                     return "None"
 
@@ -398,7 +319,9 @@ class Config(MutableMapping):
 
                         for idx, new_key in enumerate(result):
                             tgt_map = (
-                                section_map if idx == 0 else copy.deepcopy(section_map)
+                                section_map
+                                if idx == 0
+                                else copy.deepcopy(section_map)
                             )
                             self._insert_nested_key(new_key, tgt_map)
                     else:
@@ -466,7 +389,9 @@ class Config(MutableMapping):
                 final[k] = _expand(v, collapsed)
         return _strip_quotes(final)
 
-    def render(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def render(
+        self, context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
         Render the parsed JAML AST to a concrete Python object.
 
@@ -495,27 +420,87 @@ class Config(MutableMapping):
         import re
 
         # ② expand conditional headers (with context) --------------------
+        from ._ast_nodes import (
+            ContextScopedVarNode,
+            FStringNode,
+            SectionNameNode,
+        )
+
+        # Bind root context values before header clauses consume them.
+        for key, value in list(self._data.items()):
+            if isinstance(value, ContextScopedVarNode):
+                self._data[key] = value.render(self._data, {}, context or {})
+
+        def render_body(value, scope):
+            if isinstance(value, (ContextScopedVarNode, FStringNode)):
+                return render_body(
+                    value.render(self._data, scope, context), scope
+                )
+            if isinstance(value, BaseNode):
+                value.resolve(self._data, scope)
+                return render_body(value.evaluate(), scope)
+            if isinstance(value, dict):
+                local = {**scope, **value}
+                rendered = {}
+                for key, item in value.items():
+                    rendered[key] = render_body(item, local)
+                    local[key] = rendered[key]
+                return rendered
+            if isinstance(value, list):
+                return [render_body(item, scope) for item in value]
+            if isinstance(value, str) and value.startswith(('f"', "f'")):
+                return _evaluate_f_string(value, self._data, scope, context)
+            return value
+
         for node in list(self._ast.lines):
             header = getattr(node, "header", None)
-            if isinstance(node, (SectionNode, TableArraySectionNode)) and isinstance(
+            if isinstance(header, ComprehensionHeaderNode):
+                original_key = header.origin
+                header.render(self._data, {}, context or {})
+                body = self._data.pop(original_key, {})
+                aliases = re.findall(r"\bas\s+%\{([^}]+)\}", original_key)
+                clones = []
+                for key, environment in header.header_envs:
+                    values = render_body(deepcopy(body), environment)
+                    for alias in aliases:
+                        if alias in environment:
+                            values[alias] = environment[alias]
+                    self._insert_nested_key(key, values)
+                    clone = deepcopy(node)
+                    literal = SectionNameNode()
+                    literal.value = literal.origin = key
+                    clone.header = literal
+                    clones.append(clone)
+                index = self._ast.lines.index(node)
+                self._ast.lines[index : index + 1] = clones
+                continue
+            if isinstance(
+                node, (SectionNode, TableArraySectionNode)
+            ) and isinstance(
                 header, (TableArrayHeaderNode, ComprehensionHeaderNode)
             ):  # ← broaden test
                 raw_key = header.origin
                 expr = raw_key
-                logger.debug("②a processing header raw_key=%s expr=%s", raw_key, expr)
+                logger.debug(
+                    "②a processing header raw_key=%s expr=%s", raw_key, expr
+                )
 
                 # --- ①: Capture alias clause(s) before stripping them for later binding ---
                 alias_anchors = re.findall(
                     r"\s+as\s+%\{([^}]+)\}", expr
                 )  # get list of aliases (may be empty)
-                expr = re.sub(r"\s+as\s+%\{[^}]+\}", "", expr)  # strip for python eval
+                expr = re.sub(
+                    r"\s+as\s+%\{[^}]+\}", "", expr
+                )  # strip for python eval
                 logger.debug(f"\t- alias_anchors found {alias_anchors}")
 
                 # substitute ${…} placeholders from *context*
                 def _context_repl(m):
                     var = m.group(1)
                     v = (context or {}).get(var, None)
-                    logger.debug("   – context placeholder ${%s} -> %r", var, v)
+                    logger.debug(
+                        "   – context placeholder ${%s} -> %r", var, v
+                    )
                     if isinstance(v, str):
                         v = v.strip("\"'")
                     return repr(v)
@@ -540,20 +525,25 @@ class Config(MutableMapping):
                     logger.debug("   – result=%r", result)
                 except Exception as exc:
                     logger.exception(
-                        "   ✖ header expression failed (%s); leaving untouched", exc
+                        "   ✖ header expression failed (%s); leaving untouched",
+                        exc,
                     )
                     continue
                 if not result:
                     self._data.pop(raw_key, None)
                 else:
                     logger.debug(
-                        "   – condition truthy → renaming %s → %s", raw_key, result
+                        "   – condition truthy → renaming %s → %s",
+                        raw_key,
+                        result,
                     )
                     section_map = self._data.pop(raw_key, None)
                     if isinstance(result, (list, tuple, set)):
                         # write the first body now – clones handled by helper
                         self._insert_nested_key(result[0], section_map)
-                        self._materialise_comprehension(node, list(result), section_map)
+                        self._materialise_comprehension(
+                            node, list(result), section_map
+                        )
                     else:
                         self._insert_nested_key(result, section_map)
                         node.header.value = result
@@ -563,12 +553,18 @@ class Config(MutableMapping):
                 if isinstance(header, ComprehensionHeaderNode):
                     logger.debug("\t- injecting alias bindings")
                     header.render(self._data, {}, context or {})
-                    logger.debug(f"\t- processing alias_env {header.header_envs}")
+                    logger.debug(
+                        f"\t- processing alias_env {header.header_envs}"
+                    )
 
         logger.debug("② complete  → self._data=%r", self._data)
 
         # ③ collapse all AST nodes into plain Python values --------------
         def _collapse(value: Any, scope: Dict[str, Any]) -> Any:
+            if isinstance(value, (ContextScopedVarNode, FStringNode)):
+                return _collapse(
+                    value.render(self._data, scope, context), scope
+                )
             if isinstance(value, BaseNode):
                 value.resolve(self._data, scope)
                 return _collapse(value.evaluate(), scope)
@@ -598,16 +594,23 @@ class Config(MutableMapping):
                 return {k: _eval_context_fstrings(v) for k, v in obj.items()}
             if isinstance(obj, list):
                 return [_eval_context_fstrings(v) for v in obj]
-            if isinstance(obj, str) and (obj.startswith('f"') or obj.startswith("f'")):
+            if isinstance(obj, str) and (
+                obj.startswith('f"') or obj.startswith("f'")
+            ):
                 try:
                     evaluated = _evaluate_f_string(
-                        obj, global_data=self._data, local_data={}, context=context
+                        obj,
+                        global_data=self._data,
+                        local_data={},
+                        context=context,
                     )
                     logger.debug("   – f-string %s -> %r", obj, evaluated)
                     return evaluated
                 except Exception as exc:
                     logger.debug(
-                        "   ✖ f-string %s failed (%s); leaving literal", obj, exc
+                        "   ✖ f-string %s failed (%s); leaving literal",
+                        obj,
+                        exc,
                     )
                     return obj
             return obj
@@ -617,5 +620,25 @@ class Config(MutableMapping):
 
         # ⑥ strip surrounding quotes on string literals ------------------
         final = _strip_quotes(expanded)
+        # Keep the rendered view serializable without overwriting the deferred
+        # expressions needed when the same Config is rendered again.
+        from ._legacy import _literal, _lookup
+
+        snapshot = deepcopy(self._ast)
+        values = final
+        for node in snapshot.lines:
+            if isinstance(node, SectionNode):
+                try:
+                    values = _lookup(node.header.emit(), final)
+                except KeyError:
+                    continue
+                assignments = node.contents
+            else:
+                assignments = [node]
+            for assignment in assignments:
+                identifier = getattr(assignment, "identifier", None)
+                if identifier is not None and identifier.value in values:
+                    assignment.value = _literal(values[identifier.value])
+        self._rendered_source = snapshot.emit()
         logger.debug("⭢ [render] returning    → %r", final)
         return final

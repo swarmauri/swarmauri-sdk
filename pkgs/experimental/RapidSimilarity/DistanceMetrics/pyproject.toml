@@ -1,5 +1,5 @@
 [build-system]
-requires = ["meson-python", "ninja", "pybind11", "numpy"]
+requires = ["meson-python", "ninja", "pybind11>=3.0.2", "numpy>=1.26", "numpy"]
 build-backend = "mesonpy"
 
 [project]
@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "DistanceMetrics package with C++ extensions for calculating various distance metrics."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "Natural Language :: English",
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 
@@ -30,7 +31,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "uv"]
+dev = ["pytest", "uv>=0.13.6"]
 
 [tool.pytest.ini_options]
 markers = [

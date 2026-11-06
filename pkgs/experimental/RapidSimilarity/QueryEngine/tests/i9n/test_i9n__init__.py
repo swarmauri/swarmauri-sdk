@@ -13,7 +13,7 @@ def test_import_cpp_extension(setup_module) -> None:
     """Test that the C++ extension can be imported successfully."""
     try:
         # Attempt to import a specific C++ extension from QueryEngine
-        import QueryEngine.cpp_extension as cpp_extension  # Change to your actual C++ extension name
+        import QueryEngine.cpp_extension as cpp_extension
 
         assert cpp_extension is not None
     except ImportError as e:
@@ -26,10 +26,10 @@ def test_query_functionality(setup_module) -> None:
     try:
         from QueryEngine.cpp_extension import (
             example_function,
-        )  # Change to your actual function
+        )
 
         result = example_function(42)  # Example input; adjust as necessary
-        assert result is not None  # Replace with your expected value
+        assert result is not None
     except ImportError as e:
         pytest.fail(f"Failed to import function from C++ extension: {e}")
     except Exception as e:

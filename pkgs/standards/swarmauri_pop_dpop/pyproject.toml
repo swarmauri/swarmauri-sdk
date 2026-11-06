@@ -3,7 +3,7 @@ name = "swarmauri_pop_dpop"
 version = "0.11.0.dev3"
 description = "DPoP proof-of-possession tooling for Swarmauri services"
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 license = { file = "LICENSE" }
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = [
@@ -46,6 +46,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
     "swarmauri_core",

@@ -2,7 +2,17 @@ from __future__ import annotations
 
 import ipaddress
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Iterable, Mapping, Optional, Sequence
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    get_type_hints,
+    is_typeddict,
+)
+from typing_extensions import TypedDict
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -20,6 +30,22 @@ from swarmauri_core.certs.ICertService import (
     SubjectSpec,
 )
 from swarmauri_core.crypto.types import KeyRef
+
+
+def _pydantic_spec(spec):
+    """Adapt stdlib interface specs for Pydantic on Python 3.10 and 3.11."""
+    fields = {
+        name: _pydantic_spec(annotation)
+        if is_typeddict(annotation)
+        else annotation
+        for name, annotation in get_type_hints(spec).items()
+    }
+    return TypedDict(spec.__name__, fields, total=False)
+
+
+SubjectSpec = _pydantic_spec(SubjectSpec)
+AltNameSpec = _pydantic_spec(AltNameSpec)
+CertExtensionSpec = _pydantic_spec(CertExtensionSpec)
 
 _OID_MAP = {
     "serverAuth": ExtendedKeyUsageOID.SERVER_AUTH,

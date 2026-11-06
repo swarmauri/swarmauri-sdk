@@ -60,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for matrix generation
         run: pip install toml
@@ -69,6 +69,7 @@ jobs:
         id: get-matrix
         env:
           MEMBERS_JSON: ${{ github.event.inputs.members_json }}
+          PUBLISH_MODE: ${{ github.event.inputs.publish_mode }}
         run: |
           cd pkgs
           python - <<'PY'
@@ -111,11 +112,12 @@ jobs:
               if requires_approval:
                   approval_entries.append(entry)
 
-          # PyPI currently permits four new project creations per rolling day:
-          # https://github.com/pypi/warehouse/issues/20164#issuecomment-4720553955
-          # Existing projects do not count toward this guard because they do not
-          # require approval above.
-          max_new_projects = 4
+          # Token publication permits four new projects per day. Trusted
+          # publishing uses separately registered pending publishers; cap that
+          # batch at PyPI's 100 registrations per user/IP per 24 hours.
+          # https://docs.pypi.org/trusted-publishers/troubleshooting/
+          # Existing projects do not count toward the new-project guard.
+          max_new_projects = 100 if os.environ.get("PUBLISH_MODE") == "trusted" else 4
           if len(approval_entries) > max_new_projects:
               raise RuntimeError(
                   f"Batch contains {len(approval_entries)} new projects; "
@@ -155,7 +157,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for testing
         run: pip install uv pytest toml
@@ -189,7 +191,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff format --check .
 
       - name: Ruff lint check
         run: |
@@ -198,7 +200,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check . --config "${{ github.workspace }}/pkgs/pyproject.toml"
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active --with "ruff==0.15.21" ruff check .
 
       - name: Run tests for member ${{ matrix.member }}
         run: |
@@ -207,7 +209,7 @@ jobs:
           echo "Running tests for workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv run --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest -vvv
+          uv run --exact --directory "$MEMBER" --package "$PACKAGE_NAME" --isolated --active pytest tests -vvv
 
       - name: Create patch for changes
         if: always()
@@ -248,7 +250,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Download patch artifacts
         uses: actions/download-artifact@v4
@@ -355,7 +357,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install build tooling
         run: pip install uv pytest toml

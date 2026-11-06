@@ -1,7 +1,7 @@
 import numpy as np
-import pacmap  # Ensure pacmap is installed
-from swarmauri.tools.base.ToolBase import ToolBase
-from swarmauri.tools.concrete.Parameter import Parameter
+
+from swarmauri_base.tools.ToolBase import ToolBase
+from swarmauri_standard.tools.Parameter import Parameter
 from typing import List, Literal, Dict, Union
 
 from pydantic import Field
@@ -17,7 +17,7 @@ class PaCMAPTool(ToolBase):
         default_factory=lambda: [
             Parameter(
                 name="X",
-                type="object",
+                input_type="object",
                 description=(
                     "X (np.ndarray): The high-dimensional data points to "
                     "reduce."
@@ -26,7 +26,7 @@ class PaCMAPTool(ToolBase):
             ),
             Parameter(
                 name="n_neighbors",
-                type="integer",
+                input_type="integer",
                 description=(
                     "The size of local neighborhood (in terms of number of "
                     "neighboring data points) used for manifold approximation."
@@ -35,7 +35,7 @@ class PaCMAPTool(ToolBase):
             ),
             Parameter(
                 name="n_components",
-                type="integer",
+                input_type="integer",
                 description=(
                     "The dimension of the space into which to embed the data."
                 ),
@@ -43,7 +43,7 @@ class PaCMAPTool(ToolBase):
             ),
             Parameter(
                 name="n_iterations",
-                type="integer",
+                input_type="integer",
                 description="The number of iterations used for optimization.",
                 required=False,
             ),
@@ -74,6 +74,13 @@ class PaCMAPTool(ToolBase):
         n_neighbors = kwargs.get("n_neighbors", 30)
         n_components = kwargs.get("n_components", 2)
         n_iterations = kwargs.get("n_iterations", 500)
+
+        try:
+            import pacmap
+        except ImportError as exc:
+            raise RuntimeError(
+                "Install swarmauri_experimental[manifold] to use PaCMAP"
+            ) from exc
 
         # Instantiate the PaCMAP instance with specified parameters
         embedder = pacmap.PaCMAP(

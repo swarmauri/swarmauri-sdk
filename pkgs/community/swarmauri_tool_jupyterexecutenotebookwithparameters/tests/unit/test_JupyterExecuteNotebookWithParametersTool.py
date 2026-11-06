@@ -8,6 +8,7 @@ parameter handling,
 file path validations, and error handling during notebook execution.
 """
 
+from importlib import import_module
 import pytest
 from unittest.mock import patch, MagicMock
 from swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool import (  # noqa: E501
@@ -63,8 +64,11 @@ def test_call_incorrect_output_extension(
     assert "not a .ipynb file" in result["error"]
 
 
-@patch(
-    "swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool.pm.execute_notebook"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool"
+    ).pm,
+    "execute_notebook",
 )
 def test_call_execution_success(
     mock_execute_notebook: MagicMock,
@@ -90,8 +94,11 @@ def test_call_execution_success(
     )
 
 
-@patch(
-    "swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool.pm.execute_notebook"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexecutenotebookwithparameters.JupyterExecuteNotebookWithParametersTool"
+    ).pm,
+    "execute_notebook",
 )
 def test_call_execution_failure(
     mock_execute_notebook: MagicMock,

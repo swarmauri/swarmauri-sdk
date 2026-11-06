@@ -1,5 +1,7 @@
 import pytest
-from swarmauri.vcms.concrete.DeepFaceEmbedder import DeepFaceEmbedder
+from swarmauri_experimental.vcms.concrete.DeepFaceEmbedder import (
+    DeepFaceEmbedder,
+)
 
 
 @pytest.mark.unit

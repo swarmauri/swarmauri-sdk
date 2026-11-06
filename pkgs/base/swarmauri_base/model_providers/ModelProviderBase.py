@@ -72,3 +72,22 @@ class ModelProviderBase(IModelProvider, ComponentBase):
                 "Provider connection configuration has no auth context"
             )
         return dict(auth.apply(config.headers))
+
+    def prepare_connection(
+        self,
+        capability: str,
+        model: str | None = None,
+    ) -> ProviderConnectionConfig:
+        """Resolve and authorize an ephemeral provider connection."""
+        config = self.connection_config(capability, model=model)
+        auth = config.auth_context
+        if not isinstance(auth, ProviderAuthBase):
+            raise TypeError(
+                "Provider connection configuration has no auth context"
+            )
+        return config.model_copy(
+            update={
+                "headers": dict(auth.apply(config.headers)),
+                "query": dict(auth.apply_query(config.query)),
+            }
+        )

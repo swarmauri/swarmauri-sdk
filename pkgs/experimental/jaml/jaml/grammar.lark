@@ -86,6 +86,7 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 
 // The assignment_value can be one of many types
 ?assignment_value: concat_expr
+                 | LEGACY_EXPR
                  | comprehension
                  | array
                  | inline_table
@@ -117,6 +118,7 @@ TYPE: "str" | "int" | "float" | "bool" | "list" | "set" | "datetime" | "null" | 
 ?arithmetic: expr_item (OPERATOR expr_item)*
 
 ?value: comprehension
+      | LEGACY_EXPR
       | array
       | inline_table
       | paren_expr
@@ -156,11 +158,14 @@ multiline_array: "[" (comment_line | NEWLINE+) (NEWLINE* ml_array_item)+ NEWLINE
 // 5. Inline Table Handling
 //////////////////////////////
 
-inline_table: L_CURL_BRACE (HSPACES | NEWLINE)* inline_table_items? (HSPACES | NEWLINE)* R_CURL_BRACE
-inline_table_items: inline_table_item (WHITESPACE? COMMA WHITESPACE? inline_table_item)* (WHITESPACE? COMMA WHITESPACE?)?
+inline_table: L_CURL_BRACE (HSPACES | NEWLINE | comment_line)* inline_table_items? (HSPACES | NEWLINE | comment_line)* R_CURL_BRACE
+inline_table_items: inline_table_item (WHITESPACE? COMMA (WHITESPACE | comment_line)* inline_table_item)* (WHITESPACE? COMMA)? (WHITESPACE | comment_line)*
 
 inline_table_item: inline_assignment INLINE_COMMENT? 
-                  | comment_line
+                  | merge_entry
+
+merge_entry: "<<" HSPACES? COLON HSPACES? MERGE_REF
+MERGE_REF: /@?[A-Za-z_]\w*(?:\.\w+)*/
 
 inline_assignment: IDENTIFIER (COLON type_annotation)? HSPACES? SETTER HSPACES? value INLINE_COMMENT?
 
@@ -224,6 +229,7 @@ L_BRACK_BRACE: "[{"
 R_BRACK_BRACE: "}]"
 
 FOLDED_START: "<("
+LEGACY_EXPR: /~(?:\((?:[^()]|\([^()]*\))*\)|\[(?:[^\[\]]|\[[^\[\]]*\])*\])|\{\^.*?\^\}/s
 FOLDED_END: ")>"
 
 

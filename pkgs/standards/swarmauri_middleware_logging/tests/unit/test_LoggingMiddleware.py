@@ -1,3 +1,4 @@
+from importlib import import_module
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -28,7 +29,10 @@ def test_logging_middleware_logger(logging_middleware):
 
 @pytest.mark.unit
 @pytest.mark.asyncio  # Add asyncio marker
-@patch("swarmauri_middleware_logging.LoggingMiddleware.logger.info")
+@patch.object(
+    import_module("swarmauri_middleware_logging.LoggingMiddleware").logger,
+    "info",
+)
 async def test_dispatch_logs_request_info(mock_info, logging_middleware):
     """Test that dispatch logs request information."""
     mock_request = Mock()
@@ -57,7 +61,10 @@ async def test_dispatch_logs_request_info(mock_info, logging_middleware):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@patch("swarmauri_middleware_logging.LoggingMiddleware.logger.info")
+@patch.object(
+    import_module("swarmauri_middleware_logging.LoggingMiddleware").logger,
+    "info",
+)
 async def test_dispatch_logs_response_info(mock_info, logging_middleware):
     """Test that dispatch logs response information."""
     mock_request = Mock()
@@ -98,7 +105,10 @@ async def test_dispatch_logs_response_info(mock_info, logging_middleware):
         (None, "Request body: None"),
     ],
 )
-@patch("swarmauri_middleware_logging.LoggingMiddleware.logger.info")
+@patch.object(
+    import_module("swarmauri_middleware_logging.LoggingMiddleware").logger,
+    "info",
+)
 async def test_dispatch_logs_request_body(
     mock_info, logging_middleware, request_body, expected_body
 ):
@@ -127,7 +137,10 @@ async def test_dispatch_logs_request_body(
 
 @pytest.mark.unit
 @pytest.mark.asyncio  # Add asyncio marker
-@patch("swarmauri_middleware_logging.LoggingMiddleware.logger.warning")
+@patch.object(
+    import_module("swarmauri_middleware_logging.LoggingMiddleware").logger,
+    "warning",
+)
 async def test_dispatch_logs_error_parsing_request_body(
     mock_warning, logging_middleware
 ):

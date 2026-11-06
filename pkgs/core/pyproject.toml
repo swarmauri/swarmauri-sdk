@@ -36,15 +36,17 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Testing",
 ]
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.10,<3.16"
 
 [dependency-groups]
 dev = [
+"tomli>=2.0; python_version < '3.11'",
 "flake8>=7.0",
 "pytest>=8.0",
 "pytest-asyncio>=0.24.0",

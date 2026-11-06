@@ -2,9 +2,9 @@ from typing import Union, List, Literal
 from pydantic import Field
 import pandas as pd
 import numpy as np
-from deepface import DeepFace
-from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
-from swarmauri.vector_stores.base.VisionVectorStoreBase import (
+from swarmauri_experimental.vcms.base.DeepFaceBase import get_deepface
+from swarmauri_experimental.vcms.base.DeepFaceBase import DeepFaceBase
+from swarmauri_base.vector_stores.VisionVectorStoreBase import (
     VisionVectorStoreBase,
 )
 
@@ -53,7 +53,7 @@ class DeepFaceVectorStore(DeepFaceBase, VisionVectorStoreBase):
         """
 
         try:
-            result = DeepFace.find(
+            result = get_deepface().find(
                 img_path=img_path,
                 db_path=db_path,
                 model_name=self.name,

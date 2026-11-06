@@ -1,17 +1,21 @@
 import asyncio
 import json
 from contextlib import suppress
+from typing import Literal
 
 from pydantic import PrivateAttr
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
 )
 from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .XAIRealtimeCodec import XAIRealtimeCodec
 
 
+@ComponentBase.register_type(LiveSessionBase, "XAIRealtimeSession")
 class XAIRealtimeSession(LiveSessionBase):
+    type: Literal["XAIRealtimeSession"] = "XAIRealtimeSession"
     _connection = PrivateAttr()
     _codec = PrivateAttr(default_factory=XAIRealtimeCodec)
     _receiver = PrivateAttr(default=None)

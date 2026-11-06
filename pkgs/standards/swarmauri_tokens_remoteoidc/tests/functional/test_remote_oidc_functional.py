@@ -18,7 +18,7 @@ def test_verify_audience_functional(tmp_path):
     jwks_path = tmp_path / "jwks.json"
     jwks_path.write_text(json.dumps({"keys": [jwk]}))
     service = RemoteOIDCTokenService(
-        "https://issuer", jwks_url=f"file://{jwks_path}"
+        "https://issuer", jwks_url=jwks_path.as_uri()
     )
     token = jwt.encode(
         {

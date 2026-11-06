@@ -60,6 +60,9 @@ class AnnoyVectorStore(
         Delete the Annoy index if it exists.
         """
         try:
+            if self.client is not None:
+                self.client.unload()
+                self.client = None
             if os.path.exists(f"{self.collection_name}.ann"):
                 os.remove(f"{self.collection_name}.ann")
             self.client = None
@@ -99,6 +102,8 @@ class AnnoyVectorStore(
         Disconnect from the Annoy index.
         """
         try:
+            if self.client is not None:
+                self.client.unload()
             self.client = None
         except Exception as e:
             raise RuntimeError(f"Error during disconnecting: {str(e)}")

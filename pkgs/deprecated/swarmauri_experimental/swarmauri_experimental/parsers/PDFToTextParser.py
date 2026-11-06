@@ -2,7 +2,7 @@ import fitz  # PyMuPDF
 from typing import List, Union, Any
 from swarmauri_core.parsers.IParser import IParser
 from swarmauri_core.documents.IDocument import IDocument
-from swarmauri.documents.concrete.ConcreteDocument import ConcreteDocument
+from swarmauri_standard.documents.ConcreteDocument import ConcreteDocument
 
 
 class PDFtoTextParser(IParser):

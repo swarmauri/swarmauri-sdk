@@ -1,5 +1,14 @@
 import inspect
-from typing import Annotated, Any, List, get_origin, get_type_hints
+from types import UnionType
+from typing import (
+    Annotated,
+    Any,
+    List,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
@@ -25,6 +34,7 @@ def tool(func):
     # Inspect the function signature for parameter names, defaults, etc.
     signature = inspect.signature(func)
     type_hints = get_type_hints(func, include_extras=True)
+    declared_hints = inspect.get_annotations(func, eval_str=True)
 
     # Build the list of Parameter objects from the function signature
     parameters_list: List[Parameter] = []
@@ -32,6 +42,21 @@ def tool(func):
         # If the parameter has a type annotation, grab it; otherwise use
         # "string" as default
         annotated_type = type_hints.get(param_name, str)
+        # Python 3.10 adds Optional for a None default; later versions preserve
+        # the declared type. Requiredness is handled separately below.
+        if (
+            param.default is None
+            and get_origin(annotated_type) is Union
+            and get_origin(declared_hints.get(param_name))
+            not in (Union, UnionType)
+        ):
+            non_null = [
+                item
+                for item in get_args(annotated_type)
+                if item is not type(None)
+            ]
+            if len(non_null) == 1:
+                annotated_type = non_null[0]
         origin = get_origin(annotated_type)
         if origin is Annotated:
             input_type = "Annotated"

@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from collections.abc import AsyncIterator
 
-from swarmauri_base.transports.peer_mixin import PeerTransportMixin
+from swarmauri_base.transports.mixins import (
+    PeerTransportMixin,
+    UnicastTransportMixin,
+)
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
 from swarmauri_base.transports.TransportBase import TransportBase
-from swarmauri_base.transports.unicast_mixin import UnicastTransportMixin
 from swarmauri_core.transports.capabilities import TransportCapabilities
 from swarmauri_core.transports.enums import (
     AddressScheme,
@@ -28,6 +31,9 @@ class TCPUnicast(
         self._server: asyncio.AbstractServer | None = None
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
+        self._accept_queue: asyncio.Queue[
+            tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
+        ] = asyncio.Queue()
 
     def supports(self) -> TransportCapabilities:
         return TransportCapabilities(
@@ -42,20 +48,54 @@ class TCPUnicast(
     async def _start_server(
         self, host: str = "0.0.0.0", port: int = 9000
     ) -> None:
-        async def _accept(
+        self._accept_queue = queue = asyncio.Queue()
+
+        def _accept(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
+            if queue is not self._accept_queue or self._server is None:
+                writer.close()
+                return
+            if self._writer is not None and not self._writer.is_closing():
+                writer.close()
+                return
             self._reader = reader
             self._writer = writer
-            await asyncio.Event().wait()
+            queue.put_nowait((reader, writer))
 
         self._server = await asyncio.start_server(_accept, host, port)
 
     async def _stop_server(self) -> None:
-        if self._server is not None:
-            self._server.close()
-            await self._server.wait_closed()
-            self._server = None
+        server, self._server = self._server, None
+        if server is not None:
+            server.close()
+        queue = self._accept_queue
+        while not queue.empty():
+            streams = queue.get_nowait()
+            if streams is not None:
+                streams[1].close()
+        # Each waiter passes this terminal marker to the next waiter. Keep the
+        # old queue alive until its iterators finish, even after a restart.
+        queue.put_nowait(None)
+        try:
+            await self._close_client()
+        finally:
+            if server is not None:
+                await server.wait_closed()
+
+    async def accept(
+        self,
+    ) -> AsyncIterator[tuple[asyncio.StreamReader, asyncio.StreamWriter]]:
+        """Yield accepted streams while the server is running."""
+        if self._server is None:
+            raise RuntimeError("server not started")
+        queue = self._accept_queue
+        while True:
+            streams = await queue.get()
+            if streams is None:
+                queue.put_nowait(None)
+                return
+            yield streams
 
     async def _open_client(
         self, host: str = "127.0.0.1", port: int = 9000

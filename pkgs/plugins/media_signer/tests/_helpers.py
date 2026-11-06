@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+from datetime import datetime, timedelta, timezone
 from typing import AsyncIterator, Callable
 
 from MediaSigner import MediaSigner
@@ -92,10 +93,32 @@ def _require_material(value: bytes | str | None) -> bytes:
 
 
 def generate_self_signed_rsa(common_name: str) -> tuple[bytes, bytes]:
-    """Return a deterministic RSA key pair for signer integrations."""
+    """Issue a current test certificate using the fixture's RSA private key."""
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.x509.oid import NameOID
 
-    _ = common_name  # maintained for compatibility with existing helpers
-    return _RSA_PRIVATE_KEY_PEM, _RSA_CERT_PEM
+    key = serialization.load_pem_private_key(
+        _RSA_PRIVATE_KEY_PEM, password=None
+    )
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common_name)])
+    now = datetime.now(timezone.utc)
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - timedelta(days=1))
+        .not_valid_after(now + timedelta(days=1))
+        .add_extension(
+            x509.BasicConstraints(ca=True, path_length=None), critical=True
+        )
+        .sign(key, hashes.SHA256())
+    )
+    return _RSA_PRIVATE_KEY_PEM, certificate.public_bytes(
+        serialization.Encoding.PEM
+    )
 
 
 async def build_media_signer_with_rsa(

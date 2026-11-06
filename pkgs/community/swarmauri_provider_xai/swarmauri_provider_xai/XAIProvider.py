@@ -1,6 +1,7 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import Field, model_validator
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.model_providers.ModelProviderBase import ModelProviderBase
 from swarmauri_base.model_providers.ProviderConnectionConfig import (
     ProviderConnectionConfig,
@@ -12,6 +13,7 @@ from .XAIErrorMapper import XAIErrorMapper
 from .XAIModelCatalog import XAIModelCatalog
 
 
+@ComponentBase.register_type(ModelProviderBase, "XAIProvider")
 class XAIProvider(ModelProviderBase):
     provider_name: Literal["xai"] = "xai"
     endpoints: XAIEndpoints = Field(default_factory=XAIEndpoints)
@@ -30,21 +32,12 @@ class XAIProvider(ModelProviderBase):
             self.api_key = self.auth.api_key
         return self
 
-    def connection_options(self) -> dict[str, Any]:
-        options = super().connection_options()
-        if self.api_key:
-            options["api_key"] = self.api_key.get_secret_value()
-        return options
-
     def connection_config(
         self,
         capability: str,
         model: str | None = None,
     ) -> ProviderConnectionConfig:
         endpoint = self.endpoints.resolve(capability)
-        # Keep credentials in the excluded auth context. The legacy
-        # connection_options method still exposes api_key for existing live
-        # model consumers, but connection configurations must serialize safely.
         options = super().connection_options()
         if model is not None:
             options["model"] = model

@@ -1,3 +1,4 @@
+from importlib import import_module
 import inspect
 from unittest.mock import patch, MagicMock
 from typing import Dict
@@ -58,8 +59,11 @@ class TestJupyterShutdownKernelTool:
             "Default shutdown timeout should be 5."
         )
 
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+    @patch.object(
+        import_module(
+            "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool"
+        ),
+        "KernelManager",
     )
     def test_call_success(self, mock_kernel_manager: MagicMock) -> None:
         mock_manager_instance = mock_kernel_manager.return_value
@@ -82,8 +86,11 @@ class TestJupyterShutdownKernelTool:
         assert "shut down successfully" in result["message"]
         mock_manager_instance.shutdown_kernel.assert_called_with(now=False)
 
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+    @patch.object(
+        import_module(
+            "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool"
+        ),
+        "KernelManager",
     )
     def test_call_forced_shutdown(
         self, mock_kernel_manager: MagicMock
@@ -108,8 +115,11 @@ class TestJupyterShutdownKernelTool:
         assert "could not be shut down" in result["message"]
         mock_manager_instance.shutdown_kernel.assert_any_call(now=True)
 
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+    @patch.object(
+        import_module(
+            "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool"
+        ),
+        "KernelManager",
     )
     def test_call_no_such_kernel(self, mock_kernel_manager: MagicMock) -> None:
         mock_manager_instance = mock_kernel_manager.return_value
@@ -124,8 +134,11 @@ class TestJupyterShutdownKernelTool:
         assert result["status"] == "error"
         assert "No such kernel" in result["message"]
 
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+    @patch.object(
+        import_module(
+            "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool"
+        ),
+        "KernelManager",
     )
     def test_call_connection_file_not_found(
         self, mock_kernel_manager: MagicMock
@@ -141,8 +154,11 @@ class TestJupyterShutdownKernelTool:
         assert result["status"] == "error"
         assert "Connection file not found" in result["message"]
 
-    @patch(
-        "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool.KernelManager"
+    @patch.object(
+        import_module(
+            "swarmauri_tool_jupytershutdownkernel.JupyterShutdownKernelTool"
+        ),
+        "KernelManager",
     )
     def test_call_unexpected_exception(
         self, mock_kernel_manager: MagicMock

@@ -48,7 +48,9 @@ def test_cosine_similarity_different_lengths():
     """Test cosine similarity for vectors of different lengths."""
     vec1 = np.array([1.0, 2.0])
     vec2 = np.array([1.0, 2.0, 3.0])
-    with pytest.raises(ValueError, match="Vectors must be of the same length."):
+    with pytest.raises(
+        ValueError, match="Vectors must be of the same length."
+    ):
         cosine.cosine_similarity(vec1, vec2)
 
 

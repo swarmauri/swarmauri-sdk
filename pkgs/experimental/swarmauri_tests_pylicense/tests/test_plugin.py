@@ -1,4 +1,5 @@
 from email.message import Message
+import pytest
 from importlib.metadata import PackageNotFoundError
 
 from swarmauri_tests_pylicense import (
@@ -8,6 +9,40 @@ from swarmauri_tests_pylicense import (
 )
 
 pytest_plugins = ["pytester"]
+
+
+@pytest.mark.parametrize(
+    "license",
+    [
+        "PSFL",
+        "Apache-2.0 OR BSD-3-Clause",
+        "Apache-2.0 AND CNRI-Python",
+        "(MIT OR Apache-2.0) AND BSD-2-Clause",
+        "MIT-0",
+        "ISC",
+        "BSD 3-Clause OR Apache-2.0",
+    ],
+)
+def test_standard_license_expressions(license):
+    from swarmauri_tests_pylicense import _standard_license
+
+    assert _standard_license(license)
+
+
+@pytest.mark.parametrize(
+    "license",
+    [
+        "UNKNOWN",
+        "Custom",
+        "MIT OR Custom",
+        "MIT AND",
+        "LicenseRef-Proprietary",
+    ],
+)
+def test_invalid_or_unapproved_expression_is_rejected(license):
+    from swarmauri_tests_pylicense import _standard_license
+
+    assert not _standard_license(license)
 
 
 def test_parameterized_mode(pytester, monkeypatch):

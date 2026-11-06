@@ -3,7 +3,11 @@ from __future__ import annotations
 import io
 from importlib.metadata import entry_points, version
 from pathlib import Path
-import tomllib
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 from urllib.parse import unquote
 from xml.sax.saxutils import escape
 
@@ -291,7 +295,9 @@ def test_invalid_auth_combinations(server: WebDAVFixture) -> None:
 
 
 def test_storage_entry_points_declared() -> None:
-    data = tomllib.loads(Path("pyproject.toml").read_text())
+    data = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text()
+    )
     target = (
         "swarmauri_storage_webdav.webdav_storage_adapter:WebDAVStorageAdapter"
     )

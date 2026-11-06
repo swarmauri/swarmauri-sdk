@@ -1,8 +1,8 @@
 from typing import Dict
 
 import sqlite3
-from swarmauri.tools.concrete.ToolBase import ToolBase
-from swarmauri.tools.concrete.Parameter import Parameter
+from swarmauri_standard.tools.ToolBase import ToolBase
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 class SQLite3QueryTool(ToolBase):

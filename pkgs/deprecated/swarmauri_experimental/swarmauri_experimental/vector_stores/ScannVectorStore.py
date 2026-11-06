@@ -5,7 +5,7 @@ from typing import List, Dict, Union
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
 from swarmauri_core.vector_stores.ISimiliarityQuery import ISimilarityQuery
 from swarmauri_core.vectors.IVector import IVector
-from swarmauri.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri_standard.vectors.SimpleVector import SimpleVector
 
 
 class ScannVectorStore(IVectorStore, ISimilarityQuery):

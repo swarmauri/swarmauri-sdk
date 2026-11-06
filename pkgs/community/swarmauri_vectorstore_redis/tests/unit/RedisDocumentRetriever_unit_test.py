@@ -1,3 +1,4 @@
+from importlib import import_module
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -48,8 +49,9 @@ def test_serialization(retriever):
 @pytest.mark.unit
 def test_lazy_client_initialization(retriever):
     """Test lazy initialization of Redis client."""
-    with patch(
-        "swarmauri_vectorstore_redis.RedisDocumentRetriever.Client"
+    with patch.object(
+        import_module("swarmauri_vectorstore_redis.RedisDocumentRetriever"),
+        "Client",
     ) as mock_client_class:
         # Trigger client initialization.
         _ = retriever.redis_client
@@ -70,8 +72,9 @@ def test_retrieve_documents(retriever):
         id="doc2", content="Test document 2", metadata={"field2": "value2"}
     )
 
-    with patch(
-        "swarmauri_vectorstore_redis.RedisDocumentRetriever.Client"
+    with patch.object(
+        import_module("swarmauri_vectorstore_redis.RedisDocumentRetriever"),
+        "Client",
     ) as mock_client_class:
         mock_client = mock_client_class.return_value
         # Simulate a search result returning our Document instances.
