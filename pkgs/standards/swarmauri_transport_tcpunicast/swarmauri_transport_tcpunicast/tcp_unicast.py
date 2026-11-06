@@ -32,7 +32,7 @@ class TCPUnicast(
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._accept_queue: asyncio.Queue[
-            tuple[asyncio.StreamReader, asyncio.StreamWriter]
+            tuple[asyncio.StreamReader, asyncio.StreamWriter] | None
         ] = asyncio.Queue()
 
     def supports(self) -> TransportCapabilities:
@@ -48,27 +48,40 @@ class TCPUnicast(
     async def _start_server(
         self, host: str = "0.0.0.0", port: int = 9000
     ) -> None:
+        self._accept_queue = queue = asyncio.Queue()
+
         def _accept(
             reader: asyncio.StreamReader, writer: asyncio.StreamWriter
         ) -> None:
+            if queue is not self._accept_queue or self._server is None:
+                writer.close()
+                return
             if self._writer is not None and not self._writer.is_closing():
                 writer.close()
                 return
             self._reader = reader
             self._writer = writer
-            self._accept_queue.put_nowait((reader, writer))
+            queue.put_nowait((reader, writer))
 
         self._server = await asyncio.start_server(_accept, host, port)
 
     async def _stop_server(self) -> None:
-        if self._server is not None:
-            self._server.close()
+        server, self._server = self._server, None
+        if server is not None:
+            server.close()
+        queue = self._accept_queue
+        while not queue.empty():
+            streams = queue.get_nowait()
+            if streams is not None:
+                streams[1].close()
+        # Each waiter passes this terminal marker to the next waiter. Keep the
+        # old queue alive until its iterators finish, even after a restart.
+        queue.put_nowait(None)
+        try:
             await self._close_client()
-            await self._server.wait_closed()
-            self._server = None
-        else:
-            await self._close_client()
-        self._accept_queue = asyncio.Queue()
+        finally:
+            if server is not None:
+                await server.wait_closed()
 
     async def accept(
         self,
@@ -76,8 +89,13 @@ class TCPUnicast(
         """Yield accepted streams while the server is running."""
         if self._server is None:
             raise RuntimeError("server not started")
-        while self._server is not None:
-            yield await self._accept_queue.get()
+        queue = self._accept_queue
+        while True:
+            streams = await queue.get()
+            if streams is None:
+                queue.put_nowait(None)
+                return
+            yield streams
 
     async def _open_client(
         self, host: str = "127.0.0.1", port: int = 9000
