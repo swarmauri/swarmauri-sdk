@@ -1,13 +1,14 @@
 <p align="center">
+  <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/dm/swarmauri_tool_scrollfile" alt="PyPI downloads"/></a>
   <img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg" alt="Swarmauri" width="420"/>
 </p>
 
 <p align="center">
-  <a href="https://pepy.tech/project/swarmauri_tool_scrollfile/"><img src="https://static.pepy.tech/badge/swarmauri_tool_scrollfile/month" alt="Monthly downloads"/></a>
+  <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/dm/swarmauri_tool_scrollfile" alt="Monthly downloads"/></a>
   <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_scrollfile/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_scrollfile.svg" alt="Repository hits"/></a>
   <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_scrollfile" alt="Supported Python versions"/></a>
   <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/l/swarmauri_tool_scrollfile" alt="License"/></a>
-  <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/v/swarmauri_tool_scrollfile?label=release" alt="Release version"/></a>
+  <a href="https://pypi.org/project/swarmauri_tool_scrollfile/"><img src="https://img.shields.io/pypi/v/swarmauri_tool_scrollfile?label=swarmauri_tool_scrollfile&color=green" alt="Release version"/></a>
 </p>
 
 # Swarmauri Tool Scroll File
@@ -119,3 +120,48 @@ stateless request.
 ## License
 
 This package is licensed under Apache-2.0.
+
+
+## Descriptor-based opening and page boundaries
+
+Where Linux `openat2` is available, lookups use beneath-root resolution.
+If the syscall is unavailable, the POSIX fallback opens a single child of
+the trusted root with a no-follow lookup. Nested file lookups fail
+with `ENOTSUP`. Policy denials such as `EPERM` or `EACCES` are returned as
+errors, including when opening the configured root.
+
+The service must control the configured root, its ancestors, and mount
+configuration. A root handle identifies the directory opened by the tool.
+Filesystem permissions still govern concurrent changes to opened objects.
+
+`allow_symlinks=True` requires Linux `openat2` and permits only relative links
+whose complete resolution stays beneath the selected root. Absolute links,
+root escapes, and magic links are rejected. This intentionally narrows the old
+opt-in. `allow_unrestricted_paths=True` anchors at the filesystem root; it does
+not independently enable symlink following. Configured root paths cannot
+contain symlinks or parent traversal.
+
+Opened handles retain inode identity if directories are renamed. This prevents
+symlink substitution from redirecting a read, but does not freeze file contents
+or prevent another actor from moving an opened directory. Services must control
+permissions on their trees.
+
+The returned-content budget applies to the page actually returned, including
+EOF fallback. The preceding rolling buffer is bounded separately by page size
+and individual-line limits; large earlier lines no longer reject a small later
+page merely because they exceed the return budget. A one-byte lookahead detects
+the next page without decoding or line-validating its contents. That probe is
+still charged against scanned-line and scanned-byte limits. Time checks remain
+cooperative and cannot interrupt a filesystem syscall already blocked in the
+kernel.
+
+### Windows filesystem support
+
+On Windows the backend opens the local drive by its volume identity and
+opens each component relative to a held directory handle. It rejects junctions
+and other reparse points and does not accept UNC or device paths, alternate data
+streams, or ambiguous trailing dots or spaces, or reserved DOS basenames. Ancestors are
+opened for traversal without requiring listing access. Volume and directory handles
+deny delete sharing during traversal. Returned paths are descriptive snapshots.
+Confined reads check the opened file and reject files with multiple
+hard links. Filesystem permissions govern concurrent changes to file contents.

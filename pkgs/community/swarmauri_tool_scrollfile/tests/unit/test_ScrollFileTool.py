@@ -1,3 +1,6 @@
+import errno
+import os
+import sys
 from importlib import import_module
 from pathlib import Path
 
@@ -207,7 +210,7 @@ def test_rejects_parent_traversal_outside_allowed_root(
     outside_file.write_text("private\n", encoding="utf-8")
 
     tool = ScrollFileTool(allowed_roots=[str(allowed_root)])
-    with pytest.raises(PermissionError, match="allowed_roots"):
+    with pytest.raises(ValueError, match="parent traversal"):
         tool(str(allowed_root / ".." / "outside.txt"))
 
 
@@ -216,7 +219,14 @@ def test_rejects_symlinks_by_default(tmp_path: Path) -> None:
     target = tmp_path / "target.txt"
     target.write_text("content\n", encoding="utf-8")
     link = tmp_path / "link.txt"
-    link.symlink_to(target)
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip(
+            "Creating file symlinks requires Windows symlink privilege"
+        )
 
     tool = ScrollFileTool(allowed_roots=[str(tmp_path)])
     with pytest.raises(PermissionError, match="symlinks"):
@@ -224,14 +234,30 @@ def test_rejects_symlinks_by_default(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
+@pytest.mark.skipif(
+    sys.platform != "linux", reason="Requires Linux openat2 symlink policy"
+)
 def test_allows_symlinks_only_with_explicit_opt_in(tmp_path: Path) -> None:
     target = tmp_path / "target.txt"
     target.write_text("content\n", encoding="utf-8")
     link = tmp_path / "link.txt"
-    link.symlink_to(target)
+    try:
+        link.symlink_to(target.name)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip(
+            "Creating file symlinks requires Windows symlink privilege"
+        )
 
     tool = ScrollFileTool(allowed_roots=[str(tmp_path)], allow_symlinks=True)
-    assert tool(str(link))["lines"][0]["content"] == "content"
+    try:
+        result = tool(str(link))
+    except OSError as exc:
+        if exc.errno != errno.ENOTSUP:
+            raise
+        pytest.skip("Kernel does not provide openat2")
+    assert result["lines"][0]["content"] == "content"
 
 
 @pytest.mark.unit
@@ -274,7 +300,7 @@ def test_enforces_scanned_and_returned_byte_budgets(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     path = tmp_path / "file.txt"
-    path.write_text("1234\n5678\n", encoding="utf-8")
+    path.write_bytes(b"1234\n5678\n")
     tool = ScrollFileTool(allowed_roots=[str(tmp_path)])
 
     monkeypatch.setattr(ScrollFileTool, "MAX_SCANNED_BYTES", 4)
@@ -332,3 +358,187 @@ def test_enforces_elapsed_time_budget(
     tool = ScrollFileTool(allowed_roots=[str(tmp_path)])
     with pytest.raises(ValueError, match="elapsed-time limit"):
         tool(str(path))
+
+
+@pytest.mark.unit
+def test_small_later_page_ignores_preceding_return_budget(
+    tmp_path, monkeypatch
+):
+    path = tmp_path / "pages.txt"
+    path.write_text("a" * 20 + "\n" + "b" * 20 + "\nsmall\n")
+    monkeypatch.setattr(ScrollFileTool, "MAX_RETURN_BYTES", 30)
+    result = ScrollFileTool(allowed_roots=[str(tmp_path)])(
+        str(path), start_line=3, page_size=2
+    )
+    assert [line["content"] for line in result["lines"]] == ["small"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("next_line", [b"x" * 100, b"\xff\xfe"])
+def test_next_page_is_not_decoded_or_line_validated(
+    tmp_path, monkeypatch, next_line
+):
+    path = tmp_path / "pages.txt"
+    path.write_bytes(b"ok\n" + next_line + b"\n")
+    monkeypatch.setattr(ScrollFileTool, "MAX_LINE_BYTES", 10)
+    result = ScrollFileTool(allowed_roots=[str(tmp_path)])(
+        str(path), page_size=1
+    )
+    assert result["lines"] == [{"line_number": 1, "content": "ok"}]
+    assert result["has_next"] is True
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("fallback", [False, True])
+@pytest.mark.skipif(os.name == "nt", reason="Exercises POSIX descriptor hooks")
+def test_ancestor_swap_cannot_redirect_read(tmp_path, monkeypatch, fallback):
+    from swarmauri_tool_scrollfile import _filesystem as fs
+
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    (allowed / "note.txt").write_text("public\n")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "note.txt").write_text("private\n")
+    original = fs._linux_openat2
+
+    def swap(root_fd, relative, flags, allow_symlinks=False):
+        allowed.rename(tmp_path / "moved")
+        allowed.symlink_to(outside, target_is_directory=True)
+        return (
+            None
+            if fallback
+            else original(root_fd, relative, flags, allow_symlinks)
+        )
+
+    monkeypatch.setattr(fs, "_linux_openat2", swap)
+    result = ScrollFileTool(allowed_roots=[str(allowed)])(
+        str(allowed / "note.txt")
+    )
+    assert result["lines"][0]["content"] == "public"
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("fallback", [False, True])
+@pytest.mark.skipif(os.name == "nt", reason="Exercises POSIX descriptor hooks")
+def test_intermediate_symlink_swap_is_rejected(
+    tmp_path, monkeypatch, fallback
+):
+    from swarmauri_tool_scrollfile import _filesystem as fs
+
+    parent = tmp_path / "parent"
+    parent.mkdir()
+    (parent / "note.txt").write_text("public\n")
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "note.txt").write_text("private\n")
+    original = fs._linux_openat2
+
+    def swap(root_fd, relative, flags, allow_symlinks=False):
+        parent.rename(tmp_path / "moved")
+        parent.symlink_to(outside, target_is_directory=True)
+        return (
+            None
+            if fallback
+            else original(root_fd, relative, flags, allow_symlinks)
+        )
+
+    monkeypatch.setattr(fs, "_linux_openat2", swap)
+    with pytest.raises(OSError):
+        ScrollFileTool(allowed_roots=[str(tmp_path)])(str(parent / "note.txt"))
+
+
+@pytest.mark.unit
+@pytest.mark.skipif(
+    sys.platform != "linux", reason="Requires Linux openat2 symlink policy"
+)
+def test_symlink_opt_in_cannot_escape_root(tmp_path):
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    (tmp_path / "private.txt").write_text("private")
+    try:
+        (allowed / "escape.txt").symlink_to("../private.txt")
+    except OSError as exc:
+        if getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip(
+            "Creating file symlinks requires Windows symlink privilege"
+        )
+    tool = ScrollFileTool(allowed_roots=[str(allowed)], allow_symlinks=True)
+    with pytest.raises(OSError):
+        tool(str(allowed / "escape.txt"))
+
+
+@pytest.mark.unit
+def test_symlink_opt_in_requires_secure_kernel_backend(tmp_path, monkeypatch):
+    from swarmauri_tool_scrollfile import _filesystem as fs
+
+    (tmp_path / "target.txt").write_text("public")
+    try:
+        (tmp_path / "link.txt").symlink_to("target.txt")
+    except OSError as exc:
+        if getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip(
+            "Creating file symlinks requires Windows symlink privilege"
+        )
+    monkeypatch.setattr(fs, "_linux_openat2", lambda *args: None)
+    with pytest.raises(OSError, match="requires Linux openat2"):
+        ScrollFileTool(allowed_roots=[str(tmp_path)], allow_symlinks=True)(
+            str(tmp_path / "link.txt")
+        )
+
+
+@pytest.mark.unit
+def test_unrestricted_opt_in_does_not_disable_symlink_policy(tmp_path):
+    (tmp_path / "target.txt").write_text("public")
+    try:
+        (tmp_path / "link.txt").symlink_to("target.txt")
+    except OSError as exc:
+        if getattr(exc, "winerror", None) != 1314:
+            raise
+        pytest.skip(
+            "Creating file symlinks requires Windows symlink privilege"
+        )
+    tool = ScrollFileTool(allowed_roots=[], allow_unrestricted_paths=True)
+    assert (
+        tool(str(tmp_path / "target.txt"))["lines"][0]["content"] == "public"
+    )
+    with pytest.raises(OSError):
+        tool(str(tmp_path / "link.txt"))
+
+
+@pytest.mark.unit
+@pytest.mark.skipif(
+    not hasattr(os, "mkfifo"), reason="Requires POSIX FIFO support"
+)
+def test_fifo_is_rejected_without_a_blocking_open(tmp_path):
+    pipe = tmp_path / "pipe"
+    os.mkfifo(pipe)
+    with pytest.raises(ValueError, match="regular file"):
+        ScrollFileTool(allowed_roots=[str(tmp_path)])(str(pipe))
+
+
+@pytest.mark.unit
+def test_nul_path_is_rejected_before_the_syscall(tmp_path):
+    (tmp_path / "target.txt").write_text("private")
+    with pytest.raises(ValueError, match="NUL"):
+        ScrollFileTool(allowed_roots=[str(tmp_path)])(
+            str(tmp_path / "target.txt") + "\x00suffix"
+        )
+
+
+@pytest.mark.unit
+def test_refuses_hard_link_to_file_outside_root(tmp_path):
+    allowed = tmp_path / "allowed"
+    allowed.mkdir()
+    external = tmp_path / "external.txt"
+    external.write_text("private", encoding="utf-8")
+    alias = allowed / "alias.txt"
+    os.link(external, alias)
+    tool = ScrollFileTool(allowed_roots=[str(allowed)])
+    with pytest.raises(PermissionError, match="exactly one hard link"):
+        tool(str(alias))
+    plain = allowed / "plain.txt"
+    plain.write_text("public", encoding="utf-8")
+    assert tool(str(plain))["lines"][0]["content"] == "public"

@@ -12,6 +12,8 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
+from ._filesystem import open_file
+
 
 class ScrollLine(TypedDict):
     """One line returned by :class:`ScrollFileTool`."""
@@ -193,46 +195,13 @@ class ScrollFileTool(ToolBase):
             raise ValueError("direction must be either 'up' or 'down'.")
 
     def _resolve_file_path(self, file_path: str) -> Path:
-        requested = Path(file_path).expanduser()
-        lexical_path = (
-            requested if requested.is_absolute() else Path.cwd() / requested
-        )
-
-        if not self.allow_symlinks and self._contains_symlink(lexical_path):
-            raise PermissionError(
-                "file_path must not contain symlinks unless allow_symlinks "
-                "is explicitly enabled."
+        # Preserve lexical symlink components for enforcement during opening.
+        requested = Path(file_path).expanduser().absolute()
+        if ".." in requested.parts or "\x00" in str(requested):
+            raise ValueError(
+                "file_path must not contain NULs or parent traversal"
             )
-
-        resolved_path = lexical_path.resolve(strict=True)
-        if not self.allow_unrestricted_paths:
-            if not self.allowed_roots:
-                raise ValueError(
-                    "allowed_roots must contain at least one trusted path."
-                )
-            resolved_roots = [
-                Path(root).expanduser().resolve(strict=True)
-                for root in self.allowed_roots
-            ]
-            if not any(
-                resolved_path == root or resolved_path.is_relative_to(root)
-                for root in resolved_roots
-            ):
-                raise PermissionError(
-                    "file_path resolves outside the configured allowed_roots."
-                )
-
-        if not resolved_path.is_file():
-            raise ValueError("file_path must resolve to a regular file.")
-        return resolved_path
-
-    @staticmethod
-    def _contains_symlink(path: Path) -> bool:
-        absolute_path = path.absolute()
-        return any(
-            component.is_symlink()
-            for component in reversed((absolute_path, *absolute_path.parents))
-        )
+        return requested
 
     def _read_page(
         self, file_path: Path, target_start: int, page_size: int
@@ -245,14 +214,19 @@ class ScrollFileTool(ToolBase):
         returned_bytes = 0
         started_at = time.monotonic()
 
-        flags = os.O_RDONLY
-        if not self.allow_symlinks:
-            flags |= getattr(os, "O_NOFOLLOW", 0)
-        descriptor = os.open(file_path, flags)
+        descriptor = open_file(
+            file_path,
+            self.allowed_roots,
+            allow_symlinks=self.allow_symlinks,
+            allow_unrestricted_paths=self.allow_unrestricted_paths,
+        )
         try:
             file_stat = os.fstat(descriptor)
             if not stat.S_ISREG(file_stat.st_mode):
                 raise ValueError("file_path must resolve to a regular file.")
+
+            if not self.allow_unrestricted_paths and file_stat.st_nlink != 1:
+                raise PermissionError("File must have exactly one hard link")
 
             with os.fdopen(descriptor, "rb") as file:
                 descriptor = -1
@@ -263,16 +237,27 @@ class ScrollFileTool(ToolBase):
                         > self.MAX_ELAPSED_SECONDS
                     ):
                         raise ValueError(
-                            "File read exceeded the configured elapsed-time "
-                            "limit."
+                            "File read exceeded the elapsed-time limit."
                         )
+                    if len(window) == page_size:
+                        following = file.read(1)
+                        if following:
+                            if line_number >= self.MAX_SCANNED_LINES:
+                                raise ValueError(
+                                    "File scanned-line limit exceeded."
+                                )
+                            if scanned_bytes + 1 > self.MAX_SCANNED_BYTES:
+                                raise ValueError(
+                                    "File scanned-byte limit exceeded."
+                                )
+                            has_next = True
+                        break
                     raw_line = file.readline(self.MAX_LINE_BYTES + 1)
                     if not raw_line:
                         break
                     if line_number >= self.MAX_SCANNED_LINES:
                         raise ValueError(
-                            "File read exceeded the configured scanned-line "
-                            "limit."
+                            "File read exceeded the scanned-line limit."
                         )
                     line_number += 1
                     if len(raw_line) > self.MAX_LINE_BYTES:
@@ -284,8 +269,7 @@ class ScrollFileTool(ToolBase):
                     scanned_bytes += len(raw_line)
                     if scanned_bytes > self.MAX_SCANNED_BYTES:
                         raise ValueError(
-                            "File read exceeded the configured scanned-byte "
-                            "limit."
+                            "File read exceeded the scanned-byte limit."
                         )
 
                     content = raw_line.decode("utf-8").rstrip("\r\n")
@@ -300,21 +284,12 @@ class ScrollFileTool(ToolBase):
                         if len(preceding) > page_size:
                             _, removed_bytes = preceding.popleft()
                             preceding_bytes -= removed_bytes
-                        if preceding_bytes > self.MAX_RETURN_BYTES:
-                            raise ValueError(
-                                "File page exceeded the configured "
-                                "returned-byte limit."
-                            )
                         continue
 
-                    if len(window) == page_size:
-                        has_next = True
-                        break
                     returned_bytes += line_bytes
                     if returned_bytes > self.MAX_RETURN_BYTES:
                         raise ValueError(
-                            "File page exceeded the configured "
-                            "returned-byte limit."
+                            "File page exceeded the returned-byte limit."
                         )
                     window.append(line)
         finally:
@@ -322,6 +297,8 @@ class ScrollFileTool(ToolBase):
                 os.close(descriptor)
 
         if not window and preceding:
+            if preceding_bytes > self.MAX_RETURN_BYTES:
+                raise ValueError("File page exceeded the returned-byte limit.")
             return [line for line, _ in preceding], False
 
         return window, has_next
