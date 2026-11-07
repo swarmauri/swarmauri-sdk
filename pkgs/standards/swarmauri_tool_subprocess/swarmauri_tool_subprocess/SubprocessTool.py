@@ -7,18 +7,20 @@ module.
 This module exposes ``SubprocessTool``, a first-class Swarmauri tool that
 runs a command in a subprocess and returns a structured result containing
 ``status``, ``stdout``, ``stderr``, and ``exit_code``. It defaults to
-``shell=False`` to prevent shell injection and supports both string
+``shell=False`` and supports both string
 commands (split via ``shlex``) and explicit argument vectors.
 """
 
-import shlex
-import subprocess
 from typing import Dict, List, Literal, Optional, Union
 
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase  # type: ignore[import-untyped]
 from swarmauri_base.tools.ParameterBase import ParameterBase  # type: ignore[import-untyped]
 from swarmauri_base.tools.ToolBase import ToolBase  # type: ignore[import-untyped]
+
+
+from swarmauri_standard.tools._subprocess import run_subprocess
+
 
 @ComponentBase.register_type(ToolBase, "SubprocessTool")
 class SubprocessTool(ToolBase):  # type: ignore[misc]
@@ -67,6 +69,12 @@ class SubprocessTool(ToolBase):  # type: ignore[misc]
                 description="Working directory",
                 required=False,
             ),
+            ParameterBase(
+                name="env",
+                input_type="object",
+                description="Child environment, defaulting to the parent",
+                required=False,
+            ),
         ]
     )
     name: str = "SubprocessTool"
@@ -81,25 +89,33 @@ class SubprocessTool(ToolBase):  # type: ignore[misc]
         timeout: Optional[float] = None,
         shell: bool = False,
         cwd: Optional[str] = None,
+        env: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Union[str, int, None]]:
         """
         Execute a command and return its stdout, stderr, and exit code.
 
         Support both string commands (split via ``shlex.split``) and
-        argument vectors (list of strings). Default to ``shell=False`` to
-        prevent shell injection. Non-zero exit codes are preserved without
+        argument vectors (list of strings). Default to ``shell=False`` for
+        native executables. Non-zero exit codes are preserved without
         being conflated with tool or runtime failures; timeouts and missing
         executables are reported via the ``status`` field.
 
         Args:
             command (Union[str, List[str]]): The command to execute. Pass a
-                list of strings to avoid shell parsing entirely.
+                list of strings for native argument handling.
             timeout (Optional[float]): Optional timeout in seconds. A
                 ``status`` of ``"timeout"`` is returned on expiry.
             shell (bool): Whether to run the command through the platform
                 shell. Defaults to ``False``.
             cwd (Optional[str]): Optional working directory for the
-                subprocess.
+                subprocess. Omitted means the parent's working directory.
+            env (Optional[Dict[str, str]]): Complete replacement child
+                environment. Omitted means inherit the parent's environment.
+
+        Argument lists require ``shell=False``. Shell mode accepts only a
+        string and executes it through the platform shell. Use argument lists
+        for Windows paths and platform-neutral quoting. A timeout kills and
+        waits for the direct child. Timed Windows calls capture to disk.
 
         Returns:
             Dict[str, Union[str, int, None]]: A dictionary containing
@@ -107,51 +123,6 @@ class SubprocessTool(ToolBase):  # type: ignore[misc]
                 or ``"runtime_error"``), ``stdout``, ``stderr``, and
                 ``exit_code``.
         """
-        if isinstance(command, str):
-            if shell:
-                args: Union[str, List[str]] = command
-            else:
-                args = shlex.split(command)
-        else:
-            args = command
-
-        try:
-            result = subprocess.run(
-                args,
-                capture_output=True,
-                text=True,
-                shell=shell,
-                check=False,
-                timeout=timeout,
-                cwd=cwd,
-            )
-            return {
-                "status": "success",
-                "stdout": result.stdout,
-                "stderr": result.stderr,
-                "exit_code": result.returncode,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "status": "timeout",
-                "stdout": "",
-                "stderr": f"Process timed out after {timeout} seconds",
-                "exit_code": None,
-            }
-        except FileNotFoundError:
-            return {
-                "status": "not_found",
-                "stdout": "",
-                "stderr": (
-                    "Executable not found: "
-                    f"{args[0] if isinstance(args, list) else args}"
-                ),
-                "exit_code": 127,
-            }
-        except Exception as e:
-            return {
-                "status": "runtime_error",
-                "stdout": "",
-                "stderr": str(e),
-                "exit_code": None,
-            }
+        return run_subprocess(
+            command, timeout=timeout, shell=shell, cwd=cwd, env=env
+        )
