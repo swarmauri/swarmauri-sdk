@@ -38,5 +38,7 @@ def test_euclidean_distance_invalid_shape():
     """Test Euclidean distance with vectors of different shapes."""
     a = np.array([1.0, 2.0])
     b = np.array([1.0, 2.0, 3.0])
-    with pytest.raises(ValueError, match="Input arrays must have the same size."):
+    with pytest.raises(
+        ValueError, match="Input arrays must have the same size."
+    ):
         euclidean_distance(a, b)

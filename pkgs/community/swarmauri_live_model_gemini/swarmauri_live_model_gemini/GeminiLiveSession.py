@@ -1,7 +1,7 @@
 import asyncio
 import json
 from contextlib import suppress
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import PrivateAttr
 from swarmauri_base.live_models.events.SessionErrorEvent import (
@@ -9,12 +9,15 @@ from swarmauri_base.live_models.events.SessionErrorEvent import (
 )
 from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.transports import IWebSocketConnection
 
 from .GeminiLiveCodec import GeminiLiveCodec
 
 
+@ComponentBase.register_type(LiveSessionBase, "GeminiLiveSession")
 class GeminiLiveSession(LiveSessionBase):
+    type: Literal["GeminiLiveSession"] = "GeminiLiveSession"
     _connection: IWebSocketConnection = PrivateAttr()
     _codec: GeminiLiveCodec = PrivateAttr(default_factory=GeminiLiveCodec)
     _receiver: Any = PrivateAttr(default=None)

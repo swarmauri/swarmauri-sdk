@@ -23,3 +23,10 @@ class IModelProvider(ABC):
         capability: str,
         model: str | None = None,
     ) -> Any: ...
+
+    @abstractmethod
+    def prepare_connection(
+        self,
+        capability: str,
+        model: str | None = None,
+    ) -> Any: ...
