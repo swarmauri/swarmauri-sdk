@@ -1,10 +1,10 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
-[![Downloads](https://static.pepy.tech/badge/vb/month)](https://pepy.tech/project/vb)
+[![Downloads](https://img.shields.io/pypi/dm/vb)](https://pypi.org/project/vb/)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/vb.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/vb/)
-![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
+[![Python](https://img.shields.io/pypi/pyversions/vb)](https://pypi.org/project/vb/)
 [![License](https://img.shields.io/pypi/l/vb)](https://pypi.org/project/vb/)
-[![Version](https://img.shields.io/pypi/v/vb)](https://pypi.org/project/vb/)
+[![Version](https://img.shields.io/pypi/v/vb?label=vb&color=green)](https://pypi.org/project/vb/)
 
 # vb
 
@@ -14,7 +14,7 @@ Experimental placeholder package in the Swarmauri SDK. This planning-stage relea
 
 - Placeholder distribution with version metadata.
 - No runtime dependencies or import-time side effects.
-- Supports Python 3.10 through 3.12 under Apache-2.0.
+- Declares Python 3.10 through 3.15 under Apache-2.0.
 
 ## Installation
 
@@ -38,5 +38,3 @@ This release provides version metadata only. Future functionality is not yet spe
 ## Contributing
 
 See the [SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/contributing.md).
-
-
