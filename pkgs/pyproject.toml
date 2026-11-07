@@ -142,6 +142,7 @@ members = [
     "community/swarmauri_tool_jupytervalidatenotebook",
     "community/swarmauri_tool_jupyterwritenotebook",
     "community/swarmauri_tool_lexicaldensity",
+    "community/swarmauri_tool_listfiles",
     "community/swarmauri_tool_psutil",
     "community/swarmauri_tool_qrcodegenerator",
     "community/swarmauri_tool_searchword",
