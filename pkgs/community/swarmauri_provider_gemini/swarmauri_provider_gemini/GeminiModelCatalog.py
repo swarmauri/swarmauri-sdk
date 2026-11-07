@@ -1,8 +1,10 @@
 from typing import Literal
 
 from swarmauri_base.model_providers.ModelCatalogBase import ModelCatalogBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ModelCatalogBase, "GeminiModelCatalog")
 class GeminiModelCatalog(ModelCatalogBase):
     models: dict = {
         "gemini-3.1-flash-live-preview": {

@@ -1,7 +1,9 @@
-from .euclidean import euclidean
-from .cosine import cosine
+from . import euclidean
+from . import cosine
 
-__all__ = ["euclidean", "cosine"]
+from .euclidean import euclidean_distance
+
+__all__ = ["euclidean", "cosine", "euclidean_distance"]
 
 try:
     # For Python 3.8 and newer

@@ -1,5 +1,8 @@
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -46,73 +49,14 @@ private:
     double accuracy_;
 };
 
-// Python interface for the ApproximateQueryEngine
-static PyObject* approx_query(PyObject* self, PyObject* args) {
-    PyObject* dataset_obj;
-    PyObject* query_point_obj;
-    size_t num_neighbors;
-    double accuracy;
 
-    if (!PyArg_ParseTuple(args, "OOd", &dataset_obj, &query_point_obj, &num_neighbors, &accuracy)) {
-        return NULL;
-    }
-
-    // Convert dataset from Python list to C++ vector
-    std::vector<std::vector<double>> dataset;
-    if (!PyList_Check(dataset_obj)) {
-        return NULL;
-    }
-    for (Py_ssize_t i = 0; i < PyList_Size(dataset_obj); ++i) {
-        PyObject* item = PyList_GetItem(dataset_obj, i);
-        if (!PyList_Check(item)) {
-            return NULL;
-        }
-        std::vector<double> point;
-        for (Py_ssize_t j = 0; j < PyList_Size(item); ++j) {
-            PyObject* coord = PyList_GetItem(item, j);
-            point.push_back(PyFloat_AsDouble(coord));
-        }
-        dataset.push_back(point);
-    }
-
-    // Convert query point from Python list to C++ vector
-    std::vector<double> query_point;
-    if (!PyList_Check(query_point_obj)) {
-        return NULL;
-    }
-    for (Py_ssize_t i = 0; i < PyList_Size(query_point_obj); ++i) {
-        PyObject* coord = PyList_GetItem(query_point_obj, i);
-        query_point.push_back(PyFloat_AsDouble(coord));
-    }
-
-    // Create query engine and perform search
-    ApproximateQueryEngine engine(num_neighbors, accuracy);
-    std::vector<size_t> result = engine.query(dataset, query_point);
-
-    // Convert result to Python list
-    PyObject* result_list = PyList_New(result.size());
-    for (size_t i = 0; i < result.size(); ++i) {
-        PyList_SetItem(result_list, i, PyLong_FromSize_t(result[i]));
-    }
-
-    return result_list;
-}
-
-// Module definition
-static PyMethodDef ApproxQueryMethods[] = {
-    {"approx_query", approx_query, METH_VARARGS, "Execute an approximate similarity query."},
-    {NULL, NULL, 0, NULL}
-};
-
-static struct PyModuleDef approxquerymodule = {
-    PyModuleDef_HEAD_INIT,
-    "approx_query",
-    NULL,
-    -1,
-    ApproxQueryMethods
-};
-
-PyMODINIT_FUNC PyInit_approx_query(void) {
-    import_array(); // Initialize NumPy API
-    return PyModule_Create(&approxquerymodule);
+PYBIND11_MODULE(approx_query, module) {
+    module.def("approx_query", [](const std::vector<std::vector<double>>& dataset, const std::vector<double>& point, py::ssize_t k, double accuracy) {
+        if (k < 0) throw py::value_error("k must be nonnegative");
+        if (!(accuracy >= 0.0 && accuracy <= 1.0)) throw py::value_error("accuracy must be between zero and one");
+        for (const auto& item : dataset)
+            if (item.size() != point.size()) throw py::value_error("Vector dimensions must match");
+        ApproximateQueryEngine engine(static_cast<size_t>(k), accuracy);
+        return engine.query(dataset, point);
+    });
 }

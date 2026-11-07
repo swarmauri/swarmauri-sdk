@@ -67,36 +67,20 @@ def test_parser():
         assert documents[0].metadata["source"] == file_path, (
             "The metadata 'source' should match the file path."
         )
+        mock_pdf_document.close.assert_called_once()
 
 
 @pytest.mark.unit
-def test_parser_closes_document_on_success():
+def test_parser_closes_document_on_error():
     parser = Parser()
 
-    file_path = "resources/demo.pdf"
-
-    # Mock the pymupdf open method and the returned document
     with mock.patch("pymupdf.open") as mock_open:
         mock_pdf_document = mock.Mock()
         mock_pdf_document.__len__ = mock.Mock(return_value=1)
-
-        mock_page = mock.Mock()
-        mock_page.get_text.return_value = "This is the text from page 1.\n"
-
-        mock_pdf_document.load_page.side_effect = [mock_page]
+        mock_pdf_document.load_page.side_effect = RuntimeError("bad page")
         mock_open.return_value = mock_pdf_document
 
-        documents = parser.parse(file_path)
-
-        # The document content should still be extracted correctly
-        assert len(documents) == 1, (
-            "The parser should return a list with one document."
-        )
-        assert documents[0].content == "This is the text from page 1.\n", (
-            "The extracted text content is incorrect."
-        )
-
-        # The document handle must be closed after successful extraction
+        assert parser.parse("resources/demo.pdf") == []
         mock_pdf_document.close.assert_called_once()
 
 

@@ -1,7 +1,7 @@
 import asyncio
 import json
 from contextlib import suppress
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import PrivateAttr
 from swarmauri_base.live_models.events.SessionErrorEvent import (
@@ -9,12 +9,15 @@ from swarmauri_base.live_models.events.SessionErrorEvent import (
 )
 from swarmauri_base.live_models.LiveInputBase import LiveInputBase
 from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.transports import IWebSocketConnection
 
 from .OpenAIRealtimeCodec import OpenAIRealtimeCodec
 
 
+@ComponentBase.register_type(LiveSessionBase, "OpenAIRealtimeSession")
 class OpenAIRealtimeSession(LiveSessionBase):
+    type: Literal["OpenAIRealtimeSession"] = "OpenAIRealtimeSession"
     _connection: IWebSocketConnection = PrivateAttr()
     _codec: OpenAIRealtimeCodec = PrivateAttr(
         default_factory=OpenAIRealtimeCodec

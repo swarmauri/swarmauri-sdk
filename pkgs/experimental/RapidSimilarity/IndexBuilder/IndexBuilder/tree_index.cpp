@@ -1,5 +1,8 @@
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
 #include <vector>
 #include <algorithm>
 #include <memory>
@@ -66,7 +69,7 @@ private:
         std::vector<double> candidate = nearestNeighborHelper(nextNode, target, depth + 1);
         if (!candidate.empty()) {
             double candidateDist = distance(candidate, target);
-            if (candidateDist < bestDist) {
+            if (candidateDist < bestDist || (candidateDist == bestDist && candidate < bestPoint)) {
                 bestPoint = candidate;
                 bestDist = candidateDist;
             }
@@ -80,7 +83,7 @@ private:
                 candidate = nearestNeighborHelper(otherNode, target, depth + 1);
                 if (!candidate.empty()) {
                     double candidateDist = distance(candidate, target);
-                    if (candidateDist < bestDist) {
+                    if (candidateDist < bestDist || (candidateDist == bestDist && candidate < bestPoint)) {
                         bestPoint = candidate;
                     }
                 }
@@ -100,66 +103,13 @@ private:
     }
 };
 
-// Python wrapper for KDTree
-static PyObject* py_nearestNeighbor(PyObject* self, PyObject* args) {
-    PyObject* pointsObj;
-    PyObject* targetObj;
 
-    // Parse input
-    if (!PyArg_ParseTuple(args, "OO", &pointsObj, &targetObj)) {
-        return nullptr;
-    }
-
-    // Convert Python list to std::vector<std::vector<double>>
-    std::vector<std::vector<double>> points;
-    Py_ssize_t numPoints = PyList_Size(pointsObj);
-    for (Py_ssize_t i = 0; i < numPoints; ++i) {
-        PyObject* pointObj = PyList_GetItem(pointsObj, i);
-        std::vector<double> point;
-        Py_ssize_t numDims = PyList_Size(pointObj);
-        for (Py_ssize_t j = 0; j < numDims; ++j) {
-            point.push_back(PyFloat_AsDouble(PyList_GetItem(pointObj, j)));
-        }
-        points.push_back(point);
-    }
-
-    // Convert target to std::vector<double>
-    std::vector<double> target;
-    Py_ssize_t targetDims = PyList_Size(targetObj);
-    for (Py_ssize_t i = 0; i < targetDims; ++i) {
-        target.push_back(PyFloat_AsDouble(PyList_GetItem(targetObj, i)));
-    }
-
-    // Build the KDTree and find the nearest neighbor
-    KDTree tree(points);
-    std::vector<double> nearest = tree.nearestNeighbor(target);
-
-    // Convert result back to Python list
-    PyObject* result = PyList_New(nearest.size());
-    for (size_t i = 0; i < nearest.size(); ++i) {
-        PyList_SetItem(result, i, PyFloat_FromDouble(nearest[i]));
-    }
-
-    return result;
-}
-
-// Module method definitions
-static PyMethodDef KDTreeMethods[] = {
-    {"nearestNeighbor", py_nearestNeighbor, METH_VARARGS, "Find the nearest neighbor."},
-    {nullptr, nullptr, 0, nullptr}
-};
-
-// Module definition
-static struct PyModuleDef kdtree_module = {
-    PyModuleDef_HEAD_INIT,
-    "kdtree",
-    nullptr,
-    -1,
-    KDTreeMethods
-};
-
-// Module initialization
-PyMODINIT_FUNC PyInit_kdtree(void) {
-    import_array(); // Initialize NumPy API
-    return PyModule_Create(&kdtree_module);
+PYBIND11_MODULE(tree_index, module) {
+    module.def("nearestNeighbor", [](std::vector<std::vector<double>> points, const std::vector<double>& target) {
+        for (const auto& point : points)
+            if (point.size() != target.size()) throw py::value_error("Vector dimensions must match");
+        if (target.empty() && !points.empty()) throw py::value_error("Target cannot be empty");
+        KDTree tree(points);
+        return tree.nearestNeighbor(target);
+    });
 }

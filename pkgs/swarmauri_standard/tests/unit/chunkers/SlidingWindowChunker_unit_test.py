@@ -18,6 +18,12 @@ def test_ubc_type():
 
 
 @pytest.mark.unit
+def test_chunk_text_drops_partial_window():
+    chunker = SlidingWindowChunker(window_size=2)
+    assert chunker.chunk_text("one two three") == ["one two"]
+
+
+@pytest.mark.unit
 def test_chunk_text():
     unchunked_text = "abcdefghijklmnopqsrtuvwxyz012345 "
     assert len(SlidingWindowChunker().chunk_text(unchunked_text * 512)) == 2
