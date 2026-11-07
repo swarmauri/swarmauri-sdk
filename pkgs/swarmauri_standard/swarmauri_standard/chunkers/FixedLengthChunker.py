@@ -1,7 +1,5 @@
 from typing import Any, List, Literal
 
-from pydantic import field_validator
-
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
 
@@ -22,29 +20,10 @@ class FixedLengthChunker(ChunkerBase):
     chunk_size: int = 256
     type: Literal["FixedLengthChunker"] = "FixedLengthChunker"
 
-    @field_validator("chunk_size")
-    def validate_chunk_size(cls, v):
-        """
-        Validate that the chunk size is a positive integer.
-
-        Parameters
-        ----------
-        v : int
-            The chunk size to validate.
-
-        Returns
-        -------
-        int
-            The validated chunk size.
-
-        Raises
-        ------
-        ValueError
-            If the chunk size is zero or negative.
-        """
-        if v <= 0:
-            raise ValueError("chunk_size must be a positive integer.")
-        return v
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        if self.chunk_size <= 0:
+            raise ValueError("chunk_size must be a positive integer")
 
     def chunk_text(self, text: str | Any, *args, **kwargs) -> List[str]:
         """

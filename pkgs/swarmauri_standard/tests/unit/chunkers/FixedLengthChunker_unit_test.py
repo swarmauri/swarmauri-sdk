@@ -1,5 +1,4 @@
 import pytest
-from pydantic import ValidationError
 
 from swarmauri_standard.chunkers.FixedLengthChunker import FixedLengthChunker
 
@@ -30,9 +29,11 @@ def test_chunk_text_fixed_length():
 @pytest.mark.unit
 @pytest.mark.parametrize("chunk_size", [0, -1])
 def test_invalid_chunk_size(chunk_size):
-    with pytest.raises(ValidationError) as exc_info:
+    with pytest.raises(
+        ValueError, match="chunk_size must be a positive integer"
+    ) as exc_info:
         FixedLengthChunker(chunk_size=chunk_size)
-    assert "chunk_size" in str(exc_info.value)
+    assert type(exc_info.value) is ValueError
 
 
 @pytest.mark.unit
