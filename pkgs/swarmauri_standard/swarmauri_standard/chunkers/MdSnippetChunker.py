@@ -18,32 +18,25 @@ class MdSnippetChunker(ChunkerBase):
         specified programming language.
         """
         if self.language:
-            # If language is specified, directly extract the corresponding
-            # blocks
             pattern = rf"```{self.language}\s*(.*?)```"
-            scripts = re.findall(pattern, text, re.DOTALL)
-            # Split with a non-capturing group so the captured code is not
-            # interleaved into the comment segments.
-            comments_temp = re.split(
-                rf"```{self.language}\s*(?:.*?)```", text, flags=re.DOTALL
-            )
-        else:
-            # Extract blocks and languages dynamically if no specific language
-            # is provided
-            scripts = []
-            languages = []
-            for match in re.finditer(r"```(\w+)?\s*(.*?)```", text, re.DOTALL):
-                if (
-                    match.group(1) is not None
-                ):  # Checks if a language identifier is present
-                    languages.append(match.group(1))
-                    scripts.append(match.group(2))
-                else:
-                    languages.append(
-                        ""
-                    )  # Default to an empty string if no language is found
-                    scripts.append(match.group(2))
-            comments_temp = re.split(r"```.*?```", text, flags=re.DOTALL)
+            snippets = []
+            previous_end = 0
+            for match in re.finditer(pattern, text, re.DOTALL):
+                comment = text[previous_end : match.start()].strip()
+                snippets.append(
+                    (comment, self.language, match.group(1).strip())
+                )
+                previous_end = match.end()
+            return snippets
+
+        # Extract blocks and languages dynamically if no specific language
+        # is provided
+        scripts = []
+        languages = []
+        for match in re.finditer(r"```(\w+)?\s*(.*?)```", text, re.DOTALL):
+            languages.append(match.group(1) or "")
+            scripts.append(match.group(2))
+        comments_temp = re.split(r"```.*?```", text, flags=re.DOTALL)
 
         comments = [comment.strip() for comment in comments_temp]
 
@@ -52,15 +45,7 @@ class MdSnippetChunker(ChunkerBase):
         if text.strip().endswith("```"):
             comments.append("")
 
-        if self.language:
-            structured_output = [
-                (comments[i], self.language, scripts[i].strip())
-                for i in range(len(scripts))
-            ]
-        else:
-            structured_output = [
-                (comments[i], languages[i], scripts[i].strip())
-                for i in range(len(scripts))
-            ]
-
-        return structured_output
+        return [
+            (comments[i], languages[i], script.strip())
+            for i, script in enumerate(scripts)
+        ]
