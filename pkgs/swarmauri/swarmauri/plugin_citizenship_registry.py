@@ -527,6 +527,9 @@ class PluginCitizenshipRegistry:
         # "swarmauri_standard.tools.MatplotlibCsvTool",
         # "swarmauri.tools.MatplotlibTool":
         # "swarmauri_standard.tools.MatplotlibTool",
+        "swarmauri.tools.SubprocessTool": (
+            "swarmauri_tool_subprocess.SubprocessTool"
+        ),
         "swarmauri.tools.Parameter": "swarmauri_standard.tools.Parameter",
         "swarmauri.tools.RequestsTool": (
             "swarmauri_standard.tools.RequestsTool"
@@ -801,6 +804,9 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.transports.WebSocketClient": (
             "swarmauri_transport_websocket.WebSocketClient"
+        ),
+        "swarmauri.transports.AwsEventStreamClient": (
+            "swarmauri_transport_aws_eventstream.AwsEventStreamClient"
         ),
         "swarmauri.tools.QueryImageVectorStoreTool": (
             "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"

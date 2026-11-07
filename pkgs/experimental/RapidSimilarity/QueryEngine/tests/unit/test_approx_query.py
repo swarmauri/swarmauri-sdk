@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from approx_query import approx_query
+from QueryEngine.approx_query import approx_query
 
 
 @pytest.mark.unit
@@ -34,7 +34,7 @@ def test_approx_query_edge_cases():
 @pytest.mark.parametrize(
     "dataset, query_point, expected_indices",
     [
-        ([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], [2.0, 3.0], [0]),
+        ([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], [2.0, 3.0], [0, 1]),
         ([[1.0, 1.0], [1.0, 2.0], [1.0, 3.0]], [1.0, 1.5], [1, 0]),
     ],
 )
@@ -70,7 +70,7 @@ def test_approx_query_invalid_data():
 
 @pytest.mark.unit
 def test_approx_query_large_dataset():
-    """Test the performance of the approximate query engine with a large dataset."""
+    """Verify approximate queries against a large dataset."""
     dataset = np.random.rand(1000, 2).tolist()  # Large dataset of 1000 points
     query_point = [0.5, 0.5]
     num_neighbors = 5

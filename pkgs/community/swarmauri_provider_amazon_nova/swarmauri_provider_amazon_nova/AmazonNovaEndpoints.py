@@ -3,8 +3,10 @@ from typing import Literal
 from swarmauri_base.model_providers.ProviderEndpointBase import (
     ProviderEndpointBase,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderEndpointBase, "AmazonNovaEndpoints")
 class AmazonNovaEndpoints(ProviderEndpointBase):
     region: str = "us-east-1"
     service: str = "bedrock-runtime"
