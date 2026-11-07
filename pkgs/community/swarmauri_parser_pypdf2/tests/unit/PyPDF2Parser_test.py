@@ -120,6 +120,82 @@ def test_parser_success_bytes():
 
 
 @pytest.mark.unit
+def test_parser_skips_whitespace_only_page_file_path():
+    """
+    Test that a whitespace-only page is skipped when parsing from a file
+    path and the remaining document keeps its original page number.
+    """
+    parser = Parser()
+    file_path = "resources/demo.pdf"
+
+    # Mock the open function and PyPDF2.PdfReader
+    with mock.patch(
+        "builtins.open", mock.mock_open(read_data=b"PDF file content")
+    ) as mock_file:
+        with mock.patch("PyPDF2.PdfReader") as mock_pdf_reader:
+            # Mock a whitespace-only first page and a text second page
+            whitespace_page = mock.Mock()
+            whitespace_page.extract_text.return_value = " \n\t "
+            text_page = mock.Mock()
+            text_page.extract_text.return_value = "Sample text from page 2."
+            mock_pdf_reader.return_value.pages = [whitespace_page, text_page]
+
+            # Call the parser's parse method
+            documents = parser.parse(file_path)
+
+            # Assertions
+            mock_file.assert_called_once_with(file_path, "rb")
+            mock_pdf_reader.assert_called_once()
+            assert len(documents) == 1, (
+                "Whitespace-only page should be skipped."
+            )
+            assert documents[0].content == "Sample text from page 2.", (
+                "Extracted content does not match expected."
+            )
+            assert documents[0].metadata["page_number"] == 2, (
+                "Metadata 'page_number' should stay 2."
+            )
+            assert documents[0].metadata["source"] == file_path, (
+                "Metadata 'source' should match the file path."
+            )
+
+
+@pytest.mark.unit
+def test_parser_skips_whitespace_only_page_bytes():
+    """
+    Test that a whitespace-only page is skipped when parsing from bytes
+    and the remaining document keeps its original page number.
+    """
+    parser = Parser()
+    pdf_bytes = b"%PDF-1.4 ... (binary content)"
+
+    # Mock the PyPDF2.PdfReader and its methods
+    with mock.patch("PyPDF2.PdfReader") as mock_pdf_reader:
+        # Mock a whitespace-only first page and a text second page
+        whitespace_page = mock.Mock()
+        whitespace_page.extract_text.return_value = " \n\t "
+        text_page = mock.Mock()
+        text_page.extract_text.return_value = "Sample text from page 2."
+        mock_pdf_reader.return_value.pages = [whitespace_page, text_page]
+
+        # Call the parser's parse method
+        documents = parser.parse(pdf_bytes)
+
+        # Assertions
+        mock_pdf_reader.assert_called_once()
+        assert len(documents) == 1, "Whitespace-only page should be skipped."
+        assert documents[0].content == "Sample text from page 2.", (
+            "Extracted content does not match expected."
+        )
+        assert documents[0].metadata["page_number"] == 2, (
+            "Metadata 'page_number' should stay 2."
+        )
+        assert documents[0].metadata["source"] == "bytes", (
+            "Metadata 'source' should be 'bytes'."
+        )
+
+
+@pytest.mark.unit
 def test_parser_invalid_source():
     """
     Test that the parser raises a TypeError when given an invalid source type.

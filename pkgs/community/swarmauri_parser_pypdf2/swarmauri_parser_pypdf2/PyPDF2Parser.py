@@ -35,7 +35,7 @@ class PyPDF2Parser(ParserBase):
                     reader = PyPDF2.PdfReader(file)
                     for page_num, page in enumerate(reader.pages):
                         text = page.extract_text()
-                        if text:
+                        if text and text.strip():
                             document = Document(
                                 content=text.strip(),
                                 metadata={
@@ -57,7 +57,7 @@ class PyPDF2Parser(ParserBase):
                 reader = PyPDF2.PdfReader(file_stream)
                 for page_num, page in enumerate(reader.pages):
                     text = page.extract_text()
-                    if text:
+                    if text and text.strip():
                         document = Document(
                             content=text.strip(),
                             metadata={
