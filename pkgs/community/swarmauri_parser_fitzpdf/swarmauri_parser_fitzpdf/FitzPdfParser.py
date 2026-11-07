@@ -33,9 +33,13 @@ class FitzPdfParser(ParserBase):
         try:
             # Open the PDF file
             doc = pymupdf.open(data)
-            text = ""
+        except Exception as e:
+            print(f"An error occurred while parsing the PDF: {e}")
+            return []
 
+        try:
             # Extract text from each page
+            text = ""
             for page_num in range(len(doc)):
                 page = doc.load_page(page_num)
                 text += page.get_text()
@@ -47,3 +51,7 @@ class FitzPdfParser(ParserBase):
         except Exception as e:
             print(f"An error occurred while parsing the PDF: {e}")
             return []
+
+        finally:
+            # Always release the document handle
+            doc.close()
