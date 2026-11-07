@@ -91,5 +91,5 @@ def test_parse_metadata():
         0,
         1,
     ], (
-        "Documents should record their zero-based match index in document order."
+        "Expected zero-based match indices in document order."
     )
