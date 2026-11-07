@@ -1,8 +1,10 @@
 from typing import Literal
 
 from swarmauri_base.model_providers.ModelCatalogBase import ModelCatalogBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ModelCatalogBase, "OpenAIModelCatalog")
 class OpenAIModelCatalog(ModelCatalogBase):
     models: dict = {
         "gpt-realtime": {

@@ -3,8 +3,10 @@ from typing import Literal
 from swarmauri_base.model_providers.ProviderEndpointBase import (
     ProviderEndpointBase,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderEndpointBase, "GeminiEndpoints")
 class GeminiEndpoints(ProviderEndpointBase):
     base_url: str = "https://generativelanguage.googleapis.com/v1beta"
     websocket_url: str = (

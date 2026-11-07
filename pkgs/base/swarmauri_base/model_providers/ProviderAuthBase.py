@@ -21,3 +21,7 @@ class ProviderAuthBase(IProviderAuth, ComponentBase):
     def apply(self, headers: Mapping[str, str]) -> Mapping[str, str]:
         """Return unchanged headers when a provider needs no header auth."""
         return dict(headers)
+
+    def apply_query(self, query: Mapping[str, str]) -> Mapping[str, str]:
+        """Return unchanged query values when no query auth is needed."""
+        return dict(query)

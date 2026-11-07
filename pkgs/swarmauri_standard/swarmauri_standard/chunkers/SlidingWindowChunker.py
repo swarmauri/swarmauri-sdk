@@ -21,6 +21,17 @@ class SlidingWindowChunker(ChunkerBase):
         Splits the input text into chunks based on the sliding window
         technique.
 
+        Both ``window_size`` and ``step_size`` are counted in
+        whitespace-separated words. When ``overlap`` is True, consecutive
+        windows advance by ``step_size`` words; otherwise each window
+        advances by ``window_size`` words so consecutive chunks do not
+        overlap. Only full windows are emitted: a trailing partial window
+        with fewer words than ``window_size`` is dropped.
+
+        Example:
+            >>> SlidingWindowChunker(window_size=2).chunk_text("one two three")
+            ['one two']
+
         Parameters:
         - text (str): The input text to be chunked.
 
