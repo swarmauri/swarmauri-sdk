@@ -91,7 +91,7 @@ class CalculatorTool(ToolBase):
         Example:
             >>> calculator = CalculatorTool()
             >>> calculator("add", 5, 3)
-            {'operation': 'add', 'calculated_result': '8.0'}
+            {'operation': 'add', 'calculated_result': '8'}
         """
         try:
             if operation == "add":
