@@ -1,8 +1,12 @@
-from pathlib import Path
-
 import pytest
 
 from swarmauri_tool_listfiles.ListFilesTool import ListFilesTool as Tool
+from swarmauri_tool_listfiles import _filesystem
+
+
+@pytest.fixture(autouse=True)
+def trusted_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.mark.unit
@@ -150,10 +154,10 @@ def test_full_paths_report_the_entry_not_a_symlink_target(tmp_path):
 def test_unsearchable_probe_returns_an_error(tmp_path, monkeypatch):
     """A probe that raises must be reported, not propagated."""
 
-    def denied(self):
+    def denied(*args):
         raise PermissionError("denied")
 
-    monkeypatch.setattr(Path, "exists", denied)
+    monkeypatch.setattr(_filesystem, "open_directory", denied)
 
     result = Tool()(path=str(tmp_path))
 

@@ -1,3 +1,5 @@
+from contextlib import closing
+import stat
 from pathlib import Path
 from typing import Dict, List, Literal
 
@@ -7,15 +9,20 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
+from . import _filesystem
 
-def _failure(target: Path, message: str) -> Dict[str, object]:
+
+def _failure(target: Path, message: str, limit: int) -> Dict[str, object]:
     """The empty result shape carrying an explanatory error."""
-    return {
-        "path": str(target),
-        "count": 0,
-        "entries": [],
-        "error": message,
-    }
+    return _filesystem.failure_response(
+        {
+            "path": str(target),
+            "count": 0,
+            "entries": [],
+            "error": message,
+        },
+        limit,
+    )
 
 
 @ComponentBase.register_type(ToolBase, "ListFilesTool")
@@ -23,6 +30,14 @@ class ListFilesTool(ToolBase):
     """List the files and directories directly inside a folder."""
 
     version: str = "0.1.dev1"
+    allowed_roots: List[str] = Field(
+        default_factory=lambda: [str(Path.cwd())],
+        description="Trusted absolute directories set by the service owner.",
+    )
+    max_scanned_entries: int = Field(default=100_000, ge=1)
+    max_results: int = Field(default=10_000, ge=1)
+    max_return_bytes: int = Field(default=1024 * 1024, ge=1)
+    max_elapsed_seconds: float = Field(default=2.0, gt=0, allow_inf_nan=False)
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
@@ -52,63 +67,64 @@ class ListFilesTool(ToolBase):
     def __call__(
         self, path: str, full_paths: bool = False
     ) -> Dict[str, object]:
+        """List bounded entries under trusted roots without following links.
+
+        Symlinks have is_dir=False. Returned paths identify the
+        entries themselves. Exceeding a limit returns an error.
         """
-        List the immediate contents of ``path``.
-
-        Parameters:
-            path (str): Directory to list. A leading ~ is expanded.
-            full_paths (bool): When true each entry also carries an
-                absolute "path" key. Defaults to false.
-
-        Returns:
-            Dict[str, object]: ``{"path", "count", "entries"}`` on success,
-            where each entry is ``{"name", "is_dir"}`` plus ``"path"`` when
-            ``full_paths`` is true. On failure the same keys are returned empty
-            with an ``"error"`` explaining why.
-
-        Nothing is raised: a missing path, a path that is a file rather than a
-        directory, and an unreadable directory are all reported through
-        ``error`` so an agent can correct the call.
-        """
-        target = Path(path).expanduser()
-
+        display = path if isinstance(path, str) else ""
         try:
-            if not target.exists():
-                return _failure(target, f"{target} does not exist.")
-            if not target.is_dir():
-                return _failure(
-                    target,
-                    f"{target} is not a directory. "
-                    "This tool lists folders, not files.",
-                )
-        except OSError as exc:
-            # exists() and is_dir() are not total: a path below a directory
-            # this process cannot search raises rather than returning False.
-            return _failure(target, f"Could not read {target}: {exc}")
-
-        root = target.absolute()
-        entries: List[Dict[str, object]] = []
-
-        try:
-            for child in target.iterdir():
-                entry: Dict[str, object] = {
-                    "name": child.name,
-                    "is_dir": child.is_dir(),
-                }
-                if full_paths:
-                    # absolute(), not resolve(): the caller asked for the path
-                    # of this entry, not of whatever a symlink points at. A
-                    # cyclic link also makes resolve() raise RuntimeError,
-                    # which no OSError handler would catch.
-                    entry["path"] = str(root / child.name)
-                entries.append(entry)
-        except OSError as exc:
-            return _failure(target, f"Could not read {target}: {exc}")
-
-        entries.sort(key=lambda entry: str(entry["name"]).lower())
-
-        return {
-            "path": str(target),
-            "count": len(entries),
-            "entries": entries,
-        }
+            if not isinstance(path, str) or not path.strip():
+                raise ValueError("path must be a non-empty string")
+            if not isinstance(full_paths, bool):
+                raise ValueError("full_paths must be a boolean")
+            target = Path(path).expanduser().absolute()
+            display = str(target)
+            budget = _filesystem.Budget(
+                self.max_scanned_entries,
+                self.max_results,
+                self.max_return_bytes,
+                self.max_elapsed_seconds,
+            )
+            entries = []
+            with _filesystem.open_directory(
+                target, self.allowed_roots
+            ) as descriptor:
+                with closing(
+                    _filesystem.directory_entries(descriptor)
+                ) as children:
+                    for name, mode in children:
+                        budget.visit()
+                        if mode is None:
+                            continue
+                        entry = {"name": name, "is_dir": stat.S_ISDIR(mode)}
+                        if full_paths:
+                            entry["path"] = str(target / name)
+                        budget.retain(entry)
+                        entries.append(entry)
+            entries.sort(
+                key=lambda entry: (entry["name"].lower(), entry["name"])
+            )
+            result = {
+                "path": display,
+                "count": len(entries),
+                "entries": entries,
+            }
+            budget.finish(result)
+            return result
+        except FileNotFoundError:
+            return _failure(
+                display, "Directory does not exist.", self.max_return_bytes
+            )
+        except NotADirectoryError:
+            return _failure(
+                display,
+                "Path is not a directory.",
+                self.max_return_bytes,
+            )
+        except (OSError, ValueError, TypeError, RuntimeError) as exc:
+            return _failure(
+                display,
+                f"Could not read directory: {exc}",
+                self.max_return_bytes,
+            )

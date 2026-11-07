@@ -1,12 +1,12 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_tool_listfiles/">
-        <img src="https://static.pepy.tech/badge/swarmauri_tool_listfiles/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_listfiles/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_listfiles" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_listfiles/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_listfiles.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_listfiles/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_listfiles" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_listfiles/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_listfiles" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_listfiles/">
@@ -53,7 +53,7 @@ Path("/tmp/project").mkdir(parents=True, exist_ok=True)
 Path("/tmp/project/README.md").write_text("x", encoding="utf-8")
 Path("/tmp/project/src").mkdir(exist_ok=True)
 
-tool = ListFilesTool()
+tool = ListFilesTool(allowed_roots=["/tmp/project"])
 
 result = tool(path="/tmp/project")
 # {
@@ -98,5 +98,54 @@ result = tool(path="/tmp/project", full_paths=True)
 > filter on `is_dir`.
 
 > **Are symlinks followed?**  
-> Entries are listed as they appear. A symlink to a directory reports
-> `is_dir: True` and is not traversed, because nothing is traversed.
+> Symlink entries are listed without dereferencing their targets and report
+> `is_dir: False`. Requested directory paths may not contain symlinks.
+
+
+## Trusted roots and resource limits
+
+Configure `allowed_roots` on the tool from trusted service code. The default is
+its construction-time working directory. Relative requests use the call-time
+working directory and must still lie beneath a configured root. Empty roots
+reject every request. Roots must be absolute; parent traversal and symlinks in
+requested directory paths or root paths are rejected.
+
+Where Linux `openat2` is available, lookups use beneath-root resolution.
+If the syscall is unavailable, the POSIX fallback opens a single child of
+the trusted root with a no-follow lookup. Nested directory lookups fail
+with `ENOTSUP`. Policy denials such as `EPERM` or `EACCES` are returned as
+errors, including when opening the configured root. Listing the configured root itself is also supported.
+
+The service must control the configured root, its ancestors, and mount
+configuration. A root handle identifies the directory opened by the tool.
+Filesystem permissions still govern concurrent changes to opened objects.
+
+On POSIX, a scanned descendant is checked again by identity before results
+are returned. A detected move or replacement causes the scan to fail.
+
+Service-owned defaults cap scans at 100,000 entries, results at 10,000, returned
+JSON at 1 MiB, and elapsed scanning at two seconds. These constructor fields
+(`max_scanned_entries`, `max_results`, `max_return_bytes`,
+`max_elapsed_seconds`) are not agent-call parameters. Limit exhaustion returns
+an explicit error and an empty result rather than successful partial data.
+Time checks are cooperative and cannot interrupt a filesystem call blocked in
+the kernel. Success responses obey `max_return_bytes`. Error responses truncate
+echoed input and diagnostics to at most 4 KiB, or the configured byte budget
+when smaller, with a 256-byte minimum to preserve a structured error envelope.
+
+Symlinks are listed as entries with `is_dir=False`, including links to
+directories. Classification never dereferences the target. Full paths name the
+listed entries, rather than their targets. Sorting uses the original name to
+break case-insensitive ties deterministically.
+
+### Windows filesystem support
+
+On Windows the backend opens the local drive by its volume identity and
+opens each component relative to a held directory handle. It rejects junctions
+and other reparse points and does not accept UNC or device paths, alternate data
+streams, or ambiguous trailing dots or spaces, or reserved DOS basenames. Ancestors are
+opened for traversal. Only a directory being enumerated requires listing access.
+Volume and directory handles
+deny delete sharing during traversal. Returned paths are descriptive snapshots.
+Entries with names that ordinary Windows paths cannot represent are omitted.
+A listed pathname conveys no permission to open its contents.
