@@ -22,7 +22,11 @@ class MdSnippetChunker(ChunkerBase):
             # blocks
             pattern = rf"```{self.language}\s*(.*?)```"
             scripts = re.findall(pattern, text, re.DOTALL)
-            comments_temp = re.split(pattern, text, flags=re.DOTALL)
+            # Split with a non-capturing group so the captured code is not
+            # interleaved into the comment segments.
+            comments_temp = re.split(
+                rf"```{self.language}\s*(?:.*?)```", text, flags=re.DOTALL
+            )
         else:
             # Extract blocks and languages dynamically if no specific language
             # is provided
