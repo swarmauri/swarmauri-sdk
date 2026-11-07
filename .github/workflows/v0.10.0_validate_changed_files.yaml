@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
+      overflow_matrix: ${{ steps.detect.outputs.overflow_matrix }}
 
     steps:
       # ──────────────────────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ jobs:
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changes in pkgs/. Exiting."
             echo 'matrix=[]' >> "$GITHUB_OUTPUT"
+            echo 'overflow_matrix=[]' >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -79,21 +81,34 @@ jobs:
             PACKAGE_SET["$PKG_PATH"]=1            # record the package
           done
 
-          # Build JSON matrix
+          # Each GitHub Actions matrix can expand to at most 256 jobs.
           MATRIX="["
-          for PKG in "${!PACKAGE_SET[@]}"; do
-            MATRIX+='{"package_path":"'"$PKG"'","tests":""},'
-          done
-          MATRIX="${MATRIX%,}]"
-          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-          echo "Final test matrix: $MATRIX"
+          OVERFLOW_MATRIX="["
+          count=0
+          while IFS= read -r PKG; do
+            [[ -n "$PKG" ]] || continue
+            printf -v ENTRY '{"package_path":"%s","tests":""},' "$PKG"
+            if (( count < 256 )); then
+              MATRIX+="$ENTRY"
+            else
+              OVERFLOW_MATRIX+="$ENTRY"
+            fi
+            count=$((count + 1))
+          done < <(printf '%s\n' "${!PACKAGE_SET[@]}" | LC_ALL=C sort)
+          if (( count > 512 )); then
+            echo "::error::Detected $count packages, exceeding the two 256-job matrices."
+            exit 1
+          fi
+          echo "matrix=${MATRIX%,}]" >> "$GITHUB_OUTPUT"
+          echo "overflow_matrix=${OVERFLOW_MATRIX%,}]" >> "$GITHUB_OUTPUT"
+          echo "Detected $count packages for validation."
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job: run-tests  – executes once per package reported in matrix
   # ─────────────────────────────────────────────────────────────────────────────
   run-tests:
     needs: detect-changed-files
-    if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
+    if: ${{ !cancelled() && needs.detect-changed-files.result == 'success' && needs.detect-changed-files.outputs.matrix != '[]' }}
     runs-on: [testing]
     timeout-minutes: 5
     strategy:
@@ -101,12 +116,12 @@ jobs:
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
 
-    env:
+    env: &package-test-env
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
       # Meson editable installs refer to the temporary isolated build tools.
       UV_NO_EDITABLE: ${{ startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') && 'true' || 'false' }}
 
-    steps:
+    steps: &package-test-steps
       # ────────────────────────────────────────────────────────────────────────
       # Step: Check out code ─ (uses: actions/checkout@v4)
       # ────────────────────────────────────────────────────────────────────────
@@ -202,4 +217,14 @@ jobs:
           PY
           exit $STATUS
 
-
+  run-tests-overflow:
+    needs: detect-changed-files
+    if: ${{ !cancelled() && needs.detect-changed-files.result == 'success' && needs.detect-changed-files.outputs.overflow_matrix != '[]' }}
+    runs-on: [testing]
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.overflow_matrix) }}
+    env: *package-test-env
+    steps: *package-test-steps
