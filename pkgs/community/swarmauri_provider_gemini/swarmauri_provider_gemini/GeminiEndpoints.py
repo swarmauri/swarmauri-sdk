@@ -12,3 +12,15 @@ class GeminiEndpoints(ProviderEndpointBase):
         "google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent"
     )
     type: Literal["GeminiEndpoints"] = "GeminiEndpoints"
+
+    def resolve(self, capability: str) -> str:
+        endpoints = {
+            "api": self.base_url,
+            "live.connect": self.websocket_url,
+        }
+        try:
+            return endpoints[capability]
+        except KeyError as error:
+            raise ValueError(
+                f"Gemini does not support capability {capability!r}"
+            ) from error

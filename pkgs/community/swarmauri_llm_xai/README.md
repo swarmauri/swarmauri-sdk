@@ -19,6 +19,8 @@
 - Bearer-token authentication with credentials excluded from serialized state.
 - Sync, async, incremental streaming, batch, and function-calling workflows.
 - Optional model discovery through xAI's language-model catalog.
+- Explicit provider, HTTP client, and retry-policy composition.
+- Conservative chat retries that do not replay ambiguous connection failures.
 
 ## Installation
 
@@ -45,6 +47,21 @@ conversation = Conversation(
 model = XAIModel(api_key=os.environ["XAI_API_KEY"], name="grok-4.3")
 model.predict(conversation)
 print(conversation.get_last().content)
+```
+
+For explicit composition:
+
+```python
+from swarmauri_llm_xai import XAIChatRetryPolicy, XAIModel
+from swarmauri_provider_xai import XAIProvider
+from swarmauri_transport_httpx import HttpxClient
+
+provider = XAIProvider(api_key=os.environ["XAI_API_KEY"])
+model = XAIModel(
+    provider=provider,
+    http_client=HttpxClient(base_url=provider.base_url),
+    retry_policy=XAIChatRetryPolicy(max_attempts=3),
+)
 ```
 
 Use `XAIToolModel` with a Swarmauri `Toolkit` for function calling. Set `discover_models=True` to populate allowed model IDs from the authenticated xAI language-model catalog.

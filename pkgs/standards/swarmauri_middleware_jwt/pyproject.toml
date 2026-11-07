@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_middleware_jwt"
 version = "0.11.0.dev2"
-description = "JWT validation middleware for Swarmauri applications."
+description = "ASGI Bearer JWT authentication middleware for Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
@@ -20,11 +20,11 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "fastapi",
+    "starlette",
     "swarmauri_core",
     "swarmauri_base",
-    "swarmauri_standard",
-    "PyJWT",
+    "swarmauri_signing_jws",
+    "swarmauri_tokens_jwt",
 ]
 keywords = [
     'swarmauri',
@@ -37,7 +37,8 @@ keywords = [
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
-swarmauri_standard = { workspace = true }
+swarmauri_signing_jws = { workspace = true }
+swarmauri_tokens_jwt = { workspace = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

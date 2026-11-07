@@ -12,3 +12,14 @@ class AmazonNovaEndpoints(ProviderEndpointBase):
 
     def runtime_url(self) -> str:
         return f"https://bedrock-runtime.{self.region}.amazonaws.com"
+
+    def resolve(self, capability: str) -> str:
+        if capability not in {
+            "bedrock.runtime",
+            "live.connect",
+            "model.invoke",
+        }:
+            raise ValueError(
+                f"Amazon Nova does not support capability {capability!r}"
+            )
+        return self.runtime_url()

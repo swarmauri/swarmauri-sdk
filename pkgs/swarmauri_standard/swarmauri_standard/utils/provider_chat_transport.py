@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncGenerator, Dict, Generator, List, Optional
 
 import httpx
@@ -10,6 +11,46 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.utils.duration_manager import DurationManager
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
+
+
+def _request(model: Any, method: str, url: str, **kwargs: Any):
+    client = getattr(model, "_http_client", None)
+    if client is not None:
+        return client.request(method, url, **kwargs)
+    with httpx.Client(timeout=model.timeout) as fallback:
+        return fallback.request(method, url, **kwargs)
+
+
+async def _arequest(model: Any, method: str, url: str, **kwargs: Any):
+    client = getattr(model, "_http_client", None)
+    if client is not None:
+        return await client.arequest(method, url, **kwargs)
+    async with httpx.AsyncClient(timeout=model.timeout) as fallback:
+        return await fallback.request(method, url, **kwargs)
+
+
+@contextmanager
+def _stream(model: Any, method: str, url: str, **kwargs: Any):
+    client = getattr(model, "_http_client", None)
+    if client is not None:
+        with client.stream(method, url, **kwargs) as response:
+            yield response
+        return
+    with httpx.Client(timeout=model.timeout) as fallback:
+        with fallback.stream(method, url, **kwargs) as response:
+            yield response
+
+
+@asynccontextmanager
+async def _astream(model: Any, method: str, url: str, **kwargs: Any):
+    client = getattr(model, "_http_client", None)
+    if client is not None:
+        async with client.astream(method, url, **kwargs) as response:
+            yield response
+        return
+    async with httpx.AsyncClient(timeout=model.timeout) as fallback:
+        async with fallback.stream(method, url, **kwargs) as response:
+            yield response
 
 
 def format_messages(messages: List[Any]) -> List[Dict[str, Any]]:
@@ -93,13 +134,14 @@ def predict_chat(
         stop=stop,
     )
     with DurationManager() as timer:
-        with httpx.Client(timeout=model.timeout) as client:
-            response = client.post(
-                model._build_endpoint(),
-                headers=model._build_headers(),
-                json=payload,
-            )
-            response.raise_for_status()
+        response = _request(
+            model,
+            "POST",
+            model._build_endpoint(),
+            headers=model._build_headers(),
+            json=payload,
+        )
+        response.raise_for_status()
     data = response.json()
     content = data["choices"][0]["message"].get("content") or ""
     _add_agent(model, conversation, content, data.get("usage"), timer.duration)
@@ -126,13 +168,14 @@ async def apredict_chat(
         stop=stop,
     )
     with DurationManager() as timer:
-        async with httpx.AsyncClient(timeout=model.timeout) as client:
-            response = await client.post(
-                model._build_endpoint(),
-                headers=model._build_headers(),
-                json=payload,
-            )
-            response.raise_for_status()
+        response = await _arequest(
+            model,
+            "POST",
+            model._build_endpoint(),
+            headers=model._build_headers(),
+            json=payload,
+        )
+        response.raise_for_status()
     data = response.json()
     content = data["choices"][0]["message"].get("content") or ""
     _add_agent(model, conversation, content, data.get("usage"), timer.duration)
@@ -178,21 +221,21 @@ def stream_chat(
     content = ""
     usage_data: Dict[str, Any] = {}
     with DurationManager() as prompt_timer:
-        with httpx.Client(timeout=model.timeout) as client:
-            with client.stream(
-                "POST",
-                model._build_endpoint(),
-                headers=model._build_headers(),
-                json=payload,
-            ) as response:
-                response.raise_for_status()
-                with DurationManager() as completion_timer:
-                    for line in response.iter_lines():
-                        delta, usage = _parse_sse(line)
-                        usage_data = usage or usage_data
-                        if delta is not None:
-                            content += delta
-                            yield delta
+        with _stream(
+            model,
+            "POST",
+            model._build_endpoint(),
+            headers=model._build_headers(),
+            json=payload,
+        ) as response:
+            response.raise_for_status()
+            with DurationManager() as completion_timer:
+                for line in response.iter_lines():
+                    delta, usage = _parse_sse(line)
+                    usage_data = usage or usage_data
+                    if delta is not None:
+                        content += delta
+                        yield delta
     _add_agent(
         model,
         conversation,
@@ -225,21 +268,21 @@ async def astream_chat(
     content = ""
     usage_data: Dict[str, Any] = {}
     with DurationManager() as prompt_timer:
-        async with httpx.AsyncClient(timeout=model.timeout) as client:
-            async with client.stream(
-                "POST",
-                model._build_endpoint(),
-                headers=model._build_headers(),
-                json=payload,
-            ) as response:
-                response.raise_for_status()
-                with DurationManager() as completion_timer:
-                    async for line in response.aiter_lines():
-                        delta, usage = _parse_sse(line)
-                        usage_data = usage or usage_data
-                        if delta is not None:
-                            content += delta
-                            yield delta
+        async with _astream(
+            model,
+            "POST",
+            model._build_endpoint(),
+            headers=model._build_headers(),
+            json=payload,
+        ) as response:
+            response.raise_for_status()
+            with DurationManager() as completion_timer:
+                async for line in response.aiter_lines():
+                    delta, usage = _parse_sse(line)
+                    usage_data = usage or usage_data
+                    if delta is not None:
+                        content += delta
+                        yield delta
     _add_agent(
         model,
         conversation,
@@ -338,24 +381,26 @@ def _record_tool_turn(
 
 
 def _post_tool(model: Any, payload: Dict[str, Any]) -> Dict[str, Any]:
-    with httpx.Client(timeout=model.timeout) as client:
-        response = client.post(
-            model._build_endpoint(),
-            headers=model._build_headers(),
-            json=payload,
-        )
-        response.raise_for_status()
+    response = _request(
+        model,
+        "POST",
+        model._build_endpoint(),
+        headers=model._build_headers(),
+        json=payload,
+    )
+    response.raise_for_status()
     return response.json()["choices"][0]["message"]
 
 
 async def _apost_tool(model: Any, payload: Dict[str, Any]) -> Dict[str, Any]:
-    async with httpx.AsyncClient(timeout=model.timeout) as client:
-        response = await client.post(
-            model._build_endpoint(),
-            headers=model._build_headers(),
-            json=payload,
-        )
-        response.raise_for_status()
+    response = await _arequest(
+        model,
+        "POST",
+        model._build_endpoint(),
+        headers=model._build_headers(),
+        json=payload,
+    )
+    response.raise_for_status()
     return response.json()["choices"][0]["message"]
 
 
@@ -471,15 +516,13 @@ def stream_tools(
         stream=True,
     )
     content = ""
-    with (
-        httpx.Client(timeout=model.timeout) as client,
-        client.stream(
-            "POST",
-            model._build_endpoint(),
-            headers=model._build_headers(),
-            json=payload,
-        ) as response,
-    ):
+    with _stream(
+        model,
+        "POST",
+        model._build_endpoint(),
+        headers=model._build_headers(),
+        json=payload,
+    ) as response:
         response.raise_for_status()
         for line in response.iter_lines():
             delta, _ = _parse_sse(line)
@@ -523,19 +566,19 @@ async def astream_tools(
         stream=True,
     )
     content = ""
-    async with httpx.AsyncClient(timeout=model.timeout) as client:
-        async with client.stream(
-            "POST",
-            model._build_endpoint(),
-            headers=model._build_headers(),
-            json=payload,
-        ) as response:
-            response.raise_for_status()
-            async for line in response.aiter_lines():
-                delta, _ = _parse_sse(line)
-                if delta is not None:
-                    content += delta
-                    yield delta
+    async with _astream(
+        model,
+        "POST",
+        model._build_endpoint(),
+        headers=model._build_headers(),
+        json=payload,
+    ) as response:
+        response.raise_for_status()
+        async for line in response.aiter_lines():
+            delta, _ = _parse_sse(line)
+            if delta is not None:
+                content += delta
+                yield delta
     conversation.add_message(AgentMessage(content=content))
 
 

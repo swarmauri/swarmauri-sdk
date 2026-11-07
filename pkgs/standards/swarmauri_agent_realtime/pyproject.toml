@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_realtime"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 description = "Provider-neutral realtime multimodal agent for Swarmauri live models."
 readme = "README.md"
 requires-python = ">=3.10,<3.13"

@@ -1,4 +1,4 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_tokens_jwt/">
@@ -45,6 +45,8 @@ uv pip install swarmauri_tokens_jwt
 - Validates expiration, not-before, issuer and audience claims during
   verification
 - Publishes a JWKS endpoint for public key discovery through your key provider
+- Exposes `JWTClaimsValidator` for transport-independent required-claim,
+  temporal, issuer, audience, scope, role, and custom claim policy
 - Install the optional ``cryptography`` dependency to enable RSA, ECDSA and
   EdDSA signing keys
 
@@ -135,6 +137,21 @@ asyncio.run(main())
 expiration, not-before, issuer and audience checks before returning the decoded
 claims. Expose the service's :meth:`jwks` coroutine to publish the active public
 keys from your provider.
+
+Use `JWTClaimsValidator` when claims have already been authenticated by a JWS
+verifier and need application policy independent of HTTP middleware:
+
+```python
+from swarmauri_tokens_jwt import JWTClaimsValidator
+
+validator = JWTClaimsValidator(
+    required_claims={"sub", "iat", "exp"},
+    issuer="https://identity.example.com",
+    audience="swarmauri-api",
+    required_scopes={"documents:read"},
+)
+claims = validator.validate(authenticated_claims)
+```
 
 The service also supports asymmetric algorithms such as **RS256**, **ES256** and
 **EdDSA** when the key provider exposes the appropriate keys. See the

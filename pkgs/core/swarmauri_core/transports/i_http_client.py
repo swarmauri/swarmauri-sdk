@@ -16,7 +16,13 @@ Headers = Mapping[str, str]
 
 
 class IHttpClient(ABC):
-    """Contract for buffered and streaming HTTP requests."""
+    """Contract for buffered and streaming HTTP requests.
+
+    ``path`` may be either an absolute HTTP URL or a path relative to an
+    implementation-defined base URL. Concrete keyword arguments such as
+    ``json``, ``data``, ``files``, and ``params`` are intentionally passed
+    through so adapters can expose the capabilities of their HTTP stack.
+    """
 
     @abstractmethod
     def request(

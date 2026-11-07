@@ -1,6 +1,9 @@
-"""Test OpenRouter family conformance and request behavior."""
+"""Test OpenRouter family conformance and provider/transport composition."""
 
 import base64
+import json
+from collections import deque
+from contextlib import asynccontextmanager, contextmanager
 from importlib.metadata import entry_points
 
 import pytest
@@ -8,52 +11,86 @@ from swarmauri_base.image_gens.ImageGenBase import ImageGenBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
 from swarmauri_base.vlms.VLMBase import VLMBase
+from swarmauri_core.transports.i_http_client import IHttpClient
+from swarmauri_provider_openrouter import (
+    OpenRouterProvider,
+    OpenRouterProviderPreferences,
+)
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 from swarmauri_llm_openrouter import (
     OpenRouterImgGenModel,
     OpenRouterModel,
-    OpenRouterModelCatalog,
+    OpenRouterRetryPolicy,
     OpenRouterToolModel,
     OpenRouterVLM,
 )
 
 
 class Response:
-    """Provide the response surface used by model tests."""
+    def __init__(
+        self,
+        payload=None,
+        *,
+        content=b"",
+        status_code=200,
+        headers=None,
+        events=(),
+    ):
+        self.payload = payload or {}
+        self.content = content
+        self.status_code = status_code
+        self.headers = headers or {}
+        self.events = list(events)
 
-    content = b""
+    def read(self):
+        return self.content
 
-    def __init__(self, payload):
-        self.payload = payload
+    async def aread(self):
+        return self.content
 
     def json(self):
         return self.payload
 
+    def raise_for_status(self):
+        return None
 
-class Transport:
-    """Record requests and return deterministic provider responses."""
+    def iter_lines(self):
+        for event in self.events:
+            yield f"data: {json.dumps(event)}"
+        yield "data: [DONE]"
 
-    def __init__(self, payload):
-        self.payload = payload
+    async def aiter_lines(self):
+        for line in self.iter_lines():
+            yield line
+
+
+class QueueClient(IHttpClient):
+    def __init__(self, responses=(), *, events=(), download=b"downloaded"):
+        self.responses = deque(responses)
+        self.events = list(events)
+        self.download = download
         self.calls = []
 
-    def request(self, method, path, *, json_data=None):
-        self.calls.append((method, path, json_data))
-        return Response(self.payload)
+    def request(self, method, path, **kwargs):
+        self.calls.append((method, path, kwargs))
+        if self.responses:
+            return self.responses.popleft()
+        return Response(content=self.download)
 
-    async def arequest(self, method, path, *, json_data=None):
-        return self.request(method, path, json_data=json_data)
+    async def arequest(self, method, path, **kwargs):
+        return self.request(method, path, **kwargs)
 
-    def stream(self, path, payload):
-        self.calls.append(("STREAM", path, payload))
-        yield {"choices": [{"delta": {"content": "hel"}}]}
-        yield {"choices": [{"delta": {"content": "lo"}}]}
+    @contextmanager
+    def stream(self, method, path, **kwargs):
+        self.calls.append((method, path, kwargs))
+        yield Response(events=self.events)
 
-    async def astream(self, path, payload):
-        for event in self.stream(path, payload):
-            yield event
+    @asynccontextmanager
+    async def astream(self, method, path, **kwargs):
+        self.calls.append((method, path, kwargs))
+        yield Response(events=self.events)
 
 
 def conversation(content="hello"):
@@ -91,44 +128,59 @@ def test_exact_and_glob_policies_are_inherited_from_base():
 
 
 @pytest.mark.unit
-def test_catalog_ids_can_configure_a_concrete_policy():
-    discovery = OpenRouterModel(api_key="key", allowed_models=["*"])
-    discovery._transport = Transport(
-        {"data": [{"id": "anthropic/claude"}, {"id": "openai/gpt-4o"}]}
+def test_provider_catalog_is_refreshed_by_injected_model_client():
+    client = QueueClient(
+        [
+            Response(
+                {
+                    "data": [
+                        {"id": "anthropic/claude"},
+                        {"id": "openai/gpt-4o"},
+                    ]
+                }
+            )
+        ]
     )
-    available = discovery.catalog.list_model_ids()
-    configured = OpenRouterModel(
-        api_key="key",
-        name="openai/gpt-4o",
-        allowed_models=available,
+    provider = OpenRouterProvider(api_key="provider-key")
+    model = OpenRouterModel(
+        provider=provider,
+        http_client=client,
+        allowed_models=["*"],
     )
-    assert configured.allowed_models == ["anthropic/claude", "openai/gpt-4o"]
+
+    model.refresh_catalog()
+
+    assert model.catalog.list_model_ids() == [
+        "anthropic/claude",
+        "openai/gpt-4o",
+    ]
+    assert client.calls[0][1] == "https://openrouter.ai/api/v1/models"
+    assert client.calls[0][2]["headers"]["Authorization"] == (
+        "Bearer provider-key"
+    )
 
 
 @pytest.mark.unit
-def test_standalone_catalog_can_run_before_model_construction():
-    catalog = OpenRouterModelCatalog.from_api_key(
-        "key",
-        app_name="app",
-        site_url="https://example.com",
-    )
-    assert catalog._transport.headers["Authorization"] == "Bearer key"
-    assert catalog._transport.headers["X-OpenRouter-Title"] == "app"
-    assert catalog._transport.headers["HTTP-Referer"] == "https://example.com"
-
-
-@pytest.mark.unit
-def test_family_inheritance_and_resources():
+def test_family_inheritance_resources_and_provider_authentication():
+    provider = OpenRouterProvider(api_key="provider-key")
     instances = [
-        (OpenRouterModel(api_key="key", allowed_models=["*"]), LLMBase, "LLM"),
         (
-            OpenRouterToolModel(api_key="key", allowed_models=["*"]),
+            OpenRouterModel(provider=provider, allowed_models=["*"]),
+            LLMBase,
+            "LLM",
+        ),
+        (
+            OpenRouterToolModel(provider=provider, allowed_models=["*"]),
             ToolLLMBase,
             "ToolLLM",
         ),
-        (OpenRouterVLM(api_key="key", allowed_models=["*"]), VLMBase, "VLM"),
         (
-            OpenRouterImgGenModel(api_key="key", allowed_models=["*"]),
+            OpenRouterVLM(provider=provider, allowed_models=["*"]),
+            VLMBase,
+            "VLM",
+        ),
+        (
+            OpenRouterImgGenModel(provider=provider, allowed_models=["*"]),
             ImageGenBase,
             "ImageGen",
         ),
@@ -136,45 +188,68 @@ def test_family_inheritance_and_resources():
     for instance, parent, resource in instances:
         assert isinstance(instance, parent)
         assert instance.resource == resource
-        assert "api_key" not in instance.model_dump_json()
+        assert "provider-key" not in instance.model_dump_json()
 
 
 @pytest.mark.unit
-def test_chat_payload_response_and_headers():
+def test_chat_payload_routing_response_and_headers():
+    client = QueueClient(
+        [
+            Response(
+                {
+                    "choices": [{"message": {"content": "answer"}}],
+                    "usage": {"prompt_tokens": 1, "completion_tokens": 2},
+                }
+            )
+        ]
+    )
     model = OpenRouterModel(
-        api_key="key",
+        provider=OpenRouterProvider(
+            api_key="key",
+            app_name="app",
+            site_url="https://example.com",
+        ),
+        routing=OpenRouterProviderPreferences(order=["OpenAI"]),
+        http_client=client,
         allowed_models=["*"],
-        app_name="app",
-        site_url="https://example.com",
     )
-    transport = Transport(
-        {
-            "choices": [{"message": {"content": "answer"}}],
-            "usage": {"prompt_tokens": 1, "completion_tokens": 2},
-        }
-    )
-    model._transport = transport
+
     result = model.predict(conversation(), temperature=0)
+
+    sent = client.calls[0][2]
     assert result.get_last().content == "answer"
-    assert transport.calls[0][2]["temperature"] == 0
-    assert model._request_headers()["X-OpenRouter-Title"] == "app"
-    assert model._request_headers()["HTTP-Referer"] == "https://example.com"
+    assert sent["json"]["temperature"] == 0
+    assert sent["json"]["provider"]["order"] == ["OpenAI"]
+    assert sent["headers"]["X-OpenRouter-Title"] == "app"
+    assert sent["headers"]["HTTP-Referer"] == "https://example.com"
 
 
 @pytest.mark.unit
-def test_chat_stream_appends_complete_message():
-    model = OpenRouterModel(api_key="key", allowed_models=["*"])
-    model._transport = Transport({})
+def test_chat_stream_uses_injected_client_and_appends_complete_message():
+    client = QueueClient(
+        events=[
+            {"choices": [{"delta": {"content": "hel"}}]},
+            {"choices": [{"delta": {"content": "lo"}}]},
+        ]
+    )
+    model = OpenRouterModel(
+        api_key="key", allowed_models=["*"], http_client=client
+    )
     item = conversation()
+
     assert "".join(model.stream(item)) == "hello"
     assert item.get_last().content == "hello"
+    assert client.calls[0][0] == "POST"
 
 
 @pytest.mark.unit
 def test_vision_preserves_structured_content():
-    model = OpenRouterVLM(api_key="key", allowed_models=["*"])
-    transport = Transport({"choices": [{"message": {"content": "seen"}}]})
-    model._transport = transport
+    client = QueueClient(
+        [Response({"choices": [{"message": {"content": "seen"}}]})]
+    )
+    model = OpenRouterVLM(
+        api_key="key", allowed_models=["*"], http_client=client
+    )
     item = conversation(
         [
             {"type": "text", "text": "describe"},
@@ -184,18 +259,55 @@ def test_vision_preserves_structured_content():
             },
         ]
     )
+
     model.predict_vision(item)
-    sent = transport.calls[0][2]["messages"][0]["content"]
+
+    sent = client.calls[0][2]["json"]["messages"][0]["content"]
     assert sent[1]["type"] == "image_url"
 
 
 @pytest.mark.unit
-def test_image_generation_decodes_base64():
-    model = OpenRouterImgGenModel(api_key="key", allowed_models=["*"])
-    model._transport = Transport(
-        {"data": [{"b64_json": base64.b64encode(b"image").decode()}]}
+def test_image_generation_decodes_base64_and_downloads_urls():
+    client = QueueClient(
+        [
+            Response(
+                {
+                    "data": [
+                        {"b64_json": base64.b64encode(b"image").decode()},
+                        {"url": "https://image.test/output"},
+                    ]
+                }
+            )
+        ],
+        download=b"downloaded",
     )
-    assert model.generate_image("tiger", size="1K") == b"image"
+    model = OpenRouterImgGenModel(
+        api_key="key", allowed_models=["*"], http_client=client
+    )
+
+    assert model.generate_image("tiger") == [b"image", b"downloaded"]
+    assert client.calls[1][1] == "https://image.test/output"
+
+
+@pytest.mark.unit
+def test_rate_limited_submission_retries_without_replaying_server_errors():
+    client = QueueClient(
+        [
+            Response(status_code=429, headers={"Retry-After": "0"}),
+            Response({"choices": [{"message": {"content": "recovered"}}]}),
+        ]
+    )
+    model = OpenRouterModel(
+        api_key="key",
+        allowed_models=["*"],
+        http_client=client,
+        retry_policy=OpenRouterRetryPolicy(max_attempts=2, base_delay=0),
+    )
+
+    result = model.predict(conversation())
+
+    assert result.get_last().content == "recovered"
+    assert len(client.calls) == 2
 
 
 @pytest.mark.unit

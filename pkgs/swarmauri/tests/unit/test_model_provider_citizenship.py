@@ -9,3 +9,6 @@ def test_model_provider_citizenship():
     assert registry["swarmauri.model_providers.OpenAIProvider"] == (
         "swarmauri_provider_openai.OpenAIProvider"
     )
+    assert registry["swarmauri.model_providers.OpenRouterProvider"] == (
+        "swarmauri_provider_openrouter.OpenRouterProvider"
+    )

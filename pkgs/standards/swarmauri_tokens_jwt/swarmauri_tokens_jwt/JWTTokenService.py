@@ -16,6 +16,8 @@ from swarmauri_core.crypto.types import JWAAlg, KeyRef
 from swarmauri_core.key_providers import IKeyProvider, KeyAlg
 from swarmauri_signing_jws import JwsSignerVerifier
 
+from .JWTClaimsValidator import JWTClaimsValidator
+
 ALG_MAP_SIGN = {
     JWAAlg.RS256: KeyAlg.RSA_PSS_SHA256,
     JWAAlg.PS256: KeyAlg.RSA_PSS_SHA256,
@@ -196,24 +198,11 @@ class JWTTokenService(TokenServiceBase):
         )
         payload = json.loads(res.payload.decode("utf-8"))
 
-        now = int(time.time())
-        exp = payload.get("exp")
-        if exp is not None and now > int(exp) + leeway_s:
-            raise ValueError("token is expired")
-        nbf = payload.get("nbf")
-        if nbf is not None and now + leeway_s < int(nbf):
-            raise ValueError("token not yet valid")
-        iss_expected = issuer or self._iss
-        if iss_expected and payload.get("iss") != iss_expected:
-            raise ValueError("invalid issuer")
-        if audience is not None:
-            aud_claim = payload.get("aud")
-            if isinstance(aud_claim, list):
-                if audience not in aud_claim:
-                    raise ValueError("invalid audience")
-            elif aud_claim != audience:
-                raise ValueError("invalid audience")
-        return payload
+        return JWTClaimsValidator(
+            issuer=issuer or self._iss,
+            audience=audience,
+            leeway_s=leeway_s,
+        ).validate(payload)
 
     async def jwks(self) -> dict:
         """Return the JSON Web Key Set for public key discovery.

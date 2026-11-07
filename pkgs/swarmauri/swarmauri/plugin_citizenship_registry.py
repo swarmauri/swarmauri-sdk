@@ -195,6 +195,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.storage_adapters.S3StorageAdapter": (
             "swarmauri_storage_s3.S3StorageAdapter"
         ),
+        "swarmauri.storage_adapters.WebDAVStorageAdapter": (
+            "swarmauri_storage_webdav.WebDAVStorageAdapter"
+        ),
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
         "swarmauri.agents.RagAgent": "swarmauri_standard.agents.RagAgent",
@@ -364,9 +367,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
         "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
         "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
-        "swarmauri.video_lipsync.SyncLabsLipSync": (
-            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
-        ),
         "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
@@ -560,6 +560,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.transports.HttpsUnicastTransport": (
             "swarmauri_transport_https_unicast.HttpsUnicastTransport"
         ),
+        "swarmauri.transports.RetryingHttpClient": (
+            "swarmauri_transport_retry.RetryingHttpClient"
+        ),
         "swarmauri.transports.PubSubTransport": (
             "swarmauri_standard.transports.PubSubTransport"
         ),
@@ -690,9 +693,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.logger_formatters.LoggerFormatter": (
             "swarmauri_standard.logger_formatters.LoggerFormatter"
         ),
-        "swarmauri.middlewares.AuthMiddleware": (
-            "swarmauri_middleware_auth.AuthMiddleware"
-        ),
         "swarmauri.middlewares.BulkheadMiddleware": (
             "swarmauri_middleware_bulkhead.BulkheadMiddleware"
         ),
@@ -707,6 +707,9 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.middlewares.GzipCompressionMiddleware": (
             "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware"
+        ),
+        "swarmauri.middlewares.JWTMiddleware": (
+            "swarmauri_middleware_jwt.JWTMiddleware"
         ),
         "swarmauri.middlewares.LlamaGuardMiddleware": (
             "swarmauri_middleware_llamaguard.LlamaGuardMiddleware"
@@ -751,11 +754,17 @@ class PluginCitizenshipRegistry:
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
     SECOND_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.video_lipsync.SyncLabsLipSync": (
+            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
+        ),
         "swarmauri.model_providers.GeminiProvider": (
             "swarmauri_provider_gemini.GeminiProvider"
         ),
         "swarmauri.model_providers.OpenAIProvider": (
             "swarmauri_provider_openai.OpenAIProvider"
+        ),
+        "swarmauri.model_providers.OpenRouterProvider": (
+            "swarmauri_provider_openrouter.OpenRouterProvider"
         ),
         "swarmauri.model_providers.XAIProvider": (
             "swarmauri_provider_xai.XAIProvider"

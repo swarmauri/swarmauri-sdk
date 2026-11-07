@@ -1,5 +1,6 @@
-"""Share OpenRouter payload and response helpers."""
+"""Share OpenRouter payload, response, and event helpers."""
 
+import json
 from typing import Any
 
 from swarmauri_standard.messages.AgentMessage import AgentMessage, UsageData
@@ -41,3 +42,13 @@ def delta_text(event: dict[str, Any]) -> str | None:
     if not choices:
         return None
     return choices[0].get("delta", {}).get("content")
+
+
+def decode_sse_line(line: str) -> dict[str, Any] | None:
+    """Decode one OpenRouter server-sent event without owning I/O."""
+    if not line or line.startswith(":") or not line.startswith("data:"):
+        return None
+    data = line[5:].strip()
+    if not data or data == "[DONE]":
+        return None
+    return json.loads(data)

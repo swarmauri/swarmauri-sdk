@@ -19,6 +19,7 @@
 - Synchronous, asynchronous, incremental streaming, and batch workflows.
 - Optional discovery from Cloudflare's model-search endpoint.
 - Explicit account ID and API-token configuration.
+- Persistent, injectable Swarmauri HTTP clients with conservative rate-limit retries.
 
 ## Installation
 
@@ -50,5 +51,7 @@ print(conversation.get_last().content)
 ```
 
 Set `discover_models=True` to query the current Workers AI model catalog. For tools, instantiate `CloudflareWorkersAIToolModel` with a tool-capable model and pass a Swarmauri `Toolkit`.
+
+Pass an `IHttpClient` as `http_client` to integrate a custom transport or to test without network access. Pass an `IHttpRetryPolicy` as `retry_policy` to replace the default policy, which retries safe reads and rate-limited chat submissions without replaying failed POST requests for generic server errors.
 
 See the [Cloudflare Workers AI REST guide](https://developers.cloudflare.com/workers-ai/get-started/rest-api/) and [model-search API](https://developers.cloudflare.com/api/resources/ai/subresources/models/methods/list/) for account setup and current model details.
