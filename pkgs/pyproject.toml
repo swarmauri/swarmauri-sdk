@@ -111,6 +111,7 @@ members = [
     "community/swarmauri_signing_dsse",
     "community/swarmauri_state_clipboard",
     "community/swarmauri_tests_griffe",
+    "community/swarmauri_tool_addcontenttorag",
     "community/swarmauri_tool_captchagenerator",
     "community/swarmauri_tool_createfile",
     "community/swarmauri_tool_dalechallreadability",
