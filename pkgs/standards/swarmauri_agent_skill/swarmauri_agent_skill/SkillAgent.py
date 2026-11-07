@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+
 import asyncio
 import inspect
 from typing import (
@@ -53,6 +55,7 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
     skill_execution_tool: SubclassUnion[ToolBase] = Field(
         default_factory=SkillExecutionTool
     )
+    skillset_toolkit: ToolkitBase | None = Field(default=None, exclude=True)
     turn_mode: Literal["single", "multi"] = "multi"
     execution_mode: Literal["sequential", "concurrent"] = "sequential"
     require_skill: bool = False
@@ -316,6 +319,8 @@ class SkillAgent(AgentSystemContextMixin, AgentConversationMixin, AgentBase):
         selected_skills = list(skills if skills is not None else self.skills)
         self.skill_execution_tool.skills = selected_skills
         toolkit = Toolkit()
+        if self.skillset_toolkit is not None:
+            toolkit.add_tools(self.skillset_toolkit.available_tools())
         toolkit.add_tool(self.skill_execution_tool)
         return toolkit
 

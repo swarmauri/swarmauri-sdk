@@ -50,6 +50,26 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.agents.PackageMaintenanceAgent": "swarmauri_agent_package_maintenance.PackageMaintenanceAgent",
+        "swarmauri.tools.RunPackageChecks": "swarmauri_tool_runpackagechecks.RunPackageChecks",
+        "swarmauri.tools.UnregisterRuntimeTool": "swarmauri_tool_unregisterruntimetool.UnregisterRuntimeTool",
+        "swarmauri.tools.ReplaceRuntimeTool": "swarmauri_tool_replaceruntimetool.ReplaceRuntimeTool",
+        "swarmauri.tools.ListRuntimeTools": "swarmauri_tool_listruntimetools.ListRuntimeTools",
+        "swarmauri.tools.InspectRuntimeTool": "swarmauri_tool_inspectruntimetool.InspectRuntimeTool",
+        "swarmauri.tools.RegisterRuntimeTool": "swarmauri_tool_registerruntimetool.RegisterRuntimeTool",
+        "swarmauri.toolkits.SkillsetToolkit": "swarmauri_toolkit_skillset.SkillsetToolkit",
+        "swarmauri.tools.ReadSkillResource": "swarmauri_tool_readskillresource.ReadSkillResource",
+        "swarmauri.tools.ActivateSkill": "swarmauri_tool_activateskill.ActivateSkill",
+        "swarmauri.tools.InspectSkill": "swarmauri_tool_inspectskill.InspectSkill",
+        "swarmauri.tools.ListSkills": "swarmauri_tool_listskills.ListSkills",
+        "swarmauri.tools.CancelProcessTool": "swarmauri_tool_cancelprocess.CancelProcessTool",
+        "swarmauri.tools.WriteStdinTool": "swarmauri_tool_writestdin.WriteStdinTool",
+        "swarmauri.tools.ReadProcessOutputTool": "swarmauri_tool_readprocessoutput.ReadProcessOutputTool",
+        "swarmauri.tools.RunBashScriptTool": "swarmauri_tool_runbashscript.RunBashScriptTool",
+        "swarmauri.tools.RunCommandTool": "swarmauri_tool_runcommand.RunCommandTool",
+        "swarmauri.messages.AnswerMessage": "swarmauri_standard.messages.AnswerMessage",
+        "swarmauri.messages.QuestionMessage": "swarmauri_standard.messages.QuestionMessage",
+        "swarmauri.tools.AskUserTool": "swarmauri_tool_askuser.AskUserTool",
         "swarmauri.skills.DummyFileSystemSkill": (
             "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill"
         ),

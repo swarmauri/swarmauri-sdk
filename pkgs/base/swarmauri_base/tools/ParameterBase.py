@@ -10,6 +10,7 @@ class ParameterBase(IParameter, ComponentBase):
     description: str
     required: bool = False
     enum: list[str] | None = None
+    items: dict[str, str] | None = None
     resource: str | None = Field(default=ResourceTypes.PARAMETER.value)
     input_type: str
 

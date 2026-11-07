@@ -19,6 +19,11 @@ def test_tools():
         "ContainerNewSessionTool",
         "ContainerFeedCharsTool",
         "ContainerMakePrTool",
+        "RunCommandTool",
+        "RunBashScriptTool",
+        "ReadProcessOutputTool",
+        "WriteStdinTool",
+        "CancelProcessTool",
     }
 
 

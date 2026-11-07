@@ -19,7 +19,7 @@ from swarmauri_base.tools.ParameterBase import ParameterBase  # type: ignore[imp
 from swarmauri_base.tools.ToolBase import ToolBase  # type: ignore[import-untyped]
 
 
-from swarmauri_standard.tools._subprocess import run_subprocess
+from swarmauri_process_subprocess import SubprocessBackend
 
 
 @ComponentBase.register_type(ToolBase, "SubprocessTool")
@@ -123,6 +123,6 @@ class SubprocessTool(ToolBase):  # type: ignore[misc]
                 or ``"runtime_error"``), ``stdout``, ``stderr``, and
                 ``exit_code``.
         """
-        return run_subprocess(
+        return SubprocessBackend.run(
             command, timeout=timeout, shell=shell, cwd=cwd, env=env
         )

@@ -1,5 +1,8 @@
 import subprocess
 from typing import List, Literal
+from swarmauri_base.processes.collect_process import collect_process
+from swarmauri_core.processes import IProcessBackend, ProcessRequest
+
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -16,6 +19,8 @@ class ContainerFeedCharsTool(ToolBase):
         "Run a shell command inside a Docker or Kubernetes container."
     )
     type: Literal["ContainerFeedCharsTool"] = "ContainerFeedCharsTool"
+
+    backend: IProcessBackend | None = Field(default=None, exclude=True)
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
@@ -46,6 +51,14 @@ class ContainerFeedCharsTool(ToolBase):
         name = container_name or self.container_name
         if name is None:
             raise ValueError("container_name must be provided")
+        if self.backend is not None:
+            stdout, stderr, event = collect_process(
+                self.backend,
+                ProcessRequest(("sh", "-c", command), workspace=name),
+            )
+            if event.exit_code != 0:
+                raise RuntimeError(stderr.decode(errors="replace").strip())
+            return {"stdout": stdout.decode(errors="replace").strip()}
         if self.driver == "docker":
             cmd = ["docker", "exec", name, "sh", "-c", command]
         else:
