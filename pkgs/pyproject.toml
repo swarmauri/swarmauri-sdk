@@ -112,6 +112,7 @@ members = [
     "community/swarmauri_state_clipboard",
     "community/swarmauri_tests_griffe",
     "community/swarmauri_tool_captchagenerator",
+    "community/swarmauri_tool_createfile",
     "community/swarmauri_tool_dalechallreadability",
     "community/swarmauri_tool_downloadpdf",
     "community/swarmauri_tool_entityrecognition",
