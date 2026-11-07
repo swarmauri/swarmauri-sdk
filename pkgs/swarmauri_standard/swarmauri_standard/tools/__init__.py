@@ -1,3 +1,11 @@
+"""Standard tools and the historical subprocess import alias."""
+
+import sys as _sys
+from importlib import import_module as _import_module
+
+SubprocessTool = _import_module(".subprocessTool", __name__)
+_sys.modules[f"{__name__}.SubprocessTool"] = SubprocessTool
+
 # from swarmauri_standard.utils._lazy_import import _lazy_import
 
 # # List of tool names (file names without the ".py" extension) and

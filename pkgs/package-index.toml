@@ -1792,6 +1792,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_subprocess"
+path = "standards/swarmauri_tool_subprocess"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_transport_asgi"
 path = "standards/swarmauri_transport_asgi"
 layer = "40-standards"
@@ -3093,8 +3105,32 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_addcontenttorag"
+path = "community/swarmauri_tool_addcontenttorag"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_captchagenerator"
 path = "community/swarmauri_tool_captchagenerator"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_createfile"
+path = "community/swarmauri_tool_createfile"
 layer = "50-community"
 order = 0
 family = "tool"
@@ -3131,6 +3167,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_entityrecognition"
 path = "community/swarmauri_tool_entityrecognition"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_findfile"
+path = "community/swarmauri_tool_findfile"
 layer = "50-community"
 order = 0
 family = "tool"
@@ -3429,6 +3477,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_listfiles"
+path = "community/swarmauri_tool_listfiles"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_psutil"
 path = "community/swarmauri_tool_psutil"
 layer = "50-community"
@@ -3467,6 +3527,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_queryknowledgebase"
 path = "community/swarmauri_tool_queryknowledgebase"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_scrollfile"
+path = "community/swarmauri_tool_scrollfile"
 layer = "50-community"
 order = 0
 family = "tool"
