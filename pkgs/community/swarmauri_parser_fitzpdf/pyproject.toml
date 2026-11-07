@@ -29,7 +29,7 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "PyMuPDF>=1.24.12",
+    "PyMuPDF>=1.24.12,<2",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
