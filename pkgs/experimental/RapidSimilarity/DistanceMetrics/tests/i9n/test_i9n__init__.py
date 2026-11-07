@@ -1,37 +1,26 @@
+import numpy as np
 import pytest
 
 
 @pytest.mark.i9n
-def test_import_cpp_extension() -> None:
-    """Verify that the DistanceMetrics extension can be imported."""
-    try:
-        import DistanceMetrics.extensions as extensions
+def test_import_cpp_extensions() -> None:
+    from DistanceMetrics import cosine, euclidean
 
-        assert extensions is not None
-    except ImportError as e:
-        pytest.fail(f"Failed to import C++ extension: {e}")
+    assert callable(cosine.cosine_similarity)
+    assert callable(euclidean.euclidean_distance)
 
 
 @pytest.mark.i9n
-def test_functionality_of_cpp_extension() -> None:
-    """Test that a specific function from the C++ extension works correctly."""
-    import DistanceMetrics.extensions
+def test_cosine_similarity_from_python() -> None:
+    from DistanceMetrics.cosine import cosine_similarity
 
-    result = DistanceMetrics.extensions.example_function()
-    assert result is not None, "C++ extension function returned None."
+    assert cosine_similarity([1.0, 0.0], [1.0, 0.0]) == pytest.approx(1.0)
 
 
 @pytest.mark.i9n
-def test_numpy_integration() -> None:
-    """Test the integration of NumPy with the C++ extension."""
-    import numpy as np
-    import DistanceMetrics.extensions
+def test_euclidean_distance_from_numpy() -> None:
+    from DistanceMetrics import euclidean_distance
 
-    array = np.array([1.0, 2.0, 3.0])
-    result = DistanceMetrics.extensions.numpy_function(array)
-    assert isinstance(result, np.ndarray), (
-        "The result should be a NumPy array."
-    )
-    assert result.shape == array.shape, (
-        "The shape of the result should match the input array."
-    )
+    first = np.array([0.0, 0.0])
+    second = np.array([3.0, 4.0])
+    assert euclidean_distance(first, second) == pytest.approx(5.0)

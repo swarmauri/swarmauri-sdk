@@ -33,8 +33,10 @@ class SentenceChunker(ChunkerBase):
         sentence_pattern = r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s"
         sentences = re.split(sentence_pattern, text)
 
-        # Filter out any empty strings that may have resulted from the split
-        # operation
-        sentences = [sentence.strip() for sentence in sentences if sentence]
+        # Filter out any empty or whitespace-only strings that may have
+        # resulted from the split operation
+        sentences = [
+            sentence.strip() for sentence in sentences if sentence.strip()
+        ]
 
         return sentences

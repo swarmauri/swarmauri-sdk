@@ -20,6 +20,11 @@ class FixedLengthChunker(ChunkerBase):
     chunk_size: int = 256
     type: Literal["FixedLengthChunker"] = "FixedLengthChunker"
 
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        if self.chunk_size <= 0:
+            raise ValueError("chunk_size must be a positive integer")
+
     def chunk_text(self, text: str | Any, *args, **kwargs) -> List[str]:
         """
         Splits the input text into fixed-length chunks.

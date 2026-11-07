@@ -1,9 +1,9 @@
 ![Swarmauri](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 [![Downloads](https://img.shields.io/pypi/dm/swarmauri_transport_aws_eventstream)](https://pypi.org/project/swarmauri_transport_aws_eventstream/)
-[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_aws_eventstream.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_aws_eventstream/)
+[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_aws_eventstream.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_transport_aws_eventstream)
 [![Python](https://img.shields.io/pypi/pyversions/swarmauri_transport_aws_eventstream)](https://pypi.org/project/swarmauri_transport_aws_eventstream/)
-[![License](https://img.shields.io/pypi/l/swarmauri_transport_aws_eventstream)](https://pypi.org/project/swarmauri_transport_aws_eventstream/)
+[![License](https://img.shields.io/pypi/l/swarmauri_transport_aws_eventstream)](LICENSE)
 [![Version](https://img.shields.io/pypi/v/swarmauri_transport_aws_eventstream?label=swarmauri_transport_aws_eventstream&color=green)](https://pypi.org/project/swarmauri_transport_aws_eventstream/)
 
 # swarmauri_transport_aws_eventstream

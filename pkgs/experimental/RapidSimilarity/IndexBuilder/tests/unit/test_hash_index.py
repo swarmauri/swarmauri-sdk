@@ -43,7 +43,9 @@ def test_lsh_index_bulk_insert_and_query(data_points):
     # Query one of the inserted points
     results = lsh_index.query(data_points[0])
 
-    assert len(results) > 0, "Query should return results after bulk insertion."
+    assert len(results) > 0, (
+        "Query should return results after bulk insertion."
+    )
     assert any(np.array_equal(result, data_points[0]) for result in results), (
         "Returned results should contain the queried data point."
     )
@@ -75,4 +77,6 @@ def test_query_empty_index():
     data_point = np.array([0.5, 0.7], dtype=np.float32)
     results = lsh_index.query(data_point)
 
-    assert len(results) == 0, "Querying an empty index should return no results."
+    assert len(results) == 0, (
+        "Querying an empty index should return no results."
+    )
