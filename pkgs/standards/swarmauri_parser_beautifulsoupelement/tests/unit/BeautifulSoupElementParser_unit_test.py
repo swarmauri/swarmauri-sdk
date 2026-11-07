@@ -72,3 +72,24 @@ def test_parse(html_content, element, expected_count, expected_content):
     assert [doc.content for doc in documents] == expected_content, (
         "The content of documents does not match the expected content."
     )
+
+
+@pytest.mark.unit
+def test_parse_metadata():
+    html_content = "<div><p>First paragraph</p><p>Second paragraph</p></div>"
+    parser = Parser(element="p")
+
+    documents = parser.parse(html_content)
+
+    assert len(documents) == 2, (
+        "Expected two documents for the two paragraphs."
+    )
+    assert all(doc.metadata["element"] == "p" for doc in documents), (
+        "Every document should record the matched element name."
+    )
+    assert [doc.metadata["index"] for doc in documents] == [
+        0,
+        1,
+    ], (
+        "Documents should record their zero-based match index in document order."
+    )
