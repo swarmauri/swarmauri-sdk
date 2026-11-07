@@ -25,6 +25,25 @@ def test_chunk_text():
 
 
 @pytest.mark.unit
+def test_chunk_text_trailing_delimiter():
+    unchunked_text = "Hello. "
+    chunks = ["Hello."]
+    assert DelimiterBasedChunker().chunk_text(unchunked_text) == chunks
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "unchunked_text",
+    [
+        "",
+        "   ",
+    ],
+)
+def test_chunk_text_empty_and_whitespace_only(unchunked_text):
+    assert DelimiterBasedChunker().chunk_text(unchunked_text) == []
+
+
+@pytest.mark.unit
 def test_serialization():
     chunker = DelimiterBasedChunker()
     assert (

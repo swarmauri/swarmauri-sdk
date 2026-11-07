@@ -44,6 +44,7 @@ class DelimiterBasedChunker(ChunkerBase):
                 chunks[i] + (chunks[i + 1] if i + 1 < len(chunks) else "")
             )
 
-        # Remove whitespace
+        # Remove whitespace and drop empty or whitespace-only chunks left
+        # over from empty input or trailing delimiters
         combined_chunks = [chunk.strip() for chunk in combined_chunks]
-        return combined_chunks
+        return [chunk for chunk in combined_chunks if chunk]
