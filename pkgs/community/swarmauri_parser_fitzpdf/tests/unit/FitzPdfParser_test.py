@@ -67,3 +67,18 @@ def test_parser():
         assert documents[0].metadata["source"] == file_path, (
             "The metadata 'source' should match the file path."
         )
+        mock_pdf_document.close.assert_called_once()
+
+
+@pytest.mark.unit
+def test_parser_closes_document_on_error():
+    parser = Parser()
+
+    with mock.patch("pymupdf.open") as mock_open:
+        mock_pdf_document = mock.Mock()
+        mock_pdf_document.__len__ = mock.Mock(return_value=1)
+        mock_pdf_document.load_page.side_effect = RuntimeError("bad page")
+        mock_open.return_value = mock_pdf_document
+
+        assert parser.parse("resources/demo.pdf") == []
+        mock_pdf_document.close.assert_called_once()
