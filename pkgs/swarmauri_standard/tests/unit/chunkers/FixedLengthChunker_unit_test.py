@@ -21,6 +21,22 @@ def test_chunk_text():
 
 
 @pytest.mark.unit
+def test_chunk_text_fixed_length():
+    chunker = FixedLengthChunker(chunk_size=2)
+    assert chunker.chunk_text("abcde") == ["ab", "cd", "e"]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("chunk_size", [0, -1])
+def test_invalid_chunk_size(chunk_size):
+    with pytest.raises(
+        ValueError, match="chunk_size must be a positive integer"
+    ) as exc_info:
+        FixedLengthChunker(chunk_size=chunk_size)
+    assert type(exc_info.value) is ValueError
+
+
+@pytest.mark.unit
 def test_serialization():
     chunker = FixedLengthChunker()
     assert (

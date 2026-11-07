@@ -82,3 +82,31 @@ def test_parser_closes_document_on_error():
 
         assert parser.parse("resources/demo.pdf") == []
         mock_pdf_document.close.assert_called_once()
+
+
+@pytest.mark.unit
+def test_parser_closes_document_on_extraction_error():
+    parser = Parser()
+
+    file_path = "resources/demo.pdf"
+
+    # Mock the pymupdf open method and the returned document
+    with mock.patch("pymupdf.open") as mock_open:
+        mock_pdf_document = mock.Mock()
+        mock_pdf_document.__len__ = mock.Mock(return_value=1)
+
+        mock_page = mock.Mock()
+        mock_page.get_text.side_effect = RuntimeError("page extraction failed")
+
+        mock_pdf_document.load_page.side_effect = [mock_page]
+        mock_open.return_value = mock_pdf_document
+
+        documents = parser.parse(file_path)
+
+        # Extraction failure should still return an empty list
+        assert documents == [], (
+            "The parser should return an empty list on extraction failure."
+        )
+
+        # The document handle must be closed when extraction raises
+        mock_pdf_document.close.assert_called_once()
