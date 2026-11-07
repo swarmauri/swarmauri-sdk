@@ -1,9 +1,14 @@
-import os
 from pathlib import Path
 
 import pytest
 
 from swarmauri_tool_findfile.FindFileTool import FindFileTool as Tool
+from swarmauri_tool_findfile import _filesystem
+
+
+@pytest.fixture(autouse=True)
+def trusted_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.mark.unit
@@ -185,10 +190,10 @@ def test_a_relative_root_still_returns_absolute_matches(tmp_path, monkeypatch):
 def test_unsearchable_probe_returns_an_error(tmp_path, monkeypatch):
     """A probe that raises must be reported, not propagated."""
 
-    def denied(self):
+    def denied(*args):
         raise PermissionError("denied")
 
-    monkeypatch.setattr(Path, "exists", denied)
+    monkeypatch.setattr(_filesystem, "open_directory", denied)
 
     result = Tool()(path=str(tmp_path), pattern="*")
 
@@ -200,11 +205,12 @@ def test_unsearchable_probe_returns_an_error(tmp_path, monkeypatch):
 def test_walk_errors_are_reported_not_swallowed(tmp_path, monkeypatch):
     """os.walk drops unreadable subtrees unless onerror raises."""
 
-    def failing_walk(root, followlinks=False, onerror=None):
-        onerror(OSError("cannot list"))
-        return iter(())
+    (tmp_path / "child").mkdir()
 
-    monkeypatch.setattr(os, "walk", failing_walk)
+    def failing_child(*args):
+        raise OSError("cannot list")
+
+    monkeypatch.setattr(_filesystem, "child_directory", failing_child)
 
     result = Tool()(path=str(tmp_path), pattern="*.txt", recursive=True)
 

@@ -3,6 +3,7 @@ name = "swarmauri_tool_findfile"
 version = "0.1.0.dev1"
 description = "Swarmauri tool for finding files under a directory by shell-style wildcard name matching, case-insensitively, with optional recursion."
 license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
@@ -11,7 +12,8 @@ classifiers = [
     "Natural Language :: English",
     "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: System :: Filesystems",
