@@ -56,11 +56,18 @@ def test_exact_nearest_neighbors_large_k():
     "dataset,query,k,expected_neighbors",
     [
         (np.array([1.0, 2.0, 3.0], dtype=np.float32), 1.5, 1, [0]),
-        (np.array([5.0, 1.0, 3.0, 4.0, 2.0], dtype=np.float32), 3.5, 2, [2, 3]),
-        (np.array([10.0, 20.0, 30.0], dtype=np.float32), 15.0, 2, [1, 0]),
+        (
+            np.array([5.0, 1.0, 3.0, 4.0, 2.0], dtype=np.float32),
+            3.5,
+            2,
+            [2, 3],
+        ),
+        (np.array([10.0, 20.0, 30.0], dtype=np.float32), 15.0, 2, [0, 1]),
     ],
 )
-def test_exact_nearest_neighbors_parametrized(dataset, query, k, expected_neighbors):
+def test_exact_nearest_neighbors_parametrized(
+    dataset, query, k, expected_neighbors
+):
     """Test exact nearest neighbors with parameterized datasets."""
     neighbors = exact_query.exact_nearest_neighbors(dataset, query, k)
     assert list(neighbors) == expected_neighbors
