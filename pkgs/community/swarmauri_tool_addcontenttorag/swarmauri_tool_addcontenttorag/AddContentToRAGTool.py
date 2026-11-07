@@ -21,7 +21,14 @@ class AddContentToRAGTool(ToolBase):
         "knowledge base."
     )
     type: Literal["AddContentToRAGTool"] = "AddContentToRAGTool"
-    knowledge_base: Any = Field(default=None, exclude=True)
+    knowledge_base: Any = Field(
+        default=None,
+        exclude=True,
+        description=(
+            "Application-supplied backend that implements "
+            "add_documents(list[IDocument])."
+        ),
+    )
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
