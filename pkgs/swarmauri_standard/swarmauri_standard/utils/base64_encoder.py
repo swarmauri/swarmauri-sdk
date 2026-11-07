@@ -1,5 +1,5 @@
-import re
 import base64
+import re
 
 
 def encode_file(file_path):

@@ -1,7 +1,7 @@
 import pytest
 
-from swarmauri_base.tokens import TokenServiceBase
 from swarmauri_base.ComponentBase import ResourceTypes
+from swarmauri_base.tokens import TokenServiceBase
 
 
 class DummyTokenService(TokenServiceBase):

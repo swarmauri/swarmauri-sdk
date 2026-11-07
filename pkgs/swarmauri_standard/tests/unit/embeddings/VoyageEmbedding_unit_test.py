@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from swarmauri_standard.embeddings.VoyageEmbedding import VoyageEmbedding
 from dotenv import load_dotenv
+
+from swarmauri_standard.embeddings.VoyageEmbedding import VoyageEmbedding
 
 load_dotenv()
 

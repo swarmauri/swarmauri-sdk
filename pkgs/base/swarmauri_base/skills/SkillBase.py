@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import PurePath
-from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple
+from typing import Any, ClassVar, Literal
 
 import yaml
 from pydantic import (
@@ -12,9 +12,9 @@ from pydantic import (
     field_validator,
     model_validator,
 )
+from swarmauri_core.skills.ISkill import ISkill
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.skills.ISkill import ISkill
 
 
 @ComponentBase.register_model()
@@ -24,17 +24,17 @@ class SkillBase(ISkill, ComponentBase):
     name: str
     description: str
     instructions: str
-    license: Optional[str] = None
-    compatibility: Optional[str] = None
-    metadata: Dict[str, str] = Field(default_factory=dict)
-    allowed_tools: List[str] = Field(
+    license: str | None = None
+    compatibility: str | None = None
+    metadata: dict[str, str] = Field(default_factory=dict)
+    allowed_tools: list[str] = Field(
         default_factory=list,
         validation_alias=AliasChoices("allowed-tools", "allowed_tools"),
     )
-    assets: List[str] = Field(default_factory=list)
-    references: List[str] = Field(default_factory=list)
-    scripts: List[str] = Field(default_factory=list)
-    resource: Optional[str] = Field(default=ResourceTypes.SKILL.value)
+    assets: list[str] = Field(default_factory=list)
+    references: list[str] = Field(default_factory=list)
+    scripts: list[str] = Field(default_factory=list)
+    resource: str | None = Field(default=ResourceTypes.SKILL.value)
     type: Literal["SkillBase"] = "SkillBase"
     model_config = ConfigDict(
         extra="forbid",
@@ -53,7 +53,7 @@ class SkillBase(ISkill, ComponentBase):
 
     @field_validator("metadata", mode="before")
     @classmethod
-    def _normalize_metadata(cls, value: Any) -> Dict[str, str]:
+    def _normalize_metadata(cls, value: Any) -> dict[str, str]:
         if value is None:
             return {}
         if not isinstance(value, dict):
@@ -84,7 +84,7 @@ class SkillBase(ISkill, ComponentBase):
 
     @field_validator("compatibility")
     @classmethod
-    def _validate_compatibility(cls, value: Optional[str]) -> Optional[str]:
+    def _validate_compatibility(cls, value: str | None) -> str | None:
         if value is not None and not 1 <= len(value) <= 500:
             raise ValueError("Skill compatibility must be 1-500 characters")
         return value
@@ -102,7 +102,7 @@ class SkillBase(ISkill, ComponentBase):
         return data
 
     @model_validator(mode="after")
-    def _validate_resource_paths(self) -> "SkillBase":
+    def _validate_resource_paths(self) -> SkillBase:
         for field_name in self._RESOURCE_FIELDS:
             for value in getattr(self, field_name):
                 if not isinstance(value, str) or not value:
@@ -118,16 +118,16 @@ class SkillBase(ISkill, ComponentBase):
     def from_markdown(
         cls,
         markdown: str,
-        manifest: Optional[Dict[str, Any]] = None,
+        manifest: dict[str, Any] | None = None,
         **overrides: Any,
-    ) -> "SkillBase":
+    ) -> SkillBase:
         frontmatter, instructions = cls.split_frontmatter(markdown)
         data = cls.merge_skill_data(frontmatter, manifest or {}, overrides)
         data.setdefault("instructions", instructions.strip())
         return cls(**data)
 
     @classmethod
-    def split_frontmatter(cls, markdown: str) -> Tuple[Dict[str, Any], str]:
+    def split_frontmatter(cls, markdown: str) -> tuple[dict[str, Any], str]:
         normalized = markdown.lstrip("\ufeff")
         if not normalized.startswith("---"):
             return {}, markdown
@@ -157,11 +157,11 @@ class SkillBase(ISkill, ComponentBase):
     @classmethod
     def merge_skill_data(
         cls,
-        frontmatter: Dict[str, Any],
-        manifest: Dict[str, Any],
-        overrides: Dict[str, Any],
-    ) -> Dict[str, Any]:
-        data: Dict[str, Any] = {}
+        frontmatter: dict[str, Any],
+        manifest: dict[str, Any],
+        overrides: dict[str, Any],
+    ) -> dict[str, Any]:
+        data: dict[str, Any] = {}
         data.update(frontmatter or {})
         data.update(manifest or {})
         data.update(

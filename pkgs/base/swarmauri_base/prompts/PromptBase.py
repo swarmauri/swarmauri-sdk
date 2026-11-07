@@ -1,7 +1,9 @@
-from typing import Optional, Literal
+from typing import Literal
+
 from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.prompts.IPrompt import IPrompt
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -14,7 +16,7 @@ class PromptBase(IPrompt, ComponentBase):
     """
 
     prompt: str = ""
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.PROMPT.value, frozen=True
     )
     type: Literal["PromptBase"] = "PromptBase"

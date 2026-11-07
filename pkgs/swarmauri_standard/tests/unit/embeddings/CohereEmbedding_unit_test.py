@@ -2,6 +2,7 @@ import os
 
 import pytest
 from dotenv import load_dotenv
+
 from swarmauri_standard.embeddings.CohereEmbedding import CohereEmbedding
 
 load_dotenv()

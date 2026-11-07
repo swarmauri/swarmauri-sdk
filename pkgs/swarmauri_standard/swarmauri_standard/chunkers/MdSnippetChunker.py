@@ -1,5 +1,6 @@
-from typing import List, Union, Any, Optional, Literal
 import re
+from typing import Any, List, Literal, Optional
+
 from swarmauri_base.chunkers.ChunkerBase import ChunkerBase
 from swarmauri_base.ComponentBase import ComponentBase
 
@@ -10,9 +11,7 @@ class MdSnippetChunker(ChunkerBase):
     language: Optional[str] = None
     type: Literal["MdSnippetChunker"] = "MdSnippetChunker"
 
-    def chunk_text(
-        self, text: Union[str, Any], *args, **kwargs
-    ) -> List[tuple]:
+    def chunk_text(self, text: str | Any, *args, **kwargs) -> List[tuple]:
         """
         Extracts paired comments and code blocks from Markdown content based on
         the

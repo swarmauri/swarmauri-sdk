@@ -11,7 +11,9 @@ def test_openrouter_models_are_second_class():
         "swarmauri.tool_llms.OpenRouterToolModel": (
             "swarmauri_llm_openrouter.OpenRouterToolModel"
         ),
-        "swarmauri.vlms.OpenRouterVLM": "swarmauri_llm_openrouter.OpenRouterVLM",
+        "swarmauri.vlms.OpenRouterVLM": (
+            "swarmauri_llm_openrouter.OpenRouterVLM"
+        ),
         "swarmauri.image_gens.OpenRouterImgGenModel": (
             "swarmauri_llm_openrouter.OpenRouterImgGenModel"
         ),

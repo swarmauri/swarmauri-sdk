@@ -1,5 +1,5 @@
-from typing import Any
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class IMeasurementAggregate(ABC):
@@ -15,4 +15,3 @@ class IMeasurementAggregate(ABC):
         This is useful for measurements that might aggregate or average data
         over time and need to be reset.
         """
-        pass

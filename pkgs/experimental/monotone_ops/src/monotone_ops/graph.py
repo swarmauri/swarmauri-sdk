@@ -58,14 +58,18 @@ def reachable(graph: Graph, sources: Iterable[Node]) -> frozenset[Node]:
 
 
 def reverse_graph(graph: Graph) -> Graph:
-    return Graph(graph.nodes, frozenset((dst, src) for src, dst in graph.edges))
+    return Graph(
+        graph.nodes, frozenset((dst, src) for src, dst in graph.edges)
+    )
 
 
 def predecessors(graph: Graph, targets: Iterable[Node]) -> frozenset[Node]:
     return reachable(reverse_graph(graph), targets)
 
 
-def transitive_closure_edges(graph: Graph, *, reflexive: bool = False) -> frozenset[Edge]:
+def transitive_closure_edges(
+    graph: Graph, *, reflexive: bool = False
+) -> frozenset[Edge]:
     edges: set[Edge] = set()
     for node in graph.nodes:
         reach = reachable(graph, [node])
@@ -75,8 +79,12 @@ def transitive_closure_edges(graph: Graph, *, reflexive: bool = False) -> frozen
     return frozenset(edges)
 
 
-def transitive_closure_graph(graph: Graph, *, reflexive: bool = False) -> Graph:
-    return Graph(graph.nodes, transitive_closure_edges(graph, reflexive=reflexive))
+def transitive_closure_graph(
+    graph: Graph, *, reflexive: bool = False
+) -> Graph:
+    return Graph(
+        graph.nodes, transitive_closure_edges(graph, reflexive=reflexive)
+    )
 
 
 def undirected_closure(graph: Graph) -> Graph:
@@ -87,16 +95,24 @@ def undirected_closure(graph: Graph) -> Graph:
 
 
 def component_labels(graph: Graph) -> dict[Node, frozenset[Node]]:
-    """Connected-component map for an undirected interpretation of ``graph``."""
+    """Connected-component map for an undirected interpretation of
+    ``graph``."""
 
     undirected = undirected_closure(graph)
     return {node: reachable(undirected, [node]) for node in undirected.nodes}
 
 
 def edge_cut(graph: Graph, allowed_nodes: frozenset[Node]) -> Graph:
-    """Restrict to a fixed node subset. Monotone in graph inclusion."""
+    """Restrict to a fixed node subset.
 
-    edges = frozenset((u, v) for u, v in graph.edges if u in allowed_nodes and v in allowed_nodes)
+    Monotone in graph inclusion.
+    """
+
+    edges = frozenset(
+        (u, v)
+        for u, v in graph.edges
+        if u in allowed_nodes and v in allowed_nodes
+    )
     return Graph(graph.nodes & allowed_nodes, edges)
 
 

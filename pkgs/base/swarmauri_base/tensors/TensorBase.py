@@ -1,5 +1,6 @@
 import logging
-from typing import Iterator, List, Literal, Optional, Sequence, Tuple, Union
+from collections.abc import Iterator, Sequence
+from typing import Literal, Union
 
 from swarmauri_core.matrices.IMatrix import IMatrix
 from swarmauri_core.tensors.ITensor import Index, ITensor, Shape, T
@@ -27,7 +28,7 @@ class TensorBase(ITensor, ComponentBase):
         Resource type identifier, defaults to TENSOR
     """
 
-    resource: Optional[str] = ResourceTypes.TENSOR.value
+    resource: str | None = ResourceTypes.TENSOR.value
 
     def __getitem__(self, key: Index) -> Union["ITensor", IMatrix, IVector, T]:
         """
@@ -137,7 +138,7 @@ class TensorBase(ITensor, ComponentBase):
             "dtype property must be implemented by subclasses"
         )
 
-    def tolist(self) -> List:
+    def tolist(self) -> list:
         """
         Convert the tensor to a nested list.
 
@@ -330,7 +331,7 @@ class TensorBase(ITensor, ComponentBase):
         )
 
     def transpose(
-        self, axes: Union[None, Tuple[int, ...]] = None
+        self, axes: Union[None, tuple[int, ...]] = None
     ) -> "ITensor":
         """
         Transpose (permute) the tensor's axes.

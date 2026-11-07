@@ -58,7 +58,7 @@ def test_initialization():
 @pytest.mark.unit
 def test_compute_basic(inner_product, complex_matrices):
     """Test basic computation of inner product."""
-    a, b, zero, identity = complex_matrices
+    a, b, _zero, _identity = complex_matrices
 
     # Test inner product computation
     result = inner_product.compute(a, b)
@@ -74,7 +74,7 @@ def test_compute_basic(inner_product, complex_matrices):
 @pytest.mark.unit
 def test_compute_with_zero_matrix(inner_product, complex_matrices):
     """Test inner product computation with zero matrix."""
-    a, b, zero, identity = complex_matrices
+    a, b, zero, _identity = complex_matrices
 
     # Inner product with zero should be zero
     result_a_zero = inner_product.compute(a, zero)
@@ -87,7 +87,7 @@ def test_compute_with_zero_matrix(inner_product, complex_matrices):
 @pytest.mark.unit
 def test_compute_with_identity_matrix(inner_product, complex_matrices):
     """Test inner product computation with identity matrix."""
-    a, b, zero, identity = complex_matrices
+    a, _b, _zero, identity = complex_matrices
 
     # Inner product with identity
     result = inner_product.compute(a, identity)

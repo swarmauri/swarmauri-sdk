@@ -14,7 +14,7 @@ from typing import (
 )
 
 import httpx
-from pydantic import SecretStr, PrivateAttr
+from pydantic import PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.messages.MessageBase import MessageBase

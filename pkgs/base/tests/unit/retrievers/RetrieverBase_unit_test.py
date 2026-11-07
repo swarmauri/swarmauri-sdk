@@ -1,13 +1,12 @@
-from typing import List
-
 import pytest
+from swarmauri_core.documents.IDocument import IDocument
+
 from swarmauri_base.retrievers.RetrieverBase import RetrieverBase
 from swarmauri_base.retrievers.RetrieverMixin import RetrieverMixin
-from swarmauri_core.documents.IDocument import IDocument
 
 
 class ConcreteRetriever(RetrieverBase):
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[IDocument]:
         return []
 
 

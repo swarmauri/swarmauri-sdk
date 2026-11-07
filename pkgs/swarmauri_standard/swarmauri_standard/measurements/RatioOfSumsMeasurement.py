@@ -1,11 +1,11 @@
 from typing import Literal
-import pandas as pd
 
+import pandas as pd
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(MeasurementBase, "RatioOfSumsMeasurement")
@@ -37,7 +37,8 @@ class RatioOfSumsMeasurement(MeasurementBase, MeasurementCalculateMixin):
 
         if sum_b == 0:
             raise ValueError(
-                f"The sum of column '{column_b}' is zero, cannot divide by zero."  # noqa: E501
+                f"The sum of column '{column_b}' is zero, cannot divide by "
+                f"zero."
             )
 
         return sum_a / sum_b

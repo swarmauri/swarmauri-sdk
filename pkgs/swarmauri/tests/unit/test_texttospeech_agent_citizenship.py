@@ -2,7 +2,6 @@ import pytest
 
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
-
 pytestmark = pytest.mark.unit
 
 

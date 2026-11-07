@@ -1,8 +1,9 @@
-import pytest
-from functools import wraps
-import signal
 import asyncio
 import inspect
+import signal
+from functools import wraps
+
+import pytest
 
 
 def timeout(seconds=5):

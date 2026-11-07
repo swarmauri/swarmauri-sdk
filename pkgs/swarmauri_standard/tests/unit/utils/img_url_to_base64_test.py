@@ -1,8 +1,10 @@
 import base64
-import httpx
 from io import BytesIO
-from PIL import Image
 from unittest.mock import patch
+
+import httpx
+from PIL import Image
+
 from swarmauri_standard.utils.img_url_to_base64 import img_url_to_base64
 
 

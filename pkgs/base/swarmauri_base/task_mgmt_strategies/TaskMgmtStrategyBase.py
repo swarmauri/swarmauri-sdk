@@ -1,11 +1,13 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict, Literal, Optional
-from pydantic import ConfigDict, Field
+from collections.abc import Callable
+from typing import Any, Literal
 
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from pydantic import ConfigDict, Field
 from swarmauri_core.task_mgmt_strategies.ITaskMgmtStrategy import (
     ITaskMgmtStrategy,
 )
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -13,7 +15,7 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
     """Base class for TaskStrategy."""
 
     type: Literal["TaskMgmtStrategyBase"] = "TaskMgmtStrategyBase"
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.TASK_MGMT_STRATEGY.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
@@ -21,7 +23,7 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
     @abstractmethod
     def assign_task(
         self,
-        task: Dict[str, Any],
+        task: dict[str, Any],
         agent_factory: Callable,
         service_registry: Callable,
     ) -> str:
@@ -33,7 +35,7 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
         )
 
     @abstractmethod
-    def add_task(self, task: Dict[str, Any]) -> None:
+    def add_task(self, task: dict[str, Any]) -> None:
         """
         Abstract method to add a task to the task queue.
         """
@@ -51,7 +53,7 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
         )
 
     @abstractmethod
-    def get_task(self, task_id: str) -> Dict[str, Any]:
+    def get_task(self, task_id: str) -> dict[str, Any]:
         """
         Abstract method to get a task from the task queue.
         """
@@ -60,7 +62,7 @@ class TaskMgmtStrategyBase(ITaskMgmtStrategy, ComponentBase):
         )
 
     @abstractmethod
-    def process_tasks(self, task: Dict[str, Any]) -> None:
+    def process_tasks(self, task: dict[str, Any]) -> None:
         """
         Abstract method to process tasks.
         """

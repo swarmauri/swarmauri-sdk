@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional, Tuple
 
 from ..crypto.types import ExportPolicy, KeyUse
 
@@ -35,15 +34,15 @@ class KeySpec:
 
     klass: KeyClass
     alg: KeyAlg
-    uses: Tuple[KeyUse, ...]
+    uses: tuple[KeyUse, ...]
     export_policy: ExportPolicy
-    encoding: Optional[str] = None
-    private_format: Optional[str] = None
-    public_format: Optional[str] = None
-    encryption: Optional[str] = None
-    size_bits: Optional[int] = None
-    label: Optional[str] = None
-    tags: Optional[Dict[str, str]] = None
+    encoding: str | None = None
+    private_format: str | None = None
+    public_format: str | None = None
+    encryption: str | None = None
+    size_bits: int | None = None
+    label: str | None = None
+    tags: dict[str, str] | None = None
 
 
 __all__ = [

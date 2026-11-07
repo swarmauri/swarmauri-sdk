@@ -93,7 +93,10 @@ def powerset_meet(a: frozenset[T], b: frozenset[T]) -> frozenset[T]:
 
 def finite_abstraction(
     universe: frozenset[T],
-) -> tuple[Callable[[frozenset[T]], frozenset[T]], Callable[[frozenset[T]], frozenset[T]]]:
+) -> tuple[
+    Callable[[frozenset[T]], frozenset[T]],
+    Callable[[frozenset[T]], frozenset[T]],
+]:
     """Return abstraction/concretization for values in a finite universe."""
 
     def alpha(values: frozenset[T]) -> frozenset[T]:

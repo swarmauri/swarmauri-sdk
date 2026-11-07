@@ -9,9 +9,7 @@ from swarmauri_workflow_statedriven.exceptions import InvalidTransitionError
 
 
 class DummyAgent:
-    """
-    Simple agent stub for testing.
-    """
+    """Simple agent stub for testing."""
 
     def __init__(self, suffix: str = ""):
         self.suffix = suffix
@@ -21,9 +19,8 @@ class DummyAgent:
 
 
 def test_init():
-    """
-    Test WorkflowBase.__init__ initializes empty nodes, transitions, and state_manager.
-    """
+    """Test WorkflowBase.__init__ initializes empty nodes, transitions, and
+    state_manager."""
     wf = WorkflowBase()
     assert wf.nodes == {}
     assert wf.transitions == []
@@ -33,9 +30,8 @@ def test_init():
 
 
 def test_add_state_errors():
-    """
-    Test WorkflowBase.add_state raises ValueError when neither or both agent/tool provided.
-    """
+    """Test WorkflowBase.add_state raises ValueError when neither or both
+    agent/tool provided."""
     wf = WorkflowBase()
     with pytest.raises(ValueError):
         wf.add_state("no_backend")  # neither agent nor tool
@@ -46,9 +42,8 @@ def test_add_state_errors():
 
 
 def test_add_state_success():
-    """
-    Test WorkflowBase.add_state registers a Node correctly (WorkflowBase.add_state).
-    """
+    """Test WorkflowBase.add_state registers a Node correctly
+    (WorkflowBase.add_state)."""
     wf = WorkflowBase()
     agent = DummyAgent()
     wf.add_state("A", agent=agent)
@@ -60,18 +55,16 @@ def test_add_state_success():
 
 
 def test_add_transition_errors():
-    """
-    Test WorkflowBase.add_transition raises InvalidTransitionError on unknown states.
-    """
+    """Test WorkflowBase.add_transition raises InvalidTransitionError on
+    unknown states."""
     wf = WorkflowBase()
     with pytest.raises(InvalidTransitionError):
         wf.add_transition("X", "Y", FunctionCondition(lambda s: True))
 
 
 def test_add_transition_success():
-    """
-    Test WorkflowBase.add_transition registers a Transition correctly (WorkflowBase.add_transition).
-    """
+    """Test WorkflowBase.add_transition registers a Transition correctly
+    (WorkflowBase.add_transition)."""
     wf = WorkflowBase()
     wf.add_state("A", agent=DummyAgent())
     wf.add_state("B", agent=DummyAgent())
@@ -85,9 +78,8 @@ def test_add_transition_success():
 
 
 def test_run_linear():
-    """
-    Test WorkflowBase.run executes a simple linear workflow (WorkflowBase.run).
-    """
+    """Test WorkflowBase.run executes a simple linear workflow
+    (WorkflowBase.run)."""
     wf = WorkflowBase()
     start_agent = DummyAgent(suffix="_S")
     end_agent = DummyAgent(suffix="_E")
@@ -102,9 +94,8 @@ def test_run_linear():
 
 
 def test_run_parallel_equivalence():
-    """
-    Test WorkflowBase.run_parallel matches WorkflowBase.run on a linear workflow (WorkflowBase.run_parallel).
-    """
+    """Test WorkflowBase.run_parallel matches WorkflowBase.run on a linear
+    workflow (WorkflowBase.run_parallel)."""
     wf = WorkflowBase()
     wf.add_state("X", agent=DummyAgent(suffix="1"))
     wf.add_state("Y", agent=DummyAgent(suffix="2"))

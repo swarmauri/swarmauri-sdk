@@ -1,10 +1,11 @@
-from typing import Any, Dict, List, Literal, Optional, Union
 import asyncio
-from pydantic import ConfigDict, Field
 from enum import Enum
+from typing import Any, Literal, Union
+
+from pydantic import ConfigDict, Field
+from swarmauri_core.swarms.ISwarm import ISwarm
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.swarms.ISwarm import ISwarm
 
 
 class SwarmStatus(Enum):
@@ -19,7 +20,7 @@ class SwarmBase(ISwarm, ComponentBase):
     """Base class for Swarm implementations"""
 
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.SWARM.value, frozen=True
     )
     type: Literal["SwarmBase"] = "SwarmBase"
@@ -29,9 +30,9 @@ class SwarmBase(ISwarm, ComponentBase):
     max_retries: int = Field(default=3, ge=0)
     max_queue_size: int = Field(default=10, gt=0)
 
-    _agents: List[Any] = []
-    _task_queue: Optional[asyncio.Queue] = None
-    _status: Dict[int, SwarmStatus] = {}
+    _agents: list[Any] = []
+    _task_queue: asyncio.Queue | None = None
+    _status: dict[int, SwarmStatus] = {}
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,14 +48,14 @@ class SwarmBase(ISwarm, ComponentBase):
         raise NotImplementedError("Agent creation method not implemented")
 
     @property
-    def agents(self) -> List[Any]:
+    def agents(self) -> list[Any]:
         return self._agents
 
     @property
     def queue_size(self) -> int:
         return self._task_queue.qsize()
 
-    def get_swarm_status(self) -> Dict[int, SwarmStatus]:
+    def get_swarm_status(self) -> dict[int, SwarmStatus]:
         return self._status
 
     async def _process_task(self, agent_id: int, task: Any, **kwargs) -> Any:
@@ -81,8 +82,8 @@ class SwarmBase(ISwarm, ComponentBase):
         raise NotImplementedError("Task execution method not implemented")
 
     async def exec(
-        self, input_data: Union[List[str], Any] = [], **kwargs: Optional[Dict]
-    ) -> List[Any]:
+        self, input_data: Union[list[str], Any] = [], **kwargs: dict | None
+    ) -> list[Any]:
         tasks = input_data if isinstance(input_data, list) else [input_data]
         for task in tasks:
             await self._task_queue.put(task)

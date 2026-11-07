@@ -15,9 +15,23 @@ from monotone_ops.evidence import (
     claim_evidence_merge,
     quorum_merge,
 )
-from monotone_ops.graph import Graph, graph_union, reachable, transitive_closure_edges
-from monotone_ops.relational import NamedRelation, named_project, natural_join, positive_consequence
-from monotone_ops.semiring import algebraic_path_closure, boolean_semiring, tropical_min_plus
+from monotone_ops.graph import (
+    Graph,
+    graph_union,
+    reachable,
+    transitive_closure_edges,
+)
+from monotone_ops.relational import (
+    NamedRelation,
+    named_project,
+    natural_join,
+    positive_consequence,
+)
+from monotone_ops.semiring import (
+    algebraic_path_closure,
+    boolean_semiring,
+    tropical_min_plus,
+)
 
 
 def test_abstract_domains():
@@ -27,7 +41,9 @@ def test_abstract_domains():
 
 
 def test_crdt_merges():
-    assert gset_merge(GSet(frozenset({1})), GSet(frozenset({2}))).members == frozenset({1, 2})
+    assert gset_merge(
+        GSet(frozenset({1})), GSet(frozenset({2}))
+    ).members == frozenset({1, 2})
     assert vector_clock_join({"a": 1}, {"a": 0, "b": 2}) == {"a": 1, "b": 2}
     a = GCounter({"r1": 2})
     b = GCounter({"r1": 1, "r2": 3})
@@ -38,7 +54,9 @@ def test_crdt_merges():
 
 
 def test_evidence():
-    q = quorum_merge(QuorumState(frozenset({"a"})), QuorumState(frozenset({"b"})))
+    q = quorum_merge(
+        QuorumState(frozenset({"a"})), QuorumState(frozenset({"b"}))
+    )
     assert q.reached(2)
     c = claim_evidence_merge(
         ClaimEvidence({"claim": frozenset({"a"})}),
@@ -51,7 +69,9 @@ def test_graph_closure():
     g = Graph.from_edges([("a", "b"), ("b", "c")])
     assert reachable(g, ["a"]) == frozenset({"a", "b", "c"})
     assert ("a", "c") in transitive_closure_edges(g)
-    assert graph_union(g, Graph.from_edges([("c", "d")])).nodes == frozenset({"a", "b", "c", "d"})
+    assert graph_union(g, Graph.from_edges([("c", "d")])).nodes == frozenset(
+        {"a", "b", "c", "d"}
+    )
 
 
 def test_relational_positive_rule():
@@ -59,7 +79,9 @@ def test_relational_positive_rule():
 
     def rule(paths: NamedRelation) -> NamedRelation:
         joined = natural_join(paths, NamedRelation(("y", "z"), edges.rows))
-        return NamedRelation(("x", "y"), frozenset((x, z) for x, _, z in joined.rows))
+        return NamedRelation(
+            ("x", "y"), frozenset((x, z) for x, _, z in joined.rows)
+        )
 
     closure = positive_consequence(edges, rule)
     assert ("a", "c") in closure.rows
@@ -71,5 +93,7 @@ def test_semiring_paths():
     edges = {("a", "b"): 2.0, ("b", "c"): 3.0, ("a", "c"): 10.0}
     dist = algebraic_path_closure(nodes, edges, tropical_min_plus())
     assert dist[("a", "c")] == 5.0
-    reach = algebraic_path_closure(nodes, {("a", "b"): True, ("b", "c"): True}, boolean_semiring())
+    reach = algebraic_path_closure(
+        nodes, {("a", "b"): True, ("b", "c"): True}, boolean_semiring()
+    )
     assert reach[("a", "c")] is True

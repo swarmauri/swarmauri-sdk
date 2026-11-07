@@ -16,7 +16,6 @@ def sql_log(
         duration = (end_datetime - start_datetime).total_seconds()
         start_datetime = start_datetime.isoformat()
         end_datetime = end_datetime.isoformat()
-        conversation_id = conversation_id
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS conversations

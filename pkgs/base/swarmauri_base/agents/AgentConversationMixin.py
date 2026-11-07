@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
-from swarmauri_base.ComponentBase import SubclassUnion
 from swarmauri_core.agents.IAgentConversation import IAgentConversation
+
+from swarmauri_base.ComponentBase import SubclassUnion
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 
 

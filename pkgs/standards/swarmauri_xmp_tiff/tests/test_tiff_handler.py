@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from swarmauri_xmp_tiff import TIFFXMP
 
 

@@ -1,6 +1,7 @@
 from pathlib import Path
-import tomllib
+
 import swm_example_plugin
+import tomllib
 
 
 def test_version_matches_pyproject() -> None:

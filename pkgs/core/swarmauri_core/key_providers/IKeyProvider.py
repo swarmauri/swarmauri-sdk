@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-
-from typing import Iterable, Mapping, Optional, Tuple
+from typing import Iterable, Mapping
 
 from ..crypto.types import KeyRef
 from .types import KeySpec
@@ -33,27 +32,25 @@ class IKeyProvider(ABC):
         spec: KeySpec,
         material: bytes,
         *,
-        public: Optional[bytes] = None,
+        public: bytes | None = None,
     ) -> KeyRef:
         """Import an existing key and return its :class:`KeyRef`."""
 
     @abstractmethod
     async def rotate_key(
-        self, kid: str, *, spec_overrides: Optional[dict] = None
+        self, kid: str, *, spec_overrides: dict | None = None
     ) -> KeyRef:
         """Create a new version for an existing key."""
 
     @abstractmethod
-    async def destroy_key(
-        self, kid: str, version: Optional[int] = None
-    ) -> bool:
+    async def destroy_key(self, kid: str, version: int | None = None) -> bool:
         """Destroy a key or specific version."""
 
     @abstractmethod
     async def get_key(
         self,
         kid: str,
-        version: Optional[int] = None,
+        version: int | None = None,
         *,
         include_secret: bool = False,
     ) -> KeyRef:
@@ -72,17 +69,17 @@ class IKeyProvider(ABC):
         )
 
     @abstractmethod
-    async def list_versions(self, kid: str) -> Tuple[int, ...]:
+    async def list_versions(self, kid: str) -> tuple[int, ...]:
         """Return available versions for a key."""
 
     @abstractmethod
     async def get_public_jwk(
-        self, kid: str, version: Optional[int] = None
+        self, kid: str, version: int | None = None
     ) -> dict:
         """Return an RFC 7517 JWK for the public portion of the key."""
 
     @abstractmethod
-    async def jwks(self, *, prefix_kids: Optional[str] = None) -> dict:
+    async def jwks(self, *, prefix_kids: str | None = None) -> dict:
         """Return a JWKS document containing the latest versions of keys."""
 
     @abstractmethod

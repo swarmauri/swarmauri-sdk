@@ -1,12 +1,13 @@
 import pytest
-from swarmauri_standard.messages.SystemMessage import SystemMessage
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.AgentMessage import AgentMessage
-from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+from swarmauri_base.ComponentBase import ResourceTypes
+
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri_base.ComponentBase import ResourceTypes
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 
 @pytest.mark.unit

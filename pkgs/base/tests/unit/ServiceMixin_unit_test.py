@@ -1,6 +1,7 @@
 """Unit tests for ``ServiceMixin``."""
 
 import pytest
+
 from swarmauri_base.ServiceMixin import ServiceMixin
 
 

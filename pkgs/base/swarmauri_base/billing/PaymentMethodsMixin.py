@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, Optional, Sequence, Tuple, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IPaymentMethods
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
@@ -14,8 +14,8 @@ from swarmauri_core.billing.protos import (
     PaymentMethodSpecProto,
 )
 
-from .utils import extract_raw_payload, require_idempotency
 from .refs import PaymentMethodRef
+from .utils import extract_raw_payload, require_idempotency
 
 
 class PaymentMethodsMixin(IPaymentMethods, BaseModel):
@@ -49,7 +49,7 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
         self,
         customer: CustomerRefProto,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> Sequence[PaymentMethodRefProto]:
         result = self._list_payment_methods(customer, type=type, limit=limit)
@@ -57,7 +57,7 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
             items: Sequence[Any] = result
         else:
             items = (result,) if result is not None else tuple()
-        refs: Tuple[PaymentMethodRefProto, ...] = tuple(
+        refs: tuple[PaymentMethodRefProto, ...] = tuple(
             item
             if isinstance(item, PaymentMethodRefProto)
             else PaymentMethodRef(
@@ -88,7 +88,7 @@ class PaymentMethodsMixin(IPaymentMethods, BaseModel):
         self,
         customer: CustomerRefProto,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> (
         Sequence[PaymentMethodRefProto]

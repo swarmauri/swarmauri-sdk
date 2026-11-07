@@ -1,11 +1,12 @@
+import asyncio
 import base64
 import os
+from typing import Dict, List, Literal, Optional
+
 import httpx
-import asyncio
-from typing import List, Literal, Dict, Optional
-from pydantic import PrivateAttr, Field, SecretStr
-from swarmauri_base.tts.TTSBase import TTSBase
+from pydantic import Field, PrivateAttr, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tts.TTSBase import TTSBase
 
 
 @ComponentBase.register_type(TTSBase, "HyperbolicTTS")

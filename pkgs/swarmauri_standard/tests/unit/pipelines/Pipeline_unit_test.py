@@ -1,6 +1,7 @@
 import pytest
-from swarmauri_standard.pipelines.Pipeline import Pipeline
 from swarmauri_core.pipelines.IPipeline import PipelineStatus
+
+from swarmauri_standard.pipelines.Pipeline import Pipeline
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def error_handler():
     """Fixture for a custom error handler"""
 
     def custom_error_handler(e):
-        return f"Error handled: {str(e)}"
+        return f"Error handled: {e!s}"
 
     return custom_error_handler
 

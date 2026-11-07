@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple, Literal
+from typing import Any, Literal
 
 from pydantic import Field
 from swarmauri_core.evaluators.IEvaluate import EvaluationError, IEvaluate
@@ -24,12 +24,12 @@ class EvaluatorBase(IEvaluate, ComponentBase):
     aggregation.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.EVALUATOR.value)
+    resource: str | None = Field(default=ResourceTypes.EVALUATOR.value)
     type: Literal["EvaluatorBase"] = "EvaluatorBase"
 
     def evaluate(
         self, program: Program, **kwargs
-    ) -> Tuple[float, Dict[str, Any]]:
+    ) -> tuple[float, dict[str, Any]]:
         """
         Evaluate a program and return a fitness score with metadata.
 
@@ -64,23 +64,21 @@ class EvaluatorBase(IEvaluate, ComponentBase):
             metadata["execution_time"] = execution_time
 
             logger.debug(
-                (
-                    f"Evaluation completed in {execution_time:.4f}s with score "  # noqa: E501
-                    f"{score:.4f}"
-                )
+                f"Evaluation completed in {execution_time:.4f}s with score "
+                f"{score:.4f}"
             )
             return score, metadata
 
         except Exception as e:
             execution_time = time.time() - start_time
             logger.error(
-                f"Evaluation failed after {execution_time:.4f}s: {str(e)}"
+                f"Evaluation failed after {execution_time:.4f}s: {e!s}"
             )
-            raise EvaluationError(f"Evaluation failed: {str(e)}") from e
+            raise EvaluationError(f"Evaluation failed: {e!s}") from e
 
     def _compute_score(
         self, program: Program, **kwargs
-    ) -> Tuple[float, Dict[str, Any]]:
+    ) -> tuple[float, dict[str, Any]]:
         """
         Compute the evaluation score for a program.
 
@@ -104,8 +102,8 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         )
 
     def aggregate_scores(
-        self, scores: List[float], metadata_list: List[Dict[str, Any]]
-    ) -> Tuple[float, Dict[str, Any]]:
+        self, scores: list[float], metadata_list: list[dict[str, Any]]
+    ) -> tuple[float, dict[str, Any]]:
         """
         Aggregate multiple evaluation scores and their metadata.
 
@@ -167,4 +165,3 @@ class EvaluatorBase(IEvaluate, ComponentBase):
         """
         # Reset logic can be implemented in subclasses if needed
         logger.debug("Resetting evaluator state")
-        pass

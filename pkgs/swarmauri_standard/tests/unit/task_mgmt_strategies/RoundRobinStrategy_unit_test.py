@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from swarmauri_standard.task_mgmt_strategies.RoundRobinStrategy import (
     RoundRobinStrategy,
 )

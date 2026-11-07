@@ -4,7 +4,6 @@ import pytest
 
 from swarmauri_core.tts.ITextToSpeech import ITextToSpeech
 
-
 pytestmark = pytest.mark.unit
 
 

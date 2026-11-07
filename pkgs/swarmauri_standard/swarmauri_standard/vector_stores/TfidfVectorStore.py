@@ -1,10 +1,6 @@
-from typing import List, Union, Literal
-from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
-from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
-    CosineSimilarityComparator,
-)
+from typing import List, Literal
 
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
 from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
@@ -12,7 +8,12 @@ from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
 from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
-from swarmauri_base.ComponentBase import ComponentBase
+
+from swarmauri_standard.documents.Document import Document
+from swarmauri_standard.embeddings.TfidfEmbedding import TfidfEmbedding
+from swarmauri_standard.vector_stores.CosineSimilarityComparator import (
+    CosineSimilarityComparator,
+)
 
 
 @ComponentBase.register_type(VectorStoreBase, "TfidfVectorStore")
@@ -37,7 +38,7 @@ class TfidfVectorStore(
         # Recalculate TF-IDF matrix for the current set of documents
         self._embedder.fit([doc.content for doc in self.documents])
 
-    def get_document(self, id: str) -> Union[Document, None]:
+    def get_document(self, id: str) -> Document | None:
         for document in self.documents:
             if document.id == id:
                 return document

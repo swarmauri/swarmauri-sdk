@@ -19,6 +19,8 @@ vision-language, and image-generation contracts.
 - Dedicated image generation with binary results.
 - Provider ordering, fallback, parameter, data-collection, and ZDR controls.
 - Explicit live model discovery without constructor-time network requests.
+- Composition with `swarmauri_provider_openrouter` for provider configuration.
+- Persistent, injectable Swarmauri HTTP execution with conservative retries.
 
 ## Installation
 
@@ -55,6 +57,10 @@ model.predict(conversation, temperature=0.2)
 print(conversation.get_last().content)
 ```
 
+Pass an `OpenRouterProvider` as `provider`, an `IHttpClient` as `http_client`,
+or an `IHttpRetryPolicy` as `retry_policy` to replace the defaults. Upstream
+routing preferences use the separate `routing` argument.
+
 ### Vision
 
 ```python
@@ -89,12 +95,20 @@ image_bytes = image_model.generate_image(
 ### Model discovery
 
 ```python
-from swarmauri_llm_openrouter import OpenRouterModel, OpenRouterModelCatalog
+from swarmauri_llm_openrouter import OpenRouterModel
+from swarmauri_provider_openrouter import OpenRouterProvider
 
-catalog = OpenRouterModelCatalog.from_api_key("...")
-available_models = catalog.list_model_ids(output_modalities="text")
+provider = OpenRouterProvider(api_key="...")
+discovery = OpenRouterModel(
+    provider=provider,
+    allowed_models=["*"],
+)
+discovery.refresh_catalog()
+available_models = discovery.catalog.list_model_ids(
+    output_modalities="text"
+)
 model = OpenRouterModel(
-    api_key="...",
+    provider=provider,
     name="openai/gpt-4o-mini",
     allowed_models=available_models,
 )

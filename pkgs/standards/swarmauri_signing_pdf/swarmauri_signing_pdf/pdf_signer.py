@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Iterable, Mapping, Optional, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 from swarmauri_base import register_type
 from swarmauri_base.signing.SigningBase import SigningBase
@@ -11,7 +11,6 @@ from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.key_providers.IKeyProvider import IKeyProvider
 from swarmauri_core.signing.ISigning import Canon, Envelope, StreamLike
 from swarmauri_core.signing.types import Signature
-
 from swarmauri_signing_cms import CMSSigner
 
 
@@ -46,7 +45,7 @@ def _adapt_signature(
     )
 
 
-def _pdf_meta(opts: Optional[Mapping[str, object]]) -> Mapping[str, object]:
+def _pdf_meta(opts: Mapping[str, object] | None) -> Mapping[str, object]:
     if not opts:
         return {"attached": True, "pdf": {}}
     pdf_info = dict(opts.get("pdf", {}) or {})
@@ -72,7 +71,7 @@ def _ensure_bytes(data: bytes | bytearray | memoryview | str) -> bytes:
 class PDFSigner(SigningBase):
     """High-level PDF signer that leverages the CMS signer for cryptography."""
 
-    def __init__(self, key_provider: Optional[IKeyProvider] = None) -> None:
+    def __init__(self, key_provider: IKeyProvider | None = None) -> None:
         self._cms = CMSSigner(key_provider=key_provider)
 
     def set_key_provider(self, provider: IKeyProvider) -> None:
@@ -80,7 +79,7 @@ class PDFSigner(SigningBase):
 
     # ------------------------------------------------------------------
     def supports(
-        self, key_ref: Optional[str] = None
+        self, key_ref: str | None = None
     ) -> Mapping[str, Iterable[str]]:
         base_caps = {
             "signs": ("bytes", "digest", "envelope", "stream"),
@@ -101,8 +100,8 @@ class PDFSigner(SigningBase):
         key: KeyRef,
         payload: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
@@ -120,8 +119,8 @@ class PDFSigner(SigningBase):
         key: KeyRef,
         digest: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
@@ -139,8 +138,8 @@ class PDFSigner(SigningBase):
         key: KeyRef,
         payload: StreamLike,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         pdf_opts = dict(opts or {})
         pdf_opts.setdefault("attached", True)
@@ -158,9 +157,9 @@ class PDFSigner(SigningBase):
         key: KeyRef,
         env: Envelope,
         *,
-        alg: Optional[Alg] = None,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         canonical = await self.canonicalize_envelope(
             env, canon=canon, opts=opts
@@ -182,8 +181,8 @@ class PDFSigner(SigningBase):
         payload: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         return await self._cms.verify_bytes(
             _ensure_bytes(payload), signatures, require=require, opts=opts
@@ -194,8 +193,8 @@ class PDFSigner(SigningBase):
         digest: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         return await self._cms.verify_digest(
             digest, signatures, require=require, opts=opts
@@ -206,8 +205,8 @@ class PDFSigner(SigningBase):
         payload: StreamLike,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         return await self._cms.verify_stream(
             payload, signatures, require=require, opts=opts
@@ -218,9 +217,9 @@ class PDFSigner(SigningBase):
         env: Envelope,
         signatures: Sequence[Signature],
         *,
-        canon: Optional[Canon] = None,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         canonical = await self.canonicalize_envelope(
             env, canon=canon, opts=opts
@@ -238,8 +237,8 @@ class PDFSigner(SigningBase):
         self,
         env: Envelope,
         *,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bytes:
         if canon in (None, "pdf"):
             if isinstance(env, (bytes, bytearray)):

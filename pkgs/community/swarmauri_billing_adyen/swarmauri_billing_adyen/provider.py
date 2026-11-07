@@ -6,12 +6,12 @@ import base64
 import hashlib
 import hmac
 import json
-from typing import Any, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 from uuid import uuid4
 
 import httpx
 from pydantic import Field
-
 from swarmauri_base.billing import (
     BalanceTransfersMixin,
     BillingProviderBase,
@@ -219,7 +219,7 @@ class AdyenBillingProvider(
         return result
 
     def _capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> Mapping[str, Any]:
         raw = self._post(
             f"payments/{payment_id}/captures",
@@ -240,8 +240,8 @@ class AdyenBillingProvider(
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> Mapping[str, Any]:
         raw = self._post(
             f"payments/{payment_id}/cancels",
@@ -482,7 +482,7 @@ class AdyenBillingProvider(
         self,
         customer: Any,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> Sequence[Mapping[str, Any]]:
         methods = [

@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.utils.decorate import (
     decorate_cls,
     decorate_instance,

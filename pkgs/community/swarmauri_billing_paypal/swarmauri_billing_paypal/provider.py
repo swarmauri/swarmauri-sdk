@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping, Optional, Sequence, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, cast
 from uuid import uuid4
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-
 from swarmauri_base.billing import (
     BillingProviderBase,
     CustomersMixin,
@@ -310,7 +310,7 @@ class PayPalBillingProvider(
         }
 
     def _capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> Mapping[str, Any]:
         raw = self._request(
             "POST",
@@ -328,8 +328,8 @@ class PayPalBillingProvider(
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> Mapping[str, Any]:
         raw = self._request(
             "POST", f"/v2/payments/authorizations/{payment_id}/void"
@@ -556,7 +556,7 @@ class PayPalBillingProvider(
         self,
         customer: Any,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> Sequence[Mapping[str, Any]]:
         items = []
@@ -642,10 +642,8 @@ class PayPalBillingProvider(
         webhook_id = self.webhook_id or secret
         if not webhook_id:
             raise ValueError(
-                (
-                    "webhook_id or secret is required for PayPal webhook "
-                    "verification"
-                )
+                "webhook_id or secret is required for PayPal webhook "
+                "verification"
             )
         event = json.loads(raw_body.decode("utf-8"))
         raw = self._request(

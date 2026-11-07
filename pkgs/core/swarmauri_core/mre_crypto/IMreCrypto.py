@@ -39,19 +39,19 @@ Typical sealed flow:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Mapping, Optional, Sequence
+from typing import Iterable, Mapping, Sequence
 
 from ..crypto.types import Alg, KeyRef
 from .types import (
+    MreMode,
     MultiRecipientEnvelope,
     RecipientId,
-    MreMode,
 )
 
 
 class IMreCrypto(ABC):
     @abstractmethod
-    def supports(self) -> Dict[str, Iterable[str | MreMode]]:
+    def supports(self) -> dict[str, Iterable[str | MreMode]]:
         """
         Return a capability map describing supported algorithms, modes, and
         features.
@@ -86,12 +86,12 @@ class IMreCrypto(ABC):
         recipients: Sequence[KeyRef],
         pt: bytes,
         *,
-        payload_alg: Optional[Alg] = None,
-        recipient_alg: Optional[Alg] = None,
-        mode: Optional[MreMode | str] = None,
-        aad: Optional[bytes] = None,
-        shared: Optional[Mapping[str, bytes]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        payload_alg: Alg | None = None,
+        recipient_alg: Alg | None = None,
+        mode: MreMode | str | None = None,
+        aad: bytes | None = None,
+        shared: Mapping[str, bytes] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> MultiRecipientEnvelope:
         """
         Encrypt 'pt' for all 'recipients' and return a single
@@ -126,8 +126,8 @@ class IMreCrypto(ABC):
         my_identity: KeyRef,
         env: MultiRecipientEnvelope,
         *,
-        aad: Optional[bytes] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        aad: bytes | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bytes:
         """
         Open 'env' using a single private identity.
@@ -153,8 +153,8 @@ class IMreCrypto(ABC):
         my_identities: Sequence[KeyRef],
         env: MultiRecipientEnvelope,
         *,
-        aad: Optional[bytes] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        aad: bytes | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bytes:
         """
         Attempt to open 'env' with any of the provided identities. Useful when
@@ -182,10 +182,10 @@ class IMreCrypto(ABC):
         self,
         env: MultiRecipientEnvelope,
         *,
-        add: Optional[Sequence[KeyRef]] = None,
-        remove: Optional[Sequence[RecipientId]] = None,
-        recipient_alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        add: Sequence[KeyRef] | None = None,
+        remove: Sequence[RecipientId] | None = None,
+        recipient_alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> MultiRecipientEnvelope:
         """
         Modify the recipient set, re‑wrapping headers without re‑encrypting the

@@ -1,5 +1,5 @@
-from typing import Optional, Union, List
-from logging import Logger, Handler, Formatter, getLogger, INFO, StreamHandler
+from logging import INFO, Formatter, Handler, Logger, StreamHandler, getLogger
+from typing import Union
 
 glogger = getLogger("glogger")
 glogger.setLevel(level=INFO)
@@ -20,7 +20,7 @@ def set_default_log_level(log_level: int) -> None:
     glogger.info(f"Default log level updated to: {log_level}")
 
 
-def set_default_logger(logger: Optional[Logger]) -> None:
+def set_default_logger(logger: Logger | None) -> None:
     """
     Update the class-level default logger.
     """
@@ -28,7 +28,7 @@ def set_default_logger(logger: Optional[Logger]) -> None:
     glogger.info(f"Default logger updated to: {logger}")
 
 
-def set_default_handlers(handlers: Union[Handler, List[Handler]]) -> None:
+def set_default_handlers(handlers: Union[Handler, list[Handler]]) -> None:
     """
     Update the class-level default handlers.
     """

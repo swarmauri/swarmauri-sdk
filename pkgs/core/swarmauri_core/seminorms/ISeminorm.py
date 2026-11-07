@@ -6,7 +6,7 @@ from swarmauri_core.vectors.IVector import IVector
 
 T = TypeVar("T", bound=Union[int, float, complex])
 InputType = Union[
-    Literal[IVector], Literal[IMatrix], Sequence[T], str, Callable[..., T]
+    Literal[IVector, IMatrix], Sequence[T], str, Callable[..., T]
 ]
 
 
@@ -53,7 +53,6 @@ class ISeminorm(ABC):
         ValueError
             If the computation cannot be performed on the given input
         """
-        pass
 
     @abstractmethod
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -82,7 +81,6 @@ class ISeminorm(ABC):
         ValueError
             If the check cannot be performed on the given inputs
         """
-        pass
 
     @abstractmethod
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
@@ -112,4 +110,3 @@ class ISeminorm(ABC):
         ValueError
             If the check cannot be performed on the given input
         """
-        pass

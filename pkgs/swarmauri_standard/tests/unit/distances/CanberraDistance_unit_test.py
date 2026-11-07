@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.distances.CanberraDistance import CanberraDistance
 from swarmauri_standard.vectors.Vector import Vector
 

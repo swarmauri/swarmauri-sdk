@@ -1,6 +1,5 @@
-from typing import Callable, List, Literal, Sequence, TypeVar, Union, Tuple
-
 import logging
+from typing import Callable, List, Literal, Sequence, Tuple, TypeVar
 
 import numpy as np
 from pydantic import Field
@@ -57,10 +56,8 @@ class ProjectionPseudometricR2(PseudometricBase):
         """
         if projection_axis not in [0, 1]:
             logger.error(
-                (
-                    f"Invalid projection axis: {projection_axis}. Must be 0 "
-                    f"(x-axis) or 1 (y-axis)."
-                )
+                f"Invalid projection axis: {projection_axis}. Must be 0 "
+                f"(x-axis) or 1 (y-axis)."
             )
             raise ValueError(
                 "Projection axis must be 0 (x-axis) or 1 (y-axis)"
@@ -68,14 +65,12 @@ class ProjectionPseudometricR2(PseudometricBase):
 
         super().__init__(**kwargs, projection_axis=projection_axis)
         logger.debug(
-            (
-                f"Initialized ProjectionPseudometricR2 with "
-                f"projection_axis={projection_axis}"
-            )
+            f"Initialized ProjectionPseudometricR2 with "
+            f"projection_axis={projection_axis}"
         )
 
     def _validate_and_extract_coordinates(
-        self, point: Union[VectorType, MatrixType, Sequence[T], str, Callable]
+        self, point: VectorType | MatrixType | Sequence[T] | str | Callable
     ) -> Tuple[float, float]:
         """
         Validate input as a 2D point and extract its coordinates.
@@ -120,11 +115,9 @@ class ProjectionPseudometricR2(PseudometricBase):
                 # Check if it can be interpreted as a 2D point
                 if point_array.size != 2:
                     raise ValueError(
-                        (
-                            f"Expected a matrix that can be interpreted as a "
-                            f"2D point, "
-                            f"got shape {point_array.shape}"
-                        )
+                        f"Expected a matrix that can be interpreted as a "
+                        f"2D point, "
+                        f"got shape {point_array.shape}"
                     )
 
                 # Flatten to extract coordinates
@@ -137,7 +130,8 @@ class ProjectionPseudometricR2(PseudometricBase):
                     parts = point.strip("()[]{}").split(",")
                     if len(parts) != 2:
                         raise ValueError(
-                            f"Expected a string representing a 2D point (e.g., '1,2'), got {point}"  # noqa: E501
+                            f"Expected a string representing a 2D point "
+                            f"(e.g., '1,2'), got {point}"
                         )
 
                     x = float(parts[0].strip())
@@ -145,7 +139,7 @@ class ProjectionPseudometricR2(PseudometricBase):
                     return (x, y)
                 except Exception as e:
                     raise ValueError(
-                        f"Failed to parse string as 2D point: {str(e)}"
+                        f"Failed to parse string as 2D point: {e!s}"
                     )
 
             elif callable(point):
@@ -157,22 +151,20 @@ class ProjectionPseudometricR2(PseudometricBase):
                     return (x, y)
                 except Exception as e:
                     raise ValueError(
-                        f"Failed to evaluate callable as 2D point: {str(e)}"
+                        f"Failed to evaluate callable as 2D point: {e!s}"
                     )
 
             else:
                 raise TypeError(f"Unsupported input type: {type(point)}")
 
         except Exception as e:
-            logger.error(
-                f"Error validating and extracting coordinates: {str(e)}"
-            )
+            logger.error(f"Error validating and extracting coordinates: {e!s}")
             raise
 
     def distance(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> float:
         """
         Calculate the projection pseudometric distance between two 2D points.
@@ -213,17 +205,13 @@ class ProjectionPseudometricR2(PseudometricBase):
             )
 
         except Exception as e:
-            logger.error(f"Error calculating projection distance: {str(e)}")
+            logger.error(f"Error calculating projection distance: {e!s}")
             raise
 
     def distances(
         self,
-        xs: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
-        ys: Sequence[
-            Union[VectorType, MatrixType, Sequence[T], str, Callable]
-        ],
+        xs: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
+        ys: Sequence[VectorType | MatrixType | Sequence[T] | str | Callable],
     ) -> List[List[float]]:
         """
         Calculate the pairwise projection distances between two collections of
@@ -252,10 +240,8 @@ class ProjectionPseudometricR2(PseudometricBase):
             If inputs cannot be interpreted as 2D points
         """
         logger.debug(
-            (
-                f"Calculating pairwise projection distances between "
-                f"{len(xs)} and {len(ys)} points"
-            )
+            f"Calculating pairwise projection distances between "
+            f"{len(xs)} and {len(ys)} points"
         )
 
         try:
@@ -280,14 +266,14 @@ class ProjectionPseudometricR2(PseudometricBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating pairwise projection distances: {str(e)}"
+                f"Error calculating pairwise projection distances: {e!s}"
             )
             raise
 
     def check_non_negativity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the projection pseudometric satisfies the non-negativity
@@ -313,13 +299,13 @@ class ProjectionPseudometricR2(PseudometricBase):
             return dist >= 0
 
         except Exception as e:
-            logger.error(f"Error checking non-negativity: {str(e)}")
+            logger.error(f"Error checking non-negativity: {e!s}")
             raise
 
     def check_symmetry(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -349,14 +335,14 @@ class ProjectionPseudometricR2(PseudometricBase):
             return abs(dist_xy - dist_yx) < tolerance
 
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise
 
     def check_triangle_inequality(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        z: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
+        z: VectorType | MatrixType | Sequence[T] | str | Callable,
         tolerance: float = 1e-10,
     ) -> bool:
         """
@@ -389,13 +375,13 @@ class ProjectionPseudometricR2(PseudometricBase):
             return dist_xz <= dist_xy + dist_yz + tolerance
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             raise
 
     def check_weak_identity(
         self,
-        x: Union[VectorType, MatrixType, Sequence[T], str, Callable],
-        y: Union[VectorType, MatrixType, Sequence[T], str, Callable],
+        x: VectorType | MatrixType | Sequence[T] | str | Callable,
+        y: VectorType | MatrixType | Sequence[T] | str | Callable,
     ) -> bool:
         """
         Check if the projection pseudometric satisfies the weak identity
@@ -448,5 +434,5 @@ class ProjectionPseudometricR2(PseudometricBase):
             return dist > 0
 
         except Exception as e:
-            logger.error(f"Error checking weak identity: {str(e)}")
+            logger.error(f"Error checking weak identity: {e!s}")
             raise

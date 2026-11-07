@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+
 from swarmauri_core.documents.IDocument import IDocument
 
 
@@ -14,7 +14,7 @@ class IDocumentRetrieve(ABC):
     """
 
     @abstractmethod
-    def retrieve(self, query: str, top_k: int = 5) -> List[IDocument]:
+    def retrieve(self, query: str, top_k: int = 5) -> list[IDocument]:
         """
         Retrieve the most relevant documents based on the given query.
 
@@ -25,4 +25,3 @@ class IDocumentRetrieve(ABC):
         Returns:
             List[Document]: A list of the top_k most relevant documents.
         """
-        pass

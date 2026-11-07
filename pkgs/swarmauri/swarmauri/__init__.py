@@ -1,5 +1,6 @@
-import sys as _sys
 import logging
+import sys as _sys
+
 from .importer import SwarmauriImporter
 from .plugin_manager import discover_and_register_plugins
 

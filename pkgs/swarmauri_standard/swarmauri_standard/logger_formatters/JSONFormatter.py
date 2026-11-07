@@ -114,7 +114,7 @@ class _JSONLogFormatter(logging.Formatter):
                 {
                     "level": "ERROR",
                     "name": "JSONFormatter",
-                    "message": f"Failed to serialize log record: {str(e)}",
+                    "message": f"Failed to serialize log record: {e!s}",
                     "original_message": str(record.getMessage()),
                 }
             )

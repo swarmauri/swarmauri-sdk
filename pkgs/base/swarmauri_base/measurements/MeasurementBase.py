@@ -1,7 +1,9 @@
-from typing import Any, Optional, Literal
+from typing import Any, Literal
+
 from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.measurements.IMeasurement import IMeasurement
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -14,7 +16,7 @@ class MeasurementBase(IMeasurement, ComponentBase):
 
     unit: str
     value: Any = None
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.MEASUREMENT.value, frozen=True
     )
     type: Literal["MeasurementBase"] = "MeasurementBase"

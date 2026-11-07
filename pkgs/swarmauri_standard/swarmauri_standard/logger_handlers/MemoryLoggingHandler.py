@@ -1,6 +1,6 @@
 import logging
 from logging.handlers import MemoryHandler
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Dict, Literal, Optional
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
@@ -22,7 +22,7 @@ class MemoryLoggingHandler(HandlerBase):
     type: Literal["MemoryLoggingHandler"] = "MemoryLoggingHandler"
     capacity: int = 100  # Default buffer size
     flushLevel: int = logging.ERROR  # Default flush level
-    target: Optional[Union[str, FullUnion[HandlerBase]]] = None
+    target: Optional[str | FullUnion[HandlerBase]] = None
 
     def __init__(self, **data: Any):
         """
@@ -48,11 +48,9 @@ class MemoryLoggingHandler(HandlerBase):
         """
         if not self.target:
             raise ValueError(
-                (
-                    "MemoryLoggingHandler requires a target handler for "
-                    "flushing "
-                    "records"
-                )
+                "MemoryLoggingHandler requires a target handler for "
+                "flushing "
+                "records"
             )
 
         # Resolve the target handler
@@ -60,7 +58,8 @@ class MemoryLoggingHandler(HandlerBase):
             # This is a placeholder for resolving handler by name
             # In a real implementation, you would look up the handler by name
             raise ValueError(
-                f"Target handler resolution by name '{self.target}' not implemented"  # noqa: E501
+                f"Target handler resolution by name '{self.target}' not "
+                f"implemented"
             )
         else:
             self._target_handler = self.target.compile_handler()

@@ -1,7 +1,9 @@
-import httpx
-from PIL import Image
 from io import BytesIO
 from unittest.mock import patch
+
+import httpx
+from PIL import Image
+
 from swarmauri_standard.utils.img_url_to_in_memory_img import (
     img_url_to_in_memory_img,
 )

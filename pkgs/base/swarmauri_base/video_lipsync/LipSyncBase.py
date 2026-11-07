@@ -4,10 +4,10 @@ from abc import abstractmethod
 from typing import Any, Literal
 
 from pydantic import ConfigDict, Field, model_validator
+from swarmauri_core.video_lipsync.ILipSync import ILipSync
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.utils.allowed_models import is_model_allowed
-from swarmauri_core.video_lipsync.ILipSync import ILipSync
 
 
 @ComponentBase.register_model()

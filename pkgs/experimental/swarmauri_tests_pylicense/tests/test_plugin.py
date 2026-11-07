@@ -1,7 +1,11 @@
 from email.message import Message
 from importlib.metadata import PackageNotFoundError
 
-from swarmauri_tests_pylicense import DependencyPath, _collect_licenses
+from swarmauri_tests_pylicense import (
+    DependencyPath,
+    _collect_licenses,
+    _license_from_dist,
+)
 
 pytest_plugins = ["pytester"]
 
@@ -56,6 +60,15 @@ def test_classifier_fallback(monkeypatch):
     )
     licenses = _collect_licenses("foo")
     assert licenses["foo"].license == "MIT License"
+
+
+def test_pep639_license_expression():
+    class DummyDist:
+        def __init__(self) -> None:
+            self.metadata = Message()
+            self.metadata["License-Expression"] = "BSD-2-Clause"
+
+    assert _license_from_dist(DummyDist()) == "BSD-2-Clause"
 
 
 def test_allow_disallow_lists(pytester, monkeypatch):

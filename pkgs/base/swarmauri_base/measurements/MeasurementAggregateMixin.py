@@ -1,4 +1,5 @@
-from typing import List, Any
+from typing import Any
+
 from pydantic import BaseModel
 from swarmauri_core.measurements.IMeasurementAggregate import (
     IMeasurementAggregate,
@@ -12,7 +13,7 @@ class MeasurementAggregateMixin(IMeasurementAggregate, BaseModel):
     functionalities and properties for measurements within SwarmAURI.
     """
 
-    measurements: List[Any] = []
+    measurements: list[Any] = []
 
     def add_measurement(self, measurement) -> None:
         """

@@ -1,8 +1,9 @@
 from copy import deepcopy
-from typing import Dict, Any
+from typing import Any, Dict
+
 from pydantic import Field, model_validator
-from swarmauri_base.state.StateBase import StateBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.state.StateBase import StateBase
 
 
 @ComponentBase.register_type(StateBase, "DictState")

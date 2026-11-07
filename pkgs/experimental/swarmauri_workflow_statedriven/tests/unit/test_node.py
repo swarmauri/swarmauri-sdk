@@ -10,9 +10,7 @@ from swarmauri_workflow_statedriven.input_modes.base import InputMode
 
 
 class DummyAgent:
-    """
-    Stub agent with exec() and batch().
-    """
+    """Stub agent with exec() and batch()."""
 
     def __init__(self):
         self.calls = []
@@ -27,9 +25,7 @@ class DummyAgent:
 
 
 class DummyTool:
-    """
-    Stub tool with run() and batch().
-    """
+    """Stub tool with run() and batch()."""
 
     def __init__(self):
         self.calls = []
@@ -44,9 +40,7 @@ class DummyTool:
 
 
 class EchoInputMode(InputMode):
-    """
-    InputMode that prefixes incoming data with 'prep:'.
-    """
+    """InputMode that prefixes incoming data with 'prep:'."""
 
     def prepare(self, state_manager, node_name, data, results):
         return f"prep:{data}"

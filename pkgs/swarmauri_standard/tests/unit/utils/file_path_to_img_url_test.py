@@ -1,8 +1,10 @@
-import pytest
 import os
+
 import httpx
-from swarmauri_standard.utils.file_path_to_img_url import file_path_to_img_url
+import pytest
 from dotenv import load_dotenv
+
+from swarmauri_standard.utils.file_path_to_img_url import file_path_to_img_url
 
 # Load environment variables
 load_dotenv()

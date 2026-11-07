@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.measurements.ZeroMeasurement import (
     ZeroMeasurement as Measurement,
 )

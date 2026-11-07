@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Sequence
+from typing import Sequence
 
 
 class IAnycastTransport(ABC):
@@ -17,7 +17,7 @@ class IAnycastTransport(ABC):
         candidates: Sequence[str],
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> str:
         """Send data to one of the candidate addresses and return the chosen
         target."""

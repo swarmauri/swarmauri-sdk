@@ -1,7 +1,10 @@
-from typing import Any, Callable, List, Optional, Dict
+from collections.abc import Callable
+from typing import Any
+
 from pydantic import ConfigDict, Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.pipelines.IPipeline import IPipeline, PipelineStatus
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -11,18 +14,18 @@ class PipelineBase(IPipeline, ComponentBase):
     error handling, and result aggregation.
     """
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.PIPELINE.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: str = "PipelineBase"
 
     # Pydantic model fields
-    tasks: List[Dict[str, Any]] = Field(default_factory=list)
+    tasks: list[dict[str, Any]] = Field(default_factory=list)
     parallel: bool = Field(default=False)
-    _results: List[Any] = list
+    _results: list[Any] = list
     _status: PipelineStatus = PipelineStatus.PENDING
-    _error_handler: Optional[Callable[[Exception], Any]] = None
+    _error_handler: Callable[[Exception], Any] | None = None
 
     def add_task(self, task: Callable, *args: Any, **kwargs: Any) -> None:
         """
@@ -35,7 +38,7 @@ class PipelineBase(IPipeline, ComponentBase):
         task_entry = {"callable": task, "args": args, "kwargs": kwargs}
         self.tasks.append(task_entry)
 
-    def execute(self, *args: Any, **kwargs: Any) -> List[Any]:
+    def execute(self, *args: Any, **kwargs: Any) -> list[Any]:
         """
         Execute pipeline tasks.
 
@@ -85,7 +88,7 @@ class PipelineBase(IPipeline, ComponentBase):
         self._results = []
         self._status = PipelineStatus.PENDING
 
-    def get_results(self) -> List[Any]:
+    def get_results(self) -> list[Any]:
         """
         Get the results of the pipeline execution.
 

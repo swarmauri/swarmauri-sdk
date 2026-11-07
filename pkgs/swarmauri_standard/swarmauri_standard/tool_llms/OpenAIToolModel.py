@@ -278,7 +278,7 @@ class OpenAIToolModel(ToolLLMBase):
                 response.raise_for_status()
                 agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )
@@ -366,7 +366,7 @@ class OpenAIToolModel(ToolLLMBase):
                 response.raise_for_status()
                 agent_response = response.json()
 
-            if "choices" in agent_response and agent_response["choices"]:
+            if agent_response.get("choices"):
                 agent_message = AgentMessage(
                     content=agent_response["choices"][0]["message"]["content"]
                 )

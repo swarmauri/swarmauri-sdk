@@ -1,11 +1,11 @@
 from typing import Literal
-import pandas as pd
 
+import pandas as pd
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.measurements.MeasurementCalculateMixin import (
     MeasurementCalculateMixin,
 )
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(MeasurementBase, "PatternMatchingMeasurement")

@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.tools.ImportMemoryModuleTool import (
     ImportMemoryModuleTool as Tool,
 )
@@ -31,7 +32,10 @@ def test_serialization():
 def test_call():
     tool = Tool()
     name_of_new_module = "test_module"
-    code_snippet = "def example_function():\t\treturn 'This function is imported from memory.'"  # noqa: E501
+    code_snippet = (
+        "def example_function():\t\treturn 'This function is imported from "
+        "memory.'"
+    )
 
     dot_separated_package_page = "test_package"
 

@@ -12,7 +12,9 @@ def _identity(x: T) -> T:
     return x
 
 
-def argmax_by(key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
+def argmax_by(
+    key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None
+) -> Callable[[T, T], T]:
     """Return an idempotent selector for the maximum key.
 
     When ``tie_key`` is omitted, equal primary keys keep the first argument.
@@ -30,7 +32,9 @@ def argmax_by(key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None
     return merge
 
 
-def argmin_by(key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
+def argmin_by(
+    key: Callable[[T], Any], tie_key: Callable[[T], Any] | None = None
+) -> Callable[[T, T], T]:
     """Return an idempotent selector for the minimum key.
 
     When ``tie_key`` is omitted, equal primary keys keep the first argument.
@@ -90,14 +94,20 @@ def lexicographic_min(
     return merge
 
 
-def latest_by(clock: Callable[[T], Any], replica: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
-    """Latest-wins selector over a logical clock and deterministic replica id."""
+def latest_by(
+    clock: Callable[[T], Any], replica: Callable[[T], Any] | None = None
+) -> Callable[[T, T], T]:
+    """Latest-wins selector over a logical clock and deterministic replica
+    id."""
 
     return argmax_by(clock, replica)
 
 
-def earliest_by(clock: Callable[[T], Any], replica: Callable[[T], Any] | None = None) -> Callable[[T, T], T]:
-    """Earliest-wins selector over a logical clock and deterministic replica id."""
+def earliest_by(
+    clock: Callable[[T], Any], replica: Callable[[T], Any] | None = None
+) -> Callable[[T, T], T]:
+    """Earliest-wins selector over a logical clock and deterministic replica
+    id."""
 
     return argmin_by(clock, replica)
 
@@ -132,7 +142,9 @@ def pareto_dominates(a: tuple[Any, ...], b: tuple[Any, ...]) -> bool:
     return all(x >= y for x, y in zip(a, b, strict=True))
 
 
-def pareto_front(points: frozenset[tuple[Any, ...]]) -> frozenset[tuple[Any, ...]]:
+def pareto_front(
+    points: frozenset[tuple[Any, ...]],
+) -> frozenset[tuple[Any, ...]]:
     """Monotone antichain summary: remove dominated points."""
 
     kept = set(points)
@@ -144,7 +156,11 @@ def pareto_front(points: frozenset[tuple[Any, ...]]) -> frozenset[tuple[Any, ...
     return frozenset(kept)
 
 
-def pareto_join(a: frozenset[tuple[Any, ...]], b: frozenset[tuple[Any, ...]]) -> frozenset[tuple[Any, ...]]:
-    """Join for Pareto antichains: union followed by dominated-point pruning."""
+def pareto_join(
+    a: frozenset[tuple[Any, ...]], b: frozenset[tuple[Any, ...]]
+) -> frozenset[tuple[Any, ...]]:
+    """
+    Join for Pareto antichains: union followed by dominated-point pruning.
+    """
 
     return pareto_front(a | b)

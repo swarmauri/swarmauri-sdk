@@ -22,7 +22,8 @@ class WorkflowBase:
     def __init__(self):
         """
         Method: __init__
-        Initialize nodes, transitions, state_manager, and a lock for thread safety.
+        Initialize nodes, transitions, state_manager, and a lock for thread
+        safety.
         """
         self.nodes: Dict[str, Node] = {}
         self.transitions: List[Transition] = []
@@ -41,7 +42,8 @@ class WorkflowBase:
     ) -> None:
         """
         Method: add_state
-        Registers a Node with its execution backend, input_mode, join and merge strategies.
+        Registers a Node with its execution backend, input_mode, join and merge
+        strategies.
         """
         node = Node(
             name=name,
@@ -53,7 +55,9 @@ class WorkflowBase:
         )
         self.nodes[name] = node
 
-    def add_transition(self, source: str, target: str, condition: Condition) -> None:
+    def add_transition(
+        self, source: str, target: str, condition: Condition
+    ) -> None:
         """
         Method: add_transition
         Registers a guarded, directed edge between two existing states.
@@ -70,7 +74,9 @@ class WorkflowBase:
         Single‐threaded execution loop.
         """
         if start not in self.nodes:
-            raise InvalidTransitionError(f"Start state '{start}' is not defined")
+            raise InvalidTransitionError(
+                f"Start state '{start}' is not defined"
+            )
 
         results: Dict[str, Any] = {}
         queue: List[Tuple[str, Any]] = [(start, initial_input)]
@@ -79,9 +85,11 @@ class WorkflowBase:
             state_name, data = queue.pop(0)
             node = self.nodes[state_name]
 
-            # ① Run the node (handles input_mode, split, merge, batch internally)
+            # ① Run the node. It handles input mode, split, merge, and batch
+            # internally.
             print(
-                f"[DEBUG] Running {node.name} with \n\tdata: {data}\n\tresults: {results}"
+                f"[DEBUG] Running {node.name} with \n\tdata: "
+                f"{data}\n\tresults: {results}"
             )
             output = node.run(self.state_manager, data, results)
 
@@ -118,7 +126,9 @@ class WorkflowBase:
         Executes ready‐to‐run node invocations in parallel threads.
         """
         if start not in self.nodes:
-            raise InvalidTransitionError(f"Start state '{start}' is not defined")
+            raise InvalidTransitionError(
+                f"Start state '{start}' is not defined"
+            )
 
         results: Dict[str, Any] = {}
         executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -137,7 +147,8 @@ class WorkflowBase:
                 state_name, output = fut.result()
                 futures.remove(fut)
 
-                # If split, skip recording & scheduling (node.run already re-queued)
+                # If split, skip recording and scheduling; node.run already
+                # re-queued it.
                 if output is None:
                     continue
 
@@ -148,7 +159,9 @@ class WorkflowBase:
 
                 # Schedule downstream work
                 for t in self.transitions:
-                    if t.source != state_name or not t.condition.evaluate(results):
+                    if t.source != state_name or not t.condition.evaluate(
+                        results
+                    ):
                         continue
 
                     with self._lock:
@@ -158,7 +171,9 @@ class WorkflowBase:
                     if self.nodes[t.target].join_strategy.is_satisfied(buffer):
                         raw = self.state_manager.pop_buffer(t.target)
                         merged = self.nodes[t.target].merge_strategy.merge(raw)
-                        futures.append(executor.submit(_run_node, t.target, merged))
+                        futures.append(
+                            executor.submit(_run_node, t.target, merged)
+                        )
 
         executor.shutdown(wait=True)
         return results

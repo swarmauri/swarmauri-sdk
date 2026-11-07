@@ -65,7 +65,8 @@ class WorkflowGraph(WorkflowBase):
         write the DOT to `<filename>.dot`.
 
         Args:
-            filename: Optional basename (no extension) for writing out a .dot file.
+            filename: Optional basename (no extension) for writing out a .dot
+            file.
 
         Returns:
             The DOT source as a string.
@@ -117,7 +118,8 @@ class WorkflowGraph(WorkflowBase):
               const {{ Viz }} = window;
               const viz = new Viz();
               viz.renderSVGElement(`{escaped_dot}`)
-                 .then(el => document.getElementById("container").appendChild(el))
+                 .then(el =>
+                   document.getElementById("container").appendChild(el))
                  .catch(err => console.error(err));
             </script>
           </body>
@@ -140,7 +142,8 @@ class WorkflowGraph(WorkflowBase):
         Class: WorkflowGraph
         Method: _render_html_to_png
 
-        Internal helper: launches a headless browser, loads HTML, and captures a PNG.
+        Internal helper: launches a headless browser, loads HTML, and captures
+        a PNG.
         """
         browser = await launch(headless=True, args=["--no-sandbox"])
         page = await browser.newPage()

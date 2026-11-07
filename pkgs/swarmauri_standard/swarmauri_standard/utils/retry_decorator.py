@@ -7,10 +7,16 @@ from functools import wraps
 from typing import Any, Callable, Optional, Union
 
 import httpx
-
+from swarmauri_core.transports.http_errors import HttpStatusError
 
 RetryCodes = Union[Collection[int], Callable[[Any], Collection[int]]]
-RetryValue = Union[int, float, Callable[[Any], Union[int, float]]]
+RetryValue = Union[int, float, Callable[[Any], int | float]]
+
+
+def _status_code(error: Exception) -> int:
+    if isinstance(error, HttpStatusError):
+        return error.status_code
+    return error.response.status_code
 
 
 def _resolve(value: Any, instance: Any, fallback: Any) -> Any:
@@ -36,6 +42,8 @@ def retry_on_status_codes(
         @wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             instance = args[0] if args else None
+            if getattr(instance, "_retry_owned_by_transport", False):
+                return await func(*args, **kwargs)
             resolved_codes = set(
                 _resolve(
                     status_codes,
@@ -62,8 +70,9 @@ def retry_on_status_codes(
             while attempt < resolved_retries:
                 try:
                     return await func(*args, **kwargs)
-                except httpx.HTTPStatusError as e:
-                    if e.response.status_code in resolved_codes:
+                except (httpx.HTTPStatusError, HttpStatusError) as e:
+                    status_code = _status_code(e)
+                    if status_code in resolved_codes:
                         attempt += 1
                         last_exception = e
                         if attempt == resolved_retries:
@@ -71,10 +80,10 @@ def retry_on_status_codes(
                         backoff_time = resolved_delay * (2 ** (attempt - 1))
                         logging.warning(
                             f"Retry attempt {attempt}/{resolved_retries}: "
-                            f"Received HTTP {e.response.status_code} for "
+                            f"Received HTTP {status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         await asyncio.sleep(backoff_time)
                     else:
@@ -84,7 +93,7 @@ def retry_on_status_codes(
                 error_message = (
                     f"Request to {func.__name__} failed after "
                     f"{resolved_retries} retries. Last encountered status "
-                    f"code: {last_exception.response.status_code}. Last "
+                    f"code: {_status_code(last_exception)}. Last "
                     f"error details: {last_exception}"
                 )
                 logging.error(error_message)
@@ -96,6 +105,8 @@ def retry_on_status_codes(
         @wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             instance = args[0] if args else None
+            if getattr(instance, "_retry_owned_by_transport", False):
+                return func(*args, **kwargs)
             resolved_codes = set(
                 _resolve(
                     status_codes,
@@ -122,8 +133,9 @@ def retry_on_status_codes(
             while attempt < resolved_retries:
                 try:
                     return func(*args, **kwargs)
-                except httpx.HTTPStatusError as e:
-                    if e.response.status_code in resolved_codes:
+                except (httpx.HTTPStatusError, HttpStatusError) as e:
+                    status_code = _status_code(e)
+                    if status_code in resolved_codes:
                         attempt += 1
                         last_exception = e
                         if attempt == resolved_retries:
@@ -131,10 +143,10 @@ def retry_on_status_codes(
                         backoff_time = resolved_delay * (2 ** (attempt - 1))
                         logging.warning(
                             f"Retry attempt {attempt}/{resolved_retries}: "
-                            f"Received HTTP {e.response.status_code} for "
+                            f"Received HTTP {status_code} for "
                             f"{func.__name__}. "
                             f"Retrying in {backoff_time:.2f} seconds. "
-                            f"Original error: {str(e)}"
+                            f"Original error: {e!s}"
                         )
                         time.sleep(backoff_time)
                     else:
@@ -144,7 +156,7 @@ def retry_on_status_codes(
                 error_message = (
                     f"Request to {func.__name__} failed after "
                     f"{resolved_retries} retries. Last encountered status "
-                    f"code: {last_exception.response.status_code}. Last "
+                    f"code: {_status_code(last_exception)}. Last "
                     f"error details: {last_exception}"
                 )
                 logging.error(error_message)

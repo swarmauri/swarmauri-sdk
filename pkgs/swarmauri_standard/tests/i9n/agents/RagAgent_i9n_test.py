@@ -1,14 +1,15 @@
 import os
+
 import pytest
 
-from swarmauri_standard.llms.GroqModel import GroqModel as LLM
+from swarmauri_standard.agents.RagAgent import RagAgent
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
-from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.agents.RagAgent import RagAgent
+from swarmauri_standard.llms.GroqModel import GroqModel as LLM
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
 
 
 @pytest.fixture(scope="module")

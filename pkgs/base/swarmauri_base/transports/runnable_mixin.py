@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from typing import Any, Optional
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
-
+from pydantic import BaseModel
 from swarmauri_core.transports.i_runnable import Handler, IRunnable, Role
 
 
 class RunnableMixin(IRunnable, BaseModel):
     """Adds synchronous and asynchronous run helpers to a transport."""
-
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra="ignore")
 
     async def _run_async(
         self,
@@ -20,8 +17,8 @@ class RunnableMixin(IRunnable, BaseModel):
         role: Role,
         handler: Handler | None = None,
         forever: bool = False,
-        stop_event: Optional[asyncio.Event] = None,
-        handler_kwargs: Optional[dict[str, Any]] = None,
+        stop_event: asyncio.Event | None = None,
+        handler_kwargs: dict[str, Any] | None = None,
         **ctx_kwargs: Any,
     ) -> None:
         handler = handler or (lambda *_args, **_kwargs: None)
@@ -53,8 +50,8 @@ class RunnableMixin(IRunnable, BaseModel):
         role: Role,
         handler: Handler | None = None,
         forever: bool = False,
-        stop_event: Optional[asyncio.Event] = None,
-        handler_kwargs: Optional[dict[str, Any]] = None,
+        stop_event: asyncio.Event | None = None,
+        handler_kwargs: dict[str, Any] | None = None,
         **ctx_kwargs: Any,
     ) -> None:
         asyncio.run(

@@ -1,9 +1,9 @@
-from typing import Optional, Literal
 import warnings
+from typing import Literal
+
 from pydantic import Field
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-
 
 warnings.warn(
     (
@@ -18,7 +18,7 @@ warnings.warn(
 class VisionDistanceBase(ComponentBase):
     """Deprecated compatibility base for vision distance components."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.DISTANCE.value, frozen=True
     )
     type: Literal["VisionDistanceBase"] = "VisionDistanceBase"

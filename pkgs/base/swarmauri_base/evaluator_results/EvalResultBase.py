@@ -1,5 +1,5 @@
 import logging
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar
 
 from swarmauri_core.evaluator_results.IEvalResult import IEvalResult
 from swarmauri_core.programs.IProgram import IProgram
@@ -34,10 +34,10 @@ class EvalResultBase(IEvalResult, ComponentBase):
         Class variable defining the schema for valid metadata keys
     """
 
-    resource: Optional[str] = ResourceTypes.EVALUATOR_RESULT.value
+    resource: str | None = ResourceTypes.EVALUATOR_RESULT.value
 
     # Class variable for metadata schema validation
-    _metadata_schema: ClassVar[Dict[str, Any]] = {
+    _metadata_schema: ClassVar[dict[str, Any]] = {
         "type": "object",
         "properties": {
             # Define expected metadata properties here
@@ -47,7 +47,7 @@ class EvalResultBase(IEvalResult, ComponentBase):
     }
 
     def __init__(
-        self, score: float, metadata: Dict[str, Any], program: IProgram
+        self, score: float, metadata: dict[str, Any], program: IProgram
     ):
         """
         Initialize a new evaluation result.
@@ -71,7 +71,7 @@ class EvalResultBase(IEvalResult, ComponentBase):
 
         logger.debug(f"Created evaluation result with score: {score}")
 
-    def _validate_metadata(self, metadata: Dict[str, Any]) -> None:
+    def _validate_metadata(self, metadata: dict[str, Any]) -> None:
         """
         Validate metadata against the defined schema.
 
@@ -98,8 +98,8 @@ class EvalResultBase(IEvalResult, ComponentBase):
 
             logger.debug("Metadata validation passed")
         except Exception as e:
-            logger.error(f"Metadata validation failed: {str(e)}")
-            raise ValueError(f"Invalid metadata format: {str(e)}")
+            logger.error(f"Metadata validation failed: {e!s}")
+            raise ValueError(f"Invalid metadata format: {e!s}")
 
     @property
     def score(self) -> float:
@@ -114,7 +114,7 @@ class EvalResultBase(IEvalResult, ComponentBase):
         return self._score
 
     @property
-    def metadata(self) -> Dict[str, Any]:
+    def metadata(self) -> dict[str, Any]:
         """
         Get additional metadata about the evaluation.
 

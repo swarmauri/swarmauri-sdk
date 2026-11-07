@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Optional, Tuple
 
 from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
@@ -29,11 +28,11 @@ class SSHTunnelTransport(
         jump_host: str,
         dest_host: str,
         dest_port: int,
-        identity_file: Optional[str] = None,
+        identity_file: str | None = None,
     ) -> None:
         super().__init__(name="SSH-Tunnel")
         self._jump_host = jump_host
-        self._destination: Tuple[str, int] = (dest_host, dest_port)
+        self._destination: tuple[str, int] = (dest_host, dest_port)
         self._identity_file = identity_file
         self._process: asyncio.Process | None = None
 
@@ -82,14 +81,14 @@ class SSHTunnelTransport(
             self._process = None
 
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         if self._process is None or self._process.stdin is None:
             raise RuntimeError("not connected")
         self._process.stdin.write(data)
         await asyncio.wait_for(self._process.stdin.drain(), timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if self._process is None or self._process.stdout is None:
             raise RuntimeError("not connected")
         return await asyncio.wait_for(

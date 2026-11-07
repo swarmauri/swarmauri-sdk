@@ -1,5 +1,6 @@
 from importlib.metadata import PackageNotFoundError, version
 
+from .CloudflareChatRetryPolicy import CloudflareChatRetryPolicy
 from .CloudflareWorkersAIModel import CloudflareWorkersAIModel
 from .CloudflareWorkersAIToolModel import CloudflareWorkersAIToolModel
 
@@ -8,4 +9,8 @@ try:
 except PackageNotFoundError:
     __version__ = "0.0.0"
 
-__all__ = ["CloudflareWorkersAIModel", "CloudflareWorkersAIToolModel"]
+__all__ = [
+    "CloudflareChatRetryPolicy",
+    "CloudflareWorkersAIModel",
+    "CloudflareWorkersAIToolModel",
+]

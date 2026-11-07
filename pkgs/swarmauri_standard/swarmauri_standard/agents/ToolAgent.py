@@ -1,18 +1,17 @@
 import logging
-from pydantic import ConfigDict
-from typing import Any, Optional, Union, Dict, Literal, List
+from typing import Any, Dict, List, Literal, Optional
 
-from swarmauri_standard.messages.HumanMessage import HumanMessage
+from pydantic import ConfigDict
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.agents.AgentConversationMixin import AgentConversationMixin
 from swarmauri_base.agents.AgentToolMixin import AgentToolMixin
-from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.tool_llms.ToolLLMBase import ToolLLMBase
-
-
+from swarmauri_base.toolkits.ToolkitBase import ToolkitBase
 from swarmauri_core.messages import IMessage
-from swarmauri_base.ComponentBase import SubclassUnion, ComponentBase
+
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 
 @ComponentBase.register_type(AgentBase, "ToolAgent")
@@ -25,11 +24,13 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
     def exec(
         self,
-        input_data: Optional[Union[str, IMessage]] = "",
+        input_data: Optional[str | IMessage] = "",
         multiturn: bool = True,
-        llm_kwargs: Optional[Dict] = {},
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
         # Check if the input is a string, then wrap it in a HumanMessage
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if isinstance(input_data, str):
             human_message = HumanMessage(content=input_data)
         elif isinstance(input_data, IMessage):
@@ -56,11 +57,13 @@ class ToolAgent(AgentToolMixin, AgentConversationMixin, AgentBase):
 
     async def aexec(
         self,
-        input_data: Optional[Union[str, IMessage]] = "",
+        input_data: Optional[str | IMessage] = "",
         multiturn: bool = True,
-        llm_kwargs: Optional[Dict] = {},
+        llm_kwargs: Optional[Dict] = None,
     ) -> Any:
         # Check if the input is a string, then wrap it in a HumanMessage
+        if llm_kwargs is None:
+            llm_kwargs = {}
         if isinstance(input_data, str):
             human_message = HumanMessage(content=input_data)
         elif isinstance(input_data, IMessage):

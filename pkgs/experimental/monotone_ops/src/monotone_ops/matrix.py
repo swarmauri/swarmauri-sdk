@@ -20,7 +20,9 @@ def _shape(grid: Grid[T]) -> tuple[int, int]:
     return (len(grid), width)
 
 
-def entrywise(op: Callable[[T, T], T]) -> Callable[[Grid[T], Grid[T]], tuple[tuple[T, ...], ...]]:
+def entrywise(
+    op: Callable[[T, T], T],
+) -> Callable[[Grid[T], Grid[T]], tuple[tuple[T, ...], ...]]:
     def merge(a: Grid[T], b: Grid[T]) -> tuple[tuple[T, ...], ...]:
         if _shape(a) != _shape(b):
             raise ValueError("grid shapes differ")
@@ -32,15 +34,21 @@ def entrywise(op: Callable[[T, T], T]) -> Callable[[Grid[T], Grid[T]], tuple[tup
     return merge
 
 
-def entrywise_max(a: Grid[Number], b: Grid[Number]) -> tuple[tuple[Number, ...], ...]:
+def entrywise_max(
+    a: Grid[Number], b: Grid[Number]
+) -> tuple[tuple[Number, ...], ...]:
     return entrywise(max)(a, b)
 
 
-def entrywise_min(a: Grid[Number], b: Grid[Number]) -> tuple[tuple[Number, ...], ...]:
+def entrywise_min(
+    a: Grid[Number], b: Grid[Number]
+) -> tuple[tuple[Number, ...], ...]:
     return entrywise(min)(a, b)
 
 
-def entrywise_add_nonnegative(a: Grid[Number], b: Grid[Number]) -> tuple[tuple[Number, ...], ...]:
+def entrywise_add_nonnegative(
+    a: Grid[Number], b: Grid[Number]
+) -> tuple[tuple[Number, ...], ...]:
     def add(x: Number, y: Number) -> Number:
         if x < 0 or y < 0:
             raise ValueError("non-negative grids required")
@@ -49,12 +57,16 @@ def entrywise_add_nonnegative(a: Grid[Number], b: Grid[Number]) -> tuple[tuple[N
     return entrywise(add)(a, b)
 
 
-def matrix_leq(leq: Callable[[T, T], bool]) -> Callable[[Grid[T], Grid[T]], bool]:
+def matrix_leq(
+    leq: Callable[[T, T], bool],
+) -> Callable[[Grid[T], Grid[T]], bool]:
     def inner(a: Grid[T], b: Grid[T]) -> bool:
         if _shape(a) != _shape(b):
             return False
         return all(
-            leq(x, y) for row_a, row_b in zip(a, b, strict=True) for x, y in zip(row_a, row_b, strict=True)
+            leq(x, y)
+            for row_a, row_b in zip(a, b, strict=True)
+            for x, y in zip(row_a, row_b, strict=True)
         )
 
     return inner
@@ -65,7 +77,9 @@ def transpose(grid: Grid[T]) -> tuple[tuple[T, ...], ...]:
     return tuple(tuple(grid[i][j] for i in range(rows)) for j in range(cols))
 
 
-def max_dilate(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[tuple[Number, ...], ...]:
+def max_dilate(
+    grid: Grid[Number], offsets: Sequence[tuple[int, int]]
+) -> tuple[tuple[Number, ...], ...]:
     """Grey-scale dilation over clipped shifted neighbors.
 
     Cells whose clipped neighborhood is empty keep their original value.
@@ -78,13 +92,19 @@ def max_dilate(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[
     for r in range(rows):
         row: list[Number] = []
         for c in range(cols):
-            vals = [grid[r + dr][c + dc] for dr, dc in offsets if 0 <= r + dr < rows and 0 <= c + dc < cols]
+            vals = [
+                grid[r + dr][c + dc]
+                for dr, dc in offsets
+                if 0 <= r + dr < rows and 0 <= c + dc < cols
+            ]
             row.append(max(vals) if vals else grid[r][c])
         out.append(row)
     return tuple(tuple(row) for row in out)
 
 
-def min_erode(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[tuple[Number, ...], ...]:
+def min_erode(
+    grid: Grid[Number], offsets: Sequence[tuple[int, int]]
+) -> tuple[tuple[Number, ...], ...]:
     """Grey-scale erosion over clipped shifted neighbors.
 
     Cells whose clipped neighborhood is empty keep their original value.
@@ -97,7 +117,11 @@ def min_erode(grid: Grid[Number], offsets: Sequence[tuple[int, int]]) -> tuple[t
     for r in range(rows):
         row: list[Number] = []
         for c in range(cols):
-            vals = [grid[r + dr][c + dc] for dr, dc in offsets if 0 <= r + dr < rows and 0 <= c + dc < cols]
+            vals = [
+                grid[r + dr][c + dc]
+                for dr, dc in offsets
+                if 0 <= r + dr < rows and 0 <= c + dc < cols
+            ]
             row.append(min(vals) if vals else grid[r][c])
         out.append(row)
     return tuple(tuple(row) for row in out)

@@ -7,7 +7,6 @@ class ITransactional(ABC):
         """
         Initiates a transaction for a series of vector store operations.
         """
-        pass
 
     @abstractmethod
     def commit_transaction(self):
@@ -15,7 +14,6 @@ class ITransactional(ABC):
         Commits the current transaction, making all operations within the
         transaction permanent.
         """
-        pass
 
     @abstractmethod
     def abort_transaction(self):
@@ -23,4 +21,3 @@ class ITransactional(ABC):
         Aborts the current transaction, reverting all operations performed
         within the transaction.
         """
-        pass

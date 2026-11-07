@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Sequence, Tuple, Type
+from typing import Any, Sequence
 
 from .enums import Capability
 
@@ -18,5 +18,5 @@ class IBillingProvider(ABC):
 
     @property
     @abstractmethod
-    def api_strategies(self) -> Tuple[Type[Any], ...]:
+    def api_strategies(self) -> tuple[type[Any], ...]:
         """Return strategy interfaces supported by the provider."""

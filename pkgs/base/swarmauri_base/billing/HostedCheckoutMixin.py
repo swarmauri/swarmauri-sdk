@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IHostedCheckout
 from swarmauri_core.billing.protos import (
     CheckoutIntentProto,
@@ -14,8 +14,8 @@ from swarmauri_core.billing.protos import (
     PriceRefProto,
 )
 
-from .utils import extract_raw_payload
 from .refs import CheckoutIntentRef
+from .utils import extract_raw_payload
 
 
 class HostedCheckoutMixin(IHostedCheckout, BaseModel):

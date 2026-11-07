@@ -1,7 +1,7 @@
 """Integration tests for the ``YamlMixin`` helpers."""
 
-import yaml
 import pytest
+import yaml
 
 from swarmauri_base.YamlMixin import YamlMixin
 

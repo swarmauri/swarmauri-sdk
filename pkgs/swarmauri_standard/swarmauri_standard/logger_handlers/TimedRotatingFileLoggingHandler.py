@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 
 from swarmauri_base import FullUnion
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
@@ -59,7 +59,7 @@ class TimedRotatingFileLoggingHandler(HandlerBase):
     utc: bool = False
     atTime: Optional[datetime] = None
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
 
     def compile_handler(self) -> logging.Handler:
         """

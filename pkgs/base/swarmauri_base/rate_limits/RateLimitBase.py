@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import time
-from typing import Optional, Literal
-from pydantic import Field, PrivateAttr, ConfigDict
+from typing import Literal
 
+from pydantic import ConfigDict, Field, PrivateAttr
 from swarmauri_core.rate_limits.IRateLimit import IRateLimit
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -17,7 +18,7 @@ class RateLimitBase(IRateLimit, ComponentBase):
     _tokens: float = PrivateAttr(0.0)
     _last_refill: float = PrivateAttr(default_factory=time.time)
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.RATE_LIMIT.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)

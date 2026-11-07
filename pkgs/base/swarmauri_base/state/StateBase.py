@@ -1,8 +1,9 @@
-from typing import Dict, Any, Optional, Literal
-from pydantic import Field, ConfigDict
+from typing import Any, Literal
+
+from pydantic import ConfigDict, Field
+from swarmauri_core.state.IState import IState
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.state.IState import IState
 
 
 @ComponentBase.register_model()
@@ -12,28 +13,28 @@ class StateBase(IState, ComponentBase):
     ComponentBase.
     """
 
-    state_data: Dict[str, Any] = Field(
+    state_data: dict[str, Any] = Field(
         default_factory=dict, description="The current state data."
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.STATE.value, frozen=True
     )
     type: Literal["StateBase"] = "StateBase"
 
-    def read(self) -> Dict[str, Any]:
+    def read(self) -> dict[str, Any]:
         """
         Reads and returns the current state as a dictionary.
         """
         raise NotImplementedError("Subclasses must implement 'read'.")
 
-    def write(self, data: Dict[str, Any]) -> None:
+    def write(self, data: dict[str, Any]) -> None:
         """
         Replaces the current state with the given data.
         """
         raise NotImplementedError("Subclasses must implement 'write'.")
 
-    def update(self, data: Dict[str, Any]) -> None:
+    def update(self, data: dict[str, Any]) -> None:
         """
         Updates the state with the given data.
         """

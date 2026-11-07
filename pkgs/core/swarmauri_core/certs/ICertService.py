@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Mapping, Optional, Sequence, TypedDict, Dict, Any
+from typing import Any, Iterable, Mapping, Sequence, TypedDict
 
 from swarmauri_core.crypto.types import (
     KeyRef,
@@ -21,12 +21,12 @@ class SubjectSpec(TypedDict, total=False):
     C: str
     ST: str
     L: str
-    O: str  # noqa: E741
+    O: str  # noqa: E741 - X.509 standard abbreviation for organization
     OU: str
     emailAddress: str
     # You can pass additional RDNs via 'extra_rdns' using provider-specific
     # names:
-    extra_rdns: Dict[str, str]
+    extra_rdns: dict[str, str]
 
 
 class AltNameSpec(TypedDict, total=False):
@@ -39,7 +39,7 @@ class AltNameSpec(TypedDict, total=False):
 
 class BasicConstraintsSpec(TypedDict, total=False):
     ca: bool
-    path_len: Optional[int]  # None ⇒ no limit encoded
+    path_len: int | None  # None ⇒ no limit encoded
 
 
 class KeyUsageSpec(TypedDict, total=False):
@@ -82,7 +82,7 @@ class CertExtensionSpec(TypedDict, total=False):
         bool  # auto-derive from issuer (requires ca_cert or ca public)
     )
     # Provider-specific or advanced extensions may be passed in 'extra':
-    extra: Dict[str, Any]
+    extra: dict[str, Any]
 
 
 # Common alias for PEM/DER bytes
@@ -112,12 +112,12 @@ class ICertService(ABC):
         key: KeyRef,
         subject: SubjectSpec,
         *,
-        san: Optional[AltNameSpec] = None,
-        extensions: Optional[CertExtensionSpec] = None,
-        sig_alg: Optional[str] = None,
-        challenge_password: Optional[str] = None,
+        san: AltNameSpec | None = None,
+        extensions: CertExtensionSpec | None = None,
+        sig_alg: str | None = None,
+        challenge_password: str | None = None,
         output_der: bool = False,
-        opts: Optional[Dict[str, Any]] = None,
+        opts: dict[str, Any] | None = None,
     ) -> CsrBytes:
         """Build and sign a PKCS#10 CSR (RFC 2986) using 'key'."""
         ...
@@ -132,13 +132,13 @@ class ICertService(ABC):
         key: KeyRef,
         subject: SubjectSpec,
         *,
-        serial: Optional[int] = None,
-        not_before: Optional[int] = None,
-        not_after: Optional[int] = None,
-        extensions: Optional[CertExtensionSpec] = None,
-        sig_alg: Optional[str] = None,
+        serial: int | None = None,
+        not_before: int | None = None,
+        not_after: int | None = None,
+        extensions: CertExtensionSpec | None = None,
+        sig_alg: str | None = None,
         output_der: bool = False,
-        opts: Optional[Dict[str, Any]] = None,
+        opts: dict[str, Any] | None = None,
     ) -> CertBytes:
         """Create a self-signed certificate using 'key' as both subject and
         issuer."""
@@ -150,15 +150,15 @@ class ICertService(ABC):
         csr: CsrBytes,
         ca_key: KeyRef,
         *,
-        issuer: Optional[SubjectSpec] = None,
-        ca_cert: Optional[CertBytes] = None,
-        serial: Optional[int] = None,
-        not_before: Optional[int] = None,
-        not_after: Optional[int] = None,
-        extensions: Optional[CertExtensionSpec] = None,
-        sig_alg: Optional[str] = None,
+        issuer: SubjectSpec | None = None,
+        ca_cert: CertBytes | None = None,
+        serial: int | None = None,
+        not_before: int | None = None,
+        not_after: int | None = None,
+        extensions: CertExtensionSpec | None = None,
+        sig_alg: str | None = None,
         output_der: bool = False,
-        opts: Optional[Dict[str, Any]] = None,
+        opts: dict[str, Any] | None = None,
     ) -> CertBytes:
         """Issue an end-entity or intermediate certificate from a CSR."""
         ...
@@ -172,12 +172,12 @@ class ICertService(ABC):
         self,
         cert: CertBytes,
         *,
-        trust_roots: Optional[Sequence[CertBytes]] = None,
-        intermediates: Optional[Sequence[CertBytes]] = None,
-        check_time: Optional[int] = None,
+        trust_roots: Sequence[CertBytes] | None = None,
+        intermediates: Sequence[CertBytes] | None = None,
+        check_time: int | None = None,
         check_revocation: bool = False,
-        opts: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        opts: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Verify an X.509 certificate and optionally its chain."""
         ...
 
@@ -191,7 +191,7 @@ class ICertService(ABC):
         cert: CertBytes,
         *,
         include_extensions: bool = True,
-        opts: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        opts: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Parse an X.509 certificate into a JSON-serializable mapping."""
         ...

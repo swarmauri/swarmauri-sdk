@@ -82,9 +82,7 @@ class LpSeminorm(SeminormBase):
         TypeError
             If the input type is not supported
         """
-        if isinstance(x, IVector):
-            return np.array(x.to_array())
-        elif isinstance(x, IMatrix):
+        if isinstance(x, (IVector, IMatrix)):
             return np.array(x.to_array())
         elif isinstance(x, (list, tuple, np.ndarray)):
             # Don't force dtype=float which discards imaginary parts
@@ -126,10 +124,8 @@ class LpSeminorm(SeminormBase):
             If the computation cannot be performed on the given input
         """
         logger.debug(
-            (
-                f"Computing Lp seminorm with p={self.p} for input of type "
-                f"{type(x)}"
-            )
+            f"Computing Lp seminorm with p={self.p} for input of type "
+            f"{type(x)}"
         )
 
         try:
@@ -148,7 +144,7 @@ class LpSeminorm(SeminormBase):
                 return float(np.sum(np.abs(arr) ** self.p) ** (1.0 / self.p))
 
         except Exception as e:
-            logger.error(f"Error computing Lp seminorm: {str(e)}")
+            logger.error(f"Error computing Lp seminorm: {e!s}")
             raise
 
     def check_triangle_inequality(self, x: InputType, y: InputType) -> bool:
@@ -178,10 +174,8 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given inputs
         """
         logger.debug(
-            (
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            )
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
 
         try:
@@ -190,10 +184,8 @@ class LpSeminorm(SeminormBase):
 
             if x_arr.shape != y_arr.shape:
                 raise ValueError(
-                    (
-                        f"Inputs must have the same shape: {x_arr.shape} vs "
-                        f"{y_arr.shape}"
-                    )
+                    f"Inputs must have the same shape: {x_arr.shape} vs "
+                    f"{y_arr.shape}"
                 )
 
             # Compute the seminorm of x + y
@@ -208,7 +200,7 @@ class LpSeminorm(SeminormBase):
             return sum_seminorm <= x_seminorm + y_seminorm + self.epsilon
 
         except Exception as e:
-            logger.error(f"Error checking triangle inequality: {str(e)}")
+            logger.error(f"Error checking triangle inequality: {e!s}")
             raise
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
@@ -239,10 +231,8 @@ class LpSeminorm(SeminormBase):
             If the check cannot be performed on the given input
         """
         logger.debug(
-            (
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            )
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
 
         try:
@@ -266,5 +256,5 @@ class LpSeminorm(SeminormBase):
             ) <= self.epsilon * (1 + expected_scaled_seminorm)
 
         except Exception as e:
-            logger.error(f"Error checking scalar homogeneity: {str(e)}")
+            logger.error(f"Error checking scalar homogeneity: {e!s}")
             raise

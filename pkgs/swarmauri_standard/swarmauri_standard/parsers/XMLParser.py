@@ -1,10 +1,11 @@
 import xml.etree.ElementTree as ET
-from typing import List, Union, Any, Literal
+from typing import Any, List, Literal
+
 from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.parsers.ParserBase import ParserBase
 
 from swarmauri_standard.documents.Document import Document
-from swarmauri_base.parsers.ParserBase import ParserBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 @ComponentBase.register_type(ParserBase, "XMLParser")
@@ -19,7 +20,7 @@ class XMLParser(ParserBase):
     element_tag: str = Field(default="root")
     type: Literal["XMLParser"] = "XMLParser"
 
-    def parse(self, data: Union[str, Any]) -> List[Document]:
+    def parse(self, data: str | Any) -> List[Document]:
         """
         Parses XML data and converts elements with the specified tag into
         IDocument instances.

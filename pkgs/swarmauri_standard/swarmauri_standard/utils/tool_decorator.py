@@ -1,10 +1,11 @@
 import inspect
 from typing import Annotated, Any, List, get_origin, get_type_hints
+
 from pydantic import Field
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
 
 from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
-from swarmauri_base.ComponentBase import ComponentBase
 
 
 def tool(func):

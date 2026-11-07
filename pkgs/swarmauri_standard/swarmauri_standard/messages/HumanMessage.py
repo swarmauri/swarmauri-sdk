@@ -1,10 +1,11 @@
-from typing import Optional, Literal, List, Union, Dict
+from typing import Dict, List, Literal, Optional, Union
+
 from pydantic import Field, field_validator
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.messages.MessageBase import MessageBase
 from typing_extensions import TypedDict
 
-from swarmauri_standard.utils.base64_encoder import is_url, encode_file
-from swarmauri_base.messages.MessageBase import MessageBase
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.utils.base64_encoder import encode_file, is_url
 
 
 # Define specific content types
@@ -15,7 +16,7 @@ class TextContent(TypedDict):
 
 class ImageUrlContent(TypedDict):
     type: str
-    image_url: Union[str, Dict]
+    image_url: str | Dict
 
 
 contentItem = Union[TextContent, ImageUrlContent]
@@ -23,20 +24,20 @@ contentItem = Union[TextContent, ImageUrlContent]
 
 @ComponentBase.register_type(MessageBase, "HumanMessage")
 class HumanMessage(MessageBase):
-    content: Optional[Union[str, List[contentItem]]]
+    content: Optional[str | List[contentItem]]
     role: str = Field(default="user")
     name: Optional[str] = None
     type: Literal["HumanMessage"] = "HumanMessage"
 
     @field_validator("content", mode="before")
     def validate_content(
-        cls, content: Optional[Union[str, List[contentItem]]]
-    ) -> Optional[Union[str, List[contentItem]]]:
+        cls, content: Optional[str | List[contentItem]]
+    ) -> Optional[str | List[contentItem]]:
         if isinstance(content, list):
             for item in content:
                 image_data = item.get("image_url", {})
                 url = image_data.get("url")
-                if url and not is_url(url):
+                if url and not (is_url(url) or url.startswith("data:")):
                     image_data["url"] = (
                         f"data:image/jpeg;base64,{encode_file(url)}"
                     )

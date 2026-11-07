@@ -42,7 +42,7 @@ Notes
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Iterable
 
 from .types import (
     AEADCiphertext,
@@ -54,7 +54,7 @@ from .types import (
 
 class ICrypto(ABC):
     @abstractmethod
-    def supports(self) -> Dict[str, Iterable[Alg]]:
+    def supports(self) -> dict[str, Iterable[Alg]]:
         """
         Return a capability map describing supported algorithms.
 
@@ -87,9 +87,9 @@ class ICrypto(ABC):
         key: KeyRef,
         pt: bytes,
         *,
-        alg: Optional[Alg] = None,
-        aad: Optional[bytes] = None,
-        nonce: Optional[bytes] = None,
+        alg: Alg | None = None,
+        aad: bytes | None = None,
+        nonce: bytes | None = None,
     ) -> AEADCiphertext:
         """
         AEAD-encrypt 'pt' with the provided DEK 'key'.
@@ -114,7 +114,7 @@ class ICrypto(ABC):
         key: KeyRef,
         ct: AEADCiphertext,
         *,
-        aad: Optional[bytes] = None,
+        aad: bytes | None = None,
     ) -> bytes:
         """
         AEAD-decrypt 'ct' with the DEK 'key'. If 'aad' is provided, it must
@@ -131,10 +131,10 @@ class ICrypto(ABC):
         self,
         kek: KeyRef,
         *,
-        dek: Optional[bytes] = None,
-        wrap_alg: Optional[Alg] = None,
-        nonce: Optional[bytes] = None,
-        aad: Optional[bytes] = None,
+        dek: bytes | None = None,
+        wrap_alg: Alg | None = None,
+        nonce: bytes | None = None,
+        aad: bytes | None = None,
     ) -> WrappedKey:
         """
         Protect a DEK under a KEK.
@@ -165,7 +165,7 @@ class ICrypto(ABC):
         kek: KeyRef,
         wrapped: WrappedKey,
         *,
-        aad: Optional[bytes] = None,
+        aad: bytes | None = None,
     ) -> bytes:
         """
         Recover a DEK from 'wrapped' using KEK 'kek'.
@@ -191,7 +191,7 @@ class ICrypto(ABC):
         recipient: KeyRef,
         pt: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         """
         Public-key 'sealed' encryption to 'recipient' without caller-managed
@@ -215,7 +215,7 @@ class ICrypto(ABC):
         recipient_priv: KeyRef,
         sealed: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         """
         Decrypt 'sealed' bytes addressed to 'recipient_priv'.
@@ -234,8 +234,8 @@ class ICrypto(ABC):
         self,
         recipient: KeyRef,
         *,
-        alg: Optional[Alg] = None,
-    ) -> Tuple[bytes, bytes]:
+        alg: Alg | None = None,
+    ) -> tuple[bytes, bytes]:
         """
         Perform a key encapsulation for 'recipient'.
 
@@ -254,7 +254,7 @@ class ICrypto(ABC):
         recipient_priv: KeyRef,
         encapsulated_key: bytes,
         *,
-        alg: Optional[Alg] = None,
+        alg: Alg | None = None,
     ) -> bytes:
         """
         Recover the shared secret from 'encapsulated_key' using

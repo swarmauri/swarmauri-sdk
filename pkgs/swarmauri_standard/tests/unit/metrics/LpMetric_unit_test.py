@@ -110,8 +110,8 @@ def test_resource_type():
 @pytest.mark.unit
 def test_convert_to_array(lp_metric_2, vectors, matrices):
     """Test the _convert_to_array method with different input types."""
-    v1, v2, mock_v1, mock_v2 = vectors
-    m1, m2, mock_m1, mock_m2 = matrices
+    v1, _v2, mock_v1, _mock_v2 = vectors
+    _m1, _m2, mock_m1, _mock_m2 = matrices
 
     # Test with lists
     np.testing.assert_array_equal(

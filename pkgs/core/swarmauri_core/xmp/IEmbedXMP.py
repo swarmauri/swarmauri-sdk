@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import abc
-from typing import Optional
 
 
 class IEmbedXMP(abc.ABC):
@@ -15,7 +14,7 @@ class IEmbedXMP(abc.ABC):
         payload."""
 
     @abc.abstractmethod
-    def read_xmp(self, data: bytes) -> Optional[str]:
+    def read_xmp(self, data: bytes) -> str | None:
         """Extract an XMP packet from ``data`` if present."""
 
     @abc.abstractmethod

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -54,16 +54,14 @@ class SobolevH1InnerProduct(InnerProductBase):
         kwargs["beta"] = beta
         super().__init__(**kwargs)
         logger.info(
-            (
-                f"Initialized SobolevH1InnerProduct with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Initialized SobolevH1InnerProduct with alpha={alpha}, "
+            f"beta={beta}"
         )
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the H1 Sobolev inner product between two objects.
@@ -160,10 +158,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
-                f"H1 inner product result: {result} (L2 part: {l2_part}, "
-                f"derivative part: {derivative_part})"
-            )
+            f"H1 inner product result: {result} (L2 part: {l2_part}, "
+            f"derivative part: {derivative_part})"
         )
 
         return result
@@ -224,10 +220,8 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
-                f"H1 inner product result: {result} (L2 part: {l2_part}, "
-                f"derivative part: {derivative_part})"
-            )
+            f"H1 inner product result: {result} (L2 part: {l2_part}, "
+            f"derivative part: {derivative_part})"
         )
 
         return result
@@ -284,18 +278,16 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Combine with weights
         result = self.alpha * l2_part + self.beta * derivative_part
         logger.debug(
-            (
-                f"H1 inner product result: {result} (L2 part: {l2_part}, "
-                f"derivative part: {derivative_part})"
-            )
+            f"H1 inner product result: {result} (L2 part: {l2_part}, "
+            f"derivative part: {derivative_part})"
         )
 
         return result
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the H1 inner product satisfies the conjugate symmetry
@@ -329,18 +321,16 @@ class SobolevH1InnerProduct(InnerProductBase):
             is_symmetric = np.isclose(inner_ab, inner_ba)
 
         logger.debug(
-            (
-                f"Conjugate symmetry check result: {is_symmetric} "
-                f"(<a,b>={inner_ab}, <b,a>={inner_ba})"
-            )
+            f"Conjugate symmetry check result: {is_symmetric} "
+            f"(<a,b>={inner_ab}, <b,a>={inner_ba})"
         )
         return is_symmetric
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -374,10 +364,8 @@ class SobolevH1InnerProduct(InnerProductBase):
             If the inputs cannot be linearly combined
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         # Compute individual inner products
@@ -429,15 +417,13 @@ class SobolevH1InnerProduct(InnerProductBase):
         # Check if the two sides are approximately equal
         is_linear = np.isclose(left_side, right_side)
         logger.debug(
-            (
-                f"Linearity check result: {is_linear} (left side: "
-                f"{left_side}, right side: {right_side})"
-            )
+            f"Linearity check result: {is_linear} (left side: "
+            f"{left_side}, right side: {right_side})"
         )
 
         return is_linear
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the H1 inner product satisfies the positivity property.
 
@@ -486,10 +472,8 @@ class SobolevH1InnerProduct(InnerProductBase):
 
         is_positive = is_non_negative and is_zero_for_zero_only
         logger.debug(
-            (
-                f"Positivity check result: {is_positive} (inner product: "
-                f"{inner_aa})"
-            )
+            f"Positivity check result: {is_positive} (inner product: "
+            f"{inner_aa})"
         )
 
         return is_positive

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -55,8 +55,8 @@ class RKHSInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the inner product between two objects using the kernel
@@ -87,15 +87,13 @@ class RKHSInnerProduct(InnerProductBase):
             logger.debug(f"Inner product result: {result}")
             return result
         except Exception as e:
-            logger.error(f"Error computing RKHS inner product: {str(e)}")
-            raise TypeError(
-                f"Inputs not supported by kernel function: {str(e)}"
-            )
+            logger.error(f"Error computing RKHS inner product: {e!s}")
+            raise TypeError(f"Inputs not supported by kernel function: {e!s}")
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the kernel-induced inner product satisfies the conjugate
@@ -135,9 +133,9 @@ class RKHSInnerProduct(InnerProductBase):
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -175,10 +173,8 @@ class RKHSInnerProduct(InnerProductBase):
             If the inputs don't support linear combinations
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         # Check if inputs support linear combinations
@@ -204,7 +200,7 @@ class RKHSInnerProduct(InnerProductBase):
             )
             raise TypeError("Linearity check requires numpy array inputs")
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the kernel-induced inner product satisfies the positivity
         property.
@@ -254,10 +250,8 @@ class RKHSInnerProduct(InnerProductBase):
             True if the kernel is positive definite, False otherwise
         """
         logger.debug(
-            (
-                f"Checking if kernel is positive definite using "
-                f"{len(vectors)} vectors"
-            )
+            f"Checking if kernel is positive definite using "
+            f"{len(vectors)} vectors"
         )
 
         n = len(vectors)

@@ -44,7 +44,8 @@ def is_subsequence(a: Sequence[T], b: Sequence[T]) -> bool:
 
 
 def ordered_dedup_union(a: Sequence[H], b: Sequence[H]) -> tuple[H, ...]:
-    """Append unseen elements from ``b`` to ``a`` while preserving first-seen order."""
+    """Append unseen elements from ``b`` to ``a`` while preserving first-seen
+    order."""
 
     seen = set(a)
     out = list(a)
@@ -76,7 +77,9 @@ def cumulative_join(op: Callable[[T, T], T], xs: Iterable[T]) -> tuple[T, ...]:
     return tuple(out)
 
 
-def windowed_join(op: Callable[[T, T], T], xs: Sequence[T], width: int) -> tuple[T, ...]:
+def windowed_join(
+    op: Callable[[T, T], T], xs: Sequence[T], width: int
+) -> tuple[T, ...]:
     """Fixed-window monotone summary for each complete window."""
 
     if width <= 0:
@@ -93,7 +96,8 @@ def windowed_join(op: Callable[[T, T], T], xs: Sequence[T], width: int) -> tuple
 
 
 def merge_by_prefix(a: Sequence[T], b: Sequence[T]) -> tuple[T, ...]:
-    """Join for comparable prefix-chain elements; raises for conflicting branches."""
+    """Join for comparable prefix-chain elements; raises for conflicting
+    branches."""
 
     if prefix_leq(a, b):
         return tuple(b)

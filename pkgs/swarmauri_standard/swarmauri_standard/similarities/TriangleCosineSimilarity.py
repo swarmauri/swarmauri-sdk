@@ -64,7 +64,7 @@ class TriangleCosineSimilarity(SimilarityBase):
 
             return v
         except Exception as e:
-            logger.error(f"Vector validation error: {str(e)}")
+            logger.error(f"Vector validation error: {e!s}")
             raise
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -101,10 +101,8 @@ class TriangleCosineSimilarity(SimilarityBase):
             # Check for compatible dimensions
             if x_array.shape != y_array.shape:
                 raise ValueError(
-                    (
-                        f"Incompatible dimensions: {x_array.shape} vs "
-                        f"{y_array.shape}"
-                    )
+                    f"Incompatible dimensions: {x_array.shape} vs "
+                    f"{y_array.shape}"
                 )
 
             # Calculate norms
@@ -131,7 +129,7 @@ class TriangleCosineSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating triangle cosine similarity: {str(e)}"
+                f"Error calculating triangle cosine similarity: {e!s}"
             )
             raise
 
@@ -174,10 +172,8 @@ class TriangleCosineSimilarity(SimilarityBase):
                     # Check for compatible dimensions
                     if x_array.shape != y_array.shape:
                         raise ValueError(
-                            (
-                                f"Incompatible dimensions: {x_array.shape} vs "
-                                f"{y_array.shape}"
-                            )
+                            f"Incompatible dimensions: {x_array.shape} vs "
+                            f"{y_array.shape}"
                         )
 
                     y_norm = np.linalg.norm(y_array)
@@ -196,8 +192,7 @@ class TriangleCosineSimilarity(SimilarityBase):
                     results.append(similarity)
                 except Exception as e:
                     logger.warning(
-                        f"Error calculating similarity for one vector: "
-                        f"{str(e)}"
+                        f"Error calculating similarity for one vector: {e!s}"
                     )
                     # Append None or a default value, or re-raise based on
                     # requirements
@@ -207,10 +202,8 @@ class TriangleCosineSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                (
-                    f"Error calculating multiple triangle cosine similarities: "  # noqa: E501
-                    f"{str(e)}"
-                )
+                f"Error calculating multiple triangle cosine similarities: "
+                f"{e!s}"
             )
             raise
 
@@ -242,7 +235,7 @@ class TriangleCosineSimilarity(SimilarityBase):
             return 1.0 - self.similarity(x, y)
         except Exception as e:
             logger.error(
-                f"Error calculating triangle cosine dissimilarity: {str(e)}"
+                f"Error calculating triangle cosine dissimilarity: {e!s}"
             )
             raise
 
@@ -285,7 +278,7 @@ class TriangleCosineSimilarity(SimilarityBase):
             similarity_value = self.similarity(x_array, x_array)
             return abs(similarity_value - 1.0) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
+            logger.error(f"Error checking reflexivity: {e!s}")
             raise
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -321,5 +314,5 @@ class TriangleCosineSimilarity(SimilarityBase):
 
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise

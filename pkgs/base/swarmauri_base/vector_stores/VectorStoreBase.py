@@ -1,11 +1,12 @@
 import json
 from abc import abstractmethod
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import Field, PrivateAttr
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.vector_stores.IVectorStore import IVectorStore
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
 @ComponentBase.register_model()
@@ -20,10 +21,10 @@ class VectorStoreBase(IVectorStore, ComponentBase):
     are to be implemented by concrete subclasses.
     """
 
-    documents: List[IDocument] = []
+    documents: list[IDocument] = []
     _embedder = PrivateAttr()
     _comparator = PrivateAttr(default=None)
-    resource: Optional[str] = Field(default=ResourceTypes.VECTOR_STORE.value)
+    resource: str | None = Field(default=ResourceTypes.VECTOR_STORE.value)
     type: Literal["VectorStoreBase"] = "VectorStoreBase"
 
     @property
@@ -42,10 +43,9 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         Parameters:
         - document (IDocument): The document to be added to the store.
         """
-        pass
 
     @abstractmethod
-    def add_documents(self, documents: List[IDocument]) -> None:
+    def add_documents(self, documents: list[IDocument]) -> None:
         """
         Add multiple documents to the document store in a batch operation.
 
@@ -53,10 +53,9 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         - documents (List[IDocument]): A list of documents to be added to the
           store.
         """
-        pass
 
     @abstractmethod
-    def get_document(self, id: str) -> Optional[IDocument]:
+    def get_document(self, id: str) -> IDocument | None:
         """
         Retrieve a single document by its identifier.
 
@@ -67,17 +66,15 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         - Optional[IDocument]: The requested document if found; otherwise,
           None.
         """
-        pass
 
     @abstractmethod
-    def get_all_documents(self) -> List[IDocument]:
+    def get_all_documents(self) -> list[IDocument]:
         """
         Retrieve all documents stored in the document store.
 
         Returns:
         - List[IDocument]: A list of all documents in the store.
         """
-        pass
 
     @abstractmethod
     def update_document(self, id: str, updated_document: IDocument) -> None:
@@ -88,7 +85,6 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         - doc_id (str): The unique identifier of the document to update.
         - updated_document (IDocument): The updated document instance.
         """
-        pass
 
     @abstractmethod
     def delete_document(self, id: str) -> None:
@@ -98,7 +94,6 @@ class VectorStoreBase(IVectorStore, ComponentBase):
         Parameters:
         - doc_id (str): The unique identifier of the document to delete.
         """
-        pass
 
     def clear_documents(self) -> None:
         """

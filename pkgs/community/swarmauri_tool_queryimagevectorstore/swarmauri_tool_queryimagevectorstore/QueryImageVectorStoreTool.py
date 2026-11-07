@@ -44,7 +44,9 @@ def _as_result(item: Any, rank: int) -> Dict[str, Any]:
 class QueryImageVectorStoreTool(ToolBase):
     version: str = "0.1.0.dev1"
     name: str = "QueryImageVectorStoreTool"
-    description: str = "Query an image vector store with an image or embedding."
+    description: str = (
+        "Query an image vector store with an image or embedding."
+    )
     type: Literal["QueryImageVectorStoreTool"] = "QueryImageVectorStoreTool"
     vector_store: Any = Field(default=None, exclude=True)
     image_embedder: Any = Field(default=None, exclude=True)
@@ -95,17 +97,22 @@ class QueryImageVectorStoreTool(ToolBase):
         if image is not None:
             infer = getattr(self.image_embedder, "infer_vector", None)
             if not callable(infer):
-                raise ValueError("image_embedder must provide infer_vector(image)")
+                raise ValueError(
+                    "image_embedder must provide infer_vector(image)"
+                )
             embedding_value = _vector_value(infer(image))
         else:
             embedding_value = _vector_value(embedding)
 
         search = getattr(self.vector_store, "retrieve_by_vector", None)
         if not callable(search):
-            search = getattr(self.vector_store, "similarity_search_by_vector", None)
+            search = getattr(
+                self.vector_store, "similarity_search_by_vector", None
+            )
         if not callable(search):
             raise ValueError(
-                "vector_store must provide retrieve_by_vector or similarity_search_by_vector"
+                "vector_store must provide retrieve_by_vector or "
+                "similarity_search_by_vector"
             )
 
         candidate_count = top_k if not metadata_filter else min(top_k * 5, 500)
@@ -120,7 +127,10 @@ class QueryImageVectorStoreTool(ToolBase):
             metadata = normalized.get("metadata")
             if metadata_filter and not (
                 isinstance(metadata, dict)
-                and all(metadata.get(k) == v for k, v in metadata_filter.items())
+                and all(
+                    metadata.get(key) == value
+                    for key, value in metadata_filter.items()
+                )
             ):
                 continue
             normalized["rank"] = len(results) + 1

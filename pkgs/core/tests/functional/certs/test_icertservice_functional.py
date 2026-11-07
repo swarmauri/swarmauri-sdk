@@ -1,7 +1,7 @@
 import pytest
 
 from swarmauri_core.certs.ICertService import ICertService, SubjectSpec
-from swarmauri_core.crypto.types import KeyRef, KeyType, KeyUse, ExportPolicy
+from swarmauri_core.crypto.types import ExportPolicy, KeyRef, KeyType, KeyUse
 
 
 class DummyCertService(ICertService):

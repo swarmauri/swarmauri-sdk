@@ -1,8 +1,9 @@
-import pytest
 from importlib.metadata import EntryPoint
 
-from swarmauri.plugin_manager import determine_plugin_citizenship
+import pytest
+
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
+from swarmauri.plugin_manager import determine_plugin_citizenship
 
 
 @pytest.fixture(autouse=True)

@@ -1,7 +1,8 @@
 import base64
-from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 import os
 from pathlib import Path
+
+from swarmauri_standard.utils.file_path_to_base64 import file_path_to_base64
 
 # Get the current working directory
 root_dir = Path(__file__).resolve().parents[2]

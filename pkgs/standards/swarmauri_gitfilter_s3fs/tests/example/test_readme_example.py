@@ -5,7 +5,6 @@ from io import BytesIO
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from swarmauri_gitfilter_s3fs import S3FSFilter
 
 

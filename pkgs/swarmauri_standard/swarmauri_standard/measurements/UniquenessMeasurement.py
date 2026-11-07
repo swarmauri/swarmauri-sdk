@@ -1,7 +1,8 @@
-from typing import Any, Dict, List, Literal, Union
+from typing import Any, Dict, List, Literal
+
 import pandas as pd
-from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.measurements.MeasurementBase import MeasurementBase
 
 
 @ComponentBase.register_type(MeasurementBase, "UniquenessMeasurement")
@@ -21,9 +22,7 @@ class UniquenessMeasurement(MeasurementBase):
     type: Literal["UniquenessMeasurement"] = "UniquenessMeasurement"
     unit: str = "%"  # Percentage as the unit of measurement
 
-    def calculate_uniqueness(
-        self, data: Union[pd.DataFrame, List, Dict]
-    ) -> float:
+    def calculate_uniqueness(self, data: pd.DataFrame | List | Dict) -> float:
         """
         Calculates the uniqueness score for different data types.
 
@@ -50,7 +49,7 @@ class UniquenessMeasurement(MeasurementBase):
                 return 0.0
             total_values = len(data)
             unique_values = len(
-                set(str(x) for x in data)
+                {str(x) for x in data}
             )  # Convert to strings to handle unhashable types
             return (unique_values / total_values) * 100
 
@@ -59,22 +58,20 @@ class UniquenessMeasurement(MeasurementBase):
                 return 0.0
             total_values = len(data)
             unique_values = len(
-                set(str(v) for v in data.values())
+                {str(v) for v in data.values()}
             )  # Convert to strings to handle unhashable types
             return (unique_values / total_values) * 100
 
         else:
             raise ValueError(
-                (
-                    "Unsupported data type. Please provide DataFrame, List, or "  # noqa: E501
-                    "Dict."
-                )
+                "Unsupported data type. Please provide DataFrame, List, or "
+                "Dict."
             )
 
     def call(
         self,
-        data: Union[pd.DataFrame, List, Dict],
-        kwargs: Dict[str, Any] = None,
+        data: pd.DataFrame | List | Dict,
+        kwargs: Dict[str, Any] | None = None,
     ) -> float:
         """
         Calculates and returns the uniqueness score for the provided data.

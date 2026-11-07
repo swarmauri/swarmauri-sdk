@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.parsers.URLExtractorParser import (
     URLExtractorParser as Parser,
 )
@@ -25,7 +26,8 @@ def test_serialization():
 @pytest.mark.unit
 def test_parse():
     documents = Parser().parse(
-        "https://www.swarmauri_standard.com, swarmauri_standard.app, and swarmauri_standard agents."  # noqa: E501
+        "https://www.swarmauri_standard.com, swarmauri_standard.app, and "
+        "swarmauri_standard agents."
     )
     assert len(documents) == 1
     assert documents[0].resource == "Document"

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import AsyncIterator, Optional, Tuple
 
 from swarmauri_base.transports.TransportBase import TransportBase
 from swarmauri_core.transports.capabilities import TransportCapabilities
@@ -25,7 +25,7 @@ class _QuicChannel:
 
     identifier: int
     queue: asyncio.Queue[bytes]
-    remote: Tuple[str, int] | None = None
+    remote: tuple[str, int] | None = None
 
 
 class _QuicDatagramProtocol(asyncio.DatagramProtocol):
@@ -38,7 +38,7 @@ class _QuicDatagramProtocol(asyncio.DatagramProtocol):
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         self.transport = transport  # type: ignore[assignment]
 
-    def datagram_received(self, data: bytes, addr: Tuple[str, int]) -> None:
+    def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
         self._handler(data, addr)
 
 
@@ -55,10 +55,10 @@ class QuicTransport(TransportBase):
         self._default_queue: asyncio.Queue[bytes] = asyncio.Queue()
         self._channels: dict[int, _QuicChannel] = {}
         self._next_channel: int = 1
-        self._peer_addr: Tuple[str, int] | None = None
-        self._default_remote: Tuple[str, int] | None = None
-        self._peer_queue: asyncio.Queue[Tuple[str, int]] = asyncio.Queue()
-        self._known_peers: set[Tuple[str, int]] = set()
+        self._peer_addr: tuple[str, int] | None = None
+        self._default_remote: tuple[str, int] | None = None
+        self._peer_queue: asyncio.Queue[tuple[str, int]] = asyncio.Queue()
+        self._known_peers: set[tuple[str, int]] = set()
         self._reset_state()
 
     def _reset_state(self) -> None:
@@ -139,7 +139,7 @@ class QuicTransport(TransportBase):
     # ------------------------------------------------------------------
     # Peer handling
     # ------------------------------------------------------------------
-    async def accept(self) -> AsyncIterator[Tuple[str, int]]:  # type: ignore[override]
+    async def accept(self) -> AsyncIterator[tuple[str, int]]:  # type: ignore[override]
         while True:
             addr = await self._peer_queue.get()
             yield addr
@@ -148,12 +148,12 @@ class QuicTransport(TransportBase):
     # Unicast operations
     # ------------------------------------------------------------------
     async def send(
-        self, target: str, data: bytes, *, timeout: Optional[float] = None
+        self, target: str, data: bytes, *, timeout: float | None = None
     ) -> None:
         addr = self._resolve_target(target)
         await self._send_datagram((0).to_bytes(4, "big") + data, addr, timeout)
 
-    async def recv(self, *, timeout: Optional[float] = None) -> bytes:
+    async def recv(self, *, timeout: float | None = None) -> bytes:
         if timeout is None:
             return await self._default_queue.get()
         return await asyncio.wait_for(self._default_queue.get(), timeout)
@@ -161,22 +161,37 @@ class QuicTransport(TransportBase):
     # ------------------------------------------------------------------
     # Multiplexed channel management
     # ------------------------------------------------------------------
-    async def open_channel(self) -> ChannelHandle:
+    def open_channel(self) -> ChannelHandle:
+        return asyncio.run(self.aopen_channel())
+
+    async def aopen_channel(self) -> ChannelHandle:
         handle = self._next_channel
         self._next_channel += 1
         remote = self._peer_addr or self._default_remote
         self._channels[handle] = _QuicChannel(handle, asyncio.Queue(), remote)
         return handle
 
-    async def close_channel(self, handle: ChannelHandle) -> None:
+    def close_channel(self, handle: ChannelHandle) -> None:
+        asyncio.run(self.aclose_channel(handle))
+
+    async def aclose_channel(self, handle: ChannelHandle) -> None:
         self._channels.pop(int(handle), None)
 
-    async def send_on(
+    def send_on(
         self,
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
+    ) -> None:
+        asyncio.run(self.asend_on(handle, data, timeout=timeout))
+
+    async def asend_on(
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: float | None = None,
     ) -> None:
         channel = self._ensure_channel(handle)
         if channel.remote is None:
@@ -186,8 +201,16 @@ class QuicTransport(TransportBase):
         payload = int(channel.identifier).to_bytes(4, "big") + data
         await self._send_datagram(payload, channel.remote, timeout)
 
-    async def recv_on(
-        self, handle: ChannelHandle, *, timeout: Optional[float] = None
+    def receive_on(
+        self,
+        handle: ChannelHandle,
+        *,
+        timeout: float | None = None,
+    ) -> bytes:
+        return asyncio.run(self.areceive_on(handle, timeout=timeout))
+
+    async def areceive_on(
+        self, handle: ChannelHandle, *, timeout: float | None = None
     ) -> bytes:
         channel = self._ensure_channel(handle)
         if timeout is None:
@@ -211,7 +234,7 @@ class QuicTransport(TransportBase):
             raise RuntimeError("transport is not connected")
         return transport
 
-    def _resolve_target(self, target: str) -> Tuple[str, int]:
+    def _resolve_target(self, target: str) -> tuple[str, int]:
         token = target.strip().lower()
         if ":" in target:
             host, port_str = target.split(":", 1)
@@ -228,14 +251,14 @@ class QuicTransport(TransportBase):
         raise RuntimeError("no remote peer available for send operation")
 
     async def _send_datagram(
-        self, payload: bytes, addr: Tuple[str, int], timeout: Optional[float]
+        self, payload: bytes, addr: tuple[str, int], timeout: float | None
     ) -> None:
         transport = self._get_transport()
         transport.sendto(payload, addr)
         if timeout is not None:
             await asyncio.sleep(0)
 
-    def _handle_datagram(self, data: bytes, addr: Tuple[str, int]) -> None:
+    def _handle_datagram(self, data: bytes, addr: tuple[str, int]) -> None:
         if not data:
             return
         channel_id = int.from_bytes(data[:4], "big")

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -35,8 +35,8 @@ class HermitianInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> complex:
         """
         Compute the Hermitian inner product between two objects.
@@ -67,10 +67,8 @@ class HermitianInnerProduct(InnerProductBase):
             If the dimensions of the inputs don't match
         """
         logger.debug(
-            (
-                f"Computing Hermitian inner product between {type(a)} and "
-                f"{type(b)}"
-            )
+            f"Computing Hermitian inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         # ADDED: Handle mixed case where one is ndarray and one is Vector
@@ -92,7 +90,10 @@ class HermitianInnerProduct(InnerProductBase):
 
             # Check dimensions
             if a_array.shape != b_array.shape:
-                error_msg = f"Vector dimensions don't match: {a_array.shape} vs {b_array.shape}"  # noqa: E501
+                error_msg = (
+                    f"Vector dimensions don't match: {a_array.shape} vs "
+                    f"{b_array.shape}"
+                )
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
@@ -146,8 +147,8 @@ class HermitianInnerProduct(InnerProductBase):
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the inner product satisfies the conjugate symmetry property:
@@ -187,14 +188,14 @@ class HermitianInnerProduct(InnerProductBase):
             return bool(is_symmetric)
 
         except Exception as e:
-            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            logger.error(f"Error checking conjugate symmetry: {e!s}")
             return False
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: complex,
         beta: complex,
     ) -> bool:
@@ -221,10 +222,8 @@ class HermitianInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -288,10 +287,10 @@ class HermitianInnerProduct(InnerProductBase):
             return bool(is_linear)
 
         except Exception as e:
-            logger.error(f"Error checking linearity: {str(e)}")
+            logger.error(f"Error checking linearity: {e!s}")
             return False
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
@@ -342,15 +341,13 @@ class HermitianInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                (
-                    f"<a, a> = {aa_inner.real}, is_non_negative = "
-                    f"{is_non_negative}, is_zero_iff_a_zero = "
-                    f"{is_zero_iff_a_zero}"
-                )
+                f"<a, a> = {aa_inner.real}, is_non_negative = "
+                f"{is_non_negative}, is_zero_iff_a_zero = "
+                f"{is_zero_iff_a_zero}"
             )
 
             return result
 
         except Exception as e:
-            logger.error(f"Error checking positivity: {str(e)}")
+            logger.error(f"Error checking positivity: {e!s}")
             return False

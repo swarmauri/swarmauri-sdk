@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Union
+from typing import List, Literal
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -67,9 +67,9 @@ class DiscreteMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate distances between collections of points.
 
@@ -108,7 +108,7 @@ class DiscreteMetric(MetricBase):
             return result
 
         except TypeError as e:
-            error_msg = f"Error calculating distances: {str(e)}"
+            error_msg = f"Error calculating distances: {e!s}"
             logger.error(error_msg)
             raise TypeError(error_msg)
 

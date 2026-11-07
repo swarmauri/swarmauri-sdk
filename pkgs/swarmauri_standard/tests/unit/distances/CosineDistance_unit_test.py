@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.distances.CosineDistance import CosineDistance
 from swarmauri_standard.vectors.Vector import Vector
 

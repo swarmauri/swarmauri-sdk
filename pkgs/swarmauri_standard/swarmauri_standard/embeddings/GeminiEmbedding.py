@@ -2,8 +2,8 @@ from typing import List, Literal, Optional
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 
 from swarmauri_standard.vectors.Vector import Vector
 
@@ -74,12 +74,14 @@ class GeminiEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.task_type not in self.allowed_task_types:
             raise ValueError(
-                f"Invalid task_type '{self.task_type}'. Allowed task types are: {', '.join(self.allowed_task_types)}"  # noqa: E501
+                f"Invalid task_type '{self.task_type}'. Allowed task types "
+                f"are: {', '.join(self.allowed_task_types)}"
             )
 
         if self.api_key.get_secret_value():
@@ -122,7 +124,10 @@ class GeminiEmbedding(EmbeddingBase):
                 payload["outputDimensionality"] = self.output_dimensionality
 
             try:
-                url = f"{self._BASE_URL}/models/{self.model}:embedContent?key={self.api_key.get_secret_value()}"  # noqa: E501
+                url = (
+                    f"{self._BASE_URL}/models/{self.model}:embedContent"
+                    f"?key={self.api_key.get_secret_value()}"
+                )
                 response = self._client.post(
                     url, headers=self._headers, json=payload, timeout=30
                 )
@@ -134,10 +139,10 @@ class GeminiEmbedding(EmbeddingBase):
                 embeddings.append(Vector(value=embedding["values"]))
 
             except httpx.HTTPError as e:
-                raise ValueError(f"Error calling Gemini AI API: {str(e)}")
+                raise ValueError(f"Error calling Gemini AI API: {e!s}")
             except (KeyError, ValueError) as e:
                 raise ValueError(
-                    f"Error processing Gemini AI API response: {str(e)}"
+                    f"Error processing Gemini AI API response: {e!s}"
                 )
 
         return embeddings

@@ -1,7 +1,8 @@
 import importlib
+
 from swarmauri.plugin_manager import (
-    invalidate_entry_point_cache,
     discover_and_register_plugins,
+    invalidate_entry_point_cache,
 )
 
 FIRST_CLASS_PLUGINS = [

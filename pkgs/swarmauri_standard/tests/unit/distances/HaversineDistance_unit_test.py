@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.distances.HaversineDistance import HaversineDistance
 from swarmauri_standard.vectors.Vector import Vector
 

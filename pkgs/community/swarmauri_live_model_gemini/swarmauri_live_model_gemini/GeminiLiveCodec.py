@@ -1,0 +1,150 @@
+import base64
+import json
+from typing import Any
+
+from swarmauri_base.live_models.events.AudioDeltaEvent import AudioDeltaEvent
+from swarmauri_base.live_models.events.InputTranscriptDeltaEvent import (
+    InputTranscriptDeltaEvent,
+)
+from swarmauri_base.live_models.events.OutputTranscriptDeltaEvent import (
+    OutputTranscriptDeltaEvent,
+)
+from swarmauri_base.live_models.events.SessionErrorEvent import (
+    SessionErrorEvent,
+)
+from swarmauri_base.live_models.events.SessionLifecycleEvent import (
+    SessionLifecycleEvent,
+)
+from swarmauri_base.live_models.events.SessionResumptionEvent import (
+    SessionResumptionEvent,
+)
+from swarmauri_base.live_models.events.TextDeltaEvent import TextDeltaEvent
+from swarmauri_base.live_models.events.ToolCallEvent import ToolCallEvent
+from swarmauri_base.live_models.events.TurnCompleteEvent import (
+    TurnCompleteEvent,
+)
+from swarmauri_base.live_models.events.UsageEvent import UsageEvent
+from swarmauri_base.live_models.LiveEventBase import LiveEventBase
+from swarmauri_base.live_models.LiveInputBase import LiveInputBase
+
+
+class GeminiLiveCodec:
+    def encode(self, input_data: LiveInputBase) -> str:
+        if input_data.kind == "text":
+            payload = {"realtimeInput": {"text": input_data.payload}}
+        elif input_data.kind in {"audio", "image", "video"}:
+            payload = {
+                "realtimeInput": {
+                    "mediaChunks": [
+                        {
+                            "mimeType": input_data.mime_type,
+                            "data": base64.b64encode(
+                                input_data.payload
+                            ).decode(),
+                        }
+                    ]
+                }
+            }
+        elif input_data.kind == "tool_result":
+            payload = {
+                "toolResponse": {
+                    "functionResponses": [
+                        {
+                            "id": input_data.call_id,
+                            "name": input_data.correlation_id or "tool",
+                            "response": {"output": input_data.payload},
+                        }
+                    ]
+                }
+            }
+        elif input_data.kind == "commit_turn":
+            payload = {"realtimeInput": {"activityEnd": {}}}
+        elif input_data.kind == "interrupt":
+            payload = {"realtimeInput": {"activityStart": {}}}
+        else:
+            raise ValueError(
+                f"Unsupported Gemini live input: {input_data.kind}"
+            )
+        return json.dumps(payload)
+
+    def decode(self, message: str | bytes) -> list[LiveEventBase]:
+        data: dict[str, Any] = json.loads(message)
+        events: list[LiveEventBase] = []
+        server = data.get("serverContent", {})
+        model_turn = server.get("modelTurn", {})
+        correlation = {"provider_event_id": data.get("id")}
+
+        for part in model_turn.get("parts", []):
+            if "text" in part:
+                events.append(
+                    TextDeltaEvent(
+                        payload=part["text"], correlation=correlation
+                    )
+                )
+            inline = part.get("inlineData") or part.get("inline_data")
+            if inline and str(inline.get("mimeType", "")).startswith("audio/"):
+                events.append(
+                    AudioDeltaEvent(
+                        payload=base64.b64decode(inline["data"]),
+                        mime_type=inline.get("mimeType", "audio/pcm"),
+                        correlation=correlation,
+                    )
+                )
+
+        input_tx = server.get("inputTranscription", {})
+        if input_tx.get("text"):
+            events.append(
+                InputTranscriptDeltaEvent(
+                    payload=input_tx["text"], correlation=correlation
+                )
+            )
+        output_tx = server.get("outputTranscription", {})
+        if output_tx.get("text"):
+            events.append(
+                OutputTranscriptDeltaEvent(
+                    payload=output_tx["text"], correlation=correlation
+                )
+            )
+        if server.get("turnComplete"):
+            events.append(TurnCompleteEvent(correlation=correlation))
+
+        for call in data.get("toolCall", {}).get("functionCalls", []):
+            events.append(
+                ToolCallEvent(
+                    call_id=call.get("id", call.get("name", "")),
+                    tool_name=call["name"],
+                    arguments=call.get("args", {}),
+                    correlation=correlation,
+                )
+            )
+        if data.get("usageMetadata"):
+            usage = {
+                key: int(value)
+                for key, value in data["usageMetadata"].items()
+                if isinstance(value, int)
+            }
+            events.append(UsageEvent(payload=usage, correlation=correlation))
+        if data.get("sessionResumptionUpdate"):
+            update = data["sessionResumptionUpdate"]
+            events.append(
+                SessionResumptionEvent(
+                    token=update.get("newHandle"),
+                    resumable=bool(update.get("resumable", True)),
+                    correlation=correlation,
+                )
+            )
+        if data.get("goAway"):
+            events.append(
+                SessionLifecycleEvent(
+                    state="closing",
+                    payload=data["goAway"],
+                    correlation=correlation,
+                )
+            )
+        if data.get("error"):
+            events.append(
+                SessionErrorEvent(
+                    message=str(data["error"]), correlation=correlation
+                )
+            )
+        return events

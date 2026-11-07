@@ -2,8 +2,8 @@ from typing import List, Literal, Optional
 
 import httpx
 from pydantic import Field, PrivateAttr, SecretStr
-from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
 
 from swarmauri_standard.vectors.Vector import Vector
 
@@ -56,7 +56,8 @@ class MistralEmbedding(EmbeddingBase):
 
         if self.model not in self.allowed_models:
             raise ValueError(
-                f"Invalid model '{self.model}'. Allowed models are: {', '.join(self.allowed_models)}"  # noqa: E501
+                f"Invalid model '{self.model}'. Allowed models are: "
+                f"{', '.join(self.allowed_models)}"
             )
 
         if self.api_key.get_secret_value():
@@ -107,10 +108,10 @@ class MistralEmbedding(EmbeddingBase):
             return embeddings
 
         except httpx.HTTPError as e:
-            raise ValueError(f"Error calling Mistral AI API: {str(e)}")
+            raise ValueError(f"Error calling Mistral AI API: {e!s}")
         except (KeyError, ValueError) as e:
             raise ValueError(
-                f"Error processing Mistral AI API response: {str(e)}"
+                f"Error processing Mistral AI API response: {e!s}"
             )
 
     def transform(self, data: List[str]) -> List[Vector]:

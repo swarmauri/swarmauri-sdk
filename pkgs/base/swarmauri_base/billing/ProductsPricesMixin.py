@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IProductsPrices
 from swarmauri_core.billing.protos import (
     PriceRefProto,
@@ -15,8 +15,8 @@ from swarmauri_core.billing.protos import (
     ProductSpecProto,
 )
 
-from .utils import extract_raw_payload, require_idempotency
 from .refs import PriceRef, ProductRef
+from .utils import extract_raw_payload, require_idempotency
 
 
 class ProductsPricesMixin(IProductsPrices, BaseModel):

@@ -1,12 +1,12 @@
-from abc import abstractmethod
-from typing import List, Optional, Literal
 import warnings
-from pydantic import Field
+from abc import abstractmethod
+from typing import Literal
 
+from pydantic import Field
 from swarmauri_core.distances.IDistanceSimilarity import IDistanceSimilarity
 from swarmauri_core.vectors.IVector import IVector
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 warnings.warn(
     (
@@ -27,7 +27,7 @@ class DistanceBase(IDistanceSimilarity, ComponentBase):
     vector-store comparators for retrieval ranking.
     """
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.DISTANCE.value, frozen=True
     )
     type: Literal["DistanceBase"] = "DistanceBase"
@@ -42,12 +42,12 @@ class DistanceBase(IDistanceSimilarity, ComponentBase):
 
     @abstractmethod
     def distances(
-        self, vector_a: IVector, vectors_b: List[IVector]
-    ) -> List[float]:
+        self, vector_a: IVector, vectors_b: list[IVector]
+    ) -> list[float]:
         pass
 
     @abstractmethod
     def similarities(
-        self, vector_a: IVector, vectors_b: List[IVector]
-    ) -> List[float]:
+        self, vector_a: IVector, vectors_b: list[IVector]
+    ) -> list[float]:
         pass

@@ -2,25 +2,19 @@
 
 
 class WorkflowError(Exception):
-    """
-    Base exception for all workflow-related errors.
-    """
+    """Base exception for all workflow-related errors."""
 
     pass
 
 
 class InvalidTransitionError(WorkflowError):
-    """
-    Raised when a transition references undefined states
-    or cannot be added to the workflow.
-    """
+    """Raised when a transition references undefined states or cannot be added
+    to the workflow."""
 
     pass
 
 
 class ValidationError(WorkflowError):
-    """
-    Raised when a node's output fails its validation rule.
-    """
+    """Raised when a node's output fails its validation rule."""
 
     pass

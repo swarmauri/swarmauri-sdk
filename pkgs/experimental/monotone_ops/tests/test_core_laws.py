@@ -1,9 +1,19 @@
 from collections import Counter
 
-from monotone_ops.collections import counter_max, dict_join, set_subset_leq, set_union
+from monotone_ops.collections import (
+    counter_max,
+    dict_join,
+    set_subset_leq,
+    set_union,
+)
 from monotone_ops.core import fold, total_leq
 from monotone_ops.information import CONFLICT, UNKNOWN, information_join, known
-from monotone_ops.intervals import Interval, interval_hull, interval_leq, interval_widen
+from monotone_ops.intervals import (
+    Interval,
+    interval_hull,
+    interval_leq,
+    interval_widen,
+)
 from monotone_ops.laws import (
     aci_reports,
     assert_all,
@@ -59,4 +69,6 @@ def test_interval_join_widening():
 
 def test_fold_empty_and_initial():
     assert fold(set_union, []) is None
-    assert fold(set_union, [frozenset({1})], initial=frozenset()) == frozenset({1})
+    assert fold(set_union, [frozenset({1})], initial=frozenset()) == frozenset(
+        {1}
+    )

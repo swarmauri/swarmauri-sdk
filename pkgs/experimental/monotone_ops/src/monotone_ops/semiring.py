@@ -21,11 +21,15 @@ class Semiring(Generic[T]):
 
 
 def boolean_semiring() -> Semiring[bool]:
-    return Semiring(lambda a, b: a or b, lambda a, b: a and b, False, True, "boolean")
+    return Semiring(
+        lambda a, b: a or b, lambda a, b: a and b, False, True, "boolean"
+    )
 
 
 def tropical_min_plus() -> Semiring[float]:
-    return Semiring(min, lambda a, b: a + b, math.inf, 0.0, "tropical_min_plus")
+    return Semiring(
+        min, lambda a, b: a + b, math.inf, 0.0, "tropical_min_plus"
+    )
 
 
 def max_plus() -> Semiring[float]:
@@ -45,10 +49,14 @@ def viterbi() -> Semiring[float]:
 
 
 def set_union_intersection(universe: frozenset[T]) -> Semiring[frozenset[T]]:
-    return Semiring(lambda a, b: a | b, lambda a, b: a & b, frozenset(), universe, "sets")
+    return Semiring(
+        lambda a, b: a | b, lambda a, b: a & b, frozenset(), universe, "sets"
+    )
 
 
-def semiring_matrix_multiply(a: list[list[T]], b: list[list[T]], sr: Semiring[T]) -> list[list[T]]:
+def semiring_matrix_multiply(
+    a: list[list[T]], b: list[list[T]], sr: Semiring[T]
+) -> list[list[T]]:
     if not a or not b or len(a[0]) != len(b):
         raise ValueError("incompatible matrix dimensions")
     rows, mid, cols = len(a), len(b), len(b[0])
@@ -101,7 +109,9 @@ def single_source_dag(
     return dist
 
 
-def lift_semiring_values(values: Mapping[N, T], sr: Semiring[T]) -> Callable[[N], T]:
+def lift_semiring_values(
+    values: Mapping[N, T], sr: Semiring[T]
+) -> Callable[[N], T]:
     """Return a total map with semiring zero for missing keys."""
 
     def fn(node: N) -> T:
@@ -110,9 +120,13 @@ def lift_semiring_values(values: Mapping[N, T], sr: Semiring[T]) -> Callable[[N]
     return fn
 
 
-def pointwise_semiring_join(a: Mapping[N, T], b: Mapping[N, T], sr: Semiring[T]) -> dict[N, T]:
+def pointwise_semiring_join(
+    a: Mapping[N, T], b: Mapping[N, T], sr: Semiring[T]
+) -> dict[N, T]:
     keys = a.keys() | b.keys()
-    return {key: sr.add(a.get(key, sr.zero), b.get(key, sr.zero)) for key in keys}
+    return {
+        key: sr.add(a.get(key, sr.zero), b.get(key, sr.zero)) for key in keys
+    }
 
 
 def weighted_choice(weights: Mapping[Any, T], sr: Semiring[T]) -> T:

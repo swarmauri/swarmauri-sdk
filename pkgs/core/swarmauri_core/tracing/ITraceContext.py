@@ -17,7 +17,6 @@ class ITraceContext(ABC):
         Returns:
             str: The unique trace identifier.
         """
-        pass
 
     @abstractmethod
     def add_attribute(self, key: str, value: Any):
@@ -28,4 +27,3 @@ class ITraceContext(ABC):
             key (str): The attribute key or name.
             value (Any): The value of the attribute.
         """
-        pass

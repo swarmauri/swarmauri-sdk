@@ -50,6 +50,7 @@ from swarmauri_transport_uds_unicast import UdsUnicastTransport
 
 SOCKET_PATH = "/tmp/swm-uds.sock"
 
+
 async def main() -> None:
     server = UdsUnicastTransport(SOCKET_PATH)
 
@@ -66,6 +67,7 @@ async def main() -> None:
             print(response.decode())
 
     await asyncio.gather(run_server(), run_client())
+
 
 asyncio.run(main())
 ```

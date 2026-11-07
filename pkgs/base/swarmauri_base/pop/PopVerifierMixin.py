@@ -2,30 +2,32 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
-from typing import Iterable, Mapping, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
-
 from swarmauri_core.pop import (
     BindType,
     CnfBinding,
     Feature,
     HttpParts,
-    IPoPVerifier as IPopVerifier,
     KeyResolver,
     PoPBindingError,
+    PoPKind,
     PoPParseError,
     PoPVerificationError,
-    PoPKind,
     ReplayHooks,
     VerifyPolicy,
 )
+from swarmauri_core.pop import (
+    IPoPVerifier as IPopVerifier,
+)
+
 from swarmauri_base import register_model
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
-from .PopSignerMixin import RequestContext
 from .binding import normalize_cnf
+from .PopSignerMixin import RequestContext
 from .util import canon_htm_htu, sha256_b64u
 
 
@@ -128,17 +130,13 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
     ) -> None:
         if policy.require_bind and cnf.bind_type is not policy.require_bind:
             raise PoPBindingError(
-                (
-                    f"Access token requires {policy.require_bind.value} but "
-                    f"received {cnf.bind_type.value} proof"
-                )
+                f"Access token requires {policy.require_bind.value} but "
+                f"received {cnf.bind_type.value} proof"
             )
         if expected and cnf.bind_type is not expected:
             raise PoPBindingError(
-                (
-                    f"Expected {expected.value} binding but received "
-                    f"{cnf.bind_type.value}"
-                )
+                f"Expected {expected.value} binding but received "
+                f"{cnf.bind_type.value}"
             )
 
     def _check_replay(
@@ -158,7 +156,7 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
     def _require_ath(
         self,
         *,
-        ath_claim: Optional[str],
+        ath_claim: str | None,
         policy: VerifyPolicy,
         extras: Mapping[str, object],
     ) -> None:
@@ -201,7 +199,7 @@ class PopVerifierMixin(IPopVerifier, BaseModel):
 class PopVerifierBase(PopVerifierMixin, ComponentBase):
     """Component base for PoP verifiers."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: str = "PopVerifierBase"

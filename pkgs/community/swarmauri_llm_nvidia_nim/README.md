@@ -19,6 +19,7 @@
 - Synchronous, asynchronous, incremental streaming, and batch workflows inherited from Swarmauri's shared transports.
 - Optional discovery from the deployment's `/v1/models` endpoint.
 - Configurable deployment base URL for local, private, and managed NIM endpoints.
+- Persistent, injectable Swarmauri HTTP clients with conservative rate-limit retries.
 
 ## Installation
 
@@ -47,5 +48,7 @@ print(conversation.get_last().content)
 ```
 
 Pass `api_key` when the deployment requires bearer authentication. Set `discover_models=True` to populate `allowed_models` from the running deployment. For tool workflows, instantiate `NvidiaNIMToolModel` and pass a Swarmauri `Toolkit` to `predict`, `apredict`, `stream`, or `astream`.
+
+Pass an `IHttpClient` as `http_client` to integrate a custom transport or to test without network access. Pass an `IHttpRetryPolicy` as `retry_policy` to replace the default policy, which retries safe reads and rate-limited chat submissions without replaying failed POST requests for generic server errors.
 
 See the [NVIDIA NIM LLM API reference](https://docs.nvidia.com/nim/large-language-models/latest/reference/api-reference.html) for deployment and model-specific capability details.

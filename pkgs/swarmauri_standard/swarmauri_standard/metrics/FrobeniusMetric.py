@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal, Optional, Sequence, Union
+from typing import List, Literal, Optional, Sequence
 
 import numpy as np
 from pydantic import Field
@@ -56,25 +56,19 @@ class FrobeniusMetric(MetricBase):
             If inputs are not matrices
         """
         logger.debug(
-            (
-                f"Calculating Frobenius distance between matrices of types "
-                f"{type(x)} and {type(y)}"
-            )
+            f"Calculating Frobenius distance between matrices of types "
+            f"{type(x)} and {type(y)}"
         )
 
         # Convert inputs to numpy arrays for easier processing
-        if isinstance(x, IMatrix):
-            x_array = np.array(x)
-        elif isinstance(x, (np.ndarray, list)):
+        if isinstance(x, (IMatrix, np.ndarray, list)):
             x_array = np.array(x)
         else:
             raise TypeError(
                 f"Unsupported type for Frobenius metric: {type(x)}"
             )
 
-        if isinstance(y, IMatrix):
-            y_array = np.array(y)
-        elif isinstance(y, (np.ndarray, list)):
+        if isinstance(y, (IMatrix, np.ndarray, list)):
             y_array = np.array(y)
         else:
             raise TypeError(
@@ -100,9 +94,9 @@ class FrobeniusMetric(MetricBase):
 
     def distances(
         self,
-        x: Union[MetricInput, MetricInputCollection],
-        y: Union[MetricInput, MetricInputCollection],
-    ) -> Union[List[float], IVector, IMatrix]:
+        x: MetricInput | MetricInputCollection,
+        y: MetricInput | MetricInputCollection,
+    ) -> List[float] | IVector | IMatrix:
         """
         Calculate Frobenius distances between collections of matrices.
 

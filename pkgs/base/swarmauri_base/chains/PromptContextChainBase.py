@@ -1,22 +1,21 @@
-from typing import List, Dict, Any, Optional, Literal
-from pydantic import Field
 import re
+from typing import Any, Literal
+
 import numpy as np
-
-
-from swarmauri_base.chains.ChainStepBase import ChainStepBase
-from swarmauri_base.chains.ChainContextBase import ChainContextBase
-from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
-from swarmauri_base.agents.AgentBase import AgentBase
-
+from pydantic import Field
 from swarmauri_core.chains.IChainDependencyResolver import (
     IChainDependencyResolver,
 )
+
+from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.chains.ChainContextBase import ChainContextBase
+from swarmauri_base.chains.ChainStepBase import ChainStepBase
 from swarmauri_base.ComponentBase import (
-    SubclassUnion,
     ComponentBase,
     ResourceTypes,
+    SubclassUnion,
 )
+from swarmauri_base.prompts.PromptMatrixBaseBase import PromptMatrixBase
 
 
 @ComponentBase.register_model()
@@ -24,13 +23,13 @@ class PromptContextChainBase(
     IChainDependencyResolver, ChainContextBase, ComponentBase
 ):
     prompt_matrix: PromptMatrixBase
-    agents: List[SubclassUnion[AgentBase]] = Field(default_factory=list)
-    context: Dict[str, Any] = Field(default_factory=dict)
-    llm_kwargs: Dict[str, Any] = Field(default_factory=dict)
-    response_matrix: Optional[PromptMatrixBase] = None
+    agents: list[SubclassUnion[AgentBase]] = Field(default_factory=list)
+    context: dict[str, Any] = Field(default_factory=dict)
+    llm_kwargs: dict[str, Any] = Field(default_factory=dict)
+    response_matrix: PromptMatrixBase | None = None
     current_step_index: int = 0
-    steps: List[Any] = Field(default_factory=list)
-    resource: Optional[str] = Field(default=ResourceTypes.CHAIN.value)
+    steps: list[Any] = Field(default_factory=list)
+    resource: str | None = Field(default=ResourceTypes.CHAIN.value)
     type: Literal["PromptContextChainBase"] = "PromptContextChainBase"
 
     def __init__(self, **data: Any):
@@ -65,8 +64,7 @@ class PromptContextChainBase(
             prompt_index = self._extract_step_number(ref)
             self._update_response_matrix(args[0], prompt_index, result)
             self.current_step_index += 1  # Move to the next step
-        else:
-            print("All steps have been executed.")
+        print("All steps have been executed.")
 
     def execute_next_step(self):
         """
@@ -136,7 +134,7 @@ class PromptContextChainBase(
         else:
             return None  # If no match is found, return None
 
-    def build_dependencies(self) -> List[ChainStepBase]:
+    def build_dependencies(self) -> list[ChainStepBase]:
         """
         Build the chain steps in the correct order by resolving dependencies
         first.
@@ -163,7 +161,7 @@ class PromptContextChainBase(
                 print(str(e))
         return steps
 
-    def resolve_dependencies(self, sequence: List[Optional[str]]) -> List[int]:
+    def resolve_dependencies(self, sequence: list[str | None]) -> list[int]:
         """
         Resolve dependencies within a specific sequence of the prompt matrix.
 

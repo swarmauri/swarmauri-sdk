@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Mapping, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, PrivateAttr
+from swarmauri_core.pop import IPoPSigner as IPopSigning
+from swarmauri_core.pop import PoPKind, VerifyPolicy
 
-from swarmauri_core.pop import IPoPSigner as IPopSigning, PoPKind, VerifyPolicy
 from swarmauri_base import register_model
 
 from .util import canon_htm_htu, sha256_b64u
@@ -59,8 +60,8 @@ class PopSignerMixin(IPopSigning, BaseModel):
         method: str,
         url: str,
         *,
-        jti: Optional[str],
-        ath_b64u: Optional[str],
+        jti: str | None,
+        ath_b64u: str | None,
     ) -> dict[str, object]:
         htm, htu = self._canon(method, url)
         claims: dict[str, object] = {

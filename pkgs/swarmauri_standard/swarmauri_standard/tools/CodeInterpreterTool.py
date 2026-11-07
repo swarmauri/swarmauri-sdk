@@ -1,10 +1,12 @@
-import sys
 import io
-from typing import List, Literal, Dict
+import sys
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "CodeInterpreterTool")
@@ -64,4 +66,4 @@ class CodeInterpreterTool(ToolBase):
             return str(captured_output)
         except Exception as e:
             sys.stdout = old_stdout
-            return f"An error occurred: {str(e)}"
+            return f"An error occurred: {e!s}"

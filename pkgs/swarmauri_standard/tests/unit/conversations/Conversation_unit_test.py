@@ -1,8 +1,9 @@
 import pytest
-from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri_standard.messages.HumanMessage import HumanMessage
-from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_base.ComponentBase import ResourceTypes
+
+from swarmauri_standard.conversations.Conversation import Conversation
+from swarmauri_standard.messages.FunctionMessage import FunctionMessage
+from swarmauri_standard.messages.HumanMessage import HumanMessage
 
 
 @pytest.mark.unit

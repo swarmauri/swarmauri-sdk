@@ -1,20 +1,20 @@
-from typing import Any, Dict, Optional, Literal
+from typing import Any, Literal
 
 from pydantic import Field
+from swarmauri_core.ensembles.IEnsemble import IEnsemble
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.ensembles.IEnsemble import IEnsemble
 
 
 @ComponentBase.register_model()
 class EnsembleBase(IEnsemble, ComponentBase):
     """Base implementation for routing prompts to multiple LLMs."""
 
-    resource: Optional[str] = Field(default=ResourceTypes.ENSEMBLE.value)
+    resource: str | None = Field(default=ResourceTypes.ENSEMBLE.value)
     type: Literal["EnsembleBase"] = "EnsembleBase"
 
-    llms: Dict[str, LLMBase] = Field(default_factory=dict)
+    llms: dict[str, LLMBase] = Field(default_factory=dict)
 
     def add_model(self, name: str, model: LLMBase) -> None:
         if name in self.llms:
@@ -27,7 +27,7 @@ class EnsembleBase(IEnsemble, ComponentBase):
             self.llms.pop(name)
         return removed
 
-    def list_models(self) -> Dict[str, LLMBase]:
+    def list_models(self) -> dict[str, LLMBase]:
         return self.llms
 
     def route_by_provider(
@@ -46,7 +46,7 @@ class EnsembleBase(IEnsemble, ComponentBase):
             raise ValueError(f"Provider '{provider}' not found")
         return await llm.apredict(prompt, **kwargs)
 
-    def _choose_provider(self) -> Optional[str]:
+    def _choose_provider(self) -> str | None:
         return next(iter(self.llms), None)
 
     def route(self, prompt: str, **kwargs: Any) -> Any:
@@ -61,14 +61,14 @@ class EnsembleBase(IEnsemble, ComponentBase):
             return None
         return await self.aroute_by_provider(provider, prompt, **kwargs)
 
-    def broadcast(self, prompt: str, **kwargs: Any) -> Dict[str, Any]:
+    def broadcast(self, prompt: str, **kwargs: Any) -> dict[str, Any]:
         return {
             name: llm.predict(prompt, **kwargs)
             for name, llm in self.llms.items()
         }
 
-    async def abroadcast(self, prompt: str, **kwargs: Any) -> Dict[str, Any]:
-        responses: Dict[str, Any] = {}
+    async def abroadcast(self, prompt: str, **kwargs: Any) -> dict[str, Any]:
+        responses: dict[str, Any] = {}
         for name, llm in self.llms.items():
             responses[name] = await llm.apredict(prompt, **kwargs)
         return responses

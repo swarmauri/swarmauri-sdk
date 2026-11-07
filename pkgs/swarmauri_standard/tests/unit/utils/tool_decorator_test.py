@@ -1,7 +1,9 @@
+from typing import Any, Dict, List
+
 import pytest
-from typing import List, Dict, Any
-from swarmauri_standard.utils.tool_decorator import tool
 from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.utils.tool_decorator import tool
 
 
 @pytest.mark.unit
@@ -61,7 +63,8 @@ def test_tool_decorator_complex_types():
 
     @tool
     def process_data(
-        items: List[str], options: Dict[str, Any] = None
+        items: List[str],
+        options: Dict[str, Any] = None,  # noqa: RUF013
     ) -> List[str]:
         """Process a list of items with optional configuration."""
 

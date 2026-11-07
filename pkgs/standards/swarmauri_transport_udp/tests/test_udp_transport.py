@@ -2,7 +2,6 @@ import asyncio
 import socket
 
 import pytest
-
 from swarmauri_transport_udp import UdpTransport
 
 
@@ -18,9 +17,8 @@ async def test_udp_transport_unicast_round_trip() -> None:
     server = UdpTransport(bind=f"127.0.0.1:{port}")
     client = UdpTransport()
 
-    async with server.server():
-        async with client.client():
-            await client.send(f"127.0.0.1:{port}", b"udp")
-            message = await asyncio.wait_for(server.recv(timeout=1), 1)
+    async with server.server(), client.client():
+        await client.send(f"127.0.0.1:{port}", b"udp")
+        message = await asyncio.wait_for(server.recv(timeout=1), 1)
 
     assert message == b"udp"

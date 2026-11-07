@@ -1,7 +1,8 @@
-import pytest
 import base64
-from PIL import Image
 from io import BytesIO
+
+import pytest
+from PIL import Image
 
 # Import the function to be tested
 from swarmauri_standard.utils.base64_to_file_path import base64_to_file_path

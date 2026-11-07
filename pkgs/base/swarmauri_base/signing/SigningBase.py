@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterable, Iterable
-from typing import Mapping, Optional, Sequence
+from collections.abc import AsyncIterable, Iterable, Mapping, Sequence
 
 from pydantic import Field
-
+from swarmauri_core.crypto.types import Alg, KeyRef
 from swarmauri_core.signing.ISigning import (
-    ISigning,
+    ByteStream,
     Canon,
     Envelope,
-    ByteStream,
+    ISigning,
 )
 from swarmauri_core.signing.types import Signature
-from swarmauri_core.crypto.types import Alg, KeyRef
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -51,7 +50,7 @@ async def _stream_to_bytes(stream: ByteStream) -> bytes:
 class SigningBase(ISigning, ComponentBase):
     """Default NotImplemented implementations for :class:`ISigning`."""
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.CRYPTO.value, frozen=True
     )
     type: str = "SigningBase"
@@ -66,8 +65,8 @@ class SigningBase(ISigning, ComponentBase):
         key: KeyRef,
         payload: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         raise NotImplementedError(
             "sign_bytes() must be implemented by subclass"
@@ -79,8 +78,8 @@ class SigningBase(ISigning, ComponentBase):
         key: KeyRef,
         digest: bytes,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         """Default digest handling routes through :meth:`sign_bytes`.
 
@@ -97,8 +96,8 @@ class SigningBase(ISigning, ComponentBase):
         payload: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         raise NotImplementedError(
             "verify_bytes() must be implemented by subclass"
@@ -110,8 +109,8 @@ class SigningBase(ISigning, ComponentBase):
         digest: bytes,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         """Default digest verification routes through :meth:`verify_bytes`.
 
@@ -133,8 +132,8 @@ class SigningBase(ISigning, ComponentBase):
         key: KeyRef,
         payload: ByteStream,
         *,
-        alg: Optional[Alg] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         data = await _stream_to_bytes(payload)
         return await self.sign_bytes(key, data, alg=alg, opts=opts)
@@ -145,8 +144,8 @@ class SigningBase(ISigning, ComponentBase):
         payload: ByteStream,
         signatures: Sequence[Signature],
         *,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         data = await _stream_to_bytes(payload)
         return await self.verify_bytes(
@@ -158,8 +157,8 @@ class SigningBase(ISigning, ComponentBase):
         self,
         env: Envelope,
         *,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bytes:
         raise NotImplementedError(
             "canonicalize_envelope() must be implemented by subclass"
@@ -171,9 +170,9 @@ class SigningBase(ISigning, ComponentBase):
         key: KeyRef,
         env: Envelope,
         *,
-        alg: Optional[Alg] = None,
-        canon: Optional[Canon] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        alg: Alg | None = None,
+        canon: Canon | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> Sequence[Signature]:
         raise NotImplementedError(
             "sign_envelope() must be implemented by subclass"
@@ -185,9 +184,9 @@ class SigningBase(ISigning, ComponentBase):
         env: Envelope,
         signatures: Sequence[Signature],
         *,
-        canon: Optional[Canon] = None,
-        require: Optional[Mapping[str, object]] = None,
-        opts: Optional[Mapping[str, object]] = None,
+        canon: Canon | None = None,
+        require: Mapping[str, object] | None = None,
+        opts: Mapping[str, object] | None = None,
     ) -> bool:
         raise NotImplementedError(
             "verify_envelope() must be implemented by subclass"

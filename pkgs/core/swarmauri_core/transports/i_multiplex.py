@@ -1,37 +1,48 @@
 """Multiplex transport interface."""
 
-from __future__ import annotations
-
 from abc import ABC, abstractmethod
-from typing import Any, Optional, TypeAlias
-
+from typing import Any, TypeAlias
 
 ChannelHandle: TypeAlias = Any
 
 
 class IMultiplexTransport(ABC):
-    """Interface for transports that expose multiplexed channels."""
+    @abstractmethod
+    def open_channel(self) -> ChannelHandle: ...
 
     @abstractmethod
-    async def open_channel(self) -> ChannelHandle:
-        """Open a logical channel on the transport."""
+    async def aopen_channel(self) -> ChannelHandle: ...
 
     @abstractmethod
-    async def close_channel(self, handle: ChannelHandle) -> None:
-        """Close a previously opened channel."""
+    def close_channel(self, handle: ChannelHandle) -> None: ...
 
     @abstractmethod
-    async def send_on(
+    async def aclose_channel(self, handle: ChannelHandle) -> None: ...
+
+    @abstractmethod
+    def send_on(
         self,
         handle: ChannelHandle,
         data: bytes,
         *,
-        timeout: Optional[float] = None,
-    ) -> None:
-        """Send data on a specific channel."""
+        timeout: float | None = None,
+    ) -> None: ...
 
     @abstractmethod
-    async def recv_on(
-        self, handle: ChannelHandle, *, timeout: Optional[float] = None
-    ) -> bytes:
-        """Receive data from a specific channel."""
+    async def asend_on(
+        self,
+        handle: ChannelHandle,
+        data: bytes,
+        *,
+        timeout: float | None = None,
+    ) -> None: ...
+
+    @abstractmethod
+    def receive_on(
+        self, handle: ChannelHandle, *, timeout: float | None = None
+    ) -> bytes: ...
+
+    @abstractmethod
+    async def areceive_on(
+        self, handle: ChannelHandle, *, timeout: float | None = None
+    ) -> bytes: ...

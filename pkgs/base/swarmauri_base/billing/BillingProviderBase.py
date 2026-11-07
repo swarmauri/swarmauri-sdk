@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from typing import ClassVar, FrozenSet
+from typing import ClassVar
 
 from pydantic import ConfigDict, Field
-
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.billing import (
     ALL_API_STRATEGIES,
     ALL_CAPABILITIES,
@@ -14,13 +12,15 @@ from swarmauri_core.billing import (
     IBillingProvider,
 )
 
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+
 
 class BillingProviderBase(IBillingProvider, ComponentBase):
     """
     Base class for billing providers shared across concrete implementations.
     """
 
-    CAPABILITIES: ClassVar[FrozenSet[Capability]] = ALL_CAPABILITIES
+    CAPABILITIES: ClassVar[frozenset[Capability]] = ALL_CAPABILITIES
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
@@ -40,7 +40,7 @@ class BillingProviderBase(IBillingProvider, ComponentBase):
     resource: str = Field(default=ResourceTypes.BILLING_PROVIDER.value)
 
     @property
-    def capabilities(self) -> FrozenSet[Capability]:
+    def capabilities(self) -> frozenset[Capability]:
         return self.CAPABILITIES
 
     @property

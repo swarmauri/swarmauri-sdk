@@ -1,16 +1,18 @@
 """Abstract agent implementations for the SwarmAuri SDK."""
 
-from typing import Any, Optional, Dict, List, Union, Literal
 import asyncio
+from typing import Any, Literal, Union
+
 from pydantic import ConfigDict, Field
+from swarmauri_core.agents.IAgent import IAgent
+from swarmauri_core.messages.IMessage import IMessage
+
 from swarmauri_base.ComponentBase import (
     ComponentBase,
     ResourceTypes,
     SubclassUnion,
 )
-from swarmauri_core.messages.IMessage import IMessage
 from swarmauri_base.llms.LLMBase import LLMBase
-from swarmauri_core.agents.IAgent import IAgent
 
 
 @ComponentBase.register_model()
@@ -24,15 +26,15 @@ class AgentBase(IAgent, ComponentBase):
     """
 
     llm: SubclassUnion[LLMBase]
-    llm_kwargs: Optional[Dict] = {}
+    llm_kwargs: dict | None = {}
     resource: ResourceTypes = Field(default=ResourceTypes.AGENT.value)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["AgentBase"] = "AgentBase"
 
     def exec(
         self,
-        input_str: Optional[Union[str, IMessage]] = "",
-        llm_kwargs: Optional[Dict] = None,
+        input_str: Union[str, IMessage] | None = "",
+        llm_kwargs: dict | None = None,
     ) -> Any:
         """
         File: AgentBase.py
@@ -47,8 +49,8 @@ class AgentBase(IAgent, ComponentBase):
 
     async def aexec(
         self,
-        input_str: Optional[Union[str, IMessage]] = "",
-        llm_kwargs: Optional[Dict] = None,
+        input_str: Union[str, IMessage] | None = "",
+        llm_kwargs: dict | None = None,
     ) -> Any:
         """
         File: AgentBase.py
@@ -63,9 +65,9 @@ class AgentBase(IAgent, ComponentBase):
 
     def batch(
         self,
-        inputs: List[Union[str, IMessage]],
-        llm_kwargs: Optional[Dict] = None,
-    ) -> List[Any]:
+        inputs: list[Union[str, IMessage]],
+        llm_kwargs: dict | None = None,
+    ) -> list[Any]:
         """
         File: AgentBase.py
         Class: AgentBase
@@ -75,16 +77,16 @@ class AgentBase(IAgent, ComponentBase):
         Subclasses can override for optimized bulk behavior.
         """
         llm_kwargs = llm_kwargs or self.llm_kwargs or {}
-        results: List[Any] = []
+        results: list[Any] = []
         for inp in inputs:
             results.append(self.exec(inp, llm_kwargs=llm_kwargs))
         return results
 
     async def abatch(
         self,
-        inputs: List[Union[str, IMessage]],
-        llm_kwargs: Optional[Dict] = None,
-    ) -> List[Any]:
+        inputs: list[Union[str, IMessage]],
+        llm_kwargs: dict | None = None,
+    ) -> list[Any]:
         """
         File: AgentBase.py
         Class: AgentBase

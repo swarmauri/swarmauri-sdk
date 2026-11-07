@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 from uuid import uuid4
 
 from swarmauri_base.billing import (
@@ -102,7 +103,7 @@ class MockBillingProvider(
         return result
 
     def _capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> Mapping[str, Any]:
         result = {
             "id": payment_id,
@@ -116,8 +117,8 @@ class MockBillingProvider(
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> Mapping[str, Any]:
         result = {
             "id": payment_id,
@@ -276,7 +277,7 @@ class MockBillingProvider(
         self,
         customer: Any,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> Sequence[Mapping[str, Any]]:
         methods = [

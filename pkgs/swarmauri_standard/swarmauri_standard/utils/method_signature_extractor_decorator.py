@@ -1,16 +1,18 @@
-from typing import (
-    List,
-    Any,
-    Union,
-    Optional,
-    Callable,
-    get_type_hints,
-    get_args,
-    get_origin,
-)
 import inspect
 from functools import wraps
+from typing import (
+    Any,
+    Callable,
+    List,
+    Optional,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+
 from pydantic import BaseModel
+
 from swarmauri_standard.tools.Parameter import Parameter
 
 

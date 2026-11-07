@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Literal, TypeVar, Union
+from typing import Callable, Literal, TypeVar
 
 import numpy as np
 from swarmauri_base.ComponentBase import ComponentBase
@@ -39,8 +39,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> float:
         """
         Compute the Frobenius inner product between two matrices.
@@ -69,10 +69,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             If matrix dimensions are incompatible
         """
         logger.debug(
-            (
-                f"Computing Frobenius inner product between {type(a)} and "
-                f"{type(b)}"
-            )
+            f"Computing Frobenius inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         try:
@@ -83,7 +81,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             # Check if dimensions match
             if a_matrix.shape != b_matrix.shape:
                 raise ValueError(
-                    f"Matrix dimensions don't match: {a_matrix.shape} vs {b_matrix.shape}"  # noqa: E501
+                    f"Matrix dimensions don't match: {a_matrix.shape} vs "
+                    f"{b_matrix.shape}"
                 )
 
             # Compute the inner product: Tr(A* B)
@@ -94,13 +93,13 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             return result
 
         except Exception as e:
-            logger.error(f"Error computing Frobenius inner product: {str(e)}")
+            logger.error(f"Error computing Frobenius inner product: {e!s}")
             raise
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the Frobenius inner product satisfies the conjugate symmetry
@@ -139,14 +138,14 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             return is_symmetric
 
         except Exception as e:
-            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            logger.error(f"Error checking conjugate symmetry: {e!s}")
             raise
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -174,10 +173,8 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -211,10 +208,10 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             return is_linear
 
         except Exception as e:
-            logger.error(f"Error checking linearity: {str(e)}")
+            logger.error(f"Error checking linearity: {e!s}")
             raise
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the Frobenius inner product satisfies the positivity property:
         <a, a> >= 0 and <a, a> = 0 iff a = 0.
@@ -251,20 +248,18 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
 
             logger.debug(f"Positivity check result: {result}")
             logger.debug(
-                (
-                    f"<a,a> = {inner_product}, is_real: {is_real}, "
-                    f"is_nonnegative: {is_nonnegative}"
-                )
+                f"<a,a> = {inner_product}, is_real: {is_real}, "
+                f"is_nonnegative: {is_nonnegative}"
             )
             logger.debug(f"Zero iff a is zero: {is_zero_iff_a_zero}")
 
             return result
 
         except Exception as e:
-            logger.error(f"Error checking positivity: {str(e)}")
+            logger.error(f"Error checking positivity: {e!s}")
             raise
 
-    def norm(self, a: Union[Vector, Matrix, Callable]) -> float:
+    def norm(self, a: Vector | Matrix | Callable) -> float:
         """
         Compute the Frobenius norm of a matrix.
 
@@ -298,5 +293,5 @@ class FrobeniusComplexInnerProduct(InnerProductBase):
             return norm_value
 
         except Exception as e:
-            logger.error(f"Error computing Frobenius norm: {str(e)}")
+            logger.error(f"Error computing Frobenius norm: {e!s}")
             raise

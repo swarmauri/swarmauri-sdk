@@ -1,8 +1,9 @@
 import logging
-from typing import List, Optional, Sequence
+from collections.abc import Sequence
+
+from swarmauri_core.similarities.ISimilarity import ComparableType, ISimilarity
 
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
-from swarmauri_core.similarities.ISimilarity import ComparableType, ISimilarity
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
         Resource type identifier
     """
 
-    resource: Optional[str] = ResourceTypes.SIMILARITY.value
+    resource: str | None = ResourceTypes.SIMILARITY.value
 
     def similarity(self, x: ComparableType, y: ComparableType) -> float:
         """
@@ -57,7 +58,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
 
     def similarities(
         self, x: ComparableType, ys: Sequence[ComparableType]
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Calculate similarities between one object and multiple other objects.
 
@@ -86,7 +87,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
         try:
             return [self.similarity(x, y) for y in ys]
         except Exception as e:
-            logger.error(f"Error calculating similarities: {str(e)}")
+            logger.error(f"Error calculating similarities: {e!s}")
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -120,19 +121,17 @@ class SimilarityBase(ISimilarity, ComponentBase):
             try:
                 return 1.0 - self.similarity(x, y)
             except Exception as e:
-                logger.error(f"Error calculating dissimilarity: {str(e)}")
+                logger.error(f"Error calculating dissimilarity: {e!s}")
                 raise
         else:
             raise NotImplementedError(
-                (
-                    "Dissimilarity for unbounded similarity measures must be "
-                    "implemented by subclasses"
-                )
+                "Dissimilarity for unbounded similarity measures must be "
+                "implemented by subclasses"
             )
 
     def dissimilarities(
         self, x: ComparableType, ys: Sequence[ComparableType]
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Calculate dissimilarities between one object and multiple other
         objects.
@@ -162,7 +161,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
         try:
             return [self.dissimilarity(x, y) for y in ys]
         except Exception as e:
-            logger.error(f"Error calculating dissimilarities: {str(e)}")
+            logger.error(f"Error calculating dissimilarities: {e!s}")
             raise
 
     def check_bounded(self) -> bool:
@@ -207,7 +206,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
             # issues
             return abs(similarity_value - 1.0) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking reflexivity: {str(e)}")
+            logger.error(f"Error checking reflexivity: {e!s}")
             raise
 
     def check_symmetry(self, x: ComparableType, y: ComparableType) -> bool:
@@ -241,7 +240,7 @@ class SimilarityBase(ISimilarity, ComponentBase):
             # issues
             return abs(similarity_xy - similarity_yx) < 1e-10
         except Exception as e:
-            logger.error(f"Error checking symmetry: {str(e)}")
+            logger.error(f"Error checking symmetry: {e!s}")
             raise
 
     def check_identity_of_discernibles(
@@ -284,5 +283,5 @@ class SimilarityBase(ISimilarity, ComponentBase):
                 # 1
                 return similarity_value < 1.0 - 1e-10
         except Exception as e:
-            logger.error(f"Error checking identity of discernibles: {str(e)}")
+            logger.error(f"Error checking identity of discernibles: {e!s}")
             raise

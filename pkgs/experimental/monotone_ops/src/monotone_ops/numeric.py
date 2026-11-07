@@ -102,13 +102,17 @@ def saturating_product(cap: Number) -> Callable[[Number, Number], Number]:
 
     def merge(a: Number, b: Number) -> Number:
         if a < 0 or b < 0:
-            raise ValueError("saturating_product expects non-negative operands")
+            raise ValueError(
+                "saturating_product expects non-negative operands"
+            )
         return min(cap, a * b)
 
     return merge
 
 
-def affine_increasing(scale: Number, bias: Number = 0) -> Callable[[Number], float]:
+def affine_increasing(
+    scale: Number, bias: Number = 0
+) -> Callable[[Number], float]:
     """Increasing affine map ``scale*x + bias`` for ``scale >= 0``."""
 
     if scale < 0:
@@ -120,7 +124,9 @@ def affine_increasing(scale: Number, bias: Number = 0) -> Callable[[Number], flo
     return fn
 
 
-def positive_linear(weights: Sequence[Number], bias: Number = 0) -> Callable[[Sequence[Number]], float]:
+def positive_linear(
+    weights: Sequence[Number], bias: Number = 0
+) -> Callable[[Sequence[Number]], float]:
     """Monotone linear form with non-negative coefficients."""
 
     if any(weight < 0 for weight in weights):
@@ -130,7 +136,9 @@ def positive_linear(weights: Sequence[Number], bias: Number = 0) -> Callable[[Se
     def fn(xs: Sequence[Number]) -> float:
         if len(xs) != len(frozen):
             raise ValueError("input length does not match weights")
-        return float(bias) + sum(weight * float(x) for weight, x in zip(frozen, xs, strict=True))
+        return float(bias) + sum(
+            weight * float(x) for weight, x in zip(frozen, xs, strict=True)
+        )
 
     return fn
 
@@ -182,6 +190,8 @@ def soft_cap(cap: Number, sharpness: float = 1.0) -> Callable[[Number], float]:
     def fn(x: Number) -> float:
         if x < 0:
             raise ValueError("soft_cap expects non-negative inputs")
-        return float(cap) * (1.0 - math.exp(-sharpness * float(x) / float(cap)))
+        return float(cap) * (
+            1.0 - math.exp(-sharpness * float(x) / float(cap))
+        )
 
     return fn

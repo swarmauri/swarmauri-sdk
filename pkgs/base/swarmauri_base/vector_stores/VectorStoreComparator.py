@@ -1,4 +1,4 @@
-from typing import List, Sequence
+from collections.abc import Sequence
 
 from swarmauri_core.metrics.IMetric import IMetric
 from swarmauri_core.similarities.ISimilarity import ISimilarity
@@ -18,7 +18,7 @@ def _coerce_comparable(value: ComparableValue) -> ComparableValue:
         except TypeError:
             pass
     if hasattr(value, "value"):
-        return getattr(value, "value")
+        return value.value
     return value
 
 
@@ -36,7 +36,7 @@ class VectorStoreComparator(IVectorStoreComparator):
 
     def score_many(
         self, query: ComparableValue, candidates: Sequence[ComparableValue]
-    ) -> List[float]:
+    ) -> list[float]:
         return [self.score(query, candidate) for candidate in candidates]
 
     def top_k_indices(
@@ -44,7 +44,7 @@ class VectorStoreComparator(IVectorStoreComparator):
         query: ComparableValue,
         candidates: Sequence[ComparableValue],
         top_k: int,
-    ) -> List[int]:
+    ) -> list[int]:
         scores = self.score_many(query, candidates)
         reverse = self.ranking_direction == "descending"
         return sorted(
@@ -74,7 +74,7 @@ class MetricVectorStoreComparator(VectorStoreComparator):
 
     def score_many(
         self, query: ComparableValue, candidates: Sequence[ComparableValue]
-    ) -> List[float]:
+    ) -> list[float]:
         normalized_query = _coerce_comparable(query)
         normalized_candidates = [
             _coerce_comparable(candidate) for candidate in candidates
@@ -105,7 +105,7 @@ class SimilarityVectorStoreComparator(VectorStoreComparator):
 
     def score_many(
         self, query: ComparableValue, candidates: Sequence[ComparableValue]
-    ) -> List[float]:
+    ) -> list[float]:
         normalized_query = _coerce_comparable(query)
         normalized_candidates = [
             _coerce_comparable(candidate) for candidate in candidates

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from .protos import PaymentIntentReqProto, PaymentRefProto
 
@@ -19,7 +18,7 @@ class IOnlinePayments(ABC):
 
     @abstractmethod
     def capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> PaymentRefProto:
         """Capture a payment intent."""
 
@@ -28,7 +27,7 @@ class IOnlinePayments(ABC):
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> PaymentRefProto:
         """Cancel a payment intent."""

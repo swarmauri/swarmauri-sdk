@@ -1,17 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import (
-    Tuple,
-    List,
+    Iterator,
+    Protocol,
+    Sequence,
     TypeVar,
     Union,
-    Iterator,
-    Sequence,
-    Protocol,
 )
 
 T = TypeVar("T", bound=Union[int, float, complex])
-Shape = Tuple[int, ...]
-Index = Union[int, slice, Tuple[Union[int, slice], ...]]
+Shape = tuple[int, ...]
+Index = Union[int, slice, tuple[Union[int, slice], ...]]
 
 
 class SupportsArray(Protocol):
@@ -56,7 +54,6 @@ class IMatrix(ABC):
         IndexError
             If the index is out of bounds
         """
-        pass
 
     @abstractmethod
     def __setitem__(
@@ -81,11 +78,10 @@ class IMatrix(ABC):
         ValueError
             If the value has incompatible dimensions
         """
-        pass
 
     @property
     @abstractmethod
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """
         Get the shape of the matrix.
 
@@ -94,10 +90,9 @@ class IMatrix(ABC):
         Tuple[int, int]
             The dimensions of the matrix as (rows, columns)
         """
-        pass
 
     @abstractmethod
-    def reshape(self, shape: Tuple[int, int]) -> "IMatrix":
+    def reshape(self, shape: tuple[int, int]) -> "IMatrix":
         """
         Reshape the matrix to the specified dimensions.
 
@@ -116,7 +111,6 @@ class IMatrix(ABC):
         ValueError
             If the new shape is incompatible with the total number of elements
         """
-        pass
 
     @property
     @abstractmethod
@@ -129,10 +123,9 @@ class IMatrix(ABC):
         type
             The data type of the elements
         """
-        pass
 
     @abstractmethod
-    def tolist(self) -> List[List[T]]:
+    def tolist(self) -> list[list[T]]:
         """
         Convert the matrix to a nested list.
 
@@ -141,7 +134,6 @@ class IMatrix(ABC):
         List[List[T]]
             A list of lists representing the matrix
         """
-        pass
 
     @abstractmethod
     def row(self, index: int) -> IVector:
@@ -163,7 +155,6 @@ class IMatrix(ABC):
         IndexError
             If the index is out of bounds
         """
-        pass
 
     @abstractmethod
     def column(self, index: int) -> IVector:
@@ -185,7 +176,6 @@ class IMatrix(ABC):
         IndexError
             If the index is out of bounds
         """
-        pass
 
     @abstractmethod
     def __add__(self, other: Union["IMatrix", T]) -> "IMatrix":
@@ -207,7 +197,6 @@ class IMatrix(ABC):
         ValueError
             If the matrices have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __sub__(self, other: Union["IMatrix", T]) -> "IMatrix":
@@ -229,7 +218,6 @@ class IMatrix(ABC):
         ValueError
             If the matrices have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __mul__(self, other: Union["IMatrix", T]) -> "IMatrix":
@@ -251,7 +239,6 @@ class IMatrix(ABC):
         ValueError
             If the matrices have incompatible dimensions
         """
-        pass
 
     @abstractmethod
     def __matmul__(self, other: "IMatrix") -> "IMatrix":
@@ -273,7 +260,6 @@ class IMatrix(ABC):
         ValueError
             If the matrices have incompatible dimensions for multiplication
         """
-        pass
 
     @abstractmethod
     def __truediv__(self, other: Union["IMatrix", T]) -> "IMatrix":
@@ -297,7 +283,6 @@ class IMatrix(ABC):
         ZeroDivisionError
             If dividing by zero
         """
-        pass
 
     @abstractmethod
     def __neg__(self) -> "IMatrix":
@@ -309,7 +294,6 @@ class IMatrix(ABC):
         IMatrix
             The negated matrix
         """
-        pass
 
     @abstractmethod
     def __eq__(self, other: object) -> bool:
@@ -326,7 +310,6 @@ class IMatrix(ABC):
         bool
             True if the matrices are equal, False otherwise
         """
-        pass
 
     @abstractmethod
     def __iter__(self) -> Iterator[IVector]:
@@ -338,7 +321,6 @@ class IMatrix(ABC):
         Iterator[IVector]
             An iterator yielding rows as vectors
         """
-        pass
 
     @abstractmethod
     def transpose(self) -> "IMatrix":
@@ -350,7 +332,6 @@ class IMatrix(ABC):
         IMatrix
             The transposed matrix
         """
-        pass
 
     @abstractmethod
     def __array__(self) -> "IMatrix":
@@ -362,4 +343,3 @@ class IMatrix(ABC):
         IMatrix
             The matrix itself or a compatible representation
         """
-        pass

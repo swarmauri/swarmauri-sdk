@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover - imported for typing only
     from fastapi import Request, Response
@@ -21,9 +22,9 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 class MiddlewareBase(IMiddleware, ComponentBase):
     """Base class for all middleware implementations."""
 
-    resource: Optional[str] = ResourceTypes.MIDDLEWARE.value
+    resource: str | None = ResourceTypes.MIDDLEWARE.value
 
-    def __init__(self, app: Optional[ASGIApp] = None, **kwargs: Any) -> None:
+    def __init__(self, app: ASGIApp | None = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
 
         async def _noop_app(

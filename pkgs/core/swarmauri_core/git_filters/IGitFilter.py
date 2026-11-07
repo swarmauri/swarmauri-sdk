@@ -9,7 +9,7 @@ class IGitFilter(ABC):
 
     @classmethod
     @abstractmethod
-    def from_uri(cls, uri: str) -> "IGitFilter":
+    def from_uri(cls, uri: str) -> IGitFilter:
         """Create a filter instance from *uri*."""
 
     @abstractmethod

@@ -1,8 +1,10 @@
-from typing import List, Literal
-from swarmauri_standard.vectors.Vector import Vector
-from swarmauri_base.distances.DistanceBase import DistanceBase
-from swarmauri_base.ComponentBase import ComponentBase
 import warnings
+from typing import List, Literal
+
+from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.distances.DistanceBase import DistanceBase
+
+from swarmauri_standard.vectors.Vector import Vector
 
 warnings.warn(
     "This distance class will be deprecated in v0.12.0",
@@ -54,10 +56,8 @@ class SquaredEuclideanDistance(DistanceBase):
           implemented.
         """
         raise NotImplementedError(
-            (
-                "Similarity calculation is not implemented for Squared "
-                "Euclidean distance."
-            )
+            "Similarity calculation is not implemented for Squared "
+            "Euclidean distance."
         )
 
     def distances(
@@ -72,8 +72,6 @@ class SquaredEuclideanDistance(DistanceBase):
         self, vector_a: Vector, vectors_b: List[Vector]
     ) -> List[float]:
         raise NotImplementedError(
-            (
-                "Similarity calculation is not implemented for Squared "
-                "Euclidean distance."
-            )
+            "Similarity calculation is not implemented for Squared "
+            "Euclidean distance."
         )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Sequence
+from typing import Sequence
 
 
 class IMulticastTransport(ABC):
@@ -15,6 +15,6 @@ class IMulticastTransport(ABC):
         group: Sequence[str],
         data: bytes,
         *,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> None:
         """Send data to a multicast group."""

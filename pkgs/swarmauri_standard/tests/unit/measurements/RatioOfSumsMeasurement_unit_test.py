@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.measurements.RatioOfSumsMeasurement import (
     RatioOfSumsMeasurement as Measurement,
 )

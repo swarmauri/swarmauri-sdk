@@ -52,7 +52,9 @@ def is_conflict(x: Info[T]) -> bool:
 
 
 def information_leq(a: Info[T], b: Info[T]) -> bool:
-    """Partial order: unknown bottom, conflict top, equal known values comparable."""
+    """
+    Partial order: unknown bottom, conflict top, equal known values comparable.
+    """
 
     if isinstance(a, Unknown) or isinstance(b, Conflict):
         return True
@@ -95,23 +97,34 @@ def optional_join(a: T | None, b: T | None) -> Info[T]:
     return information_join(ia, ib)
 
 
-def record_join(a: Mapping[K, Info[T]], b: Mapping[K, Info[T]]) -> dict[K, Info[T]]:
+def record_join(
+    a: Mapping[K, Info[T]], b: Mapping[K, Info[T]]
+) -> dict[K, Info[T]]:
     """Pointwise information join over partial records."""
 
     out: dict[K, Info[T]] = dict(a)
     for key, value in b.items():
-        out[key] = value if key not in out else information_join(out[key], value)
+        out[key] = (
+            value if key not in out else information_join(out[key], value)
+        )
     return out
 
 
-def record_meet(a: Mapping[K, Info[T]], b: Mapping[K, Info[T]]) -> dict[K, Info[T]]:
+def record_meet(
+    a: Mapping[K, Info[T]], b: Mapping[K, Info[T]]
+) -> dict[K, Info[T]]:
     """Pointwise information meet over common fields."""
 
-    return {key: information_meet(a[key], b[key]) for key in a.keys() & b.keys()}
+    return {
+        key: information_meet(a[key], b[key]) for key in a.keys() & b.keys()
+    }
 
 
-def fill_unknowns(base: Mapping[K, T | None], patch: Mapping[K, T | None]) -> dict[K, T | None]:
-    """Conservative partial-record completion; existing known values are preserved."""
+def fill_unknowns(
+    base: Mapping[K, T | None], patch: Mapping[K, T | None]
+) -> dict[K, T | None]:
+    """Conservative partial-record completion; existing known values are
+    preserved."""
 
     out = dict(base)
     for key, value in patch.items():

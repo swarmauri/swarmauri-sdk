@@ -31,7 +31,6 @@ class IUseInnerProduct(ABC):
         IInnerProduct
             The inner product implementation
         """
-        pass
 
     @abstractmethod
     def check_angle_between_vectors(self, v1: Vector, v2: Vector) -> float:
@@ -50,7 +49,6 @@ class IUseInnerProduct(ABC):
         float
             Angle between vectors in radians
         """
-        pass
 
     @abstractmethod
     def check_orthogonality(
@@ -73,7 +71,6 @@ class IUseInnerProduct(ABC):
         bool
             True if vectors are orthogonal, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_xy_projection(
@@ -96,7 +93,6 @@ class IUseInnerProduct(ABC):
         tuple[float, float]
             The (x, y) coordinates of the projection
         """
-        pass
 
     @abstractmethod
     def check_parallelogram_law(
@@ -120,4 +116,3 @@ class IUseInnerProduct(ABC):
         bool
             True if the parallelogram law holds, False otherwise
         """
-        pass

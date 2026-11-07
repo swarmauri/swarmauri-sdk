@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.parsers.XMLParser import XMLParser as Parser
 
 
@@ -25,10 +26,8 @@ def test_serialization():
 @pytest.mark.unit
 def test_parse():
     documents = Parser(element_tag="project").parse(
-        (
-            "<root><project>stuff inside "
-            "project</project><project>test</project></root>"
-        )
+        "<root><project>stuff inside "
+        "project</project><project>test</project></root>"
     )
     assert len(documents) == 2
     assert documents[0].resource == "Document"

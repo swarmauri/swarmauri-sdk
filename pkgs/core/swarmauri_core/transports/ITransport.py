@@ -19,13 +19,13 @@ class ITransport(ABC):
     @abstractmethod
     def server(
         self, **bind_kwargs: Any
-    ) -> AbstractAsyncContextManager["ITransport"]:
+    ) -> AbstractAsyncContextManager[ITransport]:
         """Return a context manager that starts the transport's server side."""
 
     @abstractmethod
     def client(
         self, **connect_kwargs: Any
-    ) -> AbstractAsyncContextManager["ITransport"]:
+    ) -> AbstractAsyncContextManager[ITransport]:
         """Return a context manager that opens the transport's client side."""
 
     @abstractmethod

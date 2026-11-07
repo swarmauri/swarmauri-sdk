@@ -9,7 +9,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True, order=True)
 class Interval:
-    """Closed numeric interval. ``lo > hi`` denotes bottom/empty."""
+    """Closed numeric interval.
+
+    ``lo > hi`` denotes bottom/empty.
+    """
 
     lo: float
     hi: float
@@ -35,7 +38,9 @@ class Interval:
 
 
 def interval_leq(a: Interval, b: Interval) -> bool:
-    """Concretization subset order: narrower intervals are <= wider intervals."""
+    """
+    Concretization subset order: narrower intervals are <= wider intervals.
+    """
 
     if a.is_empty:
         return True
@@ -80,7 +85,8 @@ def interval_mul(a: Interval, b: Interval) -> Interval:
 
 
 def interval_widen(prev: Interval, nxt: Interval) -> Interval:
-    """Classic interval widening used to force convergence of ascending chains."""
+    """Classic interval widening used to force convergence of ascending
+    chains."""
 
     if prev.is_empty:
         return nxt
@@ -101,20 +107,28 @@ def interval_narrow(prev: Interval, nxt: Interval) -> Interval:
     return interval_intersection(Interval(lo, hi), nxt)
 
 
-def box_join(a: Sequence[Interval], b: Sequence[Interval]) -> tuple[Interval, ...]:
+def box_join(
+    a: Sequence[Interval], b: Sequence[Interval]
+) -> tuple[Interval, ...]:
     if len(a) != len(b):
         raise ValueError("box dimensions differ")
     return tuple(interval_hull(x, y) for x, y in zip(a, b, strict=True))
 
 
-def box_meet(a: Sequence[Interval], b: Sequence[Interval]) -> tuple[Interval, ...]:
+def box_meet(
+    a: Sequence[Interval], b: Sequence[Interval]
+) -> tuple[Interval, ...]:
     if len(a) != len(b):
         raise ValueError("box dimensions differ")
-    return tuple(interval_intersection(x, y) for x, y in zip(a, b, strict=True))
+    return tuple(
+        interval_intersection(x, y) for x, y in zip(a, b, strict=True)
+    )
 
 
 def box_leq(a: Sequence[Interval], b: Sequence[Interval]) -> bool:
-    return len(a) == len(b) and all(interval_leq(x, y) for x, y in zip(a, b, strict=True))
+    return len(a) == len(b) and all(
+        interval_leq(x, y) for x, y in zip(a, b, strict=True)
+    )
 
 
 def lower_bound_join(a: float, b: float) -> float:

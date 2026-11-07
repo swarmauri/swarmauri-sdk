@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, Sequence
 
 from .protos import (
     CustomerRefProto,
@@ -32,7 +32,7 @@ class IPaymentMethods(ABC):
         self,
         customer: CustomerRefProto,
         *,
-        type: Optional[str] = None,
+        type: str | None = None,
         limit: int = 10,
     ) -> Sequence[PaymentMethodRefProto]:
         """List payment methods for a customer."""

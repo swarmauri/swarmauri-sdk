@@ -51,6 +51,7 @@ implementation details are filled in.
 import asyncio
 from swarmauri_transport_quic import QuicTransport
 
+
 async def main():
     server = QuicTransport(cert="srv.pem", key="srv.key")
     client = QuicTransport(server_name="localhost")
@@ -72,6 +73,7 @@ async def main():
             await client.close_channel(channel)
 
     await asyncio.gather(run_server(), run_client())
+
 
 asyncio.run(main())
 ```

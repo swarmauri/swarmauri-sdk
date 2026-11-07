@@ -79,11 +79,9 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             # Check if distributions have the same dimensions
             if p.shape != q.shape:
                 raise ValueError(
-                    (
-                        f"Distributions must have the same dimensions: "
-                        f"{p.shape} != "
-                        f"{q.shape}"
-                    )
+                    f"Distributions must have the same dimensions: "
+                    f"{p.shape} != "
+                    f"{q.shape}"
                 )
 
             # Check for negative probabilities
@@ -107,9 +105,7 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
             return float(bc)
 
         except (TypeError, ValueError) as e:
-            logger.error(
-                f"Error calculating Bhattacharyya coefficient: {str(e)}"
-            )
+            logger.error(f"Error calculating Bhattacharyya coefficient: {e!s}")
             raise
 
     def similarities(
@@ -153,10 +149,8 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
                 # Check if reference distribution is normalized
                 if not np.isclose(np.sum(p_array), 1.0, rtol=1e-5):
                     raise ValueError(
-                        (
-                            f"Reference distribution is not normalized: sum = "
-                            f"{np.sum(p_array)}"
-                        )
+                        f"Reference distribution is not normalized: sum = "
+                        f"{np.sum(p_array)}"
                     )
 
             results = []
@@ -173,21 +167,17 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
                         # Check if distribution is normalized
                         if not np.isclose(np.sum(q), 1.0, rtol=1e-5):
                             raise ValueError(
-                                (
-                                    f"Distribution at index {i} is not "
-                                    f"normalized: sum = "
-                                    f"{np.sum(q)}"
-                                )
+                                f"Distribution at index {i} is not "
+                                f"normalized: sum = "
+                                f"{np.sum(q)}"
                             )
 
                         # Check dimensions
                         if p_array.shape != q.shape:
                             raise ValueError(
-                                (
-                                    f"Distribution at index {i} has "
-                                    f"incompatible dimensions: "
-                                    f"{p_array.shape} != {q.shape}"
-                                )
+                                f"Distribution at index {i} has "
+                                f"incompatible dimensions: "
+                                f"{p_array.shape} != {q.shape}"
                             )
 
                         # Calculate Bhattacharyya coefficient
@@ -199,14 +189,14 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
                     results.append(sim)
                 except Exception as e:
                     logger.error(
-                        f"Error calculating similarity for item {i}: {str(e)}"
+                        f"Error calculating similarity for item {i}: {e!s}"
                     )
                     raise
 
             return results
 
         except Exception as e:
-            logger.error(f"Error calculating multiple similarities: {str(e)}")
+            logger.error(f"Error calculating multiple similarities: {e!s}")
             raise
 
     def dissimilarity(self, x: ComparableType, y: ComparableType) -> float:
@@ -249,7 +239,7 @@ class BhattacharyyaCoefficientSimilarity(SimilarityBase):
 
         except Exception as e:
             logger.error(
-                f"Error calculating Bhattacharyya dissimilarity: {str(e)}"
+                f"Error calculating Bhattacharyya dissimilarity: {e!s}"
             )
             raise
 

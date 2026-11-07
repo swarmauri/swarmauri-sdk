@@ -1,8 +1,10 @@
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "WeatherTool")
@@ -21,7 +23,9 @@ class WeatherTool(ToolBase):
             Parameter(
                 name="unit",
                 input_type="string",
-                description="The unit for temperature ('fahrenheit' or 'celsius')",  # noqa: E501
+                description=(
+                    "The unit for temperature ('fahrenheit' or 'celsius')"
+                ),
                 required=True,
                 enum=["fahrenheit", "celsius"],
             ),

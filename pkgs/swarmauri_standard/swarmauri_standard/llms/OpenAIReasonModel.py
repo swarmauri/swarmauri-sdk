@@ -99,10 +99,8 @@ class OpenAIReasonModel(LLMBase):
             )
             if message.role == "system" and self.name != "o1":
                 raise ValueError(
-                    (
-                        "System messages are not allowed for models other than "  # noqa: E501
-                        "'o1'."
-                    )
+                    "System messages are not allowed for models other than "
+                    "'o1'."
                 )
 
             if isinstance(formatted_message["content"], list):

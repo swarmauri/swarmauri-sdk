@@ -1,6 +1,6 @@
 import logging
-import unittest.mock as mock
 from email.utils import formataddr
+from unittest import mock
 
 import pytest
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase

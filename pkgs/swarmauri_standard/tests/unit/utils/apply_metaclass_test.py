@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.utils.apply_metaclass import apply_metaclass_to_cls
 
 

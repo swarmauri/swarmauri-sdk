@@ -14,9 +14,17 @@
     <a href="https://discord.gg/N4UpBuQv8T">
         <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
 
-# Swarmauri Transport ? WebSocket JSON-RPC
+# Swarmauri Transport - WebSocket JSON-RPC
 
-`swarmauri-transport-wsjsonrpcmux` provides a JSON-RPC 2.0 dispatcher over WebSockets for browser-friendly agent communication.
+`swarmauri-transport-wsjsonrpcmux` provides correlated JSON-RPC 2.0 calls over WebSockets for browser-friendly agent communication. Request IDs allow concurrent calls on one connection, but they are not independent multiplexed transport channels.
+
+## Features
+
+- Concurrent JSON-RPC calls correlated by request ID.
+- Async WebSocket client and server lifecycle.
+- JSON-RPC result and error propagation.
+- Deprecated WsJsonrpcMuxTransport alias for compatibility.
+- No claim of channel-level multiplexing.
 
 ## Installation
 
@@ -36,22 +44,25 @@ pip install swarmauri-transport-wsjsonrpcmux
 
 ```python
 import asyncio
-from swarmauri_transport_wsjsonrpcmux import WsJsonrpcMuxTransport
+from swarmauri_transport_wsjsonrpcmux import WsJsonrpcTransport
+
 
 async def handler(method: str, params):
     if method == "echo":
         return params
     raise ValueError("unknown method")
 
+
 async def main() -> None:
-    transport = WsJsonrpcMuxTransport()
+    transport = WsJsonrpcTransport()
     transport.set_rpc_handler(handler)
     async with transport.server(host="127.0.0.1", port=8765):
         await asyncio.sleep(1)
 
+
 asyncio.run(main())
 ```
 
-Pair the server with a client created via `WsJsonrpcMuxTransport().client(...)` and `call(...)` to complete the RPC loop.
+Pair the server with a client created via `WsJsonrpcTransport().client(...)` and `call(...)` to complete the RPC loop.
 
 

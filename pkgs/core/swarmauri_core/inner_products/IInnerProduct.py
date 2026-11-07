@@ -43,7 +43,6 @@ class IInnerProduct(ABC):
         float
             The inner product value
         """
-        pass
 
     @abstractmethod
     def check_conjugate_symmetry(
@@ -67,7 +66,6 @@ class IInnerProduct(ABC):
         bool
             True if conjugate symmetry holds, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_linearity_first_argument(
@@ -100,7 +98,6 @@ class IInnerProduct(ABC):
         bool
             True if linearity in the first argument holds, False otherwise
         """
-        pass
 
     @abstractmethod
     def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
@@ -118,4 +115,3 @@ class IInnerProduct(ABC):
         bool
             True if positivity holds, False otherwise
         """
-        pass

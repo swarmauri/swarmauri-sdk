@@ -21,7 +21,8 @@ class Node:
     File: workflows/node.py
     Class: Node
     Methods:
-      - __init__: initialize name, agent/tool, input_mode, join & merge strategies
+      - __init__: initialize name, agent/tool, input_mode, join & merge
+      strategies
       - prepare_input: apply InputMode.prepare
       - execute: run the agent.exec or tool.run on a scalar
       - batch: run agent.batch/tool.batch or fallback to execute-per-item
@@ -54,7 +55,9 @@ class Node:
             ValueError if neither or both of agent/tool are provided.
         """
         if (agent is None) == (tool is None):
-            raise ValueError(f"Node '{name}' requires exactly one of agent or tool")
+            raise ValueError(
+                f"Node '{name}' requires exactly one of agent or tool"
+            )
 
         self.name = name
         self.agent = agent
@@ -151,6 +154,7 @@ class Node:
         Class: Node
         Method: validate
 
-        Default validation always returns True. Override or wrap with Condition.
+        Default validation always returns True. Override or wrap with
+        Condition.
         """
         return True

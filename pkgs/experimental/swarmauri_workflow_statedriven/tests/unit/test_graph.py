@@ -8,9 +8,7 @@ from swarmauri_workflow_statedriven.conditions.function_condition import (
 
 
 class DummyAgent:
-    """
-    Simple agent stub with exec(input) -> f"{input}_out"
-    """
+    """Simple agent stub with exec(input) -> f"{input}_out"."""
 
     def exec(self, input_data):
         return f"{input_data}_out"
@@ -88,7 +86,8 @@ def test_visualize_png_headless_creates_png(tmp_path):
     Class: WorkflowGraph
     Method: visualize_png_headless
 
-    This test is skipped by default because it requires pyppeteer and a headless browser.
+    This test is skipped by default because it requires pyppeteer and a
+    headless browser.
     """
     wf = WorkflowGraph()
     wf.add_state("A", agent=DummyAgent())

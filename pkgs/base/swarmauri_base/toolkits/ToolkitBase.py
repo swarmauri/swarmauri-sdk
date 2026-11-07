@@ -1,12 +1,13 @@
-from typing import Dict, Optional, List, Literal
-from pydantic import Field, ConfigDict
+from typing import Literal
+
+from pydantic import ConfigDict, Field
+from swarmauri_core.toolkits.IToolkit import IToolkit
 
 from swarmauri_base.ComponentBase import (
     ComponentBase,
     ResourceTypes,
     SubclassUnion,
 )
-from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_base.tools.ToolBase import ToolBase
 
 
@@ -17,8 +18,8 @@ class ToolkitBase(IToolkit, ComponentBase):
     Tools are maintained in a dictionary keyed by the tool's name.
     """
 
-    tools: Dict[str, SubclassUnion[ToolBase]] = {}
-    resource: Optional[str] = Field(
+    tools: dict[str, SubclassUnion[ToolBase]] = {}
+    resource: str | None = Field(
         default=ResourceTypes.TOOLKIT.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
@@ -26,13 +27,13 @@ class ToolkitBase(IToolkit, ComponentBase):
 
     def get_tools(
         self,
-        include: Optional[List[str]] = None,
-        exclude: Optional[List[str]] = None,
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
         by_alias: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
-    ) -> Dict[str, SubclassUnion[ToolBase]]:
+    ) -> dict[str, SubclassUnion[ToolBase]]:
         """
         List all tools in the toolkit with options to include or exclude
         specific fields.
@@ -59,7 +60,7 @@ class ToolkitBase(IToolkit, ComponentBase):
             for name, tool in self.tools.items()
         ]
 
-    def add_tools(self, tools: Dict[str, SubclassUnion[ToolBase]]) -> None:
+    def add_tools(self, tools: dict[str, SubclassUnion[ToolBase]]) -> None:
         """
         Add multiple tools to the toolkit.
 

@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pytest
 
-
 DISTANCE_PACKAGES = [
     "swarmauri_distance_canberra",
     "swarmauri_distance_chebyshev",

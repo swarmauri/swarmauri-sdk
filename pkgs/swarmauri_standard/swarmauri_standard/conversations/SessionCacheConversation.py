@@ -1,16 +1,18 @@
-from typing import Optional, List, Literal
-from pydantic import Field, ConfigDict
-from swarmauri_core.messages.IMessage import IMessage
-from swarmauri_core.conversations.IMaxSize import IMaxSize
+from typing import List, Literal, Optional
+
+from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.conversations.ConversationBase import ConversationBase
 from swarmauri_base.conversations.ConversationSystemContextMixin import (
     ConversationSystemContextMixin,
 )
-from swarmauri_standard.messages.SystemMessage import SystemMessage
-from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_core.conversations.IMaxSize import IMaxSize
+from swarmauri_core.messages.IMessage import IMessage
+
 from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.messages.FunctionMessage import FunctionMessage
-from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 
 
 @ComponentBase.register_type(ConversationBase, "SessionCacheConversation")
@@ -38,10 +40,8 @@ class SessionCacheConversation(
         """
         if isinstance(message, SystemMessage):
             raise ValueError(
-                (
-                    f"System context cannot be set through this method on "
-                    f"{self.__class_name__}."
-                )
+                f"System context cannot be set through this method on "
+                f"{self.__class_name__}."
             )
         if not self._history and not isinstance(message, HumanMessage):
             raise ValueError(

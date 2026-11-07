@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import io
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import BinaryIO, Iterable
+from typing import BinaryIO
 
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
@@ -82,7 +83,7 @@ class MemoryStorageAdapter(StorageAdapterBase):
         self._store.pop(self._full_key(object_key), None)
 
     @classmethod
-    def from_uri(cls, uri: str) -> "MemoryStorageAdapter":
+    def from_uri(cls, uri: str) -> MemoryStorageAdapter:
         """Instantiate the adapter from a ``memory://`` URI."""
         prefix = uri.removeprefix("memory://").strip("/")
         return cls(prefix=prefix)

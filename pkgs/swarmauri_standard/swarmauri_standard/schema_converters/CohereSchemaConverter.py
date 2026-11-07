@@ -1,9 +1,10 @@
-from typing import Dict, Any, Literal
-from swarmauri_base.tools.ToolBase import ToolBase
+from typing import Any, Dict, Literal
+
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
 from swarmauri_base.schema_converters.SchemaConverterBase import (
     SchemaConverterBase,
 )
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.tools.ToolBase import ToolBase
 
 
 @ComponentBase.register_type(SchemaConverterBase, "CohereSchemaConverter")
@@ -28,7 +29,10 @@ class CohereSchemaConverter(SchemaConverterBase):
                 _type = "bool"
             else:
                 raise NotImplementedError(
-                    f"🚧 Support for missing type pending https://docs.cohere.com/docs/parameter-types-in-tool-use\n: Missing Type: {param.input_type}"  # noqa: E501
+                    "🚧 Support for missing type pending "
+                    "https://docs.cohere.com/docs/"
+                    "parameter-types-in-tool-use\n: Missing Type: "
+                    f"{param.input_type}"
                 )
             properties[param.name].update({"type": _type})
 

@@ -12,7 +12,8 @@ from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
     "Importing GroqAIAudio from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.stt import "  # noqa: E501
+    "removed in a future version. Please use 'from swarmauri_standard.stt "
+    "import "
     "GroqSTT' or 'from swarmauri.stt import GroqSTT' instead.",
     DeprecationWarning,
     stacklevel=2,

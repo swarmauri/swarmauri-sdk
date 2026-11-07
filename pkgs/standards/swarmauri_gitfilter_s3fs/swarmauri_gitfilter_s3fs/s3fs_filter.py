@@ -6,12 +6,11 @@ from pathlib import Path
 from typing import BinaryIO
 
 import s3fs
-from pydantic import SecretStr
-
 from peagen._utils.config_loader import load_peagen_toml
+from pydantic import SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.storage import StorageAdapterBase
 from swarmauri_base.git_filters import GitFilterBase
+from swarmauri_base.storage import StorageAdapterBase
 
 
 @ComponentBase.register_type(StorageAdapterBase, "S3FSFilter")
@@ -102,7 +101,7 @@ class S3FSFilter(StorageAdapterBase, GitFilterBase):
                 shutil.copyfileobj(data, fh)
 
     @classmethod
-    def from_uri(cls, uri: str) -> "S3FSFilter":
+    def from_uri(cls, uri: str) -> S3FSFilter:
         from urllib.parse import urlparse
 
         p = urlparse(uri)

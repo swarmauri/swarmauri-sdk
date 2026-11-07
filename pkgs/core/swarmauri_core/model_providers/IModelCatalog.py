@@ -1,0 +1,18 @@
+"""Model catalog interface."""
+
+from abc import ABC, abstractmethod
+from typing import Any, Iterable
+
+
+class IModelCatalog(ABC):
+    @abstractmethod
+    def list_models(self) -> Iterable[Any]: ...
+
+    @abstractmethod
+    def get_model(self, name: str) -> Any | None: ...
+
+    @abstractmethod
+    def refresh(self) -> Iterable[Any]: ...
+
+    @abstractmethod
+    async def arefresh(self) -> Iterable[Any]: ...

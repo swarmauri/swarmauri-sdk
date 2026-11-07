@@ -1,7 +1,6 @@
 import io
 
 import pytest
-
 from swarmauri_gitfilter_s3fs import S3FSFilter
 
 

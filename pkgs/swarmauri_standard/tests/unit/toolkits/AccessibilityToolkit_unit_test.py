@@ -1,9 +1,9 @@
 import pytest
 
-from swarmauri_standard.tools.AdditionTool import AdditionTool
 from swarmauri_standard.toolkits.AccessibilityToolkit import (
     AccessibilityToolkit,
 )
+from swarmauri_standard.tools.AdditionTool import AdditionTool
 
 
 @pytest.fixture(scope="module")

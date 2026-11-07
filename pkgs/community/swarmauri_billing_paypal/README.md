@@ -112,7 +112,9 @@ provider = PayPalBillingProvider(
 payment = provider.create_payment_intent(
     PaymentIntentRequest(amount_minor=1500, currency="USD", confirm=True)
 )
-captured = provider.capture_payment(payment.id, idempotency_key="paypal-capture-1")
+captured = provider.capture_payment(
+    payment.id, idempotency_key="paypal-capture-1"
+)
 
 print(payment.status, captured.status)
 ```

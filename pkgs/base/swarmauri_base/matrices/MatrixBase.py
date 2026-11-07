@@ -1,5 +1,6 @@
 import logging
-from typing import Iterator, List, Optional, Sequence, Tuple, Union
+from collections.abc import Iterator, Sequence
+from typing import Union
 
 from pydantic import Field
 from swarmauri_core.matrices.IMatrix import IMatrix, Index, IVector, T
@@ -25,7 +26,7 @@ class MatrixBase(IMatrix, ComponentBase):
         The resource type of this component, defaults to MATRIX
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.MATRIX.value)
+    resource: str | None = Field(default=ResourceTypes.MATRIX.value)
 
     def __getitem__(self, key: Index) -> Union["IMatrix", IVector, T]:
         """
@@ -75,7 +76,7 @@ class MatrixBase(IMatrix, ComponentBase):
         )
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """
         Get the shape of the matrix.
 
@@ -93,7 +94,7 @@ class MatrixBase(IMatrix, ComponentBase):
             "shape property must be implemented by a concrete subclass"
         )
 
-    def reshape(self, shape: Tuple[int, int]) -> "IMatrix":
+    def reshape(self, shape: tuple[int, int]) -> "IMatrix":
         """
         Reshape the matrix to the specified dimensions.
 
@@ -135,7 +136,7 @@ class MatrixBase(IMatrix, ComponentBase):
             "dtype property must be implemented by a concrete subclass"
         )
 
-    def tolist(self) -> List[List[T]]:
+    def tolist(self) -> list[list[T]]:
         """
         Convert the matrix to a nested list.
 

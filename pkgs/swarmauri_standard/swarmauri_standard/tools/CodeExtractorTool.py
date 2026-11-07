@@ -1,9 +1,11 @@
 import ast
-from typing import List, Literal, Dict
+from typing import Dict, List, Literal
+
 from pydantic import Field
-from swarmauri_standard.tools.Parameter import Parameter
-from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_base.ComponentBase import ComponentBase
+from swarmauri_base.tools.ToolBase import ToolBase
+
+from swarmauri_standard.tools.Parameter import Parameter
 
 
 @ComponentBase.register_type(ToolBase, "CodeExtractorTool")
@@ -33,7 +35,8 @@ class CodeExtractorTool(ToolBase):
                 name="to_be_ignored",
                 input_type="list",
                 description=(
-                    "A list of function or variable names to be ignored during "  # noqa: E501
+                    "A list of function or variable names to be ignored "
+                    "during "
                     "code extraction."
                 ),
                 required=False,
@@ -49,7 +52,7 @@ class CodeExtractorTool(ToolBase):
         self,
         file_name: str,
         extract_documentation: bool = True,
-        to_be_ignored: List[str] = [],
+        to_be_ignored: List[str] | None = None,
     ) -> Dict[str, str]:
         """
         Extracts code from a Python file.
@@ -64,6 +67,8 @@ class CodeExtractorTool(ToolBase):
         Returns:
             str: Extracted code.
         """
+        if to_be_ignored is None:
+            to_be_ignored = []
         return {
             "code": self.extract_code(
                 file_name, extract_documentation, to_be_ignored
@@ -74,7 +79,7 @@ class CodeExtractorTool(ToolBase):
         self,
         file_name: str,
         extract_documentation: bool = True,
-        to_be_ignored: List[str] = [],
+        to_be_ignored: List[str] | None = None,
     ) -> str:
         """
         Extracts code from a Python file.
@@ -89,6 +94,8 @@ class CodeExtractorTool(ToolBase):
         Returns:
             str: Extracted code.
         """
+        if to_be_ignored is None:
+            to_be_ignored = []
         response_lines = []
 
         # Read the current file and collect relevant lines

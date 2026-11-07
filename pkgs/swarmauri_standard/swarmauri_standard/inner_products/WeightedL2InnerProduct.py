@@ -1,11 +1,11 @@
 import logging
 from numbers import Number
-from typing import Any, Callable, Dict, Literal, TypeVar, Union
+from typing import Any, Callable, Dict, Literal, TypeVar
 
 import numpy as np
-from swarmauri_core.vectors.IVector import IVector
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.inner_products.InnerProductBase import InnerProductBase
+from swarmauri_core.vectors.IVector import IVector
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -37,11 +37,11 @@ class WeightedL2InnerProduct(InnerProductBase):
     """
 
     type: Literal["WeightedL2InnerProduct"] = "WeightedL2InnerProduct"
-    weight_function: Callable[[Any], Union[float, np.ndarray]]
+    weight_function: Callable[[Any], float | np.ndarray]
 
     def __init__(
         self,
-        weight_function: Callable[[Any], Union[float, np.ndarray]],
+        weight_function: Callable[[Any], float | np.ndarray],
         **kwargs: Dict[str, Any],
     ):
         """
@@ -96,8 +96,8 @@ class WeightedL2InnerProduct(InnerProductBase):
 
     def compute(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> complex:
         """
         Compute the weighted L2 inner product between two objects.
@@ -128,10 +128,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             If the dimensions of inputs don't match
         """
         logger.debug(
-            (
-                f"Computing weighted L2 inner product between {type(a)} and "
-                f"{type(b)}"
-            )
+            f"Computing weighted L2 inner product between {type(a)} and "
+            f"{type(b)}"
         )
 
         # Handle callable functions (requires numerical integration)
@@ -170,11 +168,9 @@ class WeightedL2InnerProduct(InnerProductBase):
                 return complex(result)
             except Exception as e:
                 logger.error(
-                    (
-                        f"Error computing inner product for callable "
-                        f"functions: "
-                        f"{str(e)}"
-                    )
+                    f"Error computing inner product for callable "
+                    f"functions: "
+                    f"{e!s}"
                 )
                 raise
 
@@ -210,14 +206,13 @@ class WeightedL2InnerProduct(InnerProductBase):
                 weights_array = np.array(weights)
                 if weights_array.shape != a_array.shape:
                     logger.error(
-                        f"Weight shape {weights_array.shape} doesn't match input shape {a_array.shape}"  # noqa: E501
+                        f"Weight shape {weights_array.shape} doesn't match "
+                        f"input shape {a_array.shape}"
                     )
                     raise ValueError(
-                        (
-                            f"Weight shape must match input shape: "
-                            f"{weights_array.shape} "
-                            f"vs {a_array.shape}"
-                        )
+                        f"Weight shape must match input shape: "
+                        f"{weights_array.shape} "
+                        f"vs {a_array.shape}"
                     )
 
             # Check positivity of weights
@@ -232,16 +227,14 @@ class WeightedL2InnerProduct(InnerProductBase):
         else:
             logger.error(f"Unsupported types: {type(a)} and {type(b)}")
             raise TypeError(
-                (
-                    f"Unsupported types for WeightedL2InnerProduct: {type(a)} "
-                    f"and {type(b)}"
-                )
+                f"Unsupported types for WeightedL2InnerProduct: {type(a)} "
+                f"and {type(b)}"
             )
 
     def check_conjugate_symmetry(
         self,
-        a: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
     ) -> bool:
         """
         Check if the weighted L2 inner product satisfies the conjugate symmetry
@@ -276,22 +269,20 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             if not is_symmetric:
                 logger.warning(
-                    (
-                        f"Conjugate symmetry check failed: <a,b>={inner_ab}, "
-                        f"<b,a>*={inner_ba_conj}"
-                    )
+                    f"Conjugate symmetry check failed: <a,b>={inner_ab}, "
+                    f"<b,a>*={inner_ba_conj}"
                 )
 
             return is_symmetric
         except Exception as e:
-            logger.error(f"Error checking conjugate symmetry: {str(e)}")
+            logger.error(f"Error checking conjugate symmetry: {e!s}")
             return False
 
     def check_linearity_first_argument(
         self,
-        a1: Union[Vector, Matrix, Callable],
-        a2: Union[Vector, Matrix, Callable],
-        b: Union[Vector, Matrix, Callable],
+        a1: Vector | Matrix | Callable,
+        a2: Vector | Matrix | Callable,
+        b: Vector | Matrix | Callable,
         alpha: float,
         beta: float,
     ) -> bool:
@@ -319,10 +310,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             True if linearity in the first argument holds, False otherwise
         """
         logger.debug(
-            (
-                f"Checking linearity in first argument with alpha={alpha}, "
-                f"beta={beta}"
-            )
+            f"Checking linearity in first argument with alpha={alpha}, "
+            f"beta={beta}"
         )
 
         try:
@@ -378,10 +367,10 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             return is_linear
         except Exception as e:
-            logger.error(f"Error checking linearity: {str(e)}")
+            logger.error(f"Error checking linearity: {e!s}")
             return False
 
-    def check_positivity(self, a: Union[Vector, Matrix, Callable]) -> bool:
+    def check_positivity(self, a: Vector | Matrix | Callable) -> bool:
         """
         Check if the weighted L2 inner product satisfies the positivity
         property:
@@ -406,10 +395,8 @@ class WeightedL2InnerProduct(InnerProductBase):
             # Check if it's real (should be for any inner product)
             if not np.isclose(inner_product.imag, 0):
                 logger.warning(
-                    (
-                        f"Inner product <a,a> has non-zero imaginary part: "
-                        f"{inner_product.imag}"
-                    )
+                    f"Inner product <a,a> has non-zero imaginary part: "
+                    f"{inner_product.imag}"
                 )
                 return False
 
@@ -430,10 +417,10 @@ class WeightedL2InnerProduct(InnerProductBase):
 
             return is_positive
         except Exception as e:
-            logger.error(f"Error checking positivity: {str(e)}")
+            logger.error(f"Error checking positivity: {e!s}")
             return False
 
-    def norm(self, a: Union[Vector, Matrix, Callable]) -> float:
+    def norm(self, a: Vector | Matrix | Callable) -> float:
         """
         Compute the norm induced by the weighted L2 inner product.
 
@@ -462,14 +449,12 @@ class WeightedL2InnerProduct(InnerProductBase):
             if inner_product.imag != 0 or inner_product.real < 0:
                 logger.error(f"Invalid inner product value: {inner_product}")
                 raise ValueError(
-                    (
-                        f"Inner product <a,a> must be real and non-negative, "
-                        f"got "
-                        f"{inner_product}"
-                    )
+                    f"Inner product <a,a> must be real and non-negative, "
+                    f"got "
+                    f"{inner_product}"
                 )
 
             return np.sqrt(inner_product.real)
         except Exception as e:
-            logger.error(f"Error computing norm: {str(e)}")
+            logger.error(f"Error computing norm: {e!s}")
             raise

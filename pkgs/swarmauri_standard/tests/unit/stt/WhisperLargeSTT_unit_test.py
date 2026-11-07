@@ -1,10 +1,12 @@
 import logging
-import pytest
 import os
+from pathlib import Path
+
+import pytest
+from dotenv import load_dotenv
+
 from swarmauri_standard.stt.WhisperLargeSTT import WhisperLargeSTT
 from swarmauri_standard.utils.timeout_wrapper import timeout
-from pathlib import Path
-from dotenv import load_dotenv
 
 load_dotenv()
 

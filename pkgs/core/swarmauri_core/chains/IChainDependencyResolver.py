@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
 
 from swarmauri_core.chains.IChainStep import IChainStep
 
 
 class IChainDependencyResolver(ABC):
     @abstractmethod
-    def build_dependencies(self) -> List[IChainStep]:
+    def build_dependencies(self) -> list[IChainStep]:
         """
         Builds the dependencies for a particular sequence in the matrix.
 
@@ -18,12 +17,11 @@ class IChainDependencyResolver(ABC):
         Returns:
             Tuple containing indegrees and graph dicts.
         """
-        pass
 
     @abstractmethod
     def resolve_dependencies(
-        self, matrix: List[List[Optional[str]]], sequence_index: int
-    ) -> List[int]:
+        self, matrix: list[list[str | None]], sequence_index: int
+    ) -> list[int]:
         """
         Resolves the execution order based on the provided dependencies.
 
@@ -34,4 +32,3 @@ class IChainDependencyResolver(ABC):
         Returns:
             List[int]: The resolved execution order.
         """
-        pass

@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.tools.AutomatedReadabilityIndexTool import (
     AutomatedReadabilityIndexTool as Tool,
 )
@@ -73,5 +74,6 @@ def test_call(input_text, expected_score):
     assert result.get("ari_score") == pytest.approx(
         expected_score, rel=1e-2
     ), (
-        f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, but got {result.get('ari_score')}"  # noqa: E501
+        f"Expected ARI score 22. {expected_score} ± {1e-2 * expected_score}, "
+        f"but got {result.get('ari_score')}"
     )

@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, Optional, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import IOnlinePayments
 from swarmauri_core.billing.protos import (
     PaymentIntentReqProto,
     PaymentRefProto,
 )
 
-from .utils import extract_raw_payload
 from .refs import PaymentRef
+from .utils import extract_raw_payload
 
 
 class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
@@ -38,7 +38,7 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
         )
 
     def capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> PaymentRefProto:
         result = self._capture_payment(
             payment_id, idempotency_key=idempotency_key
@@ -58,8 +58,8 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> PaymentRefProto:
         result = self._cancel_payment(
             payment_id, reason=reason, idempotency_key=idempotency_key
@@ -83,7 +83,7 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
 
     @abstractmethod
     def _capture_payment(
-        self, payment_id: str, *, idempotency_key: Optional[str] = None
+        self, payment_id: str, *, idempotency_key: str | None = None
     ) -> PaymentRefProto | Mapping[str, Any]:
         """Capture a previously authorized payment."""
 
@@ -92,8 +92,8 @@ class OnlinePaymentsMixin(IOnlinePayments, BaseModel):
         self,
         payment_id: str,
         *,
-        reason: Optional[str] = None,
-        idempotency_key: Optional[str] = None,
+        reason: str | None = None,
+        idempotency_key: str | None = None,
     ) -> PaymentRefProto | Mapping[str, Any]:
         """Cancel or void a payment intent."""
 

@@ -1,4 +1,5 @@
 import pytest
+
 from swarmauri_standard.tools.ColemanLiauIndexTool import (
     ColemanLiauIndexTool as Tool,
 )
@@ -77,5 +78,7 @@ def test_call(input_text, expected_cli_score):
     assert result.get("coleman_liau_index") == pytest.approx(
         expected_cli_score_calculated, 0.01
     ), (
-        f"Expected CLI score {pytest.approx(expected_cli_score_calculated, 0.01)}, but got {result.get('coleman_liau_index')}"  # noqa: E501
+        f"Expected CLI score "
+        f"{pytest.approx(expected_cli_score_calculated, 0.01)}, but got "
+        f"{result.get('coleman_liau_index')}"
     )

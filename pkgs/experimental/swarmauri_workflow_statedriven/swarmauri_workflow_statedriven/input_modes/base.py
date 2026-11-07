@@ -6,10 +6,8 @@ from swarmauri_workflow_statedriven.state_manager import StateManager
 
 
 class InputMode(ABC):
-    """
-    Base for all input‑mode strategies:
-    decide what data a node sees before execution.
-    """
+    """Base for all input‑mode strategies: decide what data a node sees before
+    execution."""
 
     @abstractmethod
     def prepare(
@@ -19,8 +17,7 @@ class InputMode(ABC):
         data: Any,
         results: Dict[str, Any],
     ) -> Any:
-        """
-        Produce the actual input for node.execute()/batch().
+        """Produce the actual input for node.execute()/batch().
 
         Args:
             state_manager: the workflow’s StateManager.

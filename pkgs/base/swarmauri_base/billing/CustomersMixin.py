@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Mapping, cast
+from collections.abc import Mapping
+from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict
-
 from swarmauri_core.billing import ICustomers
 from swarmauri_core.billing.protos import (
     CustomerRefProto,
@@ -14,8 +14,8 @@ from swarmauri_core.billing.protos import (
     PaymentMethodRefProto,
 )
 
-from .utils import extract_raw_payload, require_idempotency
 from .refs import CustomerRef
+from .utils import extract_raw_payload, require_idempotency
 
 
 class CustomersMixin(ICustomers, BaseModel):

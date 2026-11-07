@@ -10,7 +10,6 @@ first, second, and third-class citizens within the swarmauri framework.
 
 import logging
 from importlib.metadata import EntryPoint
-from typing import Dict, Optional
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ class PluginCitizenshipRegistry:
     """
 
     # Class variables for registries
-    FIRST_CLASS_REGISTRY: Dict[str, str] = {
+    FIRST_CLASS_REGISTRY: dict[str, str] = {
         "swarmauri.skills.DummyFileSystemSkill": (
             "swarmauri_skill_dummy_filesystem.DummyFileSystemSkill"
         ),
@@ -195,6 +194,9 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.storage_adapters.S3StorageAdapter": (
             "swarmauri_storage_s3.S3StorageAdapter"
+        ),
+        "swarmauri.storage_adapters.WebDAVStorageAdapter": (
+            "swarmauri_storage_webdav.WebDAVStorageAdapter"
         ),
         "swarmauri.agents.ExampleAgent": "swm_example_package.ExampleAgent",
         "swarmauri.agents.QAAgent": "swarmauri_standard.agents.QAAgent",
@@ -365,9 +367,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.vlms.GeminiVLM": "swarmauri_llm_gemini.GeminiVLM",
         "swarmauri.vlms.AnthropicVLM": "swarmauri_llm_anthropic.AnthropicVLM",
         "swarmauri.vlms.MistralVLM": "swarmauri_llm_mistral.MistralVLM",
-        "swarmauri.video_lipsync.SyncLabsLipSync": (
-            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
-        ),
         "swarmauri.vlms.FalVLM": "swarmauri_llm_falai.FalVLM",
         "swarmauri.vlms.GroqVLM": "swarmauri_llm_groq.GroqVLM",
         "swarmauri.vlms.HyperbolicVLM": (
@@ -561,6 +560,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.transports.HttpsUnicastTransport": (
             "swarmauri_transport_https_unicast.HttpsUnicastTransport"
         ),
+        "swarmauri.transports.RetryingHttpClient": (
+            "swarmauri_transport_retry.RetryingHttpClient"
+        ),
         "swarmauri.transports.PubSubTransport": (
             "swarmauri_standard.transports.PubSubTransport"
         ),
@@ -691,9 +693,6 @@ class PluginCitizenshipRegistry:
         "swarmauri.logger_formatters.LoggerFormatter": (
             "swarmauri_standard.logger_formatters.LoggerFormatter"
         ),
-        "swarmauri.middlewares.AuthMiddleware": (
-            "swarmauri_middleware_auth.AuthMiddleware"
-        ),
         "swarmauri.middlewares.BulkheadMiddleware": (
             "swarmauri_middleware_bulkhead.BulkheadMiddleware"
         ),
@@ -708,6 +707,9 @@ class PluginCitizenshipRegistry:
         ),
         "swarmauri.middlewares.GzipCompressionMiddleware": (
             "swarmauri_middleware_gzipcompression.GzipCompressionMiddleware"
+        ),
+        "swarmauri.middlewares.JWTMiddleware": (
+            "swarmauri_middleware_jwt.JWTMiddleware"
         ),
         "swarmauri.middlewares.LlamaGuardMiddleware": (
             "swarmauri_middleware_llamaguard.LlamaGuardMiddleware"
@@ -751,7 +753,55 @@ class PluginCitizenshipRegistry:
         ),
     }
     _KNOWN_GROUPS_CACHE: set[str] | None = None
-    SECOND_CLASS_REGISTRY: Dict[str, str] = {
+    SECOND_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.video_lipsync.SyncLabsLipSync": (
+            "swarmauri_video_lipsync_synclabs.SyncLabsLipSync"
+        ),
+        "swarmauri.model_providers.GeminiProvider": (
+            "swarmauri_provider_gemini.GeminiProvider"
+        ),
+        "swarmauri.model_providers.OpenAIProvider": (
+            "swarmauri_provider_openai.OpenAIProvider"
+        ),
+        "swarmauri.model_providers.OpenRouterProvider": (
+            "swarmauri_provider_openrouter.OpenRouterProvider"
+        ),
+        "swarmauri.model_providers.XAIProvider": (
+            "swarmauri_provider_xai.XAIProvider"
+        ),
+        "swarmauri.model_providers.QwenProvider": (
+            "swarmauri_provider_qwen.QwenProvider"
+        ),
+        "swarmauri.model_providers.AmazonNovaProvider": (
+            "swarmauri_provider_amazon_nova.AmazonNovaProvider"
+        ),
+        "swarmauri.live_models.GeminiLiveModel": (
+            "swarmauri_live_model_gemini.GeminiLiveModel"
+        ),
+        "swarmauri.live_models.OpenAIRealtimeModel": (
+            "swarmauri_live_model_openai.OpenAIRealtimeModel"
+        ),
+        "swarmauri.live_models.OpenAIResponsesWSModel": (
+            "swarmauri_live_model_openai.OpenAIResponsesWSModel"
+        ),
+        "swarmauri.live_models.XAIRealtimeModel": (
+            "swarmauri_live_model_xai.XAIRealtimeModel"
+        ),
+        "swarmauri.live_models.QwenOmniRealtimeModel": (
+            "swarmauri_live_model_qwen.QwenOmniRealtimeModel"
+        ),
+        "swarmauri.live_models.NovaSonicLiveModel": (
+            "swarmauri_live_model_amazon_nova.NovaSonicLiveModel"
+        ),
+        "swarmauri.agents.RealtimeAgent": (
+            "swarmauri_agent_realtime.RealtimeAgent"
+        ),
+        "swarmauri.transports.HttpxClient": (
+            "swarmauri_transport_httpx.HttpxClient"
+        ),
+        "swarmauri.transports.WebSocketClient": (
+            "swarmauri_transport_websocket.WebSocketClient"
+        ),
         "swarmauri.tools.QueryImageVectorStoreTool": (
             "swarmauri_tool_queryimagevectorstore.QueryImageVectorStoreTool"
         ),
@@ -872,12 +922,14 @@ class PluginCitizenshipRegistry:
             "swarmauri_llm_nvidia_nim.NvidiaNIMToolModel"
         ),
         "swarmauri.tool_llms.XAIToolModel": "swarmauri_llm_xai.XAIToolModel",
-        "swarmauri.vlms.OpenRouterVLM": "swarmauri_llm_openrouter.OpenRouterVLM",
+        "swarmauri.vlms.OpenRouterVLM": (
+            "swarmauri_llm_openrouter.OpenRouterVLM"
+        ),
     }
-    THIRD_CLASS_REGISTRY: Dict[str, str] = {}
+    THIRD_CLASS_REGISTRY: dict[str, str] = {}
 
     @classmethod
-    def total_registry(cls) -> Dict[str, str]:
+    def total_registry(cls) -> dict[str, str]:
         """
         Property: total_registry
 
@@ -919,17 +971,20 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path in registry:
             logger.debug(
-                f"Resource path '{resource_path}' already exists in the {class_type}-class registry. Skipping registration."  # noqa: E501
+                f"Resource path '{resource_path}' already exists in the "
+                f"{class_type}-class registry. Skipping registration."
             )
             return
 
@@ -937,10 +992,8 @@ class PluginCitizenshipRegistry:
         registry[resource_path] = module_path
         cls._KNOWN_GROUPS_CACHE = None
         logger.info(
-            (
-                f"Added to {class_type}-class registry: {resource_path} -> "
-                f"{module_path}"
-            )
+            f"Added to {class_type}-class registry: {resource_path} -> "
+            f"{module_path}"
         )
 
     @classmethod
@@ -962,20 +1015,24 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
 
         # Remove from the specific registry
@@ -986,7 +1043,7 @@ class PluginCitizenshipRegistry:
         )
 
     @classmethod
-    def list_registry(cls, class_type: Optional[str] = None) -> Dict[str, str]:
+    def list_registry(cls, class_type: str | None = None) -> dict[str, str]:
         """
         List all entries in a specific registry or the total registry.
 
@@ -1008,17 +1065,19 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         logger.debug(f"Listing {class_type}-class registry.")
         return dict(registry_map[class_type])
 
     @classmethod
-    def get_external_module_path(cls, resource_path: str) -> Optional[str]:
+    def get_external_module_path(cls, resource_path: str) -> str | None:
         """
         Get the external module path for a given resource path.
 
@@ -1029,7 +1088,8 @@ class PluginCitizenshipRegistry:
         module_path = cls.total_registry().get(resource_path)
         if module_path:
             logger.debug(
-                f"Retrieved module path '{module_path}' for resource path '{resource_path}'."  # noqa: E501
+                f"Retrieved module path '{module_path}' for resource path "
+                f"'{resource_path}'."
             )
         else:
             logger.debug(
@@ -1080,29 +1140,31 @@ class PluginCitizenshipRegistry:
 
         if class_type not in registry_map:
             logger.error(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
             raise ValueError(
-                f"Invalid class type '{class_type}'. Must be 'first', 'second', or 'third'."  # noqa: E501
+                f"Invalid class type '{class_type}'. Must be 'first', "
+                f"'second', or 'third'."
             )
 
         registry = registry_map[class_type]
 
         if resource_path not in registry:
             logger.error(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
             raise KeyError(
-                f"Resource path '{resource_path}' does not exist in the {class_type}-class registry."  # noqa: E501
+                f"Resource path '{resource_path}' does not exist in the "
+                f"{class_type}-class registry."
             )
 
         old_module_path = registry[resource_path]
         registry[resource_path] = new_module_path
         logger.info(
-            (
-                f"Updated {class_type}-class registry entry: {resource_path} "
-                f"-> {new_module_path} (was: {old_module_path})"
-            )
+            f"Updated {class_type}-class registry entry: {resource_path} "
+            f"-> {new_module_path} (was: {old_module_path})"
         )
 
     @classmethod
@@ -1119,7 +1181,7 @@ class PluginCitizenshipRegistry:
         cls.remove_from_registry(class_type, resource_path)
 
     @classmethod
-    def list_all_registries(cls) -> Dict[str, Dict[str, str]]:
+    def list_all_registries(cls) -> dict[str, dict[str, str]]:
         """
         Lists all registries: first, second, third, and total.
 
@@ -1144,7 +1206,8 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_first = resource_path in cls.FIRST_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'first-class' if is_first else 'not first-class'}."  # noqa: E501
+            f"Plugin '{entry_point.name}' is "
+            f"{'first-class' if is_first else 'not first-class'}."
         )
         return is_first
 
@@ -1159,7 +1222,8 @@ class PluginCitizenshipRegistry:
         resource_path = f"{entry_point.group}.{entry_point.name}"
         is_second = resource_path in cls.SECOND_CLASS_REGISTRY
         logger.debug(
-            f"Plugin '{entry_point.name}' is {'second-class' if is_second else 'not second-class'}."  # noqa: E501
+            f"Plugin '{entry_point.name}' is "
+            f"{'second-class' if is_second else 'not second-class'}."
         )
         return is_second
 
@@ -1210,7 +1274,3 @@ class PluginCitizenshipRegistry:
         logger.info(
             f"Registered third-class plugin: {resource_path} -> {module_path}"
         )
-
-
-
-

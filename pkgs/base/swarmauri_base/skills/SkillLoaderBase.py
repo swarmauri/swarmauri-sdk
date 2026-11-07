@@ -4,8 +4,10 @@ from pathlib import Path
 
 from swarmauri_core.skills.ISkillLoader import ISkillLoader
 
+from swarmauri_base.ComponentBase import ComponentBase
 
-class SkillLoaderBase(ISkillLoader):
+
+class SkillLoaderBase(ISkillLoader, ComponentBase):
     """Shared provider-neutral loader helpers."""
 
     @staticmethod

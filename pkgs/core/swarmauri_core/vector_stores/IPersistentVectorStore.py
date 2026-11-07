@@ -13,11 +13,9 @@ class IPersistentVectorStore(ABC):
         Connects to the persistent-based vector store using provided
         credentials.
         """
-        pass
 
     @abstractmethod
     def disconnect(self) -> None:
         """
         Disconnects from the persistent-based vector store.
         """
-        pass

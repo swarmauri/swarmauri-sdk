@@ -1,9 +1,9 @@
 import logging
-from typing import Optional
 
 from pydantic import Field
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 from swarmauri_core.seminorms.ISeminorm import InputType, ISeminorm, T
+
+from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class SeminormBase(ISeminorm, ComponentBase):
     and scalar homogeneity.
     """
 
-    resource: Optional[str] = Field(default=ResourceTypes.SEMINORM.value)
+    resource: str | None = Field(default=ResourceTypes.SEMINORM.value)
 
     def compute(self, x: InputType) -> float:
         """
@@ -86,16 +86,12 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            (
-                f"Checking triangle inequality for inputs of types {type(x)} "
-                f"and {type(y)}"
-            )
+            f"Checking triangle inequality for inputs of types {type(x)} "
+            f"and {type(y)}"
         )
         raise NotImplementedError(
-            (
-                "check_triangle_inequality method must be implemented by "
-                "subclasses"
-            )
+            "check_triangle_inequality method must be implemented by "
+            "subclasses"
         )
 
     def check_scalar_homogeneity(self, x: InputType, alpha: T) -> bool:
@@ -128,10 +124,8 @@ class SeminormBase(ISeminorm, ComponentBase):
             This method must be implemented by subclasses
         """
         logger.debug(
-            (
-                f"Checking scalar homogeneity for input of type {type(x)} "
-                f"with scalar {alpha}"
-            )
+            f"Checking scalar homogeneity for input of type {type(x)} "
+            f"with scalar {alpha}"
         )
         raise NotImplementedError(
             "check_scalar_homogeneity method must be implemented by subclasses"

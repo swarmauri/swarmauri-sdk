@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from contextlib import AbstractContextManager
 import mmap
 import os
+from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import BinaryIO
 
@@ -181,6 +181,6 @@ class IStorageAdapter(ABC):
     @abstractmethod
     def from_uri(
         cls, uri: str
-    ) -> "IStorageAdapter":  # pragma: no cover - interface
+    ) -> IStorageAdapter:  # pragma: no cover - interface
         """Create an adapter instance from *uri*."""
         raise NotImplementedError

@@ -2,18 +2,25 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
+from swarmauri_provider_openrouter import (
+    OpenRouterModelCatalog,
+    OpenRouterProvider,
+    OpenRouterProviderPreferences,
+)
+
 from .OpenRouterImgGenModel import OpenRouterImgGenModel
 from .OpenRouterModel import OpenRouterModel
+from .OpenRouterRetryPolicy import OpenRouterRetryPolicy
 from .OpenRouterToolModel import OpenRouterToolModel
 from .OpenRouterVLM import OpenRouterVLM
-from ._internal.catalog import OpenRouterModelCatalog
-from ._internal.routing import OpenRouterProviderPreferences
 
 __all__ = [
     "OpenRouterImgGenModel",
     "OpenRouterModel",
     "OpenRouterModelCatalog",
+    "OpenRouterProvider",
     "OpenRouterProviderPreferences",
+    "OpenRouterRetryPolicy",
     "OpenRouterToolModel",
     "OpenRouterVLM",
 ]

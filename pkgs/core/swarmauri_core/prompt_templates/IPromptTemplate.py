@@ -1,5 +1,5 @@
-from typing import Dict, List, Any, Union
 from abc import ABC, abstractmethod
+from typing import Any, Union
 
 
 class IPromptTemplate(ABC):
@@ -11,13 +11,12 @@ class IPromptTemplate(ABC):
     """
 
     @abstractmethod
-    def __call__(self, **kwargs: Dict[str, Any]) -> str:
+    def __call__(self, **kwargs: dict[str, Any]) -> str:
         """
         Abstract method that subclasses must implement to define the behavior
         of the prompt template when called.
 
         """
-        pass
 
     @abstractmethod
     def set_template(self, template: str) -> None:
@@ -28,11 +27,10 @@ class IPromptTemplate(ABC):
             template (str): The new template string to be used for generating
             prompts.
         """
-        pass
 
     @abstractmethod
     def set_variables(
-        self, variables: Union[List[Dict[str, Any]], Dict[str, Any]] = {}
+        self, variables: Union[list[dict[str, Any]], dict[str, Any]] = {}
     ) -> None:
         """
         Sets or updates the variables to be substituted into the template.
@@ -44,10 +42,9 @@ class IPromptTemplate(ABC):
                                         and its
                                         replacement value in the template.
         """
-        pass
 
     @abstractmethod
-    def generate_prompt(self, **kwargs: Dict[str, Any]) -> str:
+    def generate_prompt(self, **kwargs: dict[str, Any]) -> str:
         """
         Generates a prompt string based on the current template and provided
         keyword arguments.
@@ -61,4 +58,3 @@ class IPromptTemplate(ABC):
             by their
                  corresponding values provided in `kwargs`.
         """
-        pass

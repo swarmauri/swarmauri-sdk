@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from typing import Optional
 
 from swarmauri_base.transports.peer_mixin import PeerTransportMixin
 from swarmauri_base.transports.runnable_mixin import RunnableMixin
@@ -53,7 +52,7 @@ class MeshSidecarHttp2(TransportBase, RunnableMixin, PeerTransportMixin):
 
     async def _open_client(
         self,
-        uds_path: Optional[str] = None,
+        uds_path: str | None = None,
         host: str = "127.0.0.1",
         port: int = 15001,
     ) -> None:

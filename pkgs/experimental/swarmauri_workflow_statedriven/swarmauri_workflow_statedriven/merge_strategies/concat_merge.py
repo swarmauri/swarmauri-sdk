@@ -14,8 +14,7 @@ class ConcatMergeStrategy(MergeStrategy):
     """
 
     def merge(self, inputs: List[Any]) -> Any:
-        """
-        Merge a list of branch outputs by concatenating them as strings.
+        """Merge a list of branch outputs by concatenating them as strings.
 
         Args:
             inputs: List of values buffered from incoming branches.

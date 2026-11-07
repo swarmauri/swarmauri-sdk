@@ -1,8 +1,7 @@
-from abc import ABC, abstractmethod
-from typing import List
 import warnings
-from swarmauri_core.vectors.IVector import IVector
+from abc import ABC, abstractmethod
 
+from swarmauri_core.vectors.IVector import IVector
 
 warnings.warn(
     (
@@ -35,10 +34,9 @@ class IDistanceSimilarity(ABC):
         Returns:
             float: The computed distance between vector_a and vector_b.
         """
-        pass
 
     @abstractmethod
-    def distances(self, vector_a: IVector, vectors_b: List[IVector]) -> float:
+    def distances(self, vector_a: IVector, vectors_b: list[IVector]) -> float:
         pass
 
     @abstractmethod
@@ -56,10 +54,9 @@ class IDistanceSimilarity(ABC):
         Returns:
             float: A similarity score between vector_a and vector_b.
         """
-        pass
 
     @abstractmethod
     def similarities(
-        self, vector_a: IVector, vectors_b: List[IVector]
+        self, vector_a: IVector, vectors_b: list[IVector]
     ) -> float:
         pass

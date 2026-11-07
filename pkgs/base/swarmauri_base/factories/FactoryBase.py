@@ -1,7 +1,9 @@
-from typing import Any, Callable, Literal, Optional
-from pydantic import ConfigDict, Field
+from collections.abc import Callable
+from typing import Any, Literal
 
+from pydantic import ConfigDict, Field
 from swarmauri_core.factories.IFactory import IFactory
+
 from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 
@@ -11,7 +13,7 @@ class FactoryBase(IFactory, ComponentBase):
     Base factory class for registering and creating instances.
     """
 
-    resource: Optional[str] = Field(
+    resource: str | None = Field(
         default=ResourceTypes.FACTORY.value, frozen=True
     )
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)

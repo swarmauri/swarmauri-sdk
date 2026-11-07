@@ -1,11 +1,11 @@
-from typing import Optional, Union, Literal
 import logging
 import os
 from logging.handlers import RotatingFileHandler
+from typing import Literal, Optional
 
 from swarmauri_base import FullUnion
-from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.logger_formatters.FormatterBase import FormatterBase
+from swarmauri_base.logger_handlers.HandlerBase import HandlerBase
 from swarmauri_base.ObserveBase import ObserveBase
 
 
@@ -31,7 +31,7 @@ class FileLoggingHandler(HandlerBase):
 
     type: Literal["FileLoggingHandler"] = "FileLoggingHandler"
     level: int = logging.INFO
-    formatter: Optional[Union[str, FullUnion[FormatterBase]]] = None
+    formatter: Optional[str | FullUnion[FormatterBase]] = None
     file_path: str = "logs/app.log"
     file_mode: str = "a"
     encoding: str = "utf-8"

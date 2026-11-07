@@ -33,13 +33,15 @@ class RegexCondition(Condition):
         Class: RegexCondition
         Method: evaluate
 
-        Check if the compiled regex matches the output of `node_name` in the workflow state.
+        Check if the compiled regex matches the output of `node_name` in the
+        workflow state.
 
         Args:
             state: mapping of state names to their outputs
 
         Returns:
-            True if the regex finds a match in the node's output; False otherwise.
+            True if the regex finds a match in the node's output; False
+            otherwise.
         """
         output = state.get(self.node_name)
         if not isinstance(output, str):

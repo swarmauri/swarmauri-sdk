@@ -1,14 +1,16 @@
-import pytest
 import os
-from swarmauri_standard.llms.GroqModel import GroqModel
+
+import pytest
+from dotenv import load_dotenv
+
+from swarmauri_standard.agents.RagAgent import RagAgent
 from swarmauri_standard.conversations.MaxSystemContextConversation import (
     MaxSystemContextConversation,
 )
-from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
-from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_standard.documents.Document import Document
-from swarmauri_standard.agents.RagAgent import RagAgent
-from dotenv import load_dotenv
+from swarmauri_standard.llms.GroqModel import GroqModel
+from swarmauri_standard.messages.SystemMessage import SystemMessage
+from swarmauri_standard.vector_stores.TfidfVectorStore import TfidfVectorStore
 
 load_dotenv()
 

@@ -70,6 +70,17 @@ members = [
     "community/swarmauri_llm_deepinfra",
     "community/swarmauri_llm_deepseek",
     "community/swarmauri_llm_falai",
+    "community/swarmauri_live_model_amazon_nova",
+    "community/swarmauri_live_model_gemini",
+    "community/swarmauri_live_model_openai",
+    "community/swarmauri_live_model_qwen",
+    "community/swarmauri_live_model_xai",
+    "community/swarmauri_provider_amazon_nova",
+    "community/swarmauri_provider_gemini",
+    "community/swarmauri_provider_openai",
+    "community/swarmauri_provider_openrouter",
+    "community/swarmauri_provider_qwen",
+    "community/swarmauri_provider_xai",
     "community/swarmauri_llm_gemini",
     "community/swarmauri_llm_groq",
     "community/swarmauri_llm_hyperbolic",
@@ -141,6 +152,7 @@ members = [
     "community/swarmauri_tool_zapierhook",
     "community/swarmauri_toolkit_github",
     "community/swarmauri_toolkit_jupytertoolkit",
+    "community/swarmauri_video_lipsync_synclabs",
     "community/swarmauri_vectorstore_annoy",
     "community/swarmauri_vectorstore_cloudweaviate",
     "community/swarmauri_vectorstore_duckdb",
@@ -183,6 +195,7 @@ members = [
     "experimental/swarmauri_crypto_sodium",
     "deprecated/swarmauri_experimental",
     "experimental/swarmauri_keyprovider_pkcs11",
+    "experimental/swarmauri_tests_component",
     "experimental/swarmauri_tests_loc_tersity",
     "experimental/swarmauri_tests_pylicense",
     "experimental/swarmauri_tests_readme_examples",
@@ -197,6 +210,10 @@ members = [
     "plugins/media_signer",
     "plugins/zdx",
     "standards/swarmauri_agent_skill",
+    "standards/swarmauri_agent_realtime",
+    "standards/swarmauri_transport_httpx",
+    "standards/swarmauri_transport_retry",
+    "standards/swarmauri_transport_websocket",
     "standards/swarmauri_agent_texttospeech",
     "standards/swarmauri_auth_idp_apple",
     "standards/swarmauri_auth_idp_aws",
@@ -275,7 +292,6 @@ members = [
     "standards/swarmauri_keyprovider_remote_jwks",
     "standards/swarmauri_keyprovider_ssh",
     "standards/swarmauri_keyproviders_mirrored",
-    "standards/swarmauri_middleware_auth",
     "standards/swarmauri_middleware_bulkhead",
     "standards/swarmauri_middleware_cachecontrol",
     "standards/swarmauri_middleware_cors",
@@ -335,6 +351,7 @@ members = [
     "standards/swarmauri_storage_s3",
     "standards/swarmauri_storage_s3_over_sftp",
     "standards/swarmauri_storage_s3fs",
+    "standards/swarmauri_storage_webdav",
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_tokens_introspection",
@@ -370,7 +387,6 @@ members = [
     "standards/swarmauri_transport_uds_unicast",
     "standards/swarmauri_transport_wsjsonrpcmux",
     "standards/swarmauri_tts_playht",
-    "standards/swarmauri_video_lipsync_synclabs",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
@@ -418,6 +434,10 @@ swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_agent_skill = { workspace = true }
+swarmauri_agent_realtime = { workspace = true }
+swarmauri_transport_httpx = { workspace = true }
+swarmauri_transport_retry = { workspace = true }
+swarmauri_transport_websocket = { workspace = true }
 swarmauri_agent_texttospeech = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
@@ -531,6 +551,17 @@ swarmauri_llm_cohere = { workspace = true }
 swarmauri_llm_deepinfra = { workspace = true }
 swarmauri_llm_deepseek = { workspace = true }
 swarmauri_llm_falai = { workspace = true }
+swarmauri_live_model_amazon_nova = { workspace = true }
+swarmauri_live_model_gemini = { workspace = true }
+swarmauri_live_model_openai = { workspace = true }
+swarmauri_live_model_qwen = { workspace = true }
+swarmauri_live_model_xai = { workspace = true }
+swarmauri_provider_amazon_nova = { workspace = true }
+swarmauri_provider_gemini = { workspace = true }
+swarmauri_provider_openai = { workspace = true }
+swarmauri_provider_openrouter = { workspace = true }
+swarmauri_provider_qwen = { workspace = true }
+swarmauri_provider_xai = { workspace = true }
 swarmauri_llm_gemini = { workspace = true }
 swarmauri_llm_groq = { workspace = true }
 swarmauri_llm_hyperbolic = { workspace = true }
@@ -548,7 +579,6 @@ swarmauri_matrix_hamming74 = { workspace = true }
 swarmauri_measurement_mutualinformation = { workspace = true }
 swarmauri_measurement_tokencountestimator = { workspace = true }
 swarmauri_metric_hamming = { workspace = true }
-swarmauri_middleware_auth = { workspace = true }
 swarmauri_middleware_bulkhead = { workspace = true }
 swarmauri_middleware_cachecontrol = { workspace = true }
 swarmauri_middleware_circuitbreaker = { workspace = true }
@@ -620,7 +650,9 @@ swarmauri_storage_minio = { workspace = true }
 swarmauri_storage_s3 = { workspace = true }
 swarmauri_storage_s3_over_sftp = { workspace = true }
 swarmauri_storage_s3fs = { workspace = true }
+swarmauri_storage_webdav = { workspace = true }
 swarmauri_tests_griffe = { workspace = true }
+swarmauri_tests_component = { workspace = true }
 swarmauri_tests_loc_tersity = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 swarmauri_tests_readme_examples = { workspace = true }
@@ -763,6 +795,7 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.ruff]
+required-version = "==0.15.21"
 line-length = 79
 exclude = ["experimental", ".config", "**/*.bak.py", "standards/peagen/test_project"]
 

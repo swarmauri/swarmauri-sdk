@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from swarmauri_core.chains.IChain import IChain
 from swarmauri_core.chains.IChainStep import IChainStep
@@ -11,7 +11,7 @@ class IChainFactory(ABC):
     """
 
     @abstractmethod
-    def create_chain(self, steps: Optional[List[IChainStep]] = None) -> IChain:
+    def create_chain(self, steps: list[IChainStep] | None = None) -> IChain:
         pass
 
     @abstractmethod
@@ -27,11 +27,11 @@ class IChainFactory(ABC):
         pass
 
     @abstractmethod
-    def get_chain_steps(self) -> List[IChainStep]:
+    def get_chain_steps(self) -> list[IChainStep]:
         pass
 
     @abstractmethod
-    def set_chain_steps(self, steps: List[IChainStep]) -> None:
+    def set_chain_steps(self, steps: list[IChainStep]) -> None:
         pass
 
     @abstractmethod
@@ -43,7 +43,7 @@ class IChainFactory(ABC):
         pass
 
     @abstractmethod
-    def get_configs(self) -> Dict[str, Any]:
+    def get_configs(self) -> dict[str, Any]:
         pass
 
     @abstractmethod

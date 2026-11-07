@@ -74,7 +74,7 @@ class EvalResult(EvalResultBase):
             raise ValueError("Program cannot be None")
 
         # Validate metadata keys are strings
-        if not all(isinstance(key, str) for key in metadata.keys()):
+        if not all(isinstance(key, str) for key in metadata):
             logger.error("All metadata keys must be strings")
             raise TypeError("All metadata keys must be strings")
 
@@ -108,22 +108,16 @@ class EvalResult(EvalResultBase):
             raise ValueError("Metadata must be a dictionary")
 
         # Ensure all keys are strings
-        non_string_keys = [
-            key for key in metadata.keys() if not isinstance(key, str)
-        ]
+        non_string_keys = [key for key in metadata if not isinstance(key, str)]
         if non_string_keys:
             logger.error(
-                (
-                    f"Metadata validation failed: All metadata keys must be "
-                    f"strings. Found non-string keys: {non_string_keys}"
-                )
+                f"Metadata validation failed: All metadata keys must be "
+                f"strings. Found non-string keys: {non_string_keys}"
             )
             raise TypeError(
-                (
-                    f"All metadata keys must be strings. Found non-string "
-                    f"keys: "
-                    f"{non_string_keys}"
-                )
+                f"All metadata keys must be strings. Found non-string "
+                f"keys: "
+                f"{non_string_keys}"
             )
 
         # Additional validation logic would go here
@@ -144,7 +138,7 @@ class EvalResult(EvalResultBase):
             If new metadata keys are not strings
         """
         # Validate new metadata keys
-        if not all(isinstance(key, str) for key in new_metadata.keys()):
+        if not all(isinstance(key, str) for key in new_metadata):
             logger.error("All metadata keys must be strings")
             raise TypeError("All metadata keys must be strings")
 

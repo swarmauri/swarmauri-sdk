@@ -15,7 +15,6 @@ class ISaveModel(ABC):
         Parameters:
         - path (str): The directory path where the model will be saved.
         """
-        pass
 
     @abstractmethod
     def load_model(self, path: str) -> Any:
@@ -28,4 +27,3 @@ class ISaveModel(ABC):
         Returns:
         - Returns an instance of the loaded model.
         """
-        pass

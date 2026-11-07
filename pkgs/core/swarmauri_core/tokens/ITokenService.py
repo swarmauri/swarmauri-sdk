@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Mapping, Optional
+from typing import Any, Iterable, Mapping
 
 
 class ITokenService(ABC):
@@ -21,17 +21,17 @@ class ITokenService(ABC):
     @abstractmethod
     async def mint(
         self,
-        claims: Dict[str, Any],
+        claims: dict[str, Any],
         *,
         alg: str,
         kid: str | None = None,
         key_version: int | None = None,
-        headers: Optional[Dict[str, Any]] = None,
-        lifetime_s: Optional[int] = 3600,
-        issuer: Optional[str] = None,
-        subject: Optional[str] = None,
-        audience: Optional[str | list[str]] = None,
-        scope: Optional[str] = None,
+        headers: dict[str, Any] | None = None,
+        lifetime_s: int | None = 3600,
+        issuer: str | None = None,
+        subject: str | None = None,
+        audience: str | list[str] | None = None,
+        scope: str | None = None,
     ) -> str:
         """Return a compact JWS/JWT string with normalized timestamps."""
 
@@ -40,10 +40,10 @@ class ITokenService(ABC):
         self,
         token: str,
         *,
-        issuer: Optional[str] = None,
-        audience: Optional[str | list[str]] = None,
+        issuer: str | None = None,
+        audience: str | list[str] | None = None,
         leeway_s: int = 60,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Return validated claims or raise an exception on failure."""
 
     @abstractmethod

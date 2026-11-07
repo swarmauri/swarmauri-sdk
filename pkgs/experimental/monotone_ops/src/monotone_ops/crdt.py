@@ -85,14 +85,21 @@ class PNCounter(Generic[R]):
         return self.positive.value - self.negative.value
 
     def increment(self, replica: R, amount: int = 1) -> PNCounter[R]:
-        return PNCounter(self.positive.increment(replica, amount), self.negative)
+        return PNCounter(
+            self.positive.increment(replica, amount), self.negative
+        )
 
     def decrement(self, replica: R, amount: int = 1) -> PNCounter[R]:
-        return PNCounter(self.positive, self.negative.increment(replica, amount))
+        return PNCounter(
+            self.positive, self.negative.increment(replica, amount)
+        )
 
 
 def pncounter_merge(a: PNCounter[R], b: PNCounter[R]) -> PNCounter[R]:
-    return PNCounter(gcounter_merge(a.positive, b.positive), gcounter_merge(a.negative, b.negative))
+    return PNCounter(
+        gcounter_merge(a.positive, b.positive),
+        gcounter_merge(a.negative, b.negative),
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,7 +121,9 @@ class ORSet(Generic[T, Dot]):
     @property
     def value(self) -> frozenset[T]:
         return frozenset(
-            item for item, dots in self.adds.items() if dots - self.removes.get(item, frozenset())
+            item
+            for item, dots in self.adds.items()
+            if dots - self.removes.get(item, frozenset())
         )
 
     def add(self, item: T, dot: Dot) -> ORSet[T, Dot]:
@@ -124,15 +133,23 @@ class ORSet(Generic[T, Dot]):
 
     def remove(self, item: T) -> ORSet[T, Dot]:
         removes = {key: set(value) for key, value in self.removes.items()}
-        removes.setdefault(item, set()).update(self.adds.get(item, frozenset()))
+        removes.setdefault(item, set()).update(
+            self.adds.get(item, frozenset())
+        )
         return ORSet(self.adds, {k: frozenset(v) for k, v in removes.items()})
 
 
 def orset_merge(a: ORSet[T, Dot], b: ORSet[T, Dot]) -> ORSet[T, Dot]:
     keys = a.adds.keys() | b.adds.keys()
-    adds = {key: a.adds.get(key, frozenset()) | b.adds.get(key, frozenset()) for key in keys}
+    adds = {
+        key: a.adds.get(key, frozenset()) | b.adds.get(key, frozenset())
+        for key in keys
+    }
     remove_keys = a.removes.keys() | b.removes.keys()
-    removes = {key: a.removes.get(key, frozenset()) | b.removes.get(key, frozenset()) for key in remove_keys}
+    removes = {
+        key: a.removes.get(key, frozenset()) | b.removes.get(key, frozenset())
+        for key in remove_keys
+    }
     return ORSet(adds, removes)
 
 
@@ -145,7 +162,9 @@ class MVRegister(Generic[T, Dot]):
         return frozenset(self.values.values())
 
 
-def mvregister_merge(a: MVRegister[T, Dot], b: MVRegister[T, Dot]) -> MVRegister[T, Dot]:
+def mvregister_merge(
+    a: MVRegister[T, Dot], b: MVRegister[T, Dot]
+) -> MVRegister[T, Dot]:
     out = dict(a.values)
     out.update(b.values)
     return MVRegister(out)
