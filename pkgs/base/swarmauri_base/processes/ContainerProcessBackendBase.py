@@ -21,7 +21,9 @@ with (root / 'lock').open('a') as lock:
         sys.exit(125)
     if sys.argv[2]:
         os.chdir(sys.argv[2])
-    process = subprocess.Popen(sys.argv[3:], start_new_session=True, stdin=sys.stdin.buffer)
+    process = subprocess.Popen(
+        sys.argv[3:], start_new_session=True, stdin=sys.stdin.buffer
+    )
     (root / 'pid').write_text(str(process.pid))
 status = process.wait()
 with (root / 'lock').open('a') as lock:
