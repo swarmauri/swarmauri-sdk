@@ -1,12 +1,12 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_tool_createfile/">
-        <img src="https://static.pepy.tech/badge/swarmauri_tool_createfile/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_createfile/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_createfile" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_createfile/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_createfile.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_createfile/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_createfile" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_createfile/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_createfile" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_createfile/">
@@ -31,6 +31,8 @@ plain-text artifact to disk without shelling out.
   existing file, or an OS-level write failure all come back as a structured
   result, so an agent can read the reason and pick another path.
 - **Expands `~`** so home-relative paths work without extra handling.
+- **Restricts writes to trusted roots** configured by the service owner.
+  Symlinks and parent traversal are rejected.
 
 ## Installation
 
@@ -50,29 +52,29 @@ from pathlib import Path
 from swarmauri_tool_createfile import CreateFileTool
 
 # The tool does not create parent directories, so make the parent first.
-Path("/tmp/reports").mkdir(parents=True, exist_ok=True)
+reports = Path.cwd() / "reports"
+reports.mkdir(parents=True, exist_ok=True)
 
-tool = CreateFileTool()
+tool = CreateFileTool(allowed_roots=[str(reports)])
 
 result = tool(
-    path="/tmp/reports/summary.txt",
+    path=str(reports / "summary.txt"),
     content="Quarterly summary\n",
 )
-# {"created": True, "path": "/tmp/reports/summary.txt", "bytes_written": 18}
+# {"created": True, "path": ".../reports/summary.txt", "bytes_written": 18}
 
 # Nothing is written when the path is already taken.
-result = tool(path="/tmp/reports/summary.txt", content="overwrite attempt")
-# {"created": False, "path": "/tmp/reports/summary.txt",
-#  "error": "Something already exists at /tmp/reports/summary.txt. Nothing was written."}
+result = tool(path=str(reports / "summary.txt"), content="overwrite attempt")
+assert result["created"] is False
 ```
 
 ### Result keys
 
 | Key | Type | Meaning |
 | --- | --- | --- |
-| `created` | `bool` | Whether a file was written |
-| `path` | `str` | Resolved destination path |
-| `bytes_written` | `int` | Size of the written file, present only on success |
+| `created` | `bool` | Whether creation and writing completed successfully |
+| `path` | `str` | Absolute expanded destination on valid-path calls; original input on expansion failure |
+| `bytes_written` | `int` | Size obtained from the open file descriptor, present only on success |
 | `error` | `str` | Human-readable reason, present only on refusal |
 
 ## Expected workflows
@@ -87,8 +89,8 @@ result = tool(path="/tmp/reports/summary.txt", content="overwrite attempt")
 ## FAQ
 
 > **Does it create parent directories?**  
-> No. A missing parent directory is reported in `error` rather than created, so
-> a typo cannot silently produce a tree of directories.
+> Create the parent directory first. On POSIX, configure the existing parent
+> as an allowed root when the service controls that directory and its ancestors.
 
 > **Does it overwrite?**  
 > Never. There is no overwrite flag by design; delete the file first if that is
@@ -96,3 +98,45 @@ result = tool(path="/tmp/reports/summary.txt", content="overwrite attempt")
 
 > **Is binary content supported?**  
 > No. The tool writes text as UTF-8 only.
+
+## Filesystem policy and failure behavior
+
+The service owner configures `allowed_roots` as existing absolute directories.
+The default is the working directory at tool construction. This configuration
+is not an agent-call parameter. Relative destinations are interpreted against
+the working directory at call time and must still lie beneath an allowed root.
+An empty root list denies all writes. Existing symlinks anywhere in the root or
+destination path are rejected; `..` components are rejected rather than resolved.
+
+On POSIX, the destination must be a direct child of a configured root.
+Configure the destination's existing parent as an allowed root only when
+the service controls that directory and its ancestors. This avoids
+creating through a nested parent that can move outside the root during
+lookup. Creation uses one exclusive, no-follow lookup from the root
+descriptor. Linux uses `openat2` to open the configured root when
+available. If the syscall is unavailable, the tool walks the trusted root
+path without following symlinks. Policy denials such as `EPERM` or
+`EACCES` are returned as errors.
+
+The service must control the configured root, its ancestors, and mount
+configuration. A root handle identifies the directory opened by the tool.
+Filesystem permissions still govern concurrent changes to opened objects.
+
+UTF-8 encoding is checked before creation. Exclusive creation atomically refuses
+existing entries, including dangling symlinks; writing the full content is not an
+atomic publication. If an OS write, descriptor-stat, or close operation fails,
+`created` is false and the error warns that partial output may remain. The tool
+does not unlink the final pathname, because another process may have replaced
+it. Service-owned recovery must inspect incomplete output rather than blindly
+deleting or retrying at the same pathname.
+
+### Windows filesystem support
+
+On Windows the backend opens the local drive by its volume identity and
+opens each component relative to a held directory handle. It rejects junctions
+and other reparse points and does not accept UNC or device paths, alternate data
+streams, or ambiguous trailing dots or spaces, or reserved DOS basenames. Ancestors are
+opened for traversal without requiring listing access. Volume and directory handles
+deny delete sharing during traversal. Returned paths are descriptive snapshots.
+Existing entries, including hard links, cannot be overwritten by exclusive
+creation.

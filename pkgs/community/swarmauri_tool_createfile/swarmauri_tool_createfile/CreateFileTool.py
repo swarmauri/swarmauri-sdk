@@ -1,3 +1,5 @@
+import errno
+import os
 from pathlib import Path
 from typing import Dict, List, Literal
 
@@ -7,112 +9,93 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
 
+from ._paths import open_destination
+
 
 @ComponentBase.register_type(ToolBase, "CreateFileTool")
 class CreateFileTool(ToolBase):
-    """Create a new text file at a path, optionally with initial content."""
+    """Create a UTF-8 file beneath a service-configured trusted root."""
 
     version: str = "0.1.dev1"
+    allowed_roots: List[str] = Field(
+        default_factory=lambda: [str(Path.cwd())],
+        description="Trusted absolute roots set by the service owner.",
+    )
     parameters: List[Parameter] = Field(
         default_factory=lambda: [
             Parameter(
                 name="path",
                 input_type="string",
                 description=(
-                    "Path of the file to create. A leading ~ is expanded."
+                    "Destination within a root. On POSIX the parent must "
+                    "be a configured root. Expands ~."
                 ),
                 required=True,
             ),
             Parameter(
                 name="content",
                 input_type="string",
-                description=(
-                    "Initial text content. Defaults to an empty file."
-                ),
+                description="Initial UTF-8 text. Defaults to an empty file.",
                 required=False,
             ),
         ]
     )
     name: str = "CreateFileTool"
     description: str = (
-        "Creates a new text file at the given path with optional initial "
-        "content. Refuses to overwrite an existing file."
+        "Creates a new UTF-8 file within configured allowed roots. "
+        "Refuses existing destinations, parent traversal, and symlinks."
     )
     type: Literal["CreateFileTool"] = "CreateFileTool"
 
     def __call__(self, path: str, content: str = "") -> Dict[str, object]:
+        """Create without overwriting and report failures as structured values.
+
+        Relative paths are based on the current working directory. The service
+        configures allowed_roots; it is not an agent-call parameter. Parent
+        directories must already exist. On POSIX the parent must be a
+        configured root. UTF-8 is validated before creation.
+
+        Exclusive creation is atomic, but publishing complete content is not.
+        On an OS write failure, a partial file may remain. Never unlink the
+        final pathname: another process may have replaced that directory entry.
         """
-        Create a file at ``path`` holding ``content``.
-
-        Parameters:
-            path (str): Destination path. A leading ~ is expanded to the home
-                directory.
-            content (str): Text written as UTF-8. Defaults to "".
-
-        Returns:
-            Dict[str, object]: On success ``{"created": True, "path": ...,
-            "bytes_written": ...}``. On a refused write ``{"created": False,
-            "path": ..., "error": ...}``.
-
-        The creation is atomic. The destination is opened in exclusive-create
-        mode, so an existing file and a dangling symlink both fail here rather
-        than being truncated by a later write; checking existence first and
-        writing afterwards would leave a window between the two, and a
-        dangling symlink reads as free to ``exists()``.
-
-        Nothing is raised: a missing parent directory, an occupied path, and
-        an OS-level write failure are all reported through ``error`` so an
-        agent can read the reason and choose another path.
-        """
-        target = Path(path).expanduser()
-
-        if not target.parent.exists():
-            return {
-                "created": False,
-                "path": str(target),
-                "error": (
-                    f"The directory {target.parent} does not exist. "
-                    "Create it first or choose another path."
-                ),
-            }
-
+        display_path = path if isinstance(path, str) else ""
+        created = False
         try:
-            handle = target.open("x", encoding="utf-8", newline="")
-        except FileExistsError:
-            return {
-                "created": False,
-                "path": str(target),
-                "error": (
-                    f"Something already exists at {target}. "
-                    "Nothing was written."
-                ),
-            }
-        except OSError as exc:
-            return {
-                "created": False,
-                "path": str(target),
-                "error": f"Could not create {target}: {exc}",
-            }
-
-        try:
-            with handle:
-                handle.write(content)
-        except OSError as exc:
-            # This call created the file, so removing it cannot destroy data
-            # belonging to anyone else. Leaving a partial file behind would
-            # also make the caller's retry fail as "already exists".
+            if not isinstance(path, str) or not path.strip():
+                raise ValueError("path must be a non-empty string")
+            if not isinstance(content, str):
+                raise ValueError("content must be a string")
+            payload = content.encode("utf-8")
+            target = Path(path).expanduser().absolute()
+            display_path = str(target)
+            descriptor = open_destination(target, self.allowed_roots)
+            created = True
             try:
-                target.unlink()
-            except OSError:
-                pass
-            return {
-                "created": False,
-                "path": str(target),
-                "error": f"Could not write {target}: {exc}",
-            }
+                remaining = memoryview(payload)
+                while remaining:
+                    count = os.write(descriptor, remaining)
+                    if count <= 0:
+                        raise OSError(errno.EIO, "Write made no progress")
+                    remaining = remaining[count:]
+                size = os.fstat(descriptor).st_size
+            finally:
+                os.close(descriptor)
+        except (OSError, ValueError, RuntimeError, TypeError) as exc:
+            if isinstance(exc, FileExistsError):
+                message = f"Destination already exists: {display_path}"
+            elif isinstance(exc, FileNotFoundError):
+                message = (
+                    "The parent directory does not exist. "
+                    "Create it first or choose another path."
+                )
+            else:
+                message = f"Could not create {display_path}: {exc}"
+            if created:
+                message += (
+                    " Partial output may remain. No pathname cleanup occurred "
+                    "because the directory entry may have changed."
+                )
+            return {"created": False, "path": display_path, "error": message}
 
-        return {
-            "created": True,
-            "path": str(target),
-            "bytes_written": target.stat().st_size,
-        }
+        return {"created": True, "path": display_path, "bytes_written": size}
