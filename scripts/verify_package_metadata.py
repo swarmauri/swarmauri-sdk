@@ -14,6 +14,7 @@ checks fail.
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -23,14 +24,13 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for Python <3.11
     import tomli as tomllib  # type: ignore
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-PKGS_DIR = REPO_ROOT / "pkgs"
 
 
-def iter_packages() -> list[Path]:
+def iter_packages(pkgs_dir: Path) -> list[Path]:
     """Yield directories containing a ``pyproject.toml`` under ``pkgs``."""
     packages: list[Path] = []
-    for pyproject in PKGS_DIR.rglob("pyproject.toml"):
-        if pyproject.parent == PKGS_DIR:
+    for pyproject in pkgs_dir.rglob("pyproject.toml"):
+        if pyproject.parent == pkgs_dir:
             # Skip monorepo pyproject
             continue
         packages.append(pyproject.parent)
@@ -50,13 +50,15 @@ def has_notice(pkg_dir: Path) -> bool:
     return notice.is_file()
 
 
-def readme_has_header_and_badges(pkg_dir: Path, project_name: str) -> bool:
+def readme_has_header_and_badges(
+    repo_root: Path, pkg_dir: Path, project_name: str
+) -> bool:
     readme = pkg_dir / "README.md"
     if not readme.is_file():
         return False
     text = readme.read_text(encoding="utf-8", errors="ignore")
     header_ok = "assets/swarmauri.brand.theme.svg" in text
-    rel_path = pkg_dir.relative_to(REPO_ROOT).as_posix()
+    rel_path = pkg_dir.relative_to(repo_root).as_posix()
     badge_patterns = [
         f"https://img.shields.io/pypi/dm/{project_name}",
         f"https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/{rel_path}.svg",
@@ -76,7 +78,8 @@ def parse_pyproject(pkg_dir: Path) -> tuple[str, bool, bool]:
     name = project.get("name", pkg_dir.name)
     authors = project.get("authors", [])
     author_ok = any(
-        isinstance(a, dict) and a.get("email") == "jacob@swarmauri.com" for a in authors
+        isinstance(a, dict) and a.get("email") == "jacob@swarmauri.com"
+        for a in authors
     )
     license_field = project.get("license")
     license_ok = False
@@ -86,7 +89,9 @@ def parse_pyproject(pkg_dir: Path) -> tuple[str, bool, bool]:
         if "text" in license_field and isinstance(license_field["text"], str):
             txt = license_field["text"]
             license_ok = "Apache" in txt and "2.0" in txt
-        elif "file" in license_field and isinstance(license_field["file"], str):
+        elif "file" in license_field and isinstance(
+            license_field["file"], str
+        ):
             lf = pkg_dir / license_field["file"]
             if lf.is_file():
                 txt = lf.read_text(encoding="utf-8", errors="ignore")
@@ -96,7 +101,8 @@ def parse_pyproject(pkg_dir: Path) -> tuple[str, bool, bool]:
 
 def build_report(rows: list[dict]) -> str:
     header = (
-        "| Package | Directory | LICENSE | NOTICE | README | Author | Pyproject License |\n"
+        "| Package | Directory | LICENSE | NOTICE | README | Author | "
+        "Pyproject License |\n"
         "|---|---|---|---|---|---|---|\n"
     )
     lines = []
@@ -107,37 +113,58 @@ def build_report(rows: list[dict]) -> str:
 
         lines.append(
             f"| {r['name']} | {r['directory']} | {mark(r['license_file'])} | "
-            f"{mark(r['notice_file'])} | {mark(r['readme'])} | {mark(r['author'])} | "
+            f"{mark(r['notice_file'])} | {mark(r['readme'])} | "
+            f"{mark(r['author'])} | "
             f"{mark(r['license_pyproject'])} |"
         )
     return header + "\n".join(lines) + "\n"
 
 
-def main() -> None:
-    packages = sorted(iter_packages())
+def collect_rows(repo_root: Path) -> list[dict]:
     rows = []
-    has_failures = False
-    for pkg in packages:
+    for pkg in sorted(iter_packages(repo_root / "pkgs")):
         name, author_ok, license_pyproject_ok = parse_pyproject(pkg)
-        row = {
-            "name": name,
-            "directory": pkg.relative_to(REPO_ROOT).as_posix(),
-            "license_file": has_apache_license(pkg),
-            "notice_file": has_notice(pkg),
-            "readme": readme_has_header_and_badges(pkg, name),
-            "author": author_ok,
-            "license_pyproject": license_pyproject_ok,
-        }
-        if not all(row.values()):
-            has_failures = True
-        rows.append(row)
-    report = build_report(rows)
-    print(report)
-    if has_failures:
-        print(
-            "One or more packages are missing required files or metadata.",
-            file=sys.stderr,
+        rows.append(
+            {
+                "name": name,
+                "directory": pkg.relative_to(repo_root).as_posix(),
+                "license_file": has_apache_license(pkg),
+                "notice_file": has_notice(pkg),
+                "readme": readme_has_header_and_badges(repo_root, pkg, name),
+                "author": author_ok,
+                "license_pyproject": license_pyproject_ok,
+            }
         )
+    return rows
+
+
+def failures(rows: list[dict]) -> set[tuple[str, str]]:
+    return {
+        (row["directory"], key)
+        for row in rows
+        for key, value in row.items()
+        if value is False
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--baseline",
+        type=Path,
+        help="Only fail on regressions against this repository checkout.",
+    )
+    args = parser.parse_args()
+    rows = collect_rows(REPO_ROOT)
+    violations = failures(rows)
+    if args.baseline is not None:
+        if not (args.baseline / "pkgs/pyproject.toml").is_file():
+            parser.error("--baseline must point to a Swarmauri SDK checkout")
+        violations -= failures(collect_rows(args.baseline))
+    print(build_report(rows))
+    if violations:
+        for directory, check in sorted(violations):
+            print(f"{directory}: failed {check}", file=sys.stderr)
         raise SystemExit(1)
 
 
