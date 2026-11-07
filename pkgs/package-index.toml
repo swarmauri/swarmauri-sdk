@@ -3081,6 +3081,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_createfile"
+path = "community/swarmauri_tool_createfile"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_dalechallreadability"
 path = "community/swarmauri_tool_dalechallreadability"
 layer = "50-community"
@@ -3407,6 +3419,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_lexicaldensity"
 path = "community/swarmauri_tool_lexicaldensity"
+layer = "50-community"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_listfiles"
+path = "community/swarmauri_tool_listfiles"
 layer = "50-community"
 order = 0
 family = "tool"
