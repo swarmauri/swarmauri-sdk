@@ -3,6 +3,7 @@ name = "swarmauri_tool_addcontenttorag"
 version = "0.1.0.dev1"
 description = "Swarmauri tool for adding text content, with optional metadata tags, to a RAG knowledge base."
 license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 readme = "README.md"
 repository = "http://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"

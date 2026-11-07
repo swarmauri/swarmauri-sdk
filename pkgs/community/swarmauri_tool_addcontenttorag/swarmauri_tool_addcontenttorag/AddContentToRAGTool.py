@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+from copy import deepcopy
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import ConfigDict, Field
@@ -41,14 +43,14 @@ class AddContentToRAGTool(ToolBase):
     def __call__(
         self,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Add ``content`` to the configured knowledge base.
 
         Parameters:
             content (str): Text to add. Must not be blank or whitespace only.
-            metadata (dict): Optional tags stored with the content. Defaults
+            metadata (Mapping): Optional tags stored with the content. Defaults
                 to an empty mapping.
 
         Returns:
@@ -59,8 +61,8 @@ class AddContentToRAGTool(ToolBase):
             ValueError: the tool has no usable knowledge base, or ``content``
                 is blank.
             RuntimeError: the knowledge base rejected the write. The original
-                exception is chained and not exposed, so connection details
-                stay out of the caller's view.
+                exception is available as the chained cause for diagnostics;
+                the public error message does not contain provider details.
 
         The knowledge base is expected to provide
         ``add_documents(documents)``, the storage counterpart of the
@@ -73,15 +75,26 @@ class AddContentToRAGTool(ToolBase):
             raise ValueError(
                 "knowledge_base must provide add_documents(documents)"
             )
-        if not content.strip():
-            raise ValueError("content must not be blank")
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("content must be a non-blank string")
+        if metadata is not None and not isinstance(metadata, Mapping):
+            raise ValueError("metadata must be a mapping")
+        try:
+            stored_metadata = deepcopy(
+                dict(metadata) if metadata is not None else {}
+            )
+            response_metadata = deepcopy(stored_metadata)
+        except Exception as exc:
+            raise ValueError(
+                "metadata must support independent copying"
+            ) from exc
 
         # IVectorStore.add_documents takes IDocument instances, not dicts:
         # the standard stores read attributes such as ``doc.content`` straight
         # away, so a mapping would fail on every one of them.
         document = Document(
             content=content,
-            metadata=dict(metadata or {}),
+            metadata=stored_metadata,
         )
 
         try:
@@ -92,5 +105,5 @@ class AddContentToRAGTool(ToolBase):
         return {
             "added": 1,
             "content_length": len(content),
-            "metadata": document.metadata,
+            "metadata": response_metadata,
         }

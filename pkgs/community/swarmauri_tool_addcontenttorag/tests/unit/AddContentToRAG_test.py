@@ -161,3 +161,62 @@ def test_knowledge_base_is_excluded_from_serialized_state():
     tool = _tool_with(FakeKnowledgeBase())
 
     assert "knowledge_base" not in tool.model_dump()
+
+
+@pytest.mark.unit
+def test_nested_input_metadata_is_independent():
+    store = FakeKnowledgeBase()
+    tags = {"source": {"labels": ["original"]}}
+    _tool_with(store)("alpha", metadata=tags)
+    tags["source"]["labels"].append("changed")
+    assert store.documents[0].metadata == {"source": {"labels": ["original"]}}
+
+
+@pytest.mark.unit
+def test_returned_metadata_cannot_mutate_the_stored_document():
+    store = FakeKnowledgeBase()
+    result = _tool_with(store)("alpha", metadata={"labels": ["original"]})
+    result["metadata"]["labels"].append("changed")
+    assert store.documents[0].metadata == {"labels": ["original"]}
+
+
+@pytest.mark.unit
+def test_metadata_copy_failure_happens_before_store_write():
+    class NotCopyable:
+        def __deepcopy__(self, memo):
+            raise RuntimeError("cannot copy")
+
+    store = FakeKnowledgeBase()
+    with pytest.raises(ValueError, match="independent copying"):
+        _tool_with(store)("alpha", metadata={"value": NotCopyable()})
+    assert store.documents == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("metadata", [[], "tags", False])
+def test_metadata_must_be_a_mapping(metadata):
+    store = FakeKnowledgeBase()
+    with pytest.raises(ValueError, match="mapping"):
+        _tool_with(store)("alpha", metadata=metadata)
+    assert store.documents == []
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("content", [None, 123, []])
+def test_invalid_content_does_not_reach_the_store(content):
+    store = FakeKnowledgeBase()
+    with pytest.raises(ValueError, match="non-blank string"):
+        _tool_with(store)(content)
+    assert store.documents == []
+
+
+@pytest.mark.unit
+def test_read_only_mapping_is_copied_before_ingestion():
+    from types import MappingProxyType
+
+    store = FakeKnowledgeBase()
+    tags = {"labels": ["original"]}
+    result = _tool_with(store)("alpha", metadata=MappingProxyType(tags))
+    tags["labels"].append("caller mutation")
+    result["metadata"]["labels"].append("response mutation")
+    assert store.documents[0].metadata == {"labels": ["original"]}

@@ -1,12 +1,12 @@
 ![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg)
 
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_tool_addcontenttorag/">
-        <img src="https://static.pepy.tech/badge/swarmauri_tool_addcontenttorag/month" alt="PyPI - Downloads"/></a>
+    <a href="https://pypi.org/project/swarmauri_tool_addcontenttorag/">
+        <img src="https://img.shields.io/pypi/dm/swarmauri_tool_addcontenttorag" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_addcontenttorag/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_addcontenttorag.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_addcontenttorag/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_tool_addcontenttorag" alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_addcontenttorag/">
         <img src="https://img.shields.io/pypi/l/swarmauri_tool_addcontenttorag" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_tool_addcontenttorag/">
@@ -103,3 +103,24 @@ knowledge_base.documents
 > **What if the store fails mid-write?**  
 > The error is wrapped in a `RuntimeError` with the original chained for logs
 > but not shown to the caller.
+
+
+## Metadata ownership and ingestion scope
+
+Mapping inputs, including read-only mappings, are normalized to a dict.
+JSON-style metadata (nested built-in dictionaries, lists, and scalar values)
+is deep-copied before creating the SDK `Document`. Returned metadata is a
+separate snapshot of the submitted tags, so mutating these ordinary input or
+returned containers cannot change stored document tags. Custom Python values
+obey their own `deepcopy` protocol; objects that deliberately return themselves
+from that protocol do not carry the same isolation guarantee. Both snapshots
+are prepared before calling the store, so copy failures cannot report an error
+after a successful write. Metadata must be a mapping whose values support
+copying. Invalid input raises `ValueError` before any write.
+
+This tool ingests one text document per call. Callers own format conversion,
+chunking, preprocessing, and version conventions in metadata. The configured
+store owns indexing, persistence, and replacement policy. The tool does not
+claim automatic preprocessing or version management. Store failures expose a
+generic public message; the chained original exception remains available to
+trusted diagnostic code.
