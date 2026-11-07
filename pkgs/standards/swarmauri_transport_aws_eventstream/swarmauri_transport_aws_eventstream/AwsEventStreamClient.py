@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import warnings
 from collections.abc import Mapping
 from typing import Any, Literal
@@ -165,4 +166,6 @@ class AwsEventStreamClient(BidirectionalStreamClientBase):
         stream = client.invoke_model_with_bidirectional_stream(
             input_type(model_id=str(model_id))
         )
+        if inspect.isawaitable(stream):
+            stream = await stream
         return AwsEventStreamConnection.from_stream(stream)
