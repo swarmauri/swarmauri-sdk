@@ -3,8 +3,10 @@ from typing import Literal
 from swarmauri_base.model_providers.ProviderEndpointBase import (
     ProviderEndpointBase,
 )
+from swarmauri_base.ComponentBase import ComponentBase
 
 
+@ComponentBase.register_type(ProviderEndpointBase, "OpenAIEndpoints")
 class OpenAIEndpoints(ProviderEndpointBase):
     base_url: str = "https://api.openai.com/v1"
     realtime_url: str = "wss://api.openai.com/v1/realtime"

@@ -103,6 +103,8 @@ jobs:
 
     env:
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
+      # Meson editable installs refer to the temporary isolated build tools.
+      UV_NO_EDITABLE: ${{ startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') && 'true' || 'false' }}
 
     steps:
       # ────────────────────────────────────────────────────────────────────────

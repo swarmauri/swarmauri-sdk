@@ -81,6 +81,24 @@ Here we have some text:
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize("first_comment", ["First comment", ""])
+def test_chunk_text_multiple_filtered_blocks(first_comment):
+    unchunked_text = f"""{first_comment}
+```python
+print(1)
+```
+Second comment
+```python
+print(2)
+```
+""".lstrip()
+    assert MdSnippetChunker(language="python").chunk_text(unchunked_text) == [
+        (first_comment, "python", "print(1)"),
+        ("Second comment", "python", "print(2)"),
+    ]
+
+
+@pytest.mark.unit
 def test_serialization():
     chunker = MdSnippetChunker()
     assert (

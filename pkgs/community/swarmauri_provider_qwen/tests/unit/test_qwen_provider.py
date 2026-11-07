@@ -15,3 +15,6 @@ def test_provider_implements_auth_and_endpoint_contracts():
     assert config.endpoint.startswith("wss://")
     assert provider.authorize(config)["Authorization"] == "Bearer secret"
     assert "secret" not in config.model_dump_json()
+    prepared = provider.prepare_connection("realtime.connect")
+    assert prepared.headers["Authorization"] == "Bearer secret"
+    assert "api_key" not in prepared.transport_options

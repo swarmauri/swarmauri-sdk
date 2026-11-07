@@ -1,5 +1,9 @@
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <pybind11/stl.h>
+namespace py = pybind11;
+
+#include <functional>
 #include <vector>
 #include <unordered_map>
 #include <random>
@@ -32,7 +36,7 @@ public:
     }
 
     std::vector<std::vector<float>> query(const std::vector<float>& data_point) {
-        std::unordered_map<int, std::vector<float>> result;
+        std::unordered_map<int, std::vector<std::vector<float>>> result;
         for (int i = 0; i < num_hashes; ++i) {
             int hash_value = hash_functions[i](data_point);
             result[hash_value] = buckets[hash_value];
@@ -64,86 +68,20 @@ private:
     }
 };
 
-static PyObject* LSHIndex_insert(PyObject* self, PyObject* args) {
-    PyObject* data;
-    int num_hashes, bucket_size;
 
-    if (!PyArg_ParseTuple(args, "Oii", &data, &num_hashes, &bucket_size)) {
-        return NULL;
-    }
-
-    if (!PyArray_Check(data)) {
-        PyErr_SetString(PyExc_TypeError, "Input must be a numpy array.");
-        return NULL;
-    }
-
-    int n = (int)PyArray_Size(data);
-    std::vector<float> data_point(n);
-    for (int i = 0; i < n; ++i) {
-        data_point[i] = static_cast<float>(*static_cast<float*>(PyArray_GETPTR1((PyArrayObject*)data, i)));
-    }
-
-    LSHIndex index(num_hashes, bucket_size);
-    index.insert(data_point);
-    
-    Py_RETURN_NONE;
+static std::vector<float> point_from_array(const py::array& input) {
+    auto values = py::array_t<float, py::array::c_style | py::array::forcecast>::ensure(input);
+    if (!values || values.ndim() != 1 || values.size() < 2)
+        throw py::value_error("Expected a vector with at least two coordinates");
+    return {values.data(), values.data() + values.size()};
 }
-
-static PyObject* LSHIndex_query(PyObject* self, PyObject* args) {
-    PyObject* data;
-
-    if (!PyArg_ParseTuple(args, "O", &data)) {
-        return NULL;
-    }
-
-    if (!PyArray_Check(data)) {
-        PyErr_SetString(PyExc_TypeError, "Input must be a numpy array.");
-        return NULL;
-    }
-
-    int n = (int)PyArray_Size(data);
-    std::vector<float> data_point(n);
-    for (int i = 0; i < n; ++i) {
-        data_point[i] = static_cast<float>(*static_cast<float*>(PyArray_GETPTR1((PyArrayObject*)data, i)));
-    }
-
-    // Assuming we have an instance of LSHIndex called `index`
-    std::vector<std::vector<float>> results = index.query(data_point);
-    
-    // Convert results to a Python list
-    PyObject* result_list = PyList_New(results.size());
-    for (size_t i = 0; i < results.size(); ++i) {
-        PyObject* result_array = PyArray_FromAny(
-            PyList_New(results[i].size()),
-            PyArray_DescrFromType(NPY_FLOAT),
-            1, 1,
-            NPY_ARRAY_DEFAULT,
-            NULL
-        );
-        for (size_t j = 0; j < results[i].size(); ++j) {
-            *static_cast<float*>(PyArray_GETPTR1((PyArrayObject*)result_array, j)) = results[i][j];
-        }
-        PyList_SetItem(result_list, i, result_array);
-    }
-    
-    return result_list;
-}
-
-static PyMethodDef LSHMethods[] = {
-    {"insert", LSHIndex_insert, METH_VARARGS, "Insert a data point into the LSH index."},
-    {"query", LSHIndex_query, METH_VARARGS, "Query the LSH index."},
-    {NULL, NULL, 0, NULL}
-};
-
-static struct PyModuleDef lshmodule = {
-    PyModuleDef_HEAD_INIT,
-    "lsh",   // name of module
-    NULL, // module documentation, may be NULL
-    -1,       // size of per-interpreter state of the module,
-    LSHMethods
-};
-
-PyMODINIT_FUNC PyInit_lsh(void) {
-    import_array();  // Necessary for initializing NumPy API
-    return PyModule_Create(&lshmodule);
+PYBIND11_MODULE(hash_index, module) {
+    py::class_<LSHIndex>(module, "LSHIndex")
+        .def(py::init<int, int>())
+        .def("insert", [](LSHIndex& index, const py::array& point) {
+            index.insert(point_from_array(point));
+        })
+        .def("query", [](LSHIndex& index, const py::array& point) {
+            return index.query(point_from_array(point));
+        });
 }
