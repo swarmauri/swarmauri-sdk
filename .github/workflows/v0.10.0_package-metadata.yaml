@@ -14,14 +14,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check out the pull request baseline
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .metadata-base
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Run package verification
         id: verify
         continue-on-error: true
+        shell: bash
         run: |
-          python scripts/verify_package_metadata.py | tee report.md
+          baseline=()
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            baseline=(--baseline .metadata-base)
+          fi
+          python scripts/verify_package_metadata.py "${baseline[@]}" | tee report.md
       - name: Append report to summary
         if: always()
         run: cat report.md >> "$GITHUB_STEP_SUMMARY"
