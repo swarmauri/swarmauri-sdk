@@ -1,7 +1,6 @@
 from typing import Any, Literal
-from urllib.parse import urlencode
-
 from pydantic import ConfigDict, Field
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.live_models.LiveCapabilitiesBase import (
     LiveCapabilitiesBase,
 )
@@ -14,6 +13,7 @@ from .OpenAIRealtimeConfigMapper import OpenAIRealtimeConfigMapper
 from .OpenAIRealtimeSession import OpenAIRealtimeSession
 
 
+@ComponentBase.register_type(LiveModelBase, "OpenAIRealtimeModel")
 class OpenAIRealtimeModel(LiveModelBase):
     name: str = "gpt-realtime"
     provider: OpenAIProvider = Field(default_factory=OpenAIProvider)
@@ -30,17 +30,12 @@ class OpenAIRealtimeModel(LiveModelBase):
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")
 
     async def aconnect(self, config: LiveConfigBase) -> OpenAIRealtimeSession:
-        api_key = self.provider.connection_options().get("api_key")
-        if not api_key:
-            raise ValueError("OpenAIProvider requires an api_key")
-        query = urlencode({"model": self.name})
-        url = f"{self.provider.endpoints.realtime_url}?{query}"
+        connection_config = self.provider.prepare_connection(
+            "realtime.connect", model=self.name
+        )
         connection = await self.transport.aconnect(
-            url,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "OpenAI-Beta": "realtime=v1",
-            },
+            connection_config.resolved_url(),
+            headers=connection_config.headers,
         )
         return await OpenAIRealtimeSession.create(
             connection, OpenAIRealtimeConfigMapper().map(config)

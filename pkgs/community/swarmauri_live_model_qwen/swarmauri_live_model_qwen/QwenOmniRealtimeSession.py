@@ -1,17 +1,21 @@
 import asyncio
 import json
 from contextlib import suppress
+from typing import Literal
 
 from pydantic import PrivateAttr
 from swarmauri_base.live_models.events.SessionErrorEvent import (
     SessionErrorEvent,
 )
 from swarmauri_base.live_models.LiveSessionBase import LiveSessionBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 from .QwenOmniRealtimeCodec import QwenOmniRealtimeCodec
 
 
+@ComponentBase.register_type(LiveSessionBase, "QwenOmniRealtimeSession")
 class QwenOmniRealtimeSession(LiveSessionBase):
+    type: Literal["QwenOmniRealtimeSession"] = "QwenOmniRealtimeSession"
     _connection = PrivateAttr()
     _codec = PrivateAttr(default_factory=QwenOmniRealtimeCodec)
     _receiver = PrivateAttr(default=None)
