@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_containerfeedchars"
-version = "0.11.0.dev3"
+version = "0.11.0.dev4"
 description = "Execute commands in Docker or Kubernetes containers."
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,9 +19,9 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
+    "swarmauri_core>=0.11.0.dev6,<0.12",
+    "swarmauri_base>=0.11.0.dev6,<0.12",
+    "swarmauri_standard>=0.11.0.dev8,<0.12",
 ]
 keywords = [
     'swarmauri',

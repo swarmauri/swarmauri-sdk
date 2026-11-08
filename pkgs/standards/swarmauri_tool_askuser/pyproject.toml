@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: Apache Software License",
 ]
-dependencies = ["swarmauri_base","swarmauri_standard","jsonschema>=4.18"]
+dependencies = ["swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_standard>=0.11.0.dev8,<0.12","jsonschema>=4.18"]
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
