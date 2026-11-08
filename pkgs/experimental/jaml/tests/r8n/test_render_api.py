@@ -14,6 +14,7 @@ result: int = ~(1 + 2)
     rendered_output = render(jml_content)
 
     # The logical expression ~(1 + 2) should evaluate to 3.
-    # Check that the evaluated value is present and the original expression is removed.
+    # Check that the evaluated value is present and the original expression is
+    # removed.
     assert "3" in rendered_output
     assert "~(" not in rendered_output

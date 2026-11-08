@@ -8,7 +8,8 @@ from ..grid.spec import GridSpec, GridTile
 class ILayoutCompiler(ABC):
     """Contract for turning explicit grids into pixel frames.
 
-    Minimal required method keeps the engine decoupled from authoring and manifests.
+    Minimal required method keeps the engine decoupled from authoring and
+    manifests.
     """
 
     @abstractmethod

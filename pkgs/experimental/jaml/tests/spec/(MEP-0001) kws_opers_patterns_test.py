@@ -19,7 +19,8 @@ def test_reserved_keywords():
     """
     source = "if = 42\nelif = 10\ndata = true"
     with pytest.raises(SyntaxError, match="Unexpected character"):
-        # We expect an error from our parser because 'if' / 'elif' are KEYWORD tokens
+        # We expect an error from our parser because 'if' / 'elif' are KEYWORD
+        # tokens
         # that cannot appear on the left side of '='.
         _ = loads(source)  # or round_trip_loads(source)
 
@@ -34,7 +35,8 @@ def test_reserved_functions():
     """
     source = "File = 'some file'\nGit = 'some repo'"
     with pytest.raises(SyntaxError, match="Unexpected character"):
-        # The parser should refuse to let 'File()' or 'Git()' be used as keys if your grammar forbids it.
+        # The parser should refuse to let 'File()' or 'Git()' be used as keys
+        # if your grammar forbids it.
         _ = loads(source)
 
 
@@ -42,7 +44,8 @@ def test_reserved_functions():
 @pytest.mark.mep0001
 def test_reserved_punctuation():
     """
-    Verifies that reserved punctuation (like ':' or '=') cannot be part of unquoted keys.
+    Verifies that reserved punctuation (like ':' or '=') cannot be part of
+    unquoted keys.
     e.g. some:key = 1
     """
     source = "some:key = 1"
@@ -82,7 +85,8 @@ def test_double_quote_string():
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_triple_single_quote_string():
-    # The JML source uses triple-single quotes to enclose a triple-double-quoted string.
+    # The JML source uses triple-single quotes to enclose a
+    # triple-double-quoted string.
     # The inner value should be: """One\nTwo\nThree"""
     source = "triple_single = '''\"\"\"One\nTwo\nThree\"\"\"'''"
     data = loads(source)
@@ -93,7 +97,8 @@ def test_triple_single_quote_string():
 @pytest.mark.spec
 @pytest.mark.mep0001
 def test_triple_double_quote_string():
-    # The JML source contains a triple-double quoted string with embedded newlines.
+    # The JML source contains a triple-double quoted string with embedded
+    # newlines.
     source = 'triple_double = """Line1\nLine2\nLine3"""'
     data = loads(source)
     expected = "Line1\nLine2\nLine3"
@@ -123,7 +128,9 @@ def test_triple_backtick_string():
 @pytest.mark.spec
 @pytest.mark.mep0001
 @pytest.mark.xfail(
-    reason="Debating whether or not to allow non-bracket arithmetic operations."
+    reason=(
+        "Debating whether or not to allow non-bracket arithmetic operations."
+    )
 )
 def test_arithmetic_operators():
     """
@@ -137,12 +144,14 @@ def test_arithmetic_operators():
 
 @pytest.mark.spec
 @pytest.mark.mep0001
-# @pytest.mark.xfail(reason="Spec not fully implemented â€“ pipeline operator not fully enforced")
+# @pytest.mark.xfail(reason="Spec not fully implemented â€“ pipeline operator
+# not fully enforced")
 def test_pipeline_operator():
     """
     Tests the pipeline operator usage: data | transform | filter
     For now, we parse and expect no error or partial usage.
-    If your grammar doesn't support it, raise an error or handle as unrecognized.
+    If your grammar doesn't support it, raise an error or handle as
+    unrecognized.
     """
     source = "result = <{ data | transform | filter }>"
     with pytest.raises(SyntaxError, match="Unexpected character"):
@@ -173,7 +182,8 @@ def test_membership_operators():
 
 @pytest.mark.spec
 @pytest.mark.mep0001
-# @pytest.mark.xfail(reason="Spec not fully implemented â€“ merge operator not recognized yet.")
+# @pytest.mark.xfail(reason="Spec not fully implemented â€“ merge operator not
+# recognized yet.")
 def test_merge_operator():
     """
     Verifies reservation of '<<' to merge tables or inline tables.
@@ -205,7 +215,8 @@ def test_keyword_as_identifier():
     Should cause a syntax error.
     """
     source = 'if = "condition"'
-    # This specifically tests something like `if = "condition"`, expecting syntax error
+    # This specifically tests something like `if = "condition"`, expecting
+    # syntax error
     with pytest.raises(SyntaxError, match="Unexpected character"):
         _ = loads(source)
 
@@ -214,7 +225,8 @@ def test_keyword_as_identifier():
 @pytest.mark.mep0001
 def test_reserved_function_as_var():
     """
-    Verifies reservation of 'File()' or 'Git()' as normal identifiers or variables.
+    Verifies reservation of 'File()' or 'Git()' as normal identifiers or
+    variables.
     Should raise an error.
     """
     source = 'File = "somefile"'

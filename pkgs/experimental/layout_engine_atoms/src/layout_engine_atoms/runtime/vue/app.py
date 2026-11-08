@@ -313,7 +313,10 @@ def _create_layout_router(
             if request.method != event.method:
                 raise HTTPException(
                     status_code=405,
-                    detail=f"Method {request.method} not allowed for event {event.id}",
+                    detail=(
+                        f"Method {request.method} not allowed for event "
+                        f"{event.id}"
+                    ),
                 )
 
             payload = {}
@@ -518,7 +521,8 @@ def _render_binding_script(bindings: Sequence[RealtimeBinding]) -> str:
     return (
         "(function realtimeBindingBootstrap() {\n"
         "  if (!context || !context.manifest) {\n"
-        "    console.warn('[layout-engine] realtime bindings require manifest context.');\n"
+        "    console.warn('[layout-engine] realtime bindings require "
+        "manifest context.');\n"
         "    return;\n"
         "  }\n"
         "  const manifest = context.manifest;\n"
@@ -533,11 +537,15 @@ def _render_binding_script(bindings: Sequence[RealtimeBinding]) -> str:
         "    }, payload);\n"
         "  };\n"
         "  const applyBinding = (binding, payload) => {\n"
-        "    const tiles = Array.isArray(manifest.tiles) ? manifest.tiles : [];\n"
-        "    const target = tiles.find((tile) => tile.id === binding.tileId);\n"
+        "    const tiles = Array.isArray(manifest.tiles) ? "
+        "manifest.tiles : [];\n"
+        "    const target = tiles.find((tile) => tile.id === "
+        "binding.tileId);\n"
         "    if (!target) return;\n"
-        "    target.props = target.props && typeof target.props === 'object' ? target.props : {};\n"
-        "    for (const [prop, path] of Object.entries(binding.fields || {})) {\n"
+        "    target.props = target.props && typeof target.props === "
+        "'object' ? target.props : {};\n"
+        "    for (const [prop, path] of Object.entries(binding.fields ||"
+        " {})) {\n"
         "      const value = getValue(payload, path);\n"
         "      if (value !== undefined) {\n"
         "        target.props[prop] = value;\n"

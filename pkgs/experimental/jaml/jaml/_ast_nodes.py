@@ -28,13 +28,17 @@ class BaseNode:
 
     def __repr__(self) -> str:
         if self.meta:
-            return f"{self.__class__.__name__}(value={self.value}, start_pos={self.meta.start_pos})"
+            return (
+                f"{self.__class__.__name__}(value={self.value}, "
+                f"start_pos={self.meta.start_pos})"
+            )
         else:
             return f"{self.__class__.__name__}(value={self.value})"
 
     def __eq__(self, other) -> bool:
         """
-        Compare AST nodes to strings or other nodes by origin for fidelity in tests.
+        Compare AST nodes to strings or other nodes by origin for fidelity in
+        tests.
         """
         # If comparing to a string, check origin equality
         if isinstance(other, str):
@@ -143,7 +147,8 @@ class StartNode(BaseNode):
                 header = line.header.emit()
                 lines.append(f"[[{header}]]")
                 for item in getattr(line, "body", []):
-                    # only emit assignments and comments; skip untransformed Trees
+                    # only emit assignments and comments; skip untransformed
+                    # Trees
                     if isinstance(item, AssignmentNode):
                         lines.append(item.emit())
                     elif isinstance(item, CommentNode):
@@ -237,7 +242,8 @@ class SectionNode(BaseNode):
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         logger.debug("SectionNode.resolve() triggered.")
         base_env = local_env or {}
-        # Pre-populate simple numeric assignments in local scope for header resolution
+        # Pre-populate simple numeric assignments in local scope for header
+        # resolution
         for content in self.contents:
             if isinstance(content, AssignmentNode) and isinstance(
                 content.value, (IntegerNode, FloatNode)
@@ -338,7 +344,10 @@ class TableArraySectionNode(BaseNode):
         self.body = []  # List of AssignmentNode, etc.
 
     def __str__(self) -> str:
-        return f"TableArraySectionNode(header={self.header.value if self.header else None})"
+        return (
+            f"TableArraySectionNode(header="
+            f"{self.header.value if self.header else None})"
+        )
 
     def emit(self) -> str:
         logger.debug("TableArraySectionNode.emit() triggered.")
@@ -392,7 +401,8 @@ class TableArrayHeaderNode(BaseNode):
     """
     Represents a [[…]] table‑array section header.
 
-    • .origin holds the exact raw header text (including newlines and indentation)
+    • .origin holds the exact raw header text (including newlines and
+    indentation)
     • .value  holds the clean logical name (used as the mapping key)
     """
 
@@ -519,7 +529,10 @@ class AssignmentNode(BaseNode):
         return "".join(parts)
 
     def __str__(self) -> str:
-        return f"AssignmentNode({self.identifier.value if self.identifier else None})"
+        return (
+            f"AssignmentNode("
+            f"{self.identifier.value if self.identifier else None})"
+        )
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         """
@@ -540,7 +553,10 @@ class AssignmentNode(BaseNode):
                 # Fallback to original origin if evaluation fails
                 self.resolved = self.value.origin
             print(
-                f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: {self.identifier.value} -> {self.resolved}"
+                (
+                    f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: "
+                    f"{self.identifier.value} -> {self.resolved}"
+                )
             )
             return
 
@@ -558,7 +574,10 @@ class AssignmentNode(BaseNode):
             except Exception:
                 self.resolved = self.value
             print(
-                f"[DEBUG ASSIGNMENT RESOLVE folded expr]: {self.identifier.value} -> {self.resolved}"
+                (
+                    f"[DEBUG ASSIGNMENT RESOLVE folded expr]: "
+                    f"{self.identifier.value} -> {self.resolved}"
+                )
             )
             return
 
@@ -582,7 +601,10 @@ class AssignmentNode(BaseNode):
             self.resolved = self.value
 
         print(
-            f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}"
+            (
+                f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> "
+                f"{self.resolved}"
+            )
         )
 
     def evaluate(self):
@@ -645,7 +667,10 @@ class IntegerNode(BaseNode):
             return int(self.value, 0)  # Auto-detect base for 0o, 0x, 0b
         except ValueError as e:
             print(
-                f"[DEBUG INTEGERNODE EVALUATE ERROR]: Invalid integer {self.value}: {e}"
+                (
+                    f"[DEBUG INTEGERNODE EVALUATE ERROR]: Invalid integer "
+                    f"{self.value}: {e}"
+                )
             )
             return self.value
 
@@ -662,7 +687,10 @@ class IntegerNode(BaseNode):
             self.value = self.resolved
         except ValueError as e:
             print(
-                f"[DEBUG INTEGERNODE RESOLVE ERROR]: Invalid integer {self.value}: {e}"
+                (
+                    f"[DEBUG INTEGERNODE RESOLVE ERROR]: Invalid integer "
+                    f"{self.value}: {e}"
+                )
             )
             self.resolved = self.value
         print(f"[DEBUG INTEGERNODE RESOLVE]: {self.value} -> {self.resolved}")
@@ -706,7 +734,8 @@ class FoldedExpressionNode(BaseNode):
 
     def emit(self) -> str:
         logger.debug("FoldedExpressionNode.emit() triggered.")
-        # Ensure we always return a string, even if origin was replaced by an int
+        # Ensure we always return a string, even if origin was replaced by an
+        # int
         return str(self.origin)
 
     def resolve(
@@ -723,7 +752,8 @@ class FoldedExpressionNode(BaseNode):
 
         logger.debug("FoldedExpressionNode.resolve() triggered.")
         # Always pass an empty dict for `context` here so that ${…} tokens
-        # get preserved and trigger the f-string branch in evaluate_expression_tree.
+        # get preserved and trigger the f-string branch in
+        # evaluate_expression_tree.
         static_ctx: Dict[str, Any] = {}
 
         # Evaluate without real context, deferring ${…}
@@ -778,13 +808,17 @@ class AliasClauseNode(BaseNode):
         self.scoped_var = None  # Scoped variable (e.g., '%{x}')
 
     def __str__(self) -> str:
-        return f"AliasClauseNode(keyword={self.keyword}, scoped_var={self.scoped_var})"
+        return (
+            f"AliasClauseNode(keyword={self.keyword}, "
+            f"scoped_var={self.scoped_var})"
+        )
 
     def emit(self) -> str:
         logger.debug("AliasClauseNode.emit() triggered.")
 
         """
-        Emit the alias clause exactly as parsed, preserving the 'as' keyword and the scoped variable.
+        Emit the alias clause exactly as parsed, preserving the 'as' keyword
+        and the scoped variable.
         """
         return self.origin
 
@@ -818,7 +852,10 @@ class AliasClauseNode(BaseNode):
 class PairExprNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.key = None  # Key expression (e.g., (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode), StringExprNode)
+        # Key expression (e.g., (SingleQuotedStringNode,
+        # TripleQuotedStringNode, BacktickStringNode, FStringNode,
+        # TripleBacktickStringNode), StringExprNode)
+        self.key = None
         self.value = None  # Value expression
 
     def __str__(self) -> str:
@@ -863,7 +900,8 @@ class DottedExprNode(BaseNode):
     ):
         local_env = local_env or {}
 
-        # Walk a dotted path through a mapping (dict-like or objects with attrs).
+        # Walk a dotted path through a mapping (dict-like or objects with
+        # attrs).
         def _dig(src, path: str):
             cur = src
             for part in path.split("."):
@@ -1214,10 +1252,13 @@ class ValueNode(BaseNode):
         self.inline_comment = (
             None  # Holds Token('INLINE_COMMENT', …) – includes leading spaces
         )
-        self.has_comma = False  # True when a ',' token directly followed this item in source
+        # True when a ',' token directly followed this item in source
+        self.has_comma = False
 
     def emit(self) -> str:
-        """Return the exact textual representation for round‑trip serialisation."""
+        """Return the exact textual representation for round‑trip
+        serialisation.
+        """
         # ── comment‑only line ───────────────────────────────────────────
         if self.value is None:
             txt = self.inline_comment.value.strip()
@@ -1239,7 +1280,10 @@ class ValueNode(BaseNode):
 
     def __str__(self):
         ic = self.inline_comment.value if self.inline_comment else None
-        return f"ValueNode(value={self.value}, inline_comment={ic}, has_comma={self.has_comma})"
+        return (
+            f"ValueNode(value={self.value}, inline_comment={ic}, "
+            f"has_comma={self.has_comma})"
+        )
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         if hasattr(self.value, "resolve"):
@@ -1270,7 +1314,8 @@ class ValueNode(BaseNode):
 
 class SLArrayItemNode(ValueNode):
     """
-    Represents an item in a single-line array, preserving value, inline comments, and comma.
+    Represents an item in a single-line array, preserving value, inline
+    comments, and comma.
     """
 
     def __init__(self):
@@ -1280,7 +1325,8 @@ class SLArrayItemNode(ValueNode):
 
 class MLArrayItemNode(ValueNode):
     """
-    Represents an item in a multi-line array, preserving value, inline comments, and comma.
+    Represents an item in a multi-line array, preserving value, inline
+    comments, and comma.
     """
 
     def __init__(self):
@@ -1393,18 +1439,21 @@ class FloatNode(BaseNode):
         return f"FloatNode(value={self.value})"
 
     def emit(self) -> str:
-        # When emitting config text back to a file/string, we just turn the float into a string
+        # When emitting config text back to a file/string, we just turn the
+        # float into a string
         return str(self.value)
 
     def evaluate(self) -> float:
         """
-        Returns the evaluated float value, preferring self.resolved if available.
+        Returns the evaluated float value, preferring self.resolved if
+        available.
         If not yet resolved, parse self.value as a float.
         """
         if self.resolved is not None:
             return self.resolved
 
-        # Try calling float() directly. "inf", "-inf", "nan" are valid in Python, but you
+        # Try calling float() directly. "inf", "-inf", "nan" are valid in
+        # Python, but you
         # can add extra checks if you want to handle uppercase, plus-sign, etc.
         self.resolved = float(self.value)
         return self.resolved
@@ -1488,7 +1537,8 @@ class SingleQuotedStringNode(BaseNode):
 
 class TripleQuotedStringNode(BaseNode):
     """
-    Represents a triple-quoted string, e.g. '''Hello\nWorld''' or \"\"\"Hello\nWorld\"\"\".
+    Represents a triple-quoted string, e.g. '''Hello\nWorld''' or
+    \"\"\"Hello\nWorld\"\"\".
     Often multiline.
     """
 
@@ -1500,7 +1550,8 @@ class TripleQuotedStringNode(BaseNode):
         return f'"""{self.value or ""}"""'
 
     def resolve(self, global_env, local_env=None):
-        # Strip the triple quotes. For example, if origin is """...""", remove them.
+        # Strip the triple quotes. For example, if origin is """...""", remove
+        # them.
         # We assume it's either '''...''' or """..."""
         # This is a naive approach; you could do more robust logic if needed
         # to handle edge cases or multiline strings with embedded quotes.
@@ -1554,14 +1605,16 @@ class FStringNode(BaseNode):
         super().__init__()
 
     def emit(self) -> str:
-        # Return the original f-string if you want to preserve the 'f' prefix and quotes:
+        # Return the original f-string if you want to preserve the 'f' prefix
+        # and quotes:
         return self.origin
 
     def resolve(self, global_env, local_env=None):
         if "${" in self.origin:
             self.resolved = self.value = self.origin
             return
-        # Use your existing _evaluate_f_string helper to evaluate python-like f-strings
+        # Use your existing _evaluate_f_string helper to evaluate python-like
+        # f-strings
         self.resolved = _evaluate_f_string(
             self.origin,
             global_data=global_env,
@@ -1602,16 +1655,20 @@ class TripleBacktickStringNode(BaseNode):
 
     def resolve(self, global_env, local_env=None):
         """
-        If your DSL permits variable interpolation or environment-based substitutions
-        inside triple-backtick strings, handle it here. Otherwise, you can treat them
+        If your DSL permits variable interpolation or environment-based
+        substitutions
+        inside triple-backtick strings, handle it here. Otherwise, you can
+        treat them
         as literal blocks that remain untouched.
         """
-        # Example: Remove the outer ```...```, do your variable substitions, then reassign:
+        # Example: Remove the outer ```...```, do your variable substitions,
+        # then reassign:
         content = self.origin
         if content.startswith("```") and content.endswith("```"):
             content = content[3:-3]  # remove the leading and trailing ```
         # If you do want to do variable substitution, you might do:
-        # content = _substitute_vars(content, global_env, local_env, quote_strings=False)
+        # content = _substitute_vars(content, global_env, local_env,
+        # quote_strings=False)
         self.resolved = content
         self.value = self.resolved
 
@@ -1624,7 +1681,8 @@ class TripleBacktickStringNode(BaseNode):
 
 class SingleLineArrayNode(BaseNode):
     """
-    Represents an array on a single line, e.g. [1, 2, "three"] or ["blue" # Accent color].
+    Represents an array on a single line, e.g. [1, 2, "three"] or ["blue" #
+    Accent color].
     Preserves inline comments for round-trip serialization.
     """
 
@@ -1650,7 +1708,8 @@ class SingleLineArrayNode(BaseNode):
 
     def resolve(self, global_env, local_env=None):
         """
-        Resolve each item, e.g., substituting variables or evaluating subexpressions.
+        Resolve each item, e.g., substituting variables or evaluating
+        subexpressions.
         Store the fully resolved result in self.resolved.
         """
         resolved_items = []
@@ -1674,7 +1733,10 @@ class SingleLineArrayNode(BaseNode):
         ]
 
     def __str__(self) -> str:
-        return f"SingleLineArrayNode(value={self.value}, comments={self.inline_comment})"
+        return (
+            f"SingleLineArrayNode(value={self.value}, "
+            f"comments={self.inline_comment})"
+        )
 
     def __repr__(self) -> str:
         return f"SingleLineArrayNode(value={self.value})"
@@ -1686,7 +1748,8 @@ class MultiLineArrayNode(BaseNode):
         self.lbrack = None  # '[' token
         self.rbrack = None  # ']' token
         self.contents = []  # List of ValueNode
-        # We ignore parsed newlines for serialization and instead produce a canonical format.
+        # We ignore parsed newlines for serialization and instead produce a
+        # canonical format.
         self.leading_newlines = None
         self.trailing_newlines = None
         self.value = []
@@ -1754,7 +1817,10 @@ class MultiLineArrayNode(BaseNode):
         ]
 
     def __str__(self) -> str:
-        return f"MultiLineArrayNode(value={self.value}, comments={self.__comments__})"
+        return (
+            f"MultiLineArrayNode(value={self.value}, "
+            f"comments={self.__comments__})"
+        )
 
     def __repr__(self) -> str:
         return f"MultiLineArrayNode(value={self.value})"
@@ -1812,9 +1878,12 @@ class LocalScopedVarNode(BaseNode):
 
         dotted = self.origin[2:-1]  # strip `%{` … `}`
 
-        # ---------------------------------------------------------------- helpers
+        # ----------------------------------------------------------------
+        # helpers
         def _dig(obj, path: str):
-            """Walk *obj* through a dotted path trying both dict keys and attrs."""
+            """Walk *obj* through a dotted path trying both dict keys and
+            attrs.
+            """
             cur = obj
             for part in path.split("."):
                 if isinstance(cur, Mapping) and part in cur:
@@ -1862,11 +1931,13 @@ class ContextScopedVarNode(BaseNode):
         local_env: Optional[Dict] = None,
     ):
         """
-        Replace the ${placeholder} with a concrete value, supporting nested lookups and
+        Replace the ${placeholder} with a concrete value, supporting nested
+        lookups and
         list flattening. Lookup order:
         1. local_env
         2. global_env
-        If the lookup yields another AST node (including this one), treat it as missing.
+        If the lookup yields another AST node (including this one), treat it as
+        missing.
         """
         logger.warning("ContextScopeVariable should not have resolve.")
         from collections.abc import Mapping
@@ -1905,7 +1976,8 @@ class ContextScopedVarNode(BaseNode):
 
         candidate = _dig(global_env)
 
-        # If we got another AST node back, ignore it (to prevent self-reference)
+        # If we got another AST node back, ignore it (to prevent
+        # self-reference)
         from ._ast_nodes import BaseNode
 
         if isinstance(candidate, BaseNode):

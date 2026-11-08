@@ -291,7 +291,9 @@ def build_registry(
 
 
 def build_default_registry() -> AtomRegistry:
-    """Return an AtomRegistry populated with the default SwarmaKit Vue presets."""
+    """Return an AtomRegistry populated with the default SwarmaKit Vue
+    presets.
+    """
 
     return build_registry()
 

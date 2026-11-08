@@ -16,7 +16,12 @@ SITE: Set[str] = {
     "ws_close",
     "ws_error",
 }
-SLOT: Set[str] = {"slot:mount", "slot:unmount", "slot:visibilitychange", "slot:resize"}
+SLOT: Set[str] = {
+    "slot:mount",
+    "slot:unmount",
+    "slot:visibilitychange",
+    "slot:resize",
+}
 PAGE: Set[str] = {
     "page:load",
     "page:unload",
@@ -218,7 +223,9 @@ def validate_envelope(e: dict[str, Any]) -> EventEnvelope:
     if scope not in ALLOW:
         raise ValidationError(f"unknown scope: {scope}")
     if not is_allowed(scope, etype):
-        raise ValidationError(f"event '{etype}' not allowed for scope '{scope}'")
+        raise ValidationError(
+            f"event '{etype}' not allowed for scope '{scope}'"
+        )
     channel_id = e.get("channel")
     if channel_id is not None:
         channel_def = _CHANNEL_REGISTRY.get(str(channel_id))
@@ -227,7 +234,10 @@ def validate_envelope(e: dict[str, Any]) -> EventEnvelope:
         expected_scope = channel_def.get("scope")
         if expected_scope and expected_scope != scope:
             raise ValidationError(
-                f"channel '{channel_id}' expects scope '{expected_scope}' but received '{scope}'"
+                (
+                    f"channel '{channel_id}' expects scope '{expected_scope}' "
+                    f"but received '{scope}'"
+                )
             )
 
     return EventEnvelope(

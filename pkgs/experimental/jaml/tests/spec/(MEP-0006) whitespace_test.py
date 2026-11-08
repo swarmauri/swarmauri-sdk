@@ -9,7 +9,8 @@ from jaml import (
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Leading/trailing whitespace preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Leading/trailing whitespace preservation not yet
+# implemented.")
 def test_leading_trailing_whitespace_in_strings_preserved():
     """
     MEP-006 Section 3.2:
@@ -33,7 +34,8 @@ name = "  Jeff  "
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Trailing whitespace after value not yet normalized/ignored as expected.")
+# @pytest.mark.xfail(reason="Trailing whitespace after value not yet
+# normalized/ignored as expected.")
 def test_trailing_whitespace_after_value_ignored():
     """
     MEP-006 Section 3.2:
@@ -51,7 +53,8 @@ title = "Dev"
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Whitespace normalization around assignment operator not yet implemented.")
+# @pytest.mark.xfail(reason="Whitespace normalization around assignment
+# operator not yet implemented.")
 def test_whitespace_around_assignment_operator_normalized():
     """
     MEP-006 Section 3.3:
@@ -75,7 +78,8 @@ key    =    "value"
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Inline table whitespace preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Inline table whitespace preservation not fully
+# implemented yet.")
 def test_inline_tables_whitespace_preserved_round_trip():
     """
     MEP-006 Section 3.4:
@@ -100,7 +104,8 @@ profile = { name = "Alice", age = 30 }
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Multiline string whitespace preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Multiline string whitespace preservation not fully
+# implemented yet.")
 def test_multiline_string_leading_whitespace_preserved():
     """
     MEP-006 Section 3.5:
@@ -126,7 +131,8 @@ description = \"\"\"
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising error.")
+# @pytest.mark.xfail(reason="Unquoted keys with whitespace not yet raising
+# error.")
 def test_unquoted_key_with_space_should_raise_error():
     """
     MEP-006 Section 4:
@@ -137,14 +143,16 @@ def test_unquoted_key_with_space_should_raise_error():
 my key = "value"
 """
     with pytest.raises(SyntaxError, match="Unexpected character"):
-        # We expect an error from our parser because 'if' / 'elif' are KEYWORD tokens
+        # We expect an error from our parser because 'if' / 'elif' are KEYWORD
+        # tokens
         # that cannot appear on the left side of '='.
         _ = loads(bad_toml)  # or round_trip_loads(source)
 
 
 @pytest.mark.spec
 @pytest.mark.mep0006
-# @pytest.mark.xfail(reason="Line continuation support not fully implemented yet.")
+# @pytest.mark.xfail(reason="Line continuation support not fully implemented
+# yet.")
 def test_line_continuation_not_supported_yet():
     """
     MEP-006 Section 6.1 (Open Issues):

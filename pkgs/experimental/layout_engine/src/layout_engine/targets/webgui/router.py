@@ -14,7 +14,8 @@ Html = str
 class SiteRouter:
     """Site-aware utilities to generate SSR HTML shells and manifest JSON.
 
-    This class does not depend on any web framework; bind its methods to your routes.
+    This class does not depend on any web framework; bind its methods to your
+    routes.
     """
 
     def __init__(
@@ -51,11 +52,17 @@ class SiteRouter:
         slots_html = []
         for s in page.slots:
             attrs = " ".join(
-                f"{k}='{v}'" for k, v in (slots_attrs.get(s.name, {}) or {}).items()
+                f"{k}='{v}'"
+                for k, v in (slots_attrs.get(s.name, {}) or {}).items()
             )
-            slots_html.append(f"<div class='slot' data-slot='{s.name}' {attrs}></div>")
+            slots_html.append(
+                f"<div class='slot' data-slot='{s.name}' {attrs}></div>"
+            )
         body = f"<div id='app'>{''.join(slots_html)}</div>"
-        return f"<!doctype html><html lang='{lang}' dir='{dir}'><head>{head}</head><body>{body}</body></html>"
+        return (
+            f"<!doctype html><html lang='{lang}' "
+            f"dir='{dir}'><head>{head}</head><body>{body}</body></html>"
+        )
 
     # ---- Manifest ----
     def manifest_for(
@@ -69,7 +76,9 @@ class SiteRouter:
             match=self.site.resolve(page.route)
             or self._index.resolve(page.route)  # local self route
             or self._index.resolve(
-                page.route if page.route.startswith("/") else ("/" + page.route)
+                page.route
+                if page.route.startswith("/")
+                else ("/" + page.route)
             ),
             query=query or {},
             extras=extras or {},

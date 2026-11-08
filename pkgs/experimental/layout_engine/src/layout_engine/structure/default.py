@@ -12,10 +12,13 @@ class GridBuilder(IGridBuilder):
 
     Rules:
       - The number of **grid columns** equals the max column count across rows.
-      - The **column weights** are taken from the first row that has that max column count.
+      - The **column weights** are taken from the first row that has that
+      max column count.
         (A simple and deterministic policy that's easy to reason about.)
-      - Each row's columns are mapped proportionally into the canonical max column count.
-      - Blocks stack top-to-bottom inside each column. Each block's `row_span` is additive.
+      - Each row's columns are mapped proportionally into the canonical max
+      column count.
+      - Blocks stack top-to-bottom inside each column. Each block's
+      `row_span` is additive.
       - The row's effective height (in logical rows) is:
             max(Row.height_rows, max_stacked_row_span_across_columns)
     """
@@ -25,7 +28,9 @@ class GridBuilder(IGridBuilder):
         self.min_track_px = min_track_px
 
     # --- public API ---
-    def to_grid(self, t: Table, vp: Viewport) -> tuple[GridSpec, list[GridTile]]:
+    def to_grid(
+        self, t: Table, vp: Viewport
+    ) -> tuple[GridSpec, list[GridTile]]:
         max_cols = max((len(r.columns) for r in t.rows), default=0)
         if max_cols == 0:
             return GridSpec(columns=[]), []
@@ -35,11 +40,16 @@ class GridBuilder(IGridBuilder):
         weights = [DEFAULT_TOKEN_WEIGHTS[c.size] for c in ref_row.columns]
         total = sum(weights) or 1.0
         tracks = [
-            GridTrack(size=Size(value=w / total, unit="fr", min_px=self.min_track_px))
+            GridTrack(
+                size=Size(value=w / total, unit="fr", min_px=self.min_track_px)
+            )
             for w in weights
         ]
         gs = GridSpec(
-            columns=tracks, row_height=self.row_height, gap_x=t.gap_x, gap_y=t.gap_y
+            columns=tracks,
+            row_height=self.row_height,
+            gap_x=t.gap_x,
+            gap_y=t.gap_y,
         )
 
         # placements
@@ -80,9 +90,11 @@ class GridBuilder(IGridBuilder):
 
     # --- internals ---
     def _column_map(self, r: Row, max_cols: int) -> list[tuple[int, int]]:
-        """Map the row's columns to starting index + span so that total == max_cols.
+        """Map the row's columns to starting index + span so that total ==
+        max_cols.
 
-        The distribution is proportional to the row's SizeToken weights; rounding is corrected
+        The distribution is proportional to the row's SizeToken weights;
+        rounding is corrected
         by distributing the drift ±1 across columns from left to right.
         """
         n = len(r.columns)
@@ -132,6 +144,8 @@ def validate_table(table: Table) -> Table:
                 if not block.tile_id:
                     raise ValueError("Each block must have a tile_id")
                 if block.tile_id in seen:
-                    raise ValueError(f"Duplicate tile_id '{block.tile_id}' detected")
+                    raise ValueError(
+                        f"Duplicate tile_id '{block.tile_id}' detected"
+                    )
                 seen.add(block.tile_id)
     return table

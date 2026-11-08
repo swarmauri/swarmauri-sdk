@@ -61,7 +61,8 @@ def _tok_to_py(
             raw = raw[1:-1]
         return repr(raw)
 
-    # ───────────────────────────── Numerics & Booleans ─────────────────────────
+    # ───────────────────────────── Numerics & Booleans
+    # ─────────────────────────
     if tok.type in {"INTEGER", "FLOAT"}:
         return tok.value
     if tok.type == "BOOLEAN":
@@ -148,7 +149,10 @@ def evaluate_expression_tree(
         )
     ]
     print(
-        f"[DEBUG EXPR] Expression items: {[getattr(c, 'value', repr(c)) for c in items]}"
+        (
+            f"[DEBUG EXPR] Expression items: "
+            f"{[getattr(c, 'value', repr(c)) for c in items]}"
+        )
     )
 
     parts: List[str] = []

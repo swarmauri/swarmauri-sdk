@@ -1,4 +1,6 @@
-"""Event handlers using decorator pattern - showcases zero-boilerplate event registration."""
+"""Event handlers using decorator pattern - showcases zero-boilerplate event
+registration.
+"""
 
 from __future__ import annotations
 
@@ -23,7 +25,8 @@ def get_stats_for_badges(stats: dict) -> dict:
         stats: Dict with keys: total, active, inactive, by_role
 
     Returns:
-        Dict with individual count fields for each badge (as strings for Vue components)
+        Dict with individual count fields for each badge (as strings for Vue
+        components)
     """
     return {
         "stat_total_count": str(stats["total"]),
@@ -59,7 +62,9 @@ async def create_user(request: Request, payload: dict):
 
     # Handle missing fields with defaults
     name = payload.get("name", f"User_{random.randint(1000, 9999)}")
-    email = payload.get("email", f"user{random.randint(1000, 9999)}@example.com")
+    email = payload.get(
+        "email", f"user{random.randint(1000, 9999)}@example.com"
+    )
     role = payload.get("role", "user")
 
     logger.info(f"Extracted role: {role}")
@@ -84,7 +89,9 @@ async def create_user(request: Request, payload: dict):
     logger.info(f"Created user with role: {user.role}")
 
     # Log activity
-    db.log_activity("Created", f"User '{user.name}' ({user.email}) - Role: {user.role}")
+    db.log_activity(
+        "Created", f"User '{user.name}' ({user.email}) - Role: {user.role}"
+    )
 
     stats = db.get_stats()
 
@@ -95,7 +102,9 @@ async def create_user(request: Request, payload: dict):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"User '{user.name}' created successfully",
         "message_type": "success",
     }
@@ -144,7 +153,9 @@ async def update_user(request: Request, payload: UpdateUserPayload):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"User '{user.name}' updated successfully",
         "message_type": "success",
     }
@@ -191,7 +202,9 @@ async def delete_user(request: Request, payload: DeleteUserPayload):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"User '{user_name}' deleted successfully",
         "message_type": "success",
     }
@@ -229,7 +242,10 @@ async def toggle_user_active(request: Request, payload: ToggleUserPayload):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "message": f"User '{user.name}' is now {'active' if user.active else 'inactive'}",
+        "message": (
+            f"User '{user.name}' is now "
+            f"{'active' if user.active else 'inactive'}"
+        ),
         "message_type": "success",
     }
 
@@ -243,7 +259,10 @@ async def filter_users(request: Request, payload: FilterUsersPayload):
     logger = logging.getLogger(__name__)
 
     logger.info(
-        f"filter_users called with role={payload.role}, active={payload.active}, search={payload.search}"
+        (
+            f"filter_users called with role={payload.role}, "
+            f"active={payload.active}, search={payload.search}"
+        )
     )
 
     # Handle special filter values
@@ -260,7 +279,9 @@ async def filter_users(request: Request, payload: FilterUsersPayload):
         role = payload.role
         active = payload.active
 
-    logger.info(f"Filtering with role={role}, active={active}, search={payload.search}")
+    logger.info(
+        f"Filtering with role={role}, active={active}, search={payload.search}"
+    )
 
     users = db.get_all_users(
         role=role,
@@ -350,7 +371,9 @@ async def load_initial_data(request: Request, payload: dict | None = None):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"Loaded {len(users)} users",
         "message_type": "success",
     }
@@ -404,7 +427,9 @@ async def create_admin(request: Request, payload: dict | None = None):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"Admin '{user.name}' created successfully",
         "message_type": "success",
     }
@@ -445,7 +470,9 @@ async def create_guest(request: Request, payload: dict | None = None):
         "admin_count": str(stats["by_role"]["admin"]),
         "guest_count": str(stats["by_role"]["guest"]),
         **get_stats_for_badges(stats),
-        "items": [{"label": log, "actionLabel": ""} for log in db.get_activity_log()],
+        "items": [
+            {"label": log, "actionLabel": ""} for log in db.get_activity_log()
+        ],
         "message": f"Guest '{user.name}' created successfully",
         "message_type": "success",
     }

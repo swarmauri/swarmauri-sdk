@@ -136,8 +136,12 @@ class Atom:
     def version(self) -> str:
         return self.spec.version
 
-    def resolve_props(self, overrides: Mapping[str, Any] | None = None) -> dict:
-        """Return props merged with registry defaults (spec.defaults ⊕ overrides)."""
+    def resolve_props(
+        self, overrides: Mapping[str, Any] | None = None
+    ) -> dict:
+        """Return props merged with registry defaults (spec.defaults ⊕
+        overrides).
+        """
         return merge_atom_props(self.spec.defaults, overrides)
 
     # --- context manager support ---

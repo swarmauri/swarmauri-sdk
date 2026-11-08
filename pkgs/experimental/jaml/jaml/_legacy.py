@@ -11,7 +11,10 @@ from ._eval import safe_eval
 EXPRESSION = (
     r"~(?:\((?:[^()]|\([^()]*\))*\)|\[(?:[^\[\]]|\[[^\[\]]*\])*\])|\{\^.*?\^\}"
 )
-QUOTED = r'''""".*?"""|\x27\x27\x27.*?\x27\x27\x27|"(?:\\.|[^"\\])*"|\x27(?:\\.|[^\x27\\])*\x27'''
+QUOTED = (
+    r'''""".*?"""|\x27\x27\x27.*?\x27\x27\x27'''
+    r"""|"(?:\\.|[^"\\])*"|\x27(?:\\.|[^\x27\\])*\x27"""
+)
 SCOPED = r"([@$%])(?:\{([^}]+)\}|([A-Za-z_]\w*(?:\.\w+)*))"
 
 
@@ -57,7 +60,9 @@ class _StringConcatenation(ast.NodeTransformer):
 
 
 def render_source(source, context, globals):
-    """Replace deferred expressions without discarding annotations or layout."""
+    """Replace deferred expressions without discarding annotations or
+    layout.
+    """
     tokens = re.compile(f"(?:{QUOTED})|(?:{EXPRESSION})", re.S)
     references = re.compile(f"(?:{QUOTED})|(?:{SCOPED})", re.S)
 

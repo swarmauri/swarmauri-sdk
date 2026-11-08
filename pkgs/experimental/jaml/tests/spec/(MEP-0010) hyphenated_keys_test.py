@@ -9,7 +9,8 @@ from jaml import (
 
 @pytest.mark.spec
 @pytest.mark.mep0010
-# @pytest.mark.xfail(reason="Hyphenated section name round-trip preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Hyphenated section name round-trip preservation
+# not fully implemented yet.")
 def test_hyphenated_section_name_round_trip():
     """
     MEP-010:
@@ -31,7 +32,8 @@ build-backend = "poetry.core.masonry.api"
 
 @pytest.mark.spec
 @pytest.mark.mep0010
-# @pytest.mark.xfail(reason="Hyphenated key name without annotation preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Hyphenated key name without annotation
+# preservation not fully implemented yet.")
 def test_hyphenated_key_name_no_annotation():
     """
     MEP-010:
@@ -56,7 +58,8 @@ build-backend = "poetry.core.masonry.api"
 
 @pytest.mark.spec
 @pytest.mark.mep0010
-# @pytest.mark.xfail(reason="Hyphenated key name with annotation preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Hyphenated key name with annotation preservation
+# not fully implemented yet.")
 def test_hyphenated_key_name_with_annotation():
     """
     MEP-010:
@@ -77,7 +80,8 @@ build-backend: str = "poetry.core.masonry.api"
 
 @pytest.mark.spec
 @pytest.mark.mep0010
-# @pytest.mark.xfail(reason="Combined hyphenated section and key names preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Combined hyphenated section and key names
+# preservation not fully implemented yet.")
 def test_hyphenated_section_and_key_names_together():
     """
     MEP-010:
@@ -98,7 +102,8 @@ additional-requires = ["something>=1.2.3"]
     assert 'additional-requires = ["something>=1.2.3"]' in reserialized
 
 
-# @pytest.mark.xfail(reason="Case-preservation for hyphenated identifiers not fully implemented.")
+# @pytest.mark.xfail(reason="Case-preservation for hyphenated identifiers not
+# fully implemented.")
 @pytest.mark.spec
 @pytest.mark.mep0010
 def test_case_preservation_for_hyphenated_identifiers():

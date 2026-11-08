@@ -16,7 +16,9 @@ def frame_map_from_placements(
     placements: list[GridTile],
     resolver: IGridResolver | None = None,
 ) -> dict[str, Frame]:
-    """Compute a frames map for given placements with optional resolver injection."""
+    """Compute a frames map for given placements with optional resolver
+    injection.
+    """
     r = resolver or ExplicitGridResolver()
     return r.frames(gs, vp, placements)
 
@@ -61,7 +63,9 @@ def frame_diff(
             )
         else:
             changed.append(tid)
-            changes.append(FrameChange(tile_id=tid, before=a, after=b, kind="changed"))
+            changes.append(
+                FrameChange(tile_id=tid, before=a, after=b, kind="changed")
+            )
 
     for tid in added:
         changes.append(
@@ -69,7 +73,9 @@ def frame_diff(
         )
     for tid in removed:
         changes.append(
-            FrameChange(tile_id=tid, before=old[tid], after=None, kind="removed")
+            FrameChange(
+                tile_id=tid, before=old[tid], after=None, kind="removed"
+            )
         )
 
     return {
@@ -82,7 +88,9 @@ def frame_diff(
 
 
 def ordering_by_topleft(frames_map: dict[str, Frame]) -> list[str]:
-    """Return tile ids sorted by (y, x, id) to provide a stable, visual ordering."""
+    """Return tile ids sorted by (y, x, id) to provide a stable, visual
+    ordering.
+    """
     return sorted(
         frames_map.keys(), key=lambda k: (frames_map[k].y, frames_map[k].x, k)
     )

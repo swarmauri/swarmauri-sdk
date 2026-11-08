@@ -76,7 +76,8 @@ def dumps(obj: Dict[str, Any]) -> str:
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
-    Serialize a plain dict into JML and write to a file-like object (non-round-trip).
+    Serialize a plain dict into JML and write to a file-like object
+    (non-round-trip).
 
     :param obj: Dictionary to serialize.
     :param fp: File-like object to write to.
@@ -129,7 +130,8 @@ def load(fp: IO[str]) -> Dict[str, Any]:
 
 def round_trip_dumps(config: Config) -> str:
     """
-    Serialize a Config object back to a JML-formatted string, preserving layout,
+    Serialize a Config object back to a JML-formatted string, preserving
+    layout,
     comments, merges, etc., as supported by the unparser.
 
     :param config: Config object from round_trip_loads/load.
@@ -142,7 +144,8 @@ def round_trip_dumps(config: Config) -> str:
 
 def round_trip_dump(config: Config, fp: IO[str]) -> None:
     """
-    Serialize a Config object into JML, writing to a file-like object (round-trip).
+    Serialize a Config object into JML, writing to a file-like object
+    (round-trip).
 
     :param config: Config object to serialize.
     :param fp: File-like object to write to.
@@ -181,7 +184,8 @@ def round_trip_loads(s: str) -> Config:
 
 def round_trip_load(fp: IO[str]) -> Config:
     """
-    Parse JML content from a file-like object into a Config object, preserving round-trip data.
+    Parse JML content from a file-like object into a Config object, preserving
+    round-trip data.
 
     :param fp: File-like object to read from.
     :return: Config object.
@@ -214,9 +218,11 @@ def resolve(config: Config) -> Config:
 
 def render(config: Config, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Substitute deferred ${...} placeholders in the Config object using the provided context.
+    Substitute deferred ${...} placeholders in the Config object using the
+    provided context.
 
-    :param config: Config object from round_trip_loads/load, preferably resolved.
+    :param config: Config object from round_trip_loads/load, preferably
+    resolved.
     :param context: Dictionary with context variables (default: empty).
     :return: Rendered dictionary with all placeholders substituted.
     """

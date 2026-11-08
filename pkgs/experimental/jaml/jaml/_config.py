@@ -151,7 +151,8 @@ class Config(MutableMapping):
 
     def _insert_nested_key(self, dotted_key: str, value: Any) -> None:
         """
-        Insert *value* into self._data following the dotted path in *dotted_key*
+        Insert *value* into self._data following the dotted path in
+        *dotted_key*
         (e.g. "file.auth.login.source").  Intermediate mappings are created as
         needed.  Any pre-existing scalar encountered on the path is replaced by
         a new mapping.
@@ -167,8 +168,10 @@ class Config(MutableMapping):
 
     def _reparse_value(self, value: str) -> "BaseNode":
         """
-        Parse a value fragment (e.g. folded, array, inline table, comprehension, etc.) by
-        wrapping it in a tiny config snippet and using the existing parser + transformer.
+        Parse a value fragment (e.g. folded, array, inline table,
+        comprehension, etc.) by
+        wrapping it in a tiny config snippet and using the existing parser +
+        transformer.
         Returns the newly built AST node for that fragment.
         """
         from .api import round_trip_loads
@@ -181,7 +184,9 @@ class Config(MutableMapping):
         return assign_node.value
 
     def _sync_ast(self, dotted: str, value: Any):
-        """Update one assignment while preserving its annotation and section."""
+        """Update one assignment while preserving its annotation and
+        section.
+        """
         from lark import Token
         from ._ast_nodes import AssignmentNode, BaseNode, SectionNode
         from ._legacy import _literal
@@ -281,7 +286,8 @@ class Config(MutableMapping):
                     "②a processing header raw_key=%s expr=%s", raw_key, expr
                 )
 
-                # -- strip alias clauses like "as %{alias}" before placeholder work --
+                # -- strip alias clauses like "as %{alias}" before placeholder
+                # work --
                 expr = re.sub(r"\s+as\s+%\{[^}]+\}", "", expr)
 
                 def _scoped_repl(m):
@@ -299,7 +305,10 @@ class Config(MutableMapping):
                 expr_py = expr_py.replace("null", "None")
                 if "${" in expr_py:
                     logger.debug(
-                        "skipping header expression with context placeholders: %s",
+                        (
+                            "skipping header expression with context "
+                            "placeholders: %s"
+                        ),
                         expr_py,
                     )
                     continue
@@ -485,7 +494,8 @@ class Config(MutableMapping):
                     "②a processing header raw_key=%s expr=%s", raw_key, expr
                 )
 
-                # --- ①: Capture alias clause(s) before stripping them for later binding ---
+                # --- ①: Capture alias clause(s) before stripping them for
+                # later binding ---
                 alias_anchors = re.findall(
                     r"\s+as\s+%\{([^}]+)\}", expr
                 )  # get list of aliases (may be empty)
@@ -525,7 +535,10 @@ class Config(MutableMapping):
                     logger.debug("   – result=%r", result)
                 except Exception as exc:
                     logger.exception(
-                        "   ✖ header expression failed (%s); leaving untouched",
+                        (
+                            "   ✖ header expression failed (%s); leaving "
+                            "untouched"
+                        ),
                         exc,
                     )
                     continue

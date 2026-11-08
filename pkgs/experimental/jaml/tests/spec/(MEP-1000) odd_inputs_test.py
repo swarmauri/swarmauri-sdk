@@ -44,29 +44,34 @@ BASE_CONTEXT = {
     ],
 }
 
-expected_result = r"""
+expected_result = (
+    r"""
 [file.auth.login.source]
 name = "login.py"
 path = "src/auth/login.py"
 type = "python"
 extras = {"owner": "teamA", "secret": "xyz"}
-extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
+extras = { "testFramework" = "pytest", "tests" = ["test_v2_login","""
+    r""" "test_v2_auth"] }
 
 [file.auth.signup.source]
 name = "signup.py"
 path = "src/auth/signup.py"
 type = "python"
 extras = { "owner" = "teamB" }
-extras = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
+extras = { "testFramework" = "pytest", "tests" = ["test_v2_login","""
+    r""" "test_v2_auth"] }
 
 """
+)
 
 
 @pytest.mark.spec
 @pytest.mark.xfail(reason="Pending proper implementation")
 def test_assignment_in_list_compr():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     assert data["rootDir"] == "src"

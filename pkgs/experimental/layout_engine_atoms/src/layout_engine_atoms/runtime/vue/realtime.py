@@ -57,9 +57,11 @@ class WebsocketMuxHub:
 
     Args:
         path: WebSocket endpoint path
-        auth_handler: Optional async function to authenticate WebSocket connections.
+        auth_handler: Optional async function to authenticate WebSocket
+        connections.
             Should return True to allow connection, False to reject.
-        max_subscriptions_per_client: Maximum number of channels a single client
+        max_subscriptions_per_client: Maximum number of channels a single
+        client
             can subscribe to (default: 100)
     """
 
@@ -100,7 +102,9 @@ class WebsocketMuxHub:
             except Exception as e:
                 logger.error(f"Authentication error: {e}", exc_info=True)
                 await websocket.close(code=1011, reason="Authentication error")
-                raise WebSocketDisconnect(code=1011, reason="Authentication error")
+                raise WebSocketDisconnect(
+                    code=1011, reason="Authentication error"
+                )
 
         await websocket.accept()
         async with self._lock:
@@ -135,7 +139,8 @@ class WebsocketMuxHub:
                 current_subs = self._subscriptions[websocket]
                 if len(current_subs) >= self.max_subscriptions_per_client:
                     logger.warning(
-                        f"Client {websocket.client} exceeded subscription limit "
+                        f"Client {websocket.client} exceeded subscription "
+                        f"limit "
                         f"({self.max_subscriptions_per_client})"
                     )
                     # Send error message to client
@@ -148,7 +153,9 @@ class WebsocketMuxHub:
                     return
                 current_subs.add(channel)
 
-        logger.debug(f"Client {websocket.client} subscribed to channel: {channel}")
+        logger.debug(
+            f"Client {websocket.client} subscribed to channel: {channel}"
+        )
 
     async def unsubscribe(self, websocket: WebSocket, channel: str) -> None:
         async with self._lock:
@@ -159,7 +166,9 @@ class WebsocketMuxHub:
             if not channels:
                 self._subscriptions.pop(websocket, None)
 
-    async def broadcast(self, channel: str, payload: Mapping[str, Any]) -> None:
+    async def broadcast(
+        self, channel: str, payload: Mapping[str, Any]
+    ) -> None:
         message = {"channel": channel, "payload": dict(payload)}
         async with self._lock:
             targets = [
@@ -173,18 +182,26 @@ class WebsocketMuxHub:
                 await websocket.send_json(message)
             except WebSocketDisconnect:
                 logger.info(
-                    f"WebSocket disconnected during broadcast: {websocket.client}"
+                    (
+                        f"WebSocket disconnected during broadcast: "
+                        f"{websocket.client}"
+                    )
                 )
                 stale.append(websocket)
             except Exception as e:
                 logger.error(
-                    f"Failed to send message to WebSocket {websocket.client}: {e}"
+                    (
+                        f"Failed to send message to WebSocket "
+                        f"{websocket.client}: {e}"
+                    )
                 )
                 stale.append(websocket)
         for websocket in stale:
             await self.disconnect(websocket)
 
-    async def start_publishers(self, publishers: Sequence[RealtimePublisher]) -> None:
+    async def start_publishers(
+        self, publishers: Sequence[RealtimePublisher]
+    ) -> None:
         """Launch background publisher coroutines."""
 
         if not publishers:

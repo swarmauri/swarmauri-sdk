@@ -112,7 +112,8 @@ class Database:
             users = [
                 u
                 for u in users
-                if search_lower in u.name.lower() or search_lower in u.email.lower()
+                if search_lower in u.name.lower()
+                or search_lower in u.email.lower()
             ]
 
         return users
@@ -128,9 +129,15 @@ class Database:
             "active": len([u for u in self.users if u.active]),
             "inactive": len([u for u in self.users if not u.active]),
             "by_role": {
-                "admin": len([u for u in self.users if u.role == UserRole.ADMIN]),
-                "user": len([u for u in self.users if u.role == UserRole.USER]),
-                "guest": len([u for u in self.users if u.role == UserRole.GUEST]),
+                "admin": len(
+                    [u for u in self.users if u.role == UserRole.ADMIN]
+                ),
+                "user": len(
+                    [u for u in self.users if u.role == UserRole.USER]
+                ),
+                "guest": len(
+                    [u for u in self.users if u.role == UserRole.GUEST]
+                ),
             },
         }
 
@@ -138,7 +145,8 @@ class Database:
         """Log an activity to the activity log.
 
         Args:
-            action: The action performed (e.g., "Created", "Updated", "Deleted")
+            action: The action performed (e.g., "Created", "Updated",
+            "Deleted")
             details: Additional details about the action
         """
         timestamp = datetime.now().strftime("%H:%M:%S")

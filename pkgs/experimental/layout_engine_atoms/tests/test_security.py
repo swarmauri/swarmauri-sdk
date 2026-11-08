@@ -38,12 +38,16 @@ def test_payload_validation_with_schema():
     validate_payload_against_schema(valid_payload, schema)  # Should not raise
 
     # Missing required field
-    with pytest.raises(PayloadValidationError, match="Missing required fields"):
+    with pytest.raises(
+        PayloadValidationError, match="Missing required fields"
+    ):
         validate_payload_against_schema({"name": "John"}, schema)
 
     # Wrong type
     with pytest.raises(PayloadValidationError, match="expected integer"):
-        validate_payload_against_schema({"name": "John", "age": "thirty"}, schema)
+        validate_payload_against_schema(
+            {"name": "John", "age": "thirty"}, schema
+        )
 
     # Out of range
     with pytest.raises(PayloadValidationError, match="value above maximum"):
@@ -117,7 +121,9 @@ def test_event_payload_validation_integration():
     assert "Missing required fields" in response.json()["detail"]
 
     # Wrong type should fail
-    response = client.post("/dashboard/events/test.event", json={"value": "string"})
+    response = client.post(
+        "/dashboard/events/test.event", json={"value": "string"}
+    )
     assert response.status_code == 400
     assert "expected integer" in response.json()["detail"]
 
@@ -265,7 +271,8 @@ async def test_websocket_subscription_limit():
     await hub.subscribe(ws, "channel2")
     await hub.subscribe(ws, "channel3")
 
-    # 4th subscription should be rejected (no error raised, but error sent to client)
+    # 4th subscription should be rejected (no error raised, but error sent to
+    # client)
     await hub.subscribe(ws, "channel4")
 
     # Verify only 3 channels are subscribed
@@ -324,7 +331,10 @@ def test_payload_validation_with_enum():
     schema = {
         "type": "object",
         "properties": {
-            "status": {"type": "string", "enum": ["pending", "active", "completed"]},
+            "status": {
+                "type": "string",
+                "enum": ["pending", "active", "completed"],
+            },
         },
     }
 

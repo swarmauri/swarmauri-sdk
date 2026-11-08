@@ -3,7 +3,9 @@ from jaml import round_trip_loads, round_trip_dumps, loads
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Named parameter support in git() not fully implemented")
+@pytest.mark.xfail(
+    reason="Named parameter support in git() not fully implemented"
+)
 def test_git_named_parameters_basic():
     # Test basic usage with named parameters
     jml = """
@@ -30,7 +32,8 @@ def test_git_named_parameters_with_embed():
     # Test embedding raw content from a git repository
     jml = """
 [script]
-deploy = git(url = "https://github.com/user/scripts", branch = "master").embed("deploy.sh")
+deploy = git(url = "https://github.com/user/scripts", branch =\
+ "master").embed("deploy.sh")
     """.strip()
 
     ast = round_trip_loads(jml)
@@ -50,7 +53,8 @@ def test_git_mixed_named_parameters():
     jml = """
 [build]
 source = git(url = "https://github.com/user/build", branch = "dev")
-stable = git(url = "https://github.com/user/build", tag = "v2.0").embed("config.toml")
+stable = git(url = "https://github.com/user/build", tag =\
+ "v2.0").embed("config.toml")
     """.strip()
 
     ast = round_trip_loads(jml)

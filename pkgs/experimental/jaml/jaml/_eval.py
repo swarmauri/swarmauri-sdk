@@ -184,7 +184,8 @@ def safe_eval(expr: str, local_env: Dict[str, Any] | None = None) -> Any:
         if isinstance(node, ast.Dict):
             return {_eval(k): _eval(v) for k, v in zip(node.keys, node.values)}
 
-        # comprehensions (list, set, generator) ---------------------------  ◀ NEW
+        # comprehensions (list, set, generator) ---------------------------  ◀
+        # NEW
         if isinstance(node, (ast.ListComp, ast.SetComp, ast.GeneratorExp)):
 
             def _comp_recurse(gen_idx: int):

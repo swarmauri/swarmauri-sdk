@@ -40,7 +40,9 @@ def test_manifest_with_site_and_channels_validates() -> None:
         site=site,
         active_page="dashboard",
         channels=[
-            ChannelManifest(id="ui.events", scope="page", topic="page:{page_id}:ui")
+            ChannelManifest(
+                id="ui.events", scope="page", topic="page:{page_id}:ui"
+            )
         ],
         ws_routes=[WsRouteManifest(path="/ws/ui", channels=("ui.events",))],
     )
@@ -51,7 +53,8 @@ def test_manifest_with_site_and_channels_validates() -> None:
 
 
 def test_swarma_catalog_override_propagates_to_manifest() -> None:
-    # Build registry with an override without depending on layout_engine_atoms availability.
+    # Build registry with an override without depending on layout_engine_atoms
+    # availability.
     registry = AtomRegistry()
     registry.register(
         AtomSpec(
@@ -65,7 +68,9 @@ def test_swarma_catalog_override_propagates_to_manifest() -> None:
     registry.override("swarmakit:vue:button", defaults={"size": "lg"})
 
     compiler = LayoutCompiler()
-    grid_spec = GridSpec(columns=[GridTrack(size=Size(1, "fr"))], row_height=200)
+    grid_spec = GridSpec(
+        columns=[GridTrack(size=Size(1, "fr"))], row_height=200
+    )
     viewport = Viewport(width=800, height=600)
     frames_map = compiler.frames(
         grid_spec, viewport, [GridTile(tile_id="btn", col=0, row=0)]

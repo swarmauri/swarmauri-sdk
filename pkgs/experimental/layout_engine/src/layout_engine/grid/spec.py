@@ -30,7 +30,9 @@ class GridSpec(BaseModel):
     gap_y: int = 12
     baseline_unit: int | None = None
     tokens: Mapping[str, str] = Field(default_factory=dict)
-    breakpoints: list[tuple[int, list[GridTrack]]] = Field(default_factory=list)
+    breakpoints: list[tuple[int, list[GridTrack]]] = Field(
+        default_factory=list
+    )
 
     @classmethod
     def from_tokens(
@@ -56,10 +58,15 @@ class GridSpec(BaseModel):
                 columns.append(GridTrack(size=entry))
             else:
                 raise TypeError(
-                    "columns derived from tokens must be Size or GridTrack instances"
+                    (
+                        "columns derived from tokens must be Size or "
+                        "GridTrack instances"
+                    )
                 )
 
-        row_height = int(data.pop("row_height", cls.model_fields["row_height"].default))
+        row_height = int(
+            data.pop("row_height", cls.model_fields["row_height"].default)
+        )
         gap_x = int(data.pop("gap_x", cls.model_fields["gap_x"].default))
         gap_y = int(data.pop("gap_y", cls.model_fields["gap_y"].default))
         baseline_unit = data.pop("baseline_unit", None)

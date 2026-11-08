@@ -63,7 +63,7 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 # utils.py
 
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # ① expand global- and local-scope f-strings
 def _eval_fstrings(mapping: Dict[str, Any], global_data=None):
     if global_data is None:
@@ -72,7 +72,8 @@ def _eval_fstrings(mapping: Dict[str, Any], global_data=None):
         if isinstance(val, str) and (
             val.startswith('f"') or val.startswith("f'")
         ):
-            # Skip context-scoped placeholders (${…}), only expand static f-strings
+            # Skip context-scoped placeholders (${…}), only expand static
+            # f-strings
             if "${" not in val:
                 mapping[key] = _evaluate_f_string(
                     val,
@@ -101,9 +102,12 @@ def _evaluate_f_string(
     Marker semantics
     ────────────────
     • ``@{var}``  → search *only* the global/root mapping
-    • ``%{var}``  → start at *local_data* (section scope), fall back to *global_data*
-    • ``{expr}``  → same lookup as ``%{}``; if unresolved, try ``safe_eval(expr)``
-    • ``${var}``  → search the caller‑supplied *context*, then local, then global
+    • ``%{var}``  → start at *local_data* (section scope), fall back to
+    *global_data*
+    • ``{expr}``  → same lookup as ``%{}``; if unresolved, try
+    ``safe_eval(expr)``
+    • ``${var}``  → search the caller‑supplied *context*, then local, then
+    global
 
     Unresolved placeholders are returned verbatim so round‑trip fidelity is
     preserved.
@@ -113,7 +117,10 @@ def _evaluate_f_string(
     # Must begin with f"… or f'…
     if not (f_str.startswith('f"') or f_str.startswith("f'")):
         print(
-            "[DEBUG _fstring._evaluate_f_string] Not an f-string; returning as‑is."
+            (
+                "[DEBUG _fstring._evaluate_f_string] Not an f-string; "
+                "returning as‑is."
+            )
         )
         return f_str
 
@@ -123,11 +130,15 @@ def _evaluate_f_string(
         quote_char = inner[0]
         inner = inner[1:-1] if inner.endswith(quote_char) else inner[1:]
     print(
-        "[DEBUG _fstring._evaluate_f_string] After removing f prefix and quotes, inner:",
+        (
+            "[DEBUG _fstring._evaluate_f_string] After removing f prefix and"
+            " quotes, inner:"
+        ),
         inner,
     )
 
-    # ───────────────────────────────────────────────────────── placeholder pass
+    # ───────────────────────────────────────────────────────── placeholder
+    # pass
     def repl(match: "re.Match[str]") -> str:
         scope_marker, content = match.groups()
         content = content.strip()
@@ -148,7 +159,10 @@ def _evaluate_f_string(
             value = _lookup(content, context, local_data, global_data)
             if value is None:
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Context lookup failed for",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Context lookup "
+                        "failed for"
+                    ),
                     content,
                 )
                 return match.group(0)
@@ -170,14 +184,20 @@ def _evaluate_f_string(
             try:
                 value = safe_eval(content, local_env=local_data)
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Evaluated expression:",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Evaluated "
+                        "expression:"
+                    ),
                     content,
                     "to:",
                     value,
                 )
             except Exception as exc:
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Expression evaluation failed:",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Expression "
+                        "evaluation failed:"
+                    ),
                     exc,
                 )
                 return match.group(0)

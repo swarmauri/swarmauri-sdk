@@ -50,7 +50,8 @@ timeout = 30          # Timeout in seconds
 @pytest.mark.unit
 @pytest.mark.xfail(reason="Mixed inline comment support not fully implemented")
 def test_mixed_inline_comments():
-    # Test inline comments within multiline arrays and mixed with standalone comments
+    # Test inline comments within multiline arrays and mixed with standalone
+    # comments
     jml = """
 # List of file paths
 files = [

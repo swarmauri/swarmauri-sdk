@@ -1,4 +1,6 @@
-"""Development-only example applications for the layout engine atoms package."""
+"""Development-only example applications for the layout engine atoms
+package.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +12,9 @@ import pkgutil
 # Include the sibling ``examples`` directory (alongside ``src``) so that
 # ``layout_engine_atoms.examples`` exposes the demo applications without having
 # to ship them as part of the installable package.
-_examples_root = Path(__file__).resolve().parent.parent.parent.parent / "examples"
+_examples_root = (
+    Path(__file__).resolve().parent.parent.parent.parent / "examples"
+)
 
 # ``pkgutil.extend_path`` maintains compatibility with namespace packages and
 # allows static type checkers to discover the modules during development.

@@ -42,13 +42,17 @@ async def _increment_event(_: Request, payload):
 increment_event = UiEvent(
     id="ui.increment",
     handler=_increment_event,
-    description="Increment the server-side counter and broadcast the latest value.",
+    description=(
+        "Increment the server-side counter and broadcast the latest value."
+    ),
     default_channel="demo.counter",
 )
 
 realtime = RealtimeOptions(
     path="/ws/events",
-    channels=(RealtimeChannel(id="demo.counter", description="Counter updates"),),
+    channels=(
+        RealtimeChannel(id="demo.counter", description="Counter updates"),
+    ),
     bindings=(
         RealtimeBinding(
             channel="demo.counter",

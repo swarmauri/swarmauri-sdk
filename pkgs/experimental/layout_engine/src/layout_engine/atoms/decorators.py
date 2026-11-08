@@ -18,7 +18,8 @@ def atom_ctx(
     """Decorator to declare and optionally register an atom specification.
 
     Example:
-        @atom_ctx(role="kpi", module="@app/widgets/Kpi.svelte", defaults={"format":"currency"}, registry=REG)
+        @atom_ctx(role="kpi", module="@app/widgets/Kpi.svelte",
+        defaults={"format":"currency"}, registry=REG)
         def kpi(): pass
     """
 
@@ -66,7 +67,8 @@ def atom(
 def validate_props(schema: Mapping[str, Any] | None = None):
     """No-op validation decorator placeholder.
 
-    Hook point for adding runtime schema validation (pydantic/jsonschema) in apps that need it,
+    Hook point for adding runtime schema validation (pydantic/jsonschema) in
+    apps that need it,
     while keeping core package free of heavy deps.
     """
 

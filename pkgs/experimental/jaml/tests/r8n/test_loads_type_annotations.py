@@ -71,7 +71,8 @@ colors: list = ["red", "green", "blue"]
 @pytest.mark.unit
 def test_loads_inline_table_annotation():
     # Test an inline table with a type annotation.
-    # Note: In our current implementation, inline tables are returned as raw strings.
+    # Note: In our current implementation, inline tables are returned as raw
+    # strings.
     jml = """
 [section]
 point: table = { x = 10, y = 20 }

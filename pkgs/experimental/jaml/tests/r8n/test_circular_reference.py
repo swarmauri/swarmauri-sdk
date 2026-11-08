@@ -12,12 +12,16 @@ a = f"%{b}"
 b = f"%{a}"
     """.strip()
 
-    with pytest.raises(ValueError, match="Circular reference detected: a -> b -> a"):
+    with pytest.raises(
+        ValueError, match="Circular reference detected: a -> b -> a"
+    ):
         round_trip_loads(jml)
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Nested circular reference detection not fully implemented")
+@pytest.mark.xfail(
+    reason="Nested circular reference detection not fully implemented"
+)
 def test_circular_reference_nested():
     # Circular reference involving nested tables
     jml = """
@@ -31,13 +35,18 @@ c = f"%{a}"
 
     with pytest.raises(
         ValueError,
-        match="Circular reference detected: config.a -> config.b -> config.nested.c -> config.a",
+        match=(
+            "Circular reference detected: config.a -> config.b -> "
+            "config.nested.c -> config.a"
+        ),
     ):
         round_trip_loads(jml)
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Indirect circular reference detection not fully implemented")
+@pytest.mark.xfail(
+    reason="Indirect circular reference detection not fully implemented"
+)
 def test_indirect_circular_reference():
     # Indirect circular reference through multiple variables
     jml = """

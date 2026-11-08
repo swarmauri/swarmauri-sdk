@@ -9,7 +9,9 @@ from .spec import AtomPreset
 
 
 def presets_from_specs(specs: Iterable[AtomSpec]) -> dict[str, AtomPreset]:
-    """Convert raw :class:`AtomSpec` entries into :class:`AtomPreset` models."""
+    """Convert raw :class:`AtomSpec` entries into :class:`AtomPreset`
+    models.
+    """
     return {
         spec.role: AtomPreset(
             role=spec.role,
