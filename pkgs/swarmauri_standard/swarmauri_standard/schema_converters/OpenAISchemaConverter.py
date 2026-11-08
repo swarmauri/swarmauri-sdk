@@ -22,6 +22,8 @@ class OpenAISchemaConverter(SchemaConverterBase):
             }
             if param.enum:
                 properties[param.name]["enum"] = param.enum
+            if param.input_type == "array":
+                properties[param.name]["items"] = param.items or {}
 
             if param.required:
                 required.append(param.name)

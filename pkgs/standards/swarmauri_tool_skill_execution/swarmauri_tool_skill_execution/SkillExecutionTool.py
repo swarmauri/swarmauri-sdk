@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import subprocess
+
+from swarmauri_base.processes.collect_process import collect_process
+from swarmauri_core.processes import IProcessBackend, ProcessRequest
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -63,6 +66,9 @@ class SkillExecutionTool(ToolBase):
         ]
     )
     skills: List[SubclassUnion[SkillBase]] = Field(default_factory=list)
+    backend: IProcessBackend | None = Field(default=None, exclude=True)
+    workspace: str | None = None
+    workspace_skill_roots: dict[str, str] = Field(default_factory=dict)
     default_timeout: float = 60.0
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["SkillExecutionTool"] = "SkillExecutionTool"
@@ -91,6 +97,10 @@ class SkillExecutionTool(ToolBase):
     ) -> Dict[str, Any]:
         skill = self._get_skill(skill_name)
         root = self._skill_root(skill)
+        if self.backend is not None and self.workspace is not None:
+            process_root = self.workspace_skill_roots[skill.name]
+        else:
+            process_root = str(root)
         normalized_commands = self._normalize_commands(commands)
         effective_timeout = (
             timeout if timeout is not None else self.default_timeout
@@ -103,14 +113,16 @@ class SkillExecutionTool(ToolBase):
                 results = list(
                     pool.map(
                         lambda argv: self._run_command(
-                            argv, root, input_text, effective_timeout
+                            argv, process_root, input_text, effective_timeout
                         ),
                         normalized_commands,
                     )
                 )
         else:
             results = [
-                self._run_command(argv, root, input_text, effective_timeout)
+                self._run_command(
+                    argv, process_root, input_text, effective_timeout
+                )
                 for argv in normalized_commands
             ]
 
@@ -158,15 +170,35 @@ class SkillExecutionTool(ToolBase):
                 raise ValueError("Each command must be a non-empty argv array")
         return normalized
 
-    @staticmethod
     def _run_command(
+        self,
         argv: List[str],
-        root: Path,
+        root: str,
         input_text: str | None,
         timeout: float,
     ) -> Dict[str, Any]:
         started = time.perf_counter()
         try:
+            if self.backend is not None:
+                stdout_bytes, stderr_bytes, event = collect_process(
+                    self.backend,
+                    ProcessRequest(
+                        tuple(argv),
+                        cwd=root,
+                        workspace=self.workspace,
+                        timeout=timeout,
+                    ),
+                    (input_text or "").encode(),
+                )
+                return {
+                    "argv": argv,
+                    "exit_code": "timeout"
+                    if event.outcome == "timed_out"
+                    else event.exit_code,
+                    "stdout": stdout_bytes.decode(errors="replace"),
+                    "stderr": stderr_bytes.decode(errors="replace"),
+                    "duration_ms": int((time.perf_counter() - started) * 1000),
+                }
             completed = subprocess.run(
                 argv,
                 cwd=root,

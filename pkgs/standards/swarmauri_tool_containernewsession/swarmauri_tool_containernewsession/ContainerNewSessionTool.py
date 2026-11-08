@@ -1,5 +1,6 @@
 import subprocess
-from typing import List, Literal
+from typing import Any, List, Literal
+
 from pydantic import Field
 from swarmauri_base.tools.ToolBase import ToolBase
 from swarmauri_standard.tools.Parameter import Parameter
@@ -16,6 +17,8 @@ class ContainerNewSessionTool(ToolBase):
         "Start a new Docker or Kubernetes container running a shell."
     )
     type: Literal["ContainerNewSessionTool"] = "ContainerNewSessionTool"
+
+    backend: Any = Field(default=None, exclude=True)
 
     driver: Literal["docker", "kubernetes"] = "docker"
 
@@ -50,6 +53,9 @@ class ContainerNewSessionTool(ToolBase):
         img = image or self.image
         if name is None or img is None:
             raise ValueError("container_name and image must be provided")
+        if self.backend is not None:
+            output = self.backend.open_workspace(name, img)
+            return {"session_name": name, "stdout": output.strip()}
         if self.driver == "docker":
             cmd = [
                 "docker",

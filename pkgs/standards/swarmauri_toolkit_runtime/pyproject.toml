@@ -23,6 +23,11 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
+    "swarmauri_tool_registerruntimetool",
+    "swarmauri_tool_inspectruntimetool",
+    "swarmauri_tool_listruntimetools",
+    "swarmauri_tool_replaceruntimetool",
+    "swarmauri_tool_unregisterruntimetool",
     "pydantic",
     "swarmauri_core",
     "swarmauri_base",
@@ -49,6 +54,11 @@ keywords = [
 ]
 
 [tool.uv.sources]
+swarmauri_tool_registerruntimetool = { workspace = true }
+swarmauri_tool_inspectruntimetool = { workspace = true }
+swarmauri_tool_listruntimetools = { workspace = true }
+swarmauri_tool_replaceruntimetool = { workspace = true }
+swarmauri_tool_unregisterruntimetool = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
@@ -75,13 +85,6 @@ asyncio_default_fixture_loop_scope = "function"
 
 [project.entry-points.'swarmauri.toolkits']
 RuntimeToolkit = "swarmauri_toolkit_runtime:RuntimeToolkit"
-
-[project.entry-points.'swarmauri.tools']
-RegisterRuntimeTool = "swarmauri_toolkit_runtime:RegisterRuntimeTool"
-InspectRuntimeTool = "swarmauri_toolkit_runtime:InspectRuntimeTool"
-ListRuntimeTools = "swarmauri_toolkit_runtime:ListRuntimeTools"
-UnregisterRuntimeTool = "swarmauri_toolkit_runtime:UnregisterRuntimeTool"
-ReplaceRuntimeTool = "swarmauri_toolkit_runtime:ReplaceRuntimeTool"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
