@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: Apache Software License",
 ]
-dependencies = ["swarmauri_core", "swarmauri_base","swarmauri_standard","swarmauri_agent_runner","swarmauri_toolkit_skillset","swarmauri_toolkit_runtime","swarmauri_toolkit_containertoolkit","swarmauri_tool_runpackagechecks"]
+dependencies = ["swarmauri_core>=0.11.0.dev6,<0.12", "swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_standard>=0.11.0.dev8,<0.12","swarmauri_agent_runner>=0.1.0,<0.2","swarmauri_toolkit_skillset>=0.1.0,<0.2","swarmauri_toolkit_runtime>=0.11.0.dev4,<0.12","swarmauri_toolkit_containertoolkit>=0.11.0.dev4,<0.12","swarmauri_tool_runpackagechecks>=0.1.0,<0.2"]
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"

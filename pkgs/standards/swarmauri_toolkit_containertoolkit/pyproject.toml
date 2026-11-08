@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_containertoolkit"
-version = "0.11.0.dev3"
+version = "0.11.0.dev4"
 description = "Toolkit bundling container management tools."
 license = "Apache-2.0"
 readme = "README.md"
@@ -19,19 +19,19 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_process_docker",
-    "swarmauri_process_kubernetes",
-    "swarmauri_tool_runcommand",
-    "swarmauri_tool_runbashscript",
-    "swarmauri_tool_readprocessoutput",
-    "swarmauri_tool_writestdin",
-    "swarmauri_tool_cancelprocess",
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "swarmauri_tool_containernewsession",
-    "swarmauri_tool_containerfeedchars",
-    "swarmauri_tool_containermakepr",
+    "swarmauri_process_docker>=0.1.0,<0.2",
+    "swarmauri_process_kubernetes>=0.1.0,<0.2",
+    "swarmauri_tool_runcommand>=0.1.0,<0.2",
+    "swarmauri_tool_runbashscript>=0.1.0,<0.2",
+    "swarmauri_tool_readprocessoutput>=0.1.0,<0.2",
+    "swarmauri_tool_writestdin>=0.1.0,<0.2",
+    "swarmauri_tool_cancelprocess>=0.1.0,<0.2",
+    "swarmauri_core>=0.11.0.dev6,<0.12",
+    "swarmauri_base>=0.11.0.dev6,<0.12",
+    "swarmauri_standard>=0.11.0.dev8,<0.12",
+    "swarmauri_tool_containernewsession>=0.11.0.dev4,<0.12",
+    "swarmauri_tool_containerfeedchars>=0.11.0.dev4,<0.12",
+    "swarmauri_tool_containermakepr>=0.11.0.dev4,<0.12",
 ]
 keywords = [
     'swarmauri',

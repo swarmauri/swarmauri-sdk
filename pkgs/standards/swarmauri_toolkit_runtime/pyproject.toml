@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_runtime"
-version = "0.11.0.dev3"
+version = "0.11.0.dev4"
 description = "Runtime toolkit for explicit-parameter registration, inspection, replacement, listing, and removal of Swarmauri tools during agent execution."
 license = "Apache-2.0"
 readme = { file = "README.md", content-type = "text/markdown" }
@@ -23,15 +23,15 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_tool_registerruntimetool",
-    "swarmauri_tool_inspectruntimetool",
-    "swarmauri_tool_listruntimetools",
-    "swarmauri_tool_replaceruntimetool",
-    "swarmauri_tool_unregisterruntimetool",
+    "swarmauri_tool_registerruntimetool>=0.1.0,<0.2",
+    "swarmauri_tool_inspectruntimetool>=0.1.0,<0.2",
+    "swarmauri_tool_listruntimetools>=0.1.0,<0.2",
+    "swarmauri_tool_replaceruntimetool>=0.1.0,<0.2",
+    "swarmauri_tool_unregisterruntimetool>=0.1.0,<0.2",
     "pydantic",
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
+    "swarmauri_core>=0.11.0.dev6,<0.12",
+    "swarmauri_base>=0.11.0.dev6,<0.12",
+    "swarmauri_standard>=0.11.0.dev8,<0.12",
 ]
 keywords = [
     "swarmauri",
