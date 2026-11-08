@@ -47,7 +47,7 @@ def test_asgi_transport_has_dedicated_optional_dependency_key():
     assert dedicated_group == [f"{TRANSPORT_PACKAGE}>=0.1.0"]
 
 
-def test_asgi_transport_dependency_presence_differs_between_swarmauri_canon_http_and_httpx():
+def test_asgi_transport_dependency_differs_from_httpx():
     swarmauri_canon_http_requirements = (
         _transport_requirements_from_distribution("swarmauri_canon_http")
     )

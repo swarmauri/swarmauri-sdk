@@ -19,7 +19,9 @@ def _get_transport_entry_points() -> list[metadata.EntryPoint]:
 
 
 def load_registered_transports() -> dict[str, Any]:
-    """Import all registered transport entry points and return loaded objects."""
+    """Import all registered transport entry points and return loaded
+    objects.
+    """
     loaded_transports: dict[str, Any] = {}
     for entry_point in _get_transport_entry_points():
         loaded_transports[entry_point.name] = entry_point.load()

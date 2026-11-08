@@ -77,6 +77,7 @@ STANDARD_LICENSES = {
     "mozilla public license 2.0 (mpl 2.0)",
     "mpl-2.0",
     "isc license",
+    "isc license (iscl)",
     "isc",
     "expat license",
     "dual license",

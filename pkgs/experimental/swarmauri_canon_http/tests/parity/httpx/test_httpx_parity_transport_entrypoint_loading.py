@@ -1,7 +1,7 @@
 import swarmauri_canon_http
 
 
-def test_httpx_parity_load_registered_transports_imports_all_registered_entry_points(
+def test_load_registered_transports_imports_all_entry_points(
     monkeypatch,
 ):
     loaded = []

@@ -55,20 +55,20 @@ transports = [
 
 
 [tool.uv.sources]
-swarmauri_transport_asgi = { path = "../../standards/swarmauri_transport_asgi" }
-swarmauri_transport_h2 = { workspace = true }
-swarmauri_transport_h2mux = { workspace = true }
-swarmauri_transport_meshsidecarhttp2 = { workspace = true }
-swarmauri_transport_mtlsunicast = { workspace = true }
-swarmauri_transport_quic = { workspace = true }
-swarmauri_transport_sseoutbound = { workspace = true }
-swarmauri_transport_sshtunnel = { workspace = true }
-swarmauri_transport_stdio = { workspace = true }
-swarmauri_transport_tcpunicast = { workspace = true }
-swarmauri_transport_tls_unicast = { workspace = true }
-swarmauri_transport_udp = { workspace = true }
-swarmauri_transport_uds_unicast = { workspace = true }
-swarmauri_transport_wsjsonrpcmux = { workspace = true }
+swarmauri_transport_asgi = { path = "../../standards/swarmauri_transport_asgi", editable = true }
+swarmauri_transport_h2 = { path = "../../standards/swarmauri_transport_h2", editable = true }
+swarmauri_transport_h2mux = { path = "../../standards/swarmauri_transport_h2mux", editable = true }
+swarmauri_transport_meshsidecarhttp2 = { path = "../../standards/swarmauri_transport_meshsidecarhttp2", editable = true }
+swarmauri_transport_mtlsunicast = { path = "../../standards/swarmauri_transport_mtlsunicast", editable = true }
+swarmauri_transport_quic = { path = "../../standards/swarmauri_transport_quic", editable = true }
+swarmauri_transport_sseoutbound = { path = "../../standards/swarmauri_transport_sseoutbound", editable = true }
+swarmauri_transport_sshtunnel = { path = "../../standards/swarmauri_transport_sshtunnel", editable = true }
+swarmauri_transport_stdio = { path = "../../standards/swarmauri_transport_stdio", editable = true }
+swarmauri_transport_tcpunicast = { path = "../../standards/swarmauri_transport_tcpunicast", editable = true }
+swarmauri_transport_tls_unicast = { path = "../../standards/swarmauri_transport_tls_unicast", editable = true }
+swarmauri_transport_udp = { path = "../../standards/swarmauri_transport_udp", editable = true }
+swarmauri_transport_uds_unicast = { path = "../../standards/swarmauri_transport_uds_unicast", editable = true }
+swarmauri_transport_wsjsonrpcmux = { path = "../../standards/swarmauri_transport_wsjsonrpcmux", editable = true }
 
 [tool.pytest.ini_options]
 markers = [
@@ -91,6 +91,7 @@ asyncio_default_fixture_loop_scope = "function"
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0",
     "requests>=2.32",
     "httpx[http2]>=0.27",
     "ruff>=0.11.0",

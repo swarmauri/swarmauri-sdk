@@ -14,18 +14,12 @@ from swarmauri_core.crypto.types import (
     WrappedKey,
 )
 
-try:
-    from swarmauri_crypto_sodium import SodiumCrypto
-    from swarmauri_crypto_sodium.SodiumCrypto import (
-        _CRYPTO_BOX_PUBLICKEYBYTES,
-        _CRYPTO_BOX_SECRETKEYBYTES,
-        _sodium,
-    )
-except Exception as exc:  # pragma: no cover - handled by pytest.skip
-    pytest.skip(
-        f"swarmauri_crypto_sodium import failed: {exc}",
-        allow_module_level=True,
-    )
+from swarmauri_crypto_sodium import SodiumCrypto
+from swarmauri_crypto_sodium.SodiumCrypto import (
+    _CRYPTO_BOX_PUBLICKEYBYTES,
+    _CRYPTO_BOX_SECRETKEYBYTES,
+    _sodium,
+)
 
 
 @pytest.fixture

@@ -3,10 +3,10 @@ import os
 
 import pytest
 from dotenv import load_dotenv
-from swarmauri.agents.concrete.ToolAgent import ToolAgent
+from swarmauri_standard.agents.ToolAgent import ToolAgent
 from swarmauri_standard.conversations.Conversation import Conversation
-from swarmauri.messages.concrete import HumanMessage
-from swarmauri.toolkits.concrete.Toolkit import Toolkit
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.tools.AdditionTool import AdditionTool
 from swarmauri_experimental.llms.ShuttleAIToolModel import (
     ShuttleAIToolModel as LLM,

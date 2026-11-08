@@ -22,9 +22,9 @@ authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = ["scikit-learn>=1.4.2", "swarmauri_core", "swarmauri_base", "swarmauri_standard"]
 
 [tool.uv.sources]
-swarmauri_core = { path = "../../core" }
-swarmauri_base = { path = "../../base" }
-swarmauri_standard = { path = "../../swarmauri_standard" }
+swarmauri_core = { path = "../../core", editable = true }
+swarmauri_base = { path = "../../base", editable = true }
+swarmauri_standard = { path = "../../swarmauri_standard", editable = true }
 
 [tool.pytest.ini_options]
 norecursedirs = ["combined", "scripts"]

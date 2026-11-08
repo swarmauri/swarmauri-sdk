@@ -119,7 +119,7 @@ jobs:
     env: &package-test-env
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
       # Meson editable installs refer to the temporary isolated build tools.
-      UV_NO_EDITABLE: ${{ startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') && 'true' || 'false' }}
+      UV_NO_EDITABLE: ${{ (startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') || matrix.package_tests.package_path == 'experimental/swarmauri_crypto_sodium') && 'true' || 'false' }}
 
     steps: &package-test-steps
       # ────────────────────────────────────────────────────────────────────────
@@ -189,6 +189,38 @@ jobs:
           cd pkgs
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           export PKG_PATH PACKAGE_NAME
+          case "$PKG_PATH" in
+            community/swarmauri_parser_textblob)
+              corpora=(punkt_tab averaged_perceptron_tagger_eng brown wordnet)
+              ;;
+            community/swarmauri_tool_dalechallreadability)
+              corpora=(cmudict)
+              ;;
+            community/swarmauri_tool_lexicaldensity)
+              corpora=(punkt_tab averaged_perceptron_tagger_eng)
+              ;;
+            community/swarmauri_tool_sentencecomplexity|community/swarmauri_tool_smogindex|community/swarmauri_tool_textlength)
+              corpora=(punkt_tab)
+              ;;
+            *)
+              corpora=()
+              ;;
+          esac
+          if (( ${#corpora[@]} )); then
+            export NLTK_DATA="$RUNNER_TEMP/nltk_data"
+            mkdir -p "$NLTK_DATA"
+            uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active \
+              python - "${corpora[@]}" <<'PY'
+          import os
+          import sys
+
+          import nltk
+
+          nltk.download(
+              sys.argv[1:], download_dir=os.environ["NLTK_DATA"], raise_on_error=True
+          )
+          PY
+          fi
           set +e
           uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active pytest -vvv | tee pytest.log
           STATUS=${PIPESTATUS[0]}
@@ -215,7 +247,12 @@ jobs:
           summary = " ".join(f"{k}={v}" for k, v in counts.items())
           print(f"::notice title=pytest summary ({pkg_name})::pkg_path={pkg_path} {summary}")
           PY
-          exit $STATUS
+          if [[ "$STATUS" == 5 && ! -d "$PKG_PATH/tests" ]] &&
+             [[ -z "$(find "$PKG_PATH" -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit)" ]]; then
+            echo "::notice::No pytest files in $PKG_PATH. Build and lint passed."
+            exit 0
+          fi
+          exit "$STATUS"
 
   run-tests-overflow:
     needs: detect-changed-files

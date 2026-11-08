@@ -12,7 +12,7 @@ except ImportError:
 
 
 def load_filter_config() -> dict:
-    """Read PEAGEN_CONFIG or the nearest peagen.toml; use no overrides if absent."""
+    """Read PEAGEN_CONFIG or the nearest peagen.toml, if present."""
     configured = os.environ.get("PEAGEN_CONFIG")
     if configured:
         path = Path(configured).expanduser()

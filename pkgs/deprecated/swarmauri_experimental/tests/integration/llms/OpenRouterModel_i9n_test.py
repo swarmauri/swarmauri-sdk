@@ -1,6 +1,6 @@
 import pytest
 import os
-from swarmauri.llms.concrete.OpenRouterModel import OpenRouterModel as LLM
+from swarmauri_experimental.llms.OpenRouterModel import OpenRouterModel as LLM
 from swarmauri_standard.conversations.Conversation import Conversation
 from swarmauri_standard.messages.HumanMessage import HumanMessage
 from swarmauri_standard.messages.SystemMessage import SystemMessage
