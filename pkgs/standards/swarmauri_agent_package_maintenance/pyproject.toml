@@ -1,0 +1,43 @@
+[project]
+name = "swarmauri_agent_package_maintenance"
+version = "0.1.0"
+description = "Compose human input, skills, and container checks for SDK maintenance."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.15"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "sdk", "maintenance", "agents"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = ["swarmauri_core>=0.11.0.dev6,<0.12", "swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_standard>=0.11.0.dev8,<0.12","swarmauri_agent_runner>=0.1.0,<0.2","swarmauri_toolkit_skillset>=0.1.0,<0.2","swarmauri_toolkit_runtime>=0.11.0.dev4,<0.12","swarmauri_toolkit_containertoolkit>=0.11.0.dev4,<0.12","swarmauri_tool_runpackagechecks>=0.1.0,<0.2"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.agents"]
+PackageMaintenanceAgent = "swarmauri_agent_package_maintenance:PackageMaintenanceAgent"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_agent_runner = { workspace = true }
+swarmauri_toolkit_skillset = { workspace = true }
+swarmauri_toolkit_runtime = { workspace = true }
+swarmauri_toolkit_containertoolkit = { workspace = true }
+swarmauri_tool_runpackagechecks = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests", "i9n: Integration tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_base"
-version = "0.11.0.dev5"
+version = "0.11.0.dev6"
 description = "Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure."
 keywords = [
     "swarmauri",
@@ -49,8 +49,8 @@ dependencies = [
 "pyyaml>=6.0.2",
 "numpy>=1.26.4",
 "pydantic>=2.0",
-"swarmauri_core>=0.11.0.dev5",
-"swarmauri_typing>=0.11.0.dev4",
+"swarmauri_core>=0.11.0.dev6,<0.12",
+"swarmauri_typing",
 "toml>=0.10.2",
 "tomli>=2.0; python_version < '3.11'"
 ]

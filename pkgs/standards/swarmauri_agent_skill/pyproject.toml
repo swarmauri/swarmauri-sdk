@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_skill"
-version = "0.11.0.dev4"
+version = "0.11.0.dev5"
 description = "Skill-aware agent wrapper for Swarmauri."
 license = "Apache-2.0"
 readme = "README.md"
@@ -21,10 +21,10 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
-    "swarmauri_tool_skill_execution",
+    "swarmauri_core>=0.11.0.dev6,<0.12",
+    "swarmauri_base>=0.11.0.dev6,<0.12",
+    "swarmauri_standard>=0.11.0.dev8,<0.12",
+    "swarmauri_tool_skill_execution>=0.11.0.dev6,<0.12",
 ]
 keywords = ["swarmauri", "sdk", "standards", "skills", "agents"]
 

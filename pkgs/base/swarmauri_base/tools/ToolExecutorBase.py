@@ -155,9 +155,17 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 asyncio.run(result) if inspect.isawaitable(result) else result
             )
 
-        future = self._thread_pool.submit(invoke)
         try:
-            self._register(call_id, future)
+            with self._running_lock:
+                if call_id is not None and call_id in self._running:
+                    raise DuplicateToolCallError(
+                        f"Tool call {call_id!r} is already active"
+                    )
+                future = self._thread_pool.submit(invoke)
+                self._register(call_id, future)
+                future.add_done_callback(
+                    lambda operation: self._unregister(call_id, operation)
+                )
             value = future.result(
                 timeout=timeout if timeout is not None else self.policy.timeout
             )
@@ -165,7 +173,6 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 call_id=call_id, tool_name=request.tool_name, value=value
             )
         except DuplicateToolCallError as exc:
-            future.cancel()
             return ToolExecutionResult(
                 call_id=call_id,
                 tool_name=request.tool_name,
@@ -188,8 +195,6 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 status="failed",
                 error=str(exc),
             )
-        finally:
-            self._unregister(call_id, future)
 
     async def aexecute(
         self,
@@ -220,9 +225,17 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
             result = await asyncio.to_thread(target, **dict(arguments))
             return await result if inspect.isawaitable(result) else result
 
-        task = asyncio.create_task(invoke())
         try:
-            self._register(call_id, task)
+            with self._running_lock:
+                if call_id is not None and call_id in self._running:
+                    raise DuplicateToolCallError(
+                        f"Tool call {call_id!r} is already active"
+                    )
+                task = asyncio.create_task(invoke())
+                self._register(call_id, task)
+                task.add_done_callback(
+                    lambda operation: self._unregister(call_id, operation)
+                )
             effective_timeout = (
                 timeout if timeout is not None else self.policy.timeout
             )
@@ -235,7 +248,6 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 call_id=call_id, tool_name=request.tool_name, value=value
             )
         except DuplicateToolCallError as exc:
-            task.cancel()
             return ToolExecutionResult(
                 call_id=call_id,
                 tool_name=request.tool_name,
@@ -264,8 +276,6 @@ class ToolExecutorBase(IToolExecutor, ComponentBase):
                 status="failed",
                 error=str(exc),
             )
-        finally:
-            self._unregister(call_id, task)
 
     def cancel(self, call_id: str) -> bool:
         with self._running_lock:

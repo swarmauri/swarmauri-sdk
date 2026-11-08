@@ -215,8 +215,30 @@ members = [
     "plugins/example_plugin",
     "plugins/media_signer",
     "plugins/zdx",
+    "standards/swarmauri_agent_package_maintenance",
+    "standards/swarmauri_agent_runner",
     "standards/swarmauri_agent_skill",
     "standards/swarmauri_agent_realtime",
+    "standards/swarmauri_process_docker",
+    "standards/swarmauri_process_kubernetes",
+    "standards/swarmauri_process_subprocess",
+    "standards/swarmauri_tool_activateskill",
+    "standards/swarmauri_tool_askuser",
+    "standards/swarmauri_tool_cancelprocess",
+    "standards/swarmauri_tool_inspectruntimetool",
+    "standards/swarmauri_tool_inspectskill",
+    "standards/swarmauri_tool_listruntimetools",
+    "standards/swarmauri_tool_listskills",
+    "standards/swarmauri_tool_readprocessoutput",
+    "standards/swarmauri_tool_readskillresource",
+    "standards/swarmauri_tool_registerruntimetool",
+    "standards/swarmauri_tool_replaceruntimetool",
+    "standards/swarmauri_tool_runbashscript",
+    "standards/swarmauri_tool_runcommand",
+    "standards/swarmauri_tool_runpackagechecks",
+    "standards/swarmauri_tool_unregisterruntimetool",
+    "standards/swarmauri_tool_writestdin",
+    "standards/swarmauri_toolkit_skillset",
     "standards/swarmauri_transport_aws_eventstream",
     "standards/swarmauri_transport_httpx",
     "standards/swarmauri_transport_retry",
@@ -438,11 +460,33 @@ ptree_dag_extension_example = { workspace = true }
 # sfw = { workspace = true }
 # snt = { workspace = true }
 swarmauri = { workspace = true }
+swarmauri_agent_package_maintenance = { workspace = true }
+swarmauri_agent_runner = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
+swarmauri_process_docker = { workspace = true }
+swarmauri_process_kubernetes = { workspace = true }
+swarmauri_process_subprocess = { workspace = true }
 swarmauri_standard = { workspace = true }
 swarmauri_agent_skill = { workspace = true }
 swarmauri_agent_realtime = { workspace = true }
+swarmauri_tool_activateskill = { workspace = true }
+swarmauri_tool_askuser = { workspace = true }
+swarmauri_tool_cancelprocess = { workspace = true }
+swarmauri_tool_inspectruntimetool = { workspace = true }
+swarmauri_tool_inspectskill = { workspace = true }
+swarmauri_tool_listruntimetools = { workspace = true }
+swarmauri_tool_listskills = { workspace = true }
+swarmauri_tool_readprocessoutput = { workspace = true }
+swarmauri_tool_readskillresource = { workspace = true }
+swarmauri_tool_registerruntimetool = { workspace = true }
+swarmauri_tool_replaceruntimetool = { workspace = true }
+swarmauri_tool_runbashscript = { workspace = true }
+swarmauri_tool_runcommand = { workspace = true }
+swarmauri_tool_runpackagechecks = { workspace = true }
+swarmauri_tool_unregisterruntimetool = { workspace = true }
+swarmauri_tool_writestdin = { workspace = true }
+swarmauri_toolkit_skillset = { workspace = true }
 swarmauri_transport_aws_eventstream = { workspace = true }
 swarmauri_transport_httpx = { workspace = true }
 swarmauri_transport_retry = { workspace = true }

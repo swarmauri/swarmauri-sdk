@@ -1,0 +1,36 @@
+[project]
+name = "swarmauri_tool_activateskill"
+version = "0.1.0"
+description = "Load a skill and expose its approved tools."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.15"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "sdk", "activateskill", "tools"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = ["swarmauri_base>=0.11.0.dev6,<0.12"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.tools"]
+ActivateSkill = "swarmauri_tool_activateskill:ActivateSkill"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests", "i9n: Integration tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
