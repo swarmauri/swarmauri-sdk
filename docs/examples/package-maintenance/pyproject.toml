@@ -1,5 +1,5 @@
 [project]
-name = "swarmauri-package-maintenance-demo"
+name = "swarmauri-demo-package-maintenance"
 version = "0.1.0"
 description = "A runnable Swarmauri demo for streaming Docker checks and resuming approvals."
 readme = "README.md"
