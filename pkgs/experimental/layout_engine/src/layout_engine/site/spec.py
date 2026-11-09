@@ -24,7 +24,8 @@ def compile_route_pattern(route: str) -> tuple[Pattern[str], tuple[str, ...]]:
 
     Supported:
       - Named segments: ':name' -> (?P<name>[^/]+)
-      - Wildcard tail:  '*'     -> (?P<rest>.*)  (single wildcard allowed at the end)
+      - Wildcard tail:  '*'     -> (?P<rest>.*)  (single wildcard allowed at
+      the end)
       - Optional trailing slash is accepted.
     """
     if not route.startswith("/"):

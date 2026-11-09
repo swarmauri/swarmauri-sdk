@@ -39,15 +39,24 @@ def build_manifest_dict() -> dict:
                 "cards": [
                     {
                         "title": "Swiss Grid Defaults",
-                        "description": "Tokens keep columns, gaps, and baselines aligned across runtimes.",
+                        "description": (
+                            "Tokens keep columns, gaps, and baselines "
+                            "aligned across runtimes."
+                        ),
                     },
                     {
                         "title": "SwarmaKit Registry",
-                        "description": "Atoms auto-import with merged defaults for consistent UX payloads.",
+                        "description": (
+                            "Atoms auto-import with merged defaults for "
+                            "consistent UX payloads."
+                        ),
                     },
                     {
                         "title": "Realtime Ready",
-                        "description": "Channels and websocket routes unlock live dashboards out of the box.",
+                        "description": (
+                            "Channels and websocket routes unlock live "
+                            "dashboards out of the box."
+                        ),
                     },
                 ],
             },
@@ -129,7 +138,9 @@ def build_manifest_dict() -> dict:
         tiles,
         registry=registry,
         row_height=220,
-        channels=[{"id": "ui.events", "scope": "page", "topic": "page:{page_id}:ui"}],
+        channels=[
+            {"id": "ui.events", "scope": "page", "topic": "page:{page_id}:ui"}
+        ],
         ws_routes=[{"path": "/ws/ui", "channels": ["ui.events"]}],
     )
     return manifest.model_dump()

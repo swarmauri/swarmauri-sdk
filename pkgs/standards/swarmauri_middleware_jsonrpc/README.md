@@ -50,14 +50,15 @@ uv pip install swarmauri_middleware_jsonrpc
 ## Usage
 
 ```python
-from fastapi import FastAPI
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
 from swarmauri_middleware_jsonrpc import JsonRpcMiddleware
 
-app = FastAPI()
-app.middleware("http")(JsonRpcMiddleware().dispatch)
+app = Starlette()
+app.add_middleware(BaseHTTPMiddleware, dispatch=JsonRpcMiddleware().dispatch)
 ```
 
-The middleware integrates with FastAPI's `app.middleware("http")` hook and is
+The middleware uses Starlette’s `BaseHTTPMiddleware` and is
 compatible with the `MiddlewareBase` ecosystem.  Once registered, every incoming
 JSON request is validated before reaching subsequent middleware or route
 handlers.

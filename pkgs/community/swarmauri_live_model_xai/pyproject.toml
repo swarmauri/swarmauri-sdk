@@ -3,11 +3,11 @@ name = "swarmauri_live_model_xai"
 version = "0.1.0.dev3"
 description = "xAI realtime bidirectional model adapter for Swarmauri."
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.16"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = { file = "LICENSE" }
-dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_provider_xai", "swarmauri_transport_websocket"]
-classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12"]
+dependencies = ["swarmauri_core>=0.11.0.dev5", "swarmauri_base>=0.11.0.dev5", "swarmauri_provider_xai>=0.1.0.dev3", "swarmauri_transport_websocket>=0.1.0.dev4"]
+classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14", "Programming Language :: Python :: 3.15"]
 keywords = ["swarmauri", "xai", "grok", "realtime", "websocket"]
 [tool.uv.sources]
 swarmauri_core = { workspace = true }

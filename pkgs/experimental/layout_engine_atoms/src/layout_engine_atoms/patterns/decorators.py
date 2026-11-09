@@ -6,7 +6,7 @@ import inspect
 from functools import wraps
 from typing import Callable, get_type_hints
 
-from fastapi import Request
+from starlette.requests import Request
 from pydantic import BaseModel, ValidationError
 
 from ..runtime.vue import UiEvent, UiEventResult
@@ -65,7 +65,8 @@ def ui_event(
 
     Example:
         >>> @ui_event
-        >>> async def create_user(request: Request, payload: CreateUserPayload):
+        >>> async def create_user(request: Request, payload:
+        CreateUserPayload):
         ...     '''Create a new user.'''
         ...     user = db.create_user(**payload.model_dump())
         ...     return {"users": db.get_all_users()}
@@ -88,7 +89,8 @@ def ui_event(
         )
 
         # Get function signature for payload validation
-        # Use get_type_hints to resolve string annotations from __future__ imports
+        # Use get_type_hints to resolve string annotations from __future__
+        # imports
         try:
             type_hints = get_type_hints(fn)
         except Exception:
@@ -106,7 +108,9 @@ def ui_event(
         if payload_param and payload_param.name in type_hints:
             payload_type = type_hints[payload_param.name]
             # If it's a Pydantic model, extract schema
-            if isinstance(payload_type, type) and issubclass(payload_type, BaseModel):
+            if isinstance(payload_type, type) and issubclass(
+                payload_type, BaseModel
+            ):
                 payload_schema = payload_type.model_json_schema()
 
         @wraps(fn)
@@ -126,7 +130,10 @@ def ui_event(
                 except ValidationError as e:
                     # Return validation error as event result
                     return UiEventResult(
-                        body={"error": "Validation failed", "details": e.errors()},
+                        body={
+                            "error": "Validation failed",
+                            "details": e.errors(),
+                        },
                         status_code=400,
                     )
 
@@ -179,9 +186,11 @@ def ui_event(
 
 
 def returns_update(*tile_ids: str) -> Callable:
-    """Decorator to specify which tiles should receive updates from this handler.
+    """Decorator to specify which tiles should receive updates from this
+    handler.
 
-    This is metadata for documentation and potential future auto-binding features.
+    This is metadata for documentation and potential future auto-binding
+    features.
     Currently serves as clear documentation of event → tile relationships.
 
     Args:
@@ -190,7 +199,8 @@ def returns_update(*tile_ids: str) -> Callable:
     Example:
         >>> @ui_event
         >>> @returns_update("users_table", "user_count_badge")
-        >>> async def create_user(request: Request, payload: CreateUserPayload):
+        >>> async def create_user(request: Request, payload:
+        CreateUserPayload):
         ...     # Handler logic
         ...     return {"users": [...], "count": 42}
     """

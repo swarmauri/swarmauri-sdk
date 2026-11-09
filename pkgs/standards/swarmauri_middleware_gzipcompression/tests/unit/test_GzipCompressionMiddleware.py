@@ -1,5 +1,6 @@
 import pytest
-from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 from swarmauri_middleware_gzipcompression.GzipCompressionMiddleware import (
     GzipCompressionMiddleware,
 )

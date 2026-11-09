@@ -1,4 +1,5 @@
-import httpx
+import json
+import requests
 
 from swarmauri_canon_http import HttpClient
 from tests.parity.httpx.helpers import (
@@ -14,14 +15,15 @@ def test_requests_prepared_request_exposes_request_metadata():
     )
 
     assert prepared.method == "POST"
-    assert prepared.url.path == "/api"
-    assert prepared.content == b'{"ok":true}'
+    assert prepared.path_url == "/api"
+    assert json.loads(prepared.body) == {"ok": True}
 
 
 def test_requests_response_object_has_status_helpers():
-    response = httpx.Response(404)
+    response = requests.Response()
+    response.status_code = 404
 
-    assert response.is_success is False
+    assert response.ok is False
 
 
 def test_canon_sync_request_returns_primitive_tuple(monkeypatch):

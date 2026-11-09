@@ -10,6 +10,7 @@ operation and
 error scenarios.
 """
 
+from importlib import import_module
 import pytest
 from typing import Dict, Any
 from unittest.mock import patch, MagicMock
@@ -45,8 +46,9 @@ def test_tool_initialization() -> None:
         ("python2", "python2"),
     ],
 )
-@patch(
-    "swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool.KernelManager",
+@patch.object(
+    import_module("swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool"),
+    "KernelManager",
     autospec=True,
 )
 def test_call_success(
@@ -83,8 +85,9 @@ def test_call_success(
     )
 
 
-@patch(
-    "swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool.KernelManager",
+@patch.object(
+    import_module("swarmauri_tool_jupyterstartkernel.JupyterStartKernelTool"),
+    "KernelManager",
     autospec=True,
 )
 def test_call_failure(mock_kernel_manager_class: MagicMock) -> None:

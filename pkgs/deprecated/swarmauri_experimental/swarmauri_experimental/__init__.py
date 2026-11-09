@@ -1,3 +1,12 @@
+import warnings
+
+warnings.warn(
+    "swarmauri_experimental is deprecated and no longer maintained. "
+    "Migrate to standalone Swarmauri packages.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 __version__ = "0.5.0"
 __long_desc__ = """
 

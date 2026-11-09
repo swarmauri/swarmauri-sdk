@@ -3,7 +3,10 @@
 import ast
 from pathlib import Path
 
-import tomllib
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = PACKAGE_ROOT / "swarmauri_base"

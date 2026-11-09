@@ -72,10 +72,12 @@ packages = {
 @pytest.mark.mep0011a
 def test_v2_round_trip_loads_valid():
     """
-    Validate that the round_trip_loads API correctly parses the JML content into an AST.
+    Validate that the round_trip_loads API correctly parses the JML content
+    into an AST.
     """
     ast = loads(JML_INPUT)
-    # Assuming that the AST is a dict-like structure and should contain a 'rootDir' key.
+    # Assuming that the AST is a dict-like structure and should contain a
+    # 'rootDir' key.
     assert isinstance(ast, dict), "The AST should be a dictionary."
     assert "rootDir" in ast, "AST should contain 'rootDir' key."
 
@@ -85,7 +87,8 @@ def test_v2_round_trip_loads_valid():
 @pytest.mark.mep0011a
 def test_context_scoped_var_resolve():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")

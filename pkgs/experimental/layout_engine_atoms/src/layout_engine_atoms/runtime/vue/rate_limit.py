@@ -9,7 +9,8 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any
 
-from fastapi import HTTPException, Request
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,8 @@ class InMemoryRateLimiter:
     """Simple in-memory rate limiter using sliding window algorithm.
 
     Note:
-        This is a basic implementation suitable for single-instance deployments.
+        This is a basic implementation suitable for single-instance
+        deployments.
         For distributed systems, consider using Redis-based rate limiting.
 
     Example:
@@ -73,16 +75,20 @@ class InMemoryRateLimiter:
     def start_cleanup(self) -> None:
         """Start background cleanup task.
 
-        Note: Only starts if called from within an async context with a running event loop.
-        If called during initialization before the event loop starts, this will silently skip.
+        Note: Only starts if called from within an async context with a running
+        event loop.
+        If called during initialization before the event loop starts, this will
+        silently skip.
         """
         if self._cleanup_task is None:
             try:
                 loop = asyncio.get_running_loop()
                 self._cleanup_task = loop.create_task(self._cleanup_loop())
             except RuntimeError:
-                # No event loop running yet - this is expected during app initialization
-                # The cleanup task is optional and only helps with long-running memory efficiency
+                # No event loop running yet - this is expected during app
+                # initialization
+                # The cleanup task is optional and only helps with long-running
+                # memory efficiency
                 pass
 
     async def stop_cleanup(self) -> None:
@@ -104,7 +110,9 @@ class InMemoryRateLimiter:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"Error in rate limiter cleanup: {e}", exc_info=True)
+                logger.error(
+                    f"Error in rate limiter cleanup: {e}", exc_info=True
+                )
 
     async def _cleanup_old_entries(self) -> None:
         """Remove old request timestamps that are outside the window."""
@@ -114,7 +122,9 @@ class InMemoryRateLimiter:
         async with self._lock:
             # Remove completely empty entries
             empty_keys = [
-                key for key, timestamps in self._requests.items() if not timestamps
+                key
+                for key, timestamps in self._requests.items()
+                if not timestamps
             ]
             for key in empty_keys:
                 del self._requests[key]
@@ -127,7 +137,8 @@ class InMemoryRateLimiter:
     def _get_identifier(self, request: Request) -> str:
         """Extract identifier from request (e.g., IP address).
 
-        Can be overridden to use different identifiers like user ID or session ID.
+        Can be overridden to use different identifiers like user ID or session
+        ID.
         """
         # Try to get real IP from X-Forwarded-For header
         forwarded_for = request.headers.get("X-Forwarded-For")
@@ -148,7 +159,7 @@ class InMemoryRateLimiter:
         """Check if request is within rate limit.
 
         Args:
-            request: The FastAPI request
+            request: The Starlette request
             identifier: Optional custom identifier (defaults to IP address)
 
         Raises:
@@ -169,11 +180,13 @@ class InMemoryRateLimiter:
             if len(timestamps) >= self.config.max_requests:
                 logger.warning(
                     f"Rate limit exceeded for {identifier}: "
-                    f"{len(timestamps)} requests in {self.config.window_seconds}s"
+                    f"{len(timestamps)} requests in "
+                    f"{self.config.window_seconds}s"
                 )
                 raise HTTPException(
                     status_code=429,
-                    detail=f"Rate limit exceeded. Maximum {self.config.max_requests} "
+                    detail=f"Rate limit exceeded. Maximum "
+                    f"{self.config.max_requests} "
                     f"requests per {self.config.window_seconds} seconds.",
                     headers={"Retry-After": str(self.config.window_seconds)},
                 )
@@ -216,10 +229,13 @@ class WebSocketRateLimiter:
 
     Example:
         >>> limiter = WebSocketRateLimiter(max_messages=100, window_seconds=60)
-        >>> await limiter.check_message_rate(websocket.client.host, "subscribe")
+        >>> await limiter.check_message_rate(websocket.client.host,
+        "subscribe")
     """
 
-    def __init__(self, max_messages: int = 100, window_seconds: int = 60) -> None:
+    def __init__(
+        self, max_messages: int = 100, window_seconds: int = 60
+    ) -> None:
         """Initialize WebSocket rate limiter.
 
         Args:
@@ -231,7 +247,9 @@ class WebSocketRateLimiter:
         self._messages: dict[str, deque[float]] = defaultdict(deque)
         self._lock = asyncio.Lock()
 
-    async def check_message_rate(self, client_identifier: str, action: str) -> bool:
+    async def check_message_rate(
+        self, client_identifier: str, action: str
+    ) -> bool:
         """Check if client is within message rate limit.
 
         Args:
@@ -254,7 +272,8 @@ class WebSocketRateLimiter:
             # Check if limit exceeded
             if len(timestamps) >= self.max_messages:
                 logger.warning(
-                    f"WebSocket message rate limit exceeded for {client_identifier}: "
+                    f"WebSocket message rate limit exceeded for "
+                    f"{client_identifier}: "
                     f"{action} action"
                 )
                 return False

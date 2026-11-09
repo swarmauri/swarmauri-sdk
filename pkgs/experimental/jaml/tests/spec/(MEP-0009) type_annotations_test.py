@@ -9,7 +9,8 @@ from jaml import (
 
 @pytest.mark.spec
 @pytest.mark.mep0009
-# @pytest.mark.xfail(reason="Primitive type annotations preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Primitive type annotations preservation not fully
+# implemented yet.")
 def test_primitive_type_annotations():
     """
     MEP-009 Section 3.1:
@@ -38,7 +39,8 @@ missing_val: null = null
 
 @pytest.mark.spec
 @pytest.mark.mep0009
-# @pytest.mark.xfail(reason="List annotation handling not fully implemented yet.")
+# @pytest.mark.xfail(reason="List annotation handling not fully implemented
+# yet.")
 def test_list_annotation():
     """
     MEP-009 Section 3.1:
@@ -59,7 +61,8 @@ colors: list = ["red", "green", "blue"]
 
 @pytest.mark.spec
 @pytest.mark.mep0009
-# @pytest.mark.xfail(reason="Inline table type annotations not fully preserved yet.")
+# @pytest.mark.xfail(reason="Inline table type annotations not fully preserved
+# yet.")
 def test_table_annotation():
     """
     MEP-009 Section 3.1:
@@ -78,7 +81,8 @@ point: table = { x = 10, y = 20 }
 
 @pytest.mark.spec
 @pytest.mark.mep0009
-# @pytest.mark.xfail(reason="Nested inline table type annotations not fully supported yet.")
+# @pytest.mark.xfail(reason="Nested inline table type annotations not fully
+# supported yet.")
 def test_nested_inline_table_annotation():
     """
     MEP-009:
@@ -87,7 +91,8 @@ def test_nested_inline_table_annotation():
     """
     toml_str = """
 [deep]
-user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str = "admin" } }
+user: table = { name: str = "Azzy", details: table = { age: int = 9, role:\
+ str = "admin" } }
 """
     ast = round_trip_loads(toml_str)
     reserialized = ast.dumps()
@@ -100,7 +105,8 @@ user: table = { name: str = "Azzy", details: table = { age: int = 9, role: str =
 
 @pytest.mark.spec
 @pytest.mark.mep0009
-# @pytest.mark.xfail(reason="Lists of inline tables annotations not fully implemented yet.")
+# @pytest.mark.xfail(reason="Lists of inline tables annotations not fully
+# implemented yet.")
 def test_table_arrays_and_lists_of_inline_tables():
     """
     MEP-009 Section 4.5:
@@ -119,11 +125,12 @@ authors: list = [
 
     # Should see 'authors: list = [' plus the inline tables
     assert (
-        'authors: list = [\n  {name: str = "Jacob", email: str = "jacob@swarmauri.com"},'
-        in reserialized
-    )
+        'authors: list = [\n  {name: str = "Jacob", email: str = '
+        '"jacob@swarmauri.com"},'
+    ) in reserialized
     assert (
-        '{name: str = "Stewart", email: str = "stewart@swarmauri.com"}' in reserialized
+        '{name: str = "Stewart", email: str = "stewart@swarmauri.com"}'
+        in reserialized
     )
 
 
@@ -145,7 +152,8 @@ wrong_type: int = "this is not an int"
     loads(invalid_toml)  # Expect some form of error/exception
 
 
-# @pytest.mark.xfail(reason="Strict type enforcement for nested complex types not yet implemented.")
+# @pytest.mark.xfail(reason="Strict type enforcement for nested complex types
+# not yet implemented.")
 @pytest.mark.spec
 @pytest.mark.mep0009
 def test_nested_type_mismatch():

@@ -25,7 +25,8 @@ type = "python"
 @pytest.mark.mep0028b
 def test_conditional_table_header_with_context():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")

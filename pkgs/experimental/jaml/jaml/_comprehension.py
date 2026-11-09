@@ -44,7 +44,10 @@ def _evaluate_comprehension(node, global_env, context=None):
     from ._ast_nodes import ListComprehensionNode
 
     logger.debug(
-        f"[_evaluate_comprehension] entering: node={node}, global_env_keys={list(global_env.keys())}, context={context}"
+        (
+            f"[_evaluate_comprehension] entering: node={node}, "
+            f"global_env_keys={list(global_env.keys())}, context={context}"
+        )
     )
     results = []
     for env in iter_environments(node.clauses, global_env, {}, context or {}):
@@ -52,31 +55,48 @@ def _evaluate_comprehension(node, global_env, context=None):
         # resolve header_expr (for lists) or pair (for dicts)
         if hasattr(node, "header_expr"):
             logger.debug(
-                f"[_evaluate_comprehension] resolving header_expr: {node.header_expr}"
+                (
+                    f"[_evaluate_comprehension] resolving header_expr: "
+                    f"{node.header_expr}"
+                )
             )
             node.header_expr.resolve(global_env, env)
             logger.debug(
-                f"[_evaluate_comprehension] resolved header_expr.resolved={node.header_expr.resolved}"
+                (
+                    f"[_evaluate_comprehension] resolved "
+                    f"header_expr.resolved={node.header_expr.resolved}"
+                )
             )
             results.append(node.header_expr.resolved)
         else:
-            logger.debug(f"[_evaluate_comprehension] resolving pair: {node.pair}")
+            logger.debug(
+                f"[_evaluate_comprehension] resolving pair: {node.pair}"
+            )
             node.pair.resolve(global_env, env)
             k, v = node.pair.resolved
             logger.debug(
-                f"[_evaluate_comprehension] resolved pair -> key={k}, value={v}"
+                (
+                    f"[_evaluate_comprehension] resolved pair -> key={k}, "
+                    f"value={v}"
+                )
             )
             results.append((k, v))
     # for dict comprehensions, you’d turn results into a dict
     if isinstance(node, ListComprehensionNode):
         logger.debug(
-            f"[_evaluate_comprehension] returning list of length {len(results)}"
+            (
+                f"[_evaluate_comprehension] returning list of length "
+                f"{len(results)}"
+            )
         )
         return results
     else:
         result_dict = dict(results)
         logger.debug(
-            f"[_evaluate_comprehension] returning dict of size {len(result_dict)}"
+            (
+                f"[_evaluate_comprehension] returning dict of size "
+                f"{len(result_dict)}"
+            )
         )
         return result_dict
 
@@ -86,7 +106,9 @@ def _evaluate_comprehension(node, global_env, context=None):
 # ────────────────────────────────────────────────────────────────
 
 
-def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]:
+def iter_environments(
+    clauses, global_env, local_env, context
+) -> Iterator[dict]:
     from ._ast_nodes import AliasClauseNode, BaseNode
 
     clause_list = clauses.clauses
@@ -100,13 +122,16 @@ def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]
         clause = clause_list[idx]
         iterable = clause.iterable
 
-        # evaluate the iterable -------------------------------------------------
+        # evaluate the iterable
+        # -------------------------------------------------
         if (
             context is not None
             and hasattr(iterable, "render")
             and type(iterable).render is not BaseNode.render
         ):
-            iterable_vals = iterable.render(global_env, {**local_env, **env}, context)
+            iterable_vals = iterable.render(
+                global_env, {**local_env, **env}, context
+            )
         else:
             if hasattr(iterable, "resolve"):
                 iterable.resolve(global_env, {**local_env, **env})
@@ -115,7 +140,8 @@ def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]
                 iterable_vals = iterable
         iterable_vals = iterable_vals or []
 
-        # main loop -------------------------------------------------------------
+        # main loop
+        # -------------------------------------------------------------
         logger.debug(f"iterable_vals: {iterable_vals}")
         for item in iterable_vals:
             new_env = dict(env)
@@ -133,7 +159,8 @@ def iter_environments(clauses, global_env, local_env, context) -> Iterator[dict]
             if not bound_any:
                 continue
 
-            # conditions --------------------------------------------------------
+            # conditions
+            # --------------------------------------------------------
             passed = True
             for cond in getattr(clause, "conditions", []):
                 cond_val = (

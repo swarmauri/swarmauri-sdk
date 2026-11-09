@@ -20,7 +20,8 @@ class SwarmaAtomCatalog(AtomPresetCatalog):
 
     def __init__(
         self,
-        presets: Mapping[str, AtomPreset | AtomSpec] | Iterable[AtomPreset | AtomSpec],
+        presets: Mapping[str, AtomPreset | AtomSpec]
+        | Iterable[AtomPreset | AtomSpec],
         *,
         props_schema: Type[AtomProps] = AtomProps,
     ):
@@ -43,7 +44,9 @@ class SwarmaAtomCatalog(AtomPresetCatalog):
         return self._props_schema(**merged).model_dump()
 
     def with_overrides(self, role: str, **patch: Any) -> "SwarmaAtomCatalog":
-        """Return a new catalog with the given role patched (e.g., defaults/version)."""
+        """Return a new catalog with the given role patched (e.g.,
+        defaults/version).
+        """
 
         if role not in self._presets:
             raise KeyError(f"Unknown Swarma atom role: {role}")
@@ -85,7 +88,8 @@ class SwarmaAtomCatalog(AtomPresetCatalog):
     @classmethod
     def _normalize_presets(
         cls,
-        data: Mapping[str, AtomPreset | AtomSpec] | Iterable[AtomPreset | AtomSpec],
+        data: Mapping[str, AtomPreset | AtomSpec]
+        | Iterable[AtomPreset | AtomSpec],
     ) -> dict[str, AtomPreset]:
         if isinstance(data, Mapping):
             normalized: dict[str, AtomPreset] = {}

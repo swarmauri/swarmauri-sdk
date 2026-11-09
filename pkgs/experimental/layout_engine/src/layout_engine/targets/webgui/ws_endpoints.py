@@ -11,7 +11,8 @@ class InProcWSBridge:
     Usage:
         bus = InProcEventBus()
         ws = InProcWSBridge(bus)
-        ws.on_receive_json({...event...})  # validates; publishes to derived topic
+        ws.on_receive_json({...event...})  # validates; publishes to derived
+        topic
         unsub = ws.subscribe("page:dash", lambda msg: print(msg))
     """
 

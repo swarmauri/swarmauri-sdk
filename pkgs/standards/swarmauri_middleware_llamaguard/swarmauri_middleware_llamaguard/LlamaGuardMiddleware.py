@@ -2,8 +2,8 @@ from logging import getLogger
 from os import getenv
 from typing import Any, Callable, Literal, Optional
 
-from fastapi import Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from starlette.requests import Request
+from starlette.responses import JSONResponse, StreamingResponse
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 

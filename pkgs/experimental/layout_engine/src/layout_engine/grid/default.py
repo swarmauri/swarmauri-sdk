@@ -13,7 +13,8 @@ class ExplicitGridResolver(IGridResolver):
     Features:
       - px/%/fr support with min/max clamps per track
       - horizontal gaps, row height, vertical gaps
-      - breakpoints: choose alternative columns when viewport.width <= max_width
+      - breakpoints: choose alternative columns when viewport.width <=
+      max_width
       - strict placement validation (column bounds and spans)
 
     Algorithm:
@@ -31,22 +32,33 @@ class ExplicitGridResolver(IGridResolver):
         if n == 0:
             return {}
 
-        widths = resolve_column_widths([c.size for c in cols], vp.width, spec.gap_x)
+        widths = resolve_column_widths(
+            [c.size for c in cols], vp.width, spec.gap_x
+        )
         xoffs = self._x_offsets(widths, spec.gap_x)
 
         frames: dict[str, Frame] = {}
         for gt in tiles:
             if gt.col < 0 or gt.col >= n:
                 raise ValueError(
-                    f"tile '{gt.tile_id}' col out of range: {gt.col} in [0,{n - 1}]"
+                    (
+                        f"tile '{gt.tile_id}' col out of range: {gt.col} in "
+                        f"[0,{n - 1}]"
+                    )
                 )
             if gt.col_span < 1 or gt.col + gt.col_span > n:
                 raise ValueError(
-                    f"tile '{gt.tile_id}' col_span invalid: start={gt.col} span={gt.col_span} with {n} columns"
+                    (
+                        f"tile '{gt.tile_id}' col_span invalid: "
+                        f"start={gt.col} span={gt.col_span} with {n} columns"
+                    )
                 )
             if gt.row < 0 or gt.row_span < 1:
                 raise ValueError(
-                    f"tile '{gt.tile_id}' row/row_span invalid: row={gt.row} row_span={gt.row_span}"
+                    (
+                        f"tile '{gt.tile_id}' row/row_span invalid: "
+                        f"row={gt.row} row_span={gt.row_span}"
+                    )
                 )
 
             x = xoffs[gt.col]
@@ -87,7 +99,9 @@ class Grid:
         self.spec = spec
         self.resolver = resolver or ExplicitGridResolver()
 
-    def frames(self, vp: Viewport, placements: list[GridTile]) -> dict[str, Frame]:
+    def frames(
+        self, vp: Viewport, placements: list[GridTile]
+    ) -> dict[str, Frame]:
         return self.resolver.frames(self.spec, vp, placements)
 
     # --- context manager support ---

@@ -1,6 +1,5 @@
 import logging
 import os
-import resource
 import shlex
 import signal
 import subprocess
@@ -14,6 +13,11 @@ from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_core.programs.IProgram import IProgram as Program
 
 logger = logging.getLogger(__name__)
+
+try:
+    import resource
+except ImportError:  # Windows does not implement POSIX resource limits.
+    resource = None
 
 
 # this is only good for python 3.13+
@@ -212,6 +216,11 @@ class SubprocessEvaluator(EvaluatorBase):
             Dictionary containing execution results including stdout, stderr,
             and exit code
         """
+
+        if resource is None:
+            raise NotImplementedError(
+                "SubprocessEvaluator requires POSIX resource limits"
+            )
 
         # Set resource limits in a preexec function
         def limit_resources():

@@ -28,13 +28,17 @@ class BaseNode:
 
     def __repr__(self) -> str:
         if self.meta:
-            return f"{self.__class__.__name__}(value={self.value}, start_pos={self.meta.start_pos})"
+            return (
+                f"{self.__class__.__name__}(value={self.value}, "
+                f"start_pos={self.meta.start_pos})"
+            )
         else:
             return f"{self.__class__.__name__}(value={self.value})"
 
     def __eq__(self, other) -> bool:
         """
-        Compare AST nodes to strings or other nodes by origin for fidelity in tests.
+        Compare AST nodes to strings or other nodes by origin for fidelity in
+        tests.
         """
         # If comparing to a string, check origin equality
         if isinstance(other, str):
@@ -67,6 +71,13 @@ class BaseNode:
         pass
 
 
+class LegacyExpressionNode(BaseNode):
+    """Keep deferred expressions verbatim until render is requested."""
+
+    def emit(self) -> str:
+        return self.origin
+
+
 class StartNode(BaseNode):
     def __init__(self, data, contents, origin, meta):
         super().__init__()
@@ -80,25 +91,64 @@ class StartNode(BaseNode):
     def emit(self) -> str:
         logger.debug("start.emit() triggered.")
         lines: List[str] = []
-        from ._ast_nodes import TableArraySectionNode  # ensure the name is in scope
+        from ._ast_nodes import (
+            TableArraySectionNode,
+        )  # ensure the name is in scope
+
+        def table_sections(path, table):
+            result = [f"[{path}]"]
+            nested = []
+            for key, assignment in table.data.items():
+                value = getattr(assignment, "value", assignment)
+                if isinstance(value, InlineTableNode):
+                    nested.append((f"{path}.{key}", value))
+                else:
+                    emitted = assignment.emit()
+                    if table.origin:
+                        comment = re.search(
+                            rf"(?m)^\s*{re.escape(key)}\s*=.*?,?\s+(#[^\n]*)",
+                            table.origin,
+                        )
+                        if comment:
+                            emitted += " " + comment.group(1)
+                    result.append(emitted)
+            for child_path, child in nested:
+                result.extend(["", *table_sections(child_path, child)])
+            if table.origin:
+                for comment in re.findall(r"(?m)^\s*(#[^\n]*)", table.origin):
+                    if comment not in "\n".join(result):
+                        result.append(comment)
+            return result
 
         for line in self.lines:
             # ── single-bracket sections ───────────────────────────
             if isinstance(line, SectionNode):
                 header = line.header.emit()
                 lines.append(f"[{header}]")
+                nested = []
                 for content in line.contents:
                     if isinstance(content, AssignmentNode):
-                        lines.append(content.emit())
+                        value = content.value
+                        if isinstance(value, InlineTableNode) and "\n" in (
+                            value.origin or ""
+                        ):
+                            nested.append(
+                                (f"{header}.{content.identifier.value}", value)
+                            )
+                        else:
+                            lines.append(content.emit())
                     elif isinstance(content, CommentNode):
                         lines.append(content.emit().strip())
+                for path, table in nested:
+                    lines.extend(["", *table_sections(path, table)])
 
             # ── double-bracket (table-array) sections ─────────────
             elif isinstance(line, TableArraySectionNode):
                 header = line.header.emit()
                 lines.append(f"[[{header}]]")
                 for item in getattr(line, "body", []):
-                    # only emit assignments and comments; skip untransformed Trees
+                    # only emit assignments and comments; skip untransformed
+                    # Trees
                     if isinstance(item, AssignmentNode):
                         lines.append(item.emit())
                     elif isinstance(item, CommentNode):
@@ -129,7 +179,9 @@ class StartNode(BaseNode):
         return "\n".join(lines)
 
     def resolve(
-        self, global_env: Optional[Dict] = None, local_env: Optional[Dict] = None
+        self,
+        global_env: Optional[Dict] = None,
+        local_env: Optional[Dict] = None,
     ):
         env = self.global_env if self.global_env else (global_env or {})
         for line in self.lines:
@@ -168,7 +220,9 @@ class SectionNode(BaseNode):
         self.contents = []
 
     def __str__(self) -> str:
-        return f"SectionNode(header={self.header.value if self.header else None})"
+        return (
+            f"SectionNode(header={self.header.value if self.header else None})"
+        )
 
     def emit(self) -> str:
         logger.debug("SectionNode.emit() triggered.")
@@ -188,7 +242,8 @@ class SectionNode(BaseNode):
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         logger.debug("SectionNode.resolve() triggered.")
         base_env = local_env or {}
-        # Pre-populate simple numeric assignments in local scope for header resolution
+        # Pre-populate simple numeric assignments in local scope for header
+        # resolution
         for content in self.contents:
             if isinstance(content, AssignmentNode) and isinstance(
                 content.value, (IntegerNode, FloatNode)
@@ -270,6 +325,8 @@ class SectionNameNode(BaseNode):
         return f"SectionNameNode({self.value})"
 
     def emit(self) -> str:
+        if not self.parts:
+            return self.origin or self.value
         parts = [self.parts[0].value]
         for dot, part in zip(self.dots, self.parts[1:]):
             parts.append(dot.value)
@@ -287,7 +344,10 @@ class TableArraySectionNode(BaseNode):
         self.body = []  # List of AssignmentNode, etc.
 
     def __str__(self) -> str:
-        return f"TableArraySectionNode(header={self.header.value if self.header else None})"
+        return (
+            f"TableArraySectionNode(header="
+            f"{self.header.value if self.header else None})"
+        )
 
     def emit(self) -> str:
         logger.debug("TableArraySectionNode.emit() triggered.")
@@ -301,7 +361,9 @@ class TableArraySectionNode(BaseNode):
         logger.debug("TableArraySectionNode.resolve() triggered.")
         local_env = local_env or {}
         for item in self.body:
-            if isinstance(item, AssignmentNode) and isinstance(item.value, IntegerNode):
+            if isinstance(item, AssignmentNode) and isinstance(
+                item.value, IntegerNode
+            ):
                 local_env[item.identifier.value] = item.value.evaluate()
         self.header.resolve(global_env, local_env)
         for item in self.body:
@@ -339,11 +401,14 @@ class TableArrayHeaderNode(BaseNode):
     """
     Represents a [[…]] table‑array section header.
 
-    • .origin holds the exact raw header text (including newlines and indentation)
+    • .origin holds the exact raw header text (including newlines and
+    indentation)
     • .value  holds the clean logical name (used as the mapping key)
     """
 
-    def __init__(self, origin: Optional[str] = None, value: Optional[str] = None):
+    def __init__(
+        self, origin: Optional[str] = None, value: Optional[str] = None
+    ):
         super().__init__()
         if origin is not None:
             self.origin = origin
@@ -402,7 +467,9 @@ class ComprehensionHeaderNode(BaseNode):
                 else self.header_expr
             )
             self.header_envs.append((header_value, env))
-        logger.debug(f"ComprehensionHeaderNode.header_envs {self.header_envs}.")
+        logger.debug(
+            f"ComprehensionHeaderNode.header_envs {self.header_envs}."
+        )
 
         if not self.header_envs:
             self.resolved = []
@@ -462,7 +529,10 @@ class AssignmentNode(BaseNode):
         return "".join(parts)
 
     def __str__(self) -> str:
-        return f"AssignmentNode({self.identifier.value if self.identifier else None})"
+        return (
+            f"AssignmentNode("
+            f"{self.identifier.value if self.identifier else None})"
+        )
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         """
@@ -483,7 +553,10 @@ class AssignmentNode(BaseNode):
                 # Fallback to original origin if evaluation fails
                 self.resolved = self.value.origin
             print(
-                f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: {self.identifier.value} -> {self.resolved}"
+                (
+                    f"[DEBUG ASSIGNMENT RESOLVE folded expr AST]: "
+                    f"{self.identifier.value} -> {self.resolved}"
+                )
             )
             return
 
@@ -501,7 +574,10 @@ class AssignmentNode(BaseNode):
             except Exception:
                 self.resolved = self.value
             print(
-                f"[DEBUG ASSIGNMENT RESOLVE folded expr]: {self.identifier.value} -> {self.resolved}"
+                (
+                    f"[DEBUG ASSIGNMENT RESOLVE folded expr]: "
+                    f"{self.identifier.value} -> {self.resolved}"
+                )
             )
             return
 
@@ -509,7 +585,10 @@ class AssignmentNode(BaseNode):
         print("[resolve]:", global_env, local_env)
         if hasattr(self.value, "resolve"):
             self.value.resolve(global_env, local_env)
-            if hasattr(self.value, "resolved") and self.value.resolved is not None:
+            if (
+                hasattr(self.value, "resolved")
+                and self.value.resolved is not None
+            ):
                 self.resolved = self.value.resolved
             else:
                 self.resolved = (
@@ -521,7 +600,12 @@ class AssignmentNode(BaseNode):
             # Plain Python literal (int, float, bool, None, etc.)
             self.resolved = self.value
 
-        print(f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> {self.resolved}")
+        print(
+            (
+                f"[DEBUG ASSIGNMENT RESOLVE]: {self.identifier.value} -> "
+                f"{self.resolved}"
+            )
+        )
 
     def evaluate(self):
         logger.debug("AssignmentNode.evaluate() triggered.")
@@ -529,7 +613,9 @@ class AssignmentNode(BaseNode):
             self.resolved
             if self.resolved is not None
             else (
-                self.value.evaluate() if hasattr(self.value, "evaluate") else self.value
+                self.value.evaluate()
+                if hasattr(self.value, "evaluate")
+                else self.value
             )
         )
 
@@ -581,14 +667,19 @@ class IntegerNode(BaseNode):
             return int(self.value, 0)  # Auto-detect base for 0o, 0x, 0b
         except ValueError as e:
             print(
-                f"[DEBUG INTEGERNODE EVALUATE ERROR]: Invalid integer {self.value}: {e}"
+                (
+                    f"[DEBUG INTEGERNODE EVALUATE ERROR]: Invalid integer "
+                    f"{self.value}: {e}"
+                )
             )
             return self.value
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         try:
             if isinstance(self.value, str):
-                self.resolved = int(self.value, 0)  # Auto-detect base for strings
+                self.resolved = int(
+                    self.value, 0
+                )  # Auto-detect base for strings
             else:
                 self.resolved = int(
                     self.value
@@ -596,7 +687,10 @@ class IntegerNode(BaseNode):
             self.value = self.resolved
         except ValueError as e:
             print(
-                f"[DEBUG INTEGERNODE RESOLVE ERROR]: Invalid integer {self.value}: {e}"
+                (
+                    f"[DEBUG INTEGERNODE RESOLVE ERROR]: Invalid integer "
+                    f"{self.value}: {e}"
+                )
             )
             self.resolved = self.value
         print(f"[DEBUG INTEGERNODE RESOLVE]: {self.value} -> {self.resolved}")
@@ -640,7 +734,8 @@ class FoldedExpressionNode(BaseNode):
 
     def emit(self) -> str:
         logger.debug("FoldedExpressionNode.emit() triggered.")
-        # Ensure we always return a string, even if origin was replaced by an int
+        # Ensure we always return a string, even if origin was replaced by an
+        # int
         return str(self.origin)
 
     def resolve(
@@ -657,7 +752,8 @@ class FoldedExpressionNode(BaseNode):
 
         logger.debug("FoldedExpressionNode.resolve() triggered.")
         # Always pass an empty dict for `context` here so that ${…} tokens
-        # get preserved and trigger the f-string branch in evaluate_expression_tree.
+        # get preserved and trigger the f-string branch in
+        # evaluate_expression_tree.
         static_ctx: Dict[str, Any] = {}
 
         # Evaluate without real context, deferring ${…}
@@ -712,13 +808,17 @@ class AliasClauseNode(BaseNode):
         self.scoped_var = None  # Scoped variable (e.g., '%{x}')
 
     def __str__(self) -> str:
-        return f"AliasClauseNode(keyword={self.keyword}, scoped_var={self.scoped_var})"
+        return (
+            f"AliasClauseNode(keyword={self.keyword}, "
+            f"scoped_var={self.scoped_var})"
+        )
 
     def emit(self) -> str:
         logger.debug("AliasClauseNode.emit() triggered.")
 
         """
-        Emit the alias clause exactly as parsed, preserving the 'as' keyword and the scoped variable.
+        Emit the alias clause exactly as parsed, preserving the 'as' keyword
+        and the scoped variable.
         """
         return self.origin
 
@@ -732,7 +832,9 @@ class AliasClauseNode(BaseNode):
         local_env = local_env or {}
 
         # ➜ extract the identifier inside %{…}
-        raw = getattr(self.scoped_var, "origin", "")
+        raw = getattr(self.scoped_var, "origin", "") or getattr(
+            self.scoped_var, "value", ""
+        )
         if raw.startswith("%{") and raw.endswith("}"):
             alias_name = raw[2:-1].split(".")[0]  # drop %{…} and ignore dots
         else:  # (unexpected but safe)
@@ -750,7 +852,10 @@ class AliasClauseNode(BaseNode):
 class PairExprNode(BaseNode):
     def __init__(self):
         super().__init__()
-        self.key = None  # Key expression (e.g., (SingleQuotedStringNode, TripleQuotedStringNode, BacktickStringNode, FStringNode, TripleBacktickStringNode), StringExprNode)
+        # Key expression (e.g., (SingleQuotedStringNode,
+        # TripleQuotedStringNode, BacktickStringNode, FStringNode,
+        # TripleBacktickStringNode), StringExprNode)
+        self.key = None
         self.value = None  # Value expression
 
     def __str__(self) -> str:
@@ -789,11 +894,14 @@ class DottedExprNode(BaseNode):
         return self.origin
 
     def resolve(
-        self, global_env: Dict[str, Any], local_env: Optional[Dict[str, Any]] = None
+        self,
+        global_env: Dict[str, Any],
+        local_env: Optional[Dict[str, Any]] = None,
     ):
         local_env = local_env or {}
 
-        # Walk a dotted path through a mapping (dict-like or objects with attrs).
+        # Walk a dotted path through a mapping (dict-like or objects with
+        # attrs).
         def _dig(src, path: str):
             cur = src
             for part in path.split("."):
@@ -814,7 +922,9 @@ class DottedExprNode(BaseNode):
         self.value = result if result is not None else self.dotted_value
 
     def evaluate(self) -> Any:
-        return self.resolved if self.resolved is not None else self.dotted_value
+        return (
+            self.resolved if self.resolved is not None else self.dotted_value
+        )
 
 
 class ComprehensionClauseNode(BaseNode):
@@ -827,7 +937,11 @@ class ComprehensionClauseNode(BaseNode):
     def __str__(self) -> str:
         vars_str = " ".join(str(v) for v in self.loop_vars)
         iter_str = str(self.iterable) if self.iterable else ""
-        cond_str = " ".join(str(c) for c in self.conditions) if self.conditions else ""
+        cond_str = (
+            " ".join(str(c) for c in self.conditions)
+            if self.conditions
+            else ""
+        )
         result = f"for {vars_str} in {iter_str}"
         if cond_str:
             result += f" if {cond_str}"
@@ -924,6 +1038,25 @@ class StringExprNode(BaseNode):
         super().__init__()
         self.parts: list[Any] = []
 
+    def render(self, global_env, local_env=None, context=None):
+        values = []
+        for part in self.parts:
+            if isinstance(part, (FStringNode, ContextScopedVarNode)):
+                value = part.render(global_env, local_env, context)
+            else:
+                part.resolve(global_env, local_env)
+                value = part.evaluate()
+            if isinstance(value, str) and value.startswith(('"', "'")):
+                from ._utils import unquote
+
+                value = unquote(value)
+            values.append(value)
+        self.resolved = (
+            values[0] if len(values) == 1 else "".join(map(str, values))
+        )
+        self.value = self.resolved
+        return self.resolved
+
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         """
         Resolve a concatenation expression into a plain Python value.
@@ -959,7 +1092,11 @@ class StringExprNode(BaseNode):
                 else:
                     # resolve any other node to its Python value
                     part.resolve(global_env, local_env)
-                    val = part.resolved if hasattr(part, "resolved") else part.value
+                    val = (
+                        part.resolved
+                        if hasattr(part, "resolved")
+                        else part.value
+                    )
                     segments.append(str(val))
 
             # build a quoted Python f-string, e.g. f"{module.name}.py"
@@ -995,7 +1132,9 @@ class StringExprNode(BaseNode):
                 s = f'"{s}"'
             return s
         # Before resolution, emit original parts
-        return "".join(p.emit() if hasattr(p, "emit") else str(p) for p in self.parts)
+        return "".join(
+            p.emit() if hasattr(p, "emit") else str(p) for p in self.parts
+        )
 
 
 class ListComprehensionNode(BaseNode):
@@ -1060,7 +1199,11 @@ class DictComprehensionNode(BaseNode):
         local_env: Optional[Dict] = None,
         context: Optional[Dict] = None,
     ) -> str:
-        return "{" + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items()) + "}"
+        return (
+            "{"
+            + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items())
+            + "}"
+        )
 
 
 class InlineTableComprehensionNode(BaseNode):
@@ -1094,7 +1237,11 @@ class InlineTableComprehensionNode(BaseNode):
         local_env: Optional[Dict] = None,
         context: Optional[Dict] = None,
     ) -> str:
-        return "{" + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items()) + "}"
+        return (
+            "{"
+            + ", ".join(f"{k}: {v}" for k, v in self.evaluate().items())
+            + "}"
+        )
 
 
 class ValueNode(BaseNode):
@@ -1105,12 +1252,13 @@ class ValueNode(BaseNode):
         self.inline_comment = (
             None  # Holds Token('INLINE_COMMENT', …) – includes leading spaces
         )
-        self.has_comma = (
-            False  # True when a ',' token directly followed this item in source
-        )
+        # True when a ',' token directly followed this item in source
+        self.has_comma = False
 
     def emit(self) -> str:
-        """Return the exact textual representation for round‑trip serialisation."""
+        """Return the exact textual representation for round‑trip
+        serialisation.
+        """
         # ── comment‑only line ───────────────────────────────────────────
         if self.value is None:
             txt = self.inline_comment.value.strip()
@@ -1119,7 +1267,11 @@ class ValueNode(BaseNode):
             return txt
 
         # ── regular value (may have inline comment) ────────────────────
-        base = self.value.emit() if hasattr(self.value, "emit") else str(self.value)
+        base = (
+            self.value.emit()
+            if hasattr(self.value, "emit")
+            else str(self.value)
+        )
         if self.has_comma:
             base += ","
         if self.inline_comment:
@@ -1128,7 +1280,10 @@ class ValueNode(BaseNode):
 
     def __str__(self):
         ic = self.inline_comment.value if self.inline_comment else None
-        return f"ValueNode(value={self.value}, inline_comment={ic}, has_comma={self.has_comma})"
+        return (
+            f"ValueNode(value={self.value}, inline_comment={ic}, "
+            f"has_comma={self.has_comma})"
+        )
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
         if hasattr(self.value, "resolve"):
@@ -1138,7 +1293,11 @@ class ValueNode(BaseNode):
             self.resolved = self.value
 
     def evaluate(self):
-        return self.value.evaluate() if hasattr(self.value, "evaluate") else self.value
+        return (
+            self.value.evaluate()
+            if hasattr(self.value, "evaluate")
+            else self.value
+        )
 
     def render(
         self,
@@ -1146,12 +1305,17 @@ class ValueNode(BaseNode):
         local_env: Optional[Dict] = None,
         context: Optional[Dict] = None,
     ):
-        return self.value.render() if hasattr(self.value, "render") else str(self.value)
+        return (
+            self.value.render()
+            if hasattr(self.value, "render")
+            else str(self.value)
+        )
 
 
 class SLArrayItemNode(ValueNode):
     """
-    Represents an item in a single-line array, preserving value, inline comments, and comma.
+    Represents an item in a single-line array, preserving value, inline
+    comments, and comma.
     """
 
     def __init__(self):
@@ -1161,7 +1325,8 @@ class SLArrayItemNode(ValueNode):
 
 class MLArrayItemNode(ValueNode):
     """
-    Represents an item in a multi-line array, preserving value, inline comments, and comma.
+    Represents an item in a multi-line array, preserving value, inline
+    comments, and comma.
     """
 
     def __init__(self):
@@ -1175,6 +1340,8 @@ class InlineTableNode(BaseNode):
         self.data = {}
 
     def emit(self) -> str:
+        if self.origin and "#" in self.origin:
+            return self.origin
         emit_items = []
         for key, value in self.data.items():
             if isinstance(value, AssignmentNode):
@@ -1182,7 +1349,9 @@ class InlineTableNode(BaseNode):
                 print(f"[DEBUG INLINE_TABLE EMIT]: {key} -> {item}")
                 emit_items.append(item)
             else:
-                value_str = value.emit() if hasattr(value, "emit") else str(value)
+                value_str = (
+                    value.emit() if hasattr(value, "emit") else str(value)
+                )
                 emit_items.append(f"{key}={value_str}")
         result = f"{{{', '.join(emit_items)}}}"
         print(f"[DEBUG INLINE_TABLE EMIT RESULT]: {result}")
@@ -1192,8 +1361,22 @@ class InlineTableNode(BaseNode):
         return f"InlineTableNode(data={len(self.data)})"
 
     def resolve(self, global_env: Dict, local_env: Optional[Dict] = None):
-        local_env = local_env or {}
+        local_env = dict(local_env or {})
+        merged = {}
         for key, value in self.data.items():
+            if key == "<<":
+                from ._legacy import _lookup
+
+                reference = (
+                    value.value if isinstance(value, AssignmentNode) else value
+                )
+                inherited = _lookup(
+                    str(reference).lstrip("@"), global_env, local_env
+                )
+                if not isinstance(inherited, dict):
+                    raise TypeError("Inline table merge requires a mapping")
+                merged.update(inherited)
+                continue
             # If the value supports resolution, resolve it.
             if hasattr(value, "resolve"):
                 value.resolve(global_env, local_env)
@@ -1202,13 +1385,19 @@ class InlineTableNode(BaseNode):
                 local_env[key] = value
         # Build a dict of resolved values. If the stored item is a node,
         # use its .resolved attribute; otherwise, use the raw value.
-        self.resolved = {
-            key: value.resolved if hasattr(value, "resolved") else value
-            for key, value in self.data.items()
-        }
+        self.resolved = dict(merged)
+        self.resolved.update(
+            {
+                key: value.resolved if hasattr(value, "resolved") else value
+                for key, value in self.data.items()
+                if key != "<<"
+            }
+        )
         self.value = self.resolved
 
     def evaluate(self) -> Dict:
+        if self.resolved is not None:
+            return self.resolved
         out = {}
         # Only call .evaluate() if the stored object is a node.
         for key, value in self.data.items():
@@ -1250,18 +1439,21 @@ class FloatNode(BaseNode):
         return f"FloatNode(value={self.value})"
 
     def emit(self) -> str:
-        # When emitting config text back to a file/string, we just turn the float into a string
+        # When emitting config text back to a file/string, we just turn the
+        # float into a string
         return str(self.value)
 
     def evaluate(self) -> float:
         """
-        Returns the evaluated float value, preferring self.resolved if available.
+        Returns the evaluated float value, preferring self.resolved if
+        available.
         If not yet resolved, parse self.value as a float.
         """
         if self.resolved is not None:
             return self.resolved
 
-        # Try calling float() directly. "inf", "-inf", "nan" are valid in Python, but you
+        # Try calling float() directly. "inf", "-inf", "nan" are valid in
+        # Python, but you
         # can add extra checks if you want to handle uppercase, plus-sign, etc.
         self.resolved = float(self.value)
         return self.resolved
@@ -1345,7 +1537,8 @@ class SingleQuotedStringNode(BaseNode):
 
 class TripleQuotedStringNode(BaseNode):
     """
-    Represents a triple-quoted string, e.g. '''Hello\nWorld''' or \"\"\"Hello\nWorld\"\"\".
+    Represents a triple-quoted string, e.g. '''Hello\nWorld''' or
+    \"\"\"Hello\nWorld\"\"\".
     Often multiline.
     """
 
@@ -1357,7 +1550,8 @@ class TripleQuotedStringNode(BaseNode):
         return f'"""{self.value or ""}"""'
 
     def resolve(self, global_env, local_env=None):
-        # Strip the triple quotes. For example, if origin is """...""", remove them.
+        # Strip the triple quotes. For example, if origin is """...""", remove
+        # them.
         # We assume it's either '''...''' or """..."""
         # This is a naive approach; you could do more robust logic if needed
         # to handle edge cases or multiline strings with embedded quotes.
@@ -1411,13 +1605,21 @@ class FStringNode(BaseNode):
         super().__init__()
 
     def emit(self) -> str:
-        # Return the original f-string if you want to preserve the 'f' prefix and quotes:
+        # Return the original f-string if you want to preserve the 'f' prefix
+        # and quotes:
         return self.origin
 
     def resolve(self, global_env, local_env=None):
-        # Use your existing _evaluate_f_string helper to evaluate python-like f-strings
+        if "${" in self.origin:
+            self.resolved = self.value = self.origin
+            return
+        # Use your existing _evaluate_f_string helper to evaluate python-like
+        # f-strings
         self.resolved = _evaluate_f_string(
-            self.origin, global_data=global_env, local_data=local_env, context={}
+            self.origin,
+            global_data=global_env,
+            local_data=local_env,
+            context={},
         )
         self.value = self.resolved
 
@@ -1453,16 +1655,20 @@ class TripleBacktickStringNode(BaseNode):
 
     def resolve(self, global_env, local_env=None):
         """
-        If your DSL permits variable interpolation or environment-based substitutions
-        inside triple-backtick strings, handle it here. Otherwise, you can treat them
+        If your DSL permits variable interpolation or environment-based
+        substitutions
+        inside triple-backtick strings, handle it here. Otherwise, you can
+        treat them
         as literal blocks that remain untouched.
         """
-        # Example: Remove the outer ```...```, do your variable substitions, then reassign:
+        # Example: Remove the outer ```...```, do your variable substitions,
+        # then reassign:
         content = self.origin
         if content.startswith("```") and content.endswith("```"):
             content = content[3:-3]  # remove the leading and trailing ```
         # If you do want to do variable substitution, you might do:
-        # content = _substitute_vars(content, global_env, local_env, quote_strings=False)
+        # content = _substitute_vars(content, global_env, local_env,
+        # quote_strings=False)
         self.resolved = content
         self.value = self.resolved
 
@@ -1475,7 +1681,8 @@ class TripleBacktickStringNode(BaseNode):
 
 class SingleLineArrayNode(BaseNode):
     """
-    Represents an array on a single line, e.g. [1, 2, "three"] or ["blue" # Accent color].
+    Represents an array on a single line, e.g. [1, 2, "three"] or ["blue" #
+    Accent color].
     Preserves inline comments for round-trip serialization.
     """
 
@@ -1501,7 +1708,8 @@ class SingleLineArrayNode(BaseNode):
 
     def resolve(self, global_env, local_env=None):
         """
-        Resolve each item, e.g., substituting variables or evaluating subexpressions.
+        Resolve each item, e.g., substituting variables or evaluating
+        subexpressions.
         Store the fully resolved result in self.resolved.
         """
         resolved_items = []
@@ -1526,7 +1734,8 @@ class SingleLineArrayNode(BaseNode):
 
     def __str__(self) -> str:
         return (
-            f"SingleLineArrayNode(value={self.value}, comments={self.inline_comment})"
+            f"SingleLineArrayNode(value={self.value}, "
+            f"comments={self.inline_comment})"
         )
 
     def __repr__(self) -> str:
@@ -1539,7 +1748,8 @@ class MultiLineArrayNode(BaseNode):
         self.lbrack = None  # '[' token
         self.rbrack = None  # ']' token
         self.contents = []  # List of ValueNode
-        # We ignore parsed newlines for serialization and instead produce a canonical format.
+        # We ignore parsed newlines for serialization and instead produce a
+        # canonical format.
         self.leading_newlines = None
         self.trailing_newlines = None
         self.value = []
@@ -1552,6 +1762,22 @@ class MultiLineArrayNode(BaseNode):
         values and inline comments exactly as parsed, but omitting
         any blank-only lines.
         """
+        typed_tables = any(
+            isinstance(item.value, InlineTableNode)
+            and any(
+                getattr(field, "type_annotation", None)
+                for field in item.value.data.values()
+            )
+            for item in self.contents
+        )
+        if (
+            self.origin
+            and not typed_tables
+            and not any(
+                not line.strip() for line in self.origin.splitlines()[1:-1]
+            )
+        ):
+            return self.origin
         lines = ["["]
         for item in self.contents:
             # Get emitted text and strip trailing newline to avoid blank lines
@@ -1591,7 +1817,10 @@ class MultiLineArrayNode(BaseNode):
         ]
 
     def __str__(self) -> str:
-        return f"MultiLineArrayNode(value={self.value}, comments={self.__comments__})"
+        return (
+            f"MultiLineArrayNode(value={self.value}, "
+            f"comments={self.__comments__})"
+        )
 
     def __repr__(self) -> str:
         return f"MultiLineArrayNode(value={self.value})"
@@ -1649,9 +1878,12 @@ class LocalScopedVarNode(BaseNode):
 
         dotted = self.origin[2:-1]  # strip `%{` … `}`
 
-        # ---------------------------------------------------------------- helpers
+        # ----------------------------------------------------------------
+        # helpers
         def _dig(obj, path: str):
-            """Walk *obj* through a dotted path trying both dict keys and attrs."""
+            """Walk *obj* through a dotted path trying both dict keys and
+            attrs.
+            """
             cur = obj
             for part in path.split("."):
                 if isinstance(cur, Mapping) and part in cur:
@@ -1699,11 +1931,13 @@ class ContextScopedVarNode(BaseNode):
         local_env: Optional[Dict] = None,
     ):
         """
-        Replace the ${placeholder} with a concrete value, supporting nested lookups and
+        Replace the ${placeholder} with a concrete value, supporting nested
+        lookups and
         list flattening. Lookup order:
         1. local_env
         2. global_env
-        If the lookup yields another AST node (including this one), treat it as missing.
+        If the lookup yields another AST node (including this one), treat it as
+        missing.
         """
         logger.warning("ContextScopeVariable should not have resolve.")
         from collections.abc import Mapping
@@ -1742,7 +1976,8 @@ class ContextScopedVarNode(BaseNode):
 
         candidate = _dig(global_env)
 
-        # If we got another AST node back, ignore it (to prevent self-reference)
+        # If we got another AST node back, ignore it (to prevent
+        # self-reference)
         from ._ast_nodes import BaseNode
 
         if isinstance(candidate, BaseNode):

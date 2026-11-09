@@ -1,5 +1,6 @@
 # jaml/api.py
 import os
+import json
 from typing import IO, Any, Dict
 from lark import UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 
@@ -37,17 +38,46 @@ def dumps(obj: Dict[str, Any]) -> str:
     :param obj: Dictionary to serialize.
     :return: JML-formatted string.
     """
-    # Build a temporary Config from the dictionary
-    config = Config(obj)
-    # Use the new .dump() method
-    dumped = config.dump()
-    print("[DEBUG API] dumps:\n", dumped)
-    return dumped
+
+    def literal(value):
+        if value is None:
+            return "null"
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, str):
+            return json.dumps(value, ensure_ascii=False)
+        if isinstance(value, dict):
+            return (
+                "{ "
+                + ", ".join(f"{k} = {literal(v)}" for k, v in value.items())
+                + " }"
+            )
+        if isinstance(value, (list, tuple)):
+            return "[" + ", ".join(literal(v) for v in value) + "]"
+        if isinstance(value, (int, float)):
+            return repr(value)
+        raise TypeError(f"Unsupported JAML value: {type(value).__name__}")
+
+    lines = []
+
+    def section(values, prefix=""):
+        for key, value in values.items():
+            if not isinstance(value, dict):
+                lines.append(f"{key} = {literal(value)}")
+        for key, value in values.items():
+            if isinstance(value, dict):
+                name = f"{prefix}.{key}" if prefix else key
+                lines.extend(["", f"[{name}]"])
+                section(value, name)
+
+    section(obj)
+    return "\n".join(lines).lstrip("\n")
 
 
 def dump(obj: Dict[str, Any], fp: IO[str]) -> None:
     """
-    Serialize a plain dict into JML and write to a file-like object (non-round-trip).
+    Serialize a plain dict into JML and write to a file-like object
+    (non-round-trip).
 
     :param obj: Dictionary to serialize.
     :param fp: File-like object to write to.
@@ -100,20 +130,22 @@ def load(fp: IO[str]) -> Dict[str, Any]:
 
 def round_trip_dumps(config: Config) -> str:
     """
-    Serialize a Config object back to a JML-formatted string, preserving layout,
+    Serialize a Config object back to a JML-formatted string, preserving
+    layout,
     comments, merges, etc., as supported by the unparser.
 
     :param config: Config object from round_trip_loads/load.
     :return: JML-formatted string.
     """
-    dumped = config.dump()
+    dumped = config.dumps()
     print("[DEBUG API] round_trip_dumps:\n", dumped)
     return dumped
 
 
 def round_trip_dump(config: Config, fp: IO[str]) -> None:
     """
-    Serialize a Config object into JML, writing to a file-like object (round-trip).
+    Serialize a Config object into JML, writing to a file-like object
+    (round-trip).
 
     :param config: Config object to serialize.
     :param fp: File-like object to write to.
@@ -152,7 +184,8 @@ def round_trip_loads(s: str) -> Config:
 
 def round_trip_load(fp: IO[str]) -> Config:
     """
-    Parse JML content from a file-like object into a Config object, preserving round-trip data.
+    Parse JML content from a file-like object into a Config object, preserving
+    round-trip data.
 
     :param fp: File-like object to read from.
     :return: Config object.
@@ -185,13 +218,19 @@ def resolve(config: Config) -> Config:
 
 def render(config: Config, context: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Substitute deferred ${...} placeholders in the Config object using the provided context.
+    Substitute deferred ${...} placeholders in the Config object using the
+    provided context.
 
-    :param config: Config object from round_trip_loads/load, preferably resolved.
+    :param config: Config object from round_trip_loads/load, preferably
+    resolved.
     :param context: Dictionary with context variables (default: empty).
     :return: Rendered dictionary with all placeholders substituted.
     """
     context = context or {}
+    if isinstance(config, str):
+        from ._legacy import render_source
+
+        return render_source(config, context, loads(config))
     rendered = config.render(context)
     print("[DEBUG API] render output:\n", rendered)
     return rendered

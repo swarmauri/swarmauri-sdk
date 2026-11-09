@@ -1,7 +1,12 @@
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.testclient import TestClient
 
-from layout_engine_atoms.runtime.vue import UiEvent, UiEventResult, mount_layout_app
+from layout_engine_atoms.runtime.vue import (
+    UiEvent,
+    UiEventResult,
+    mount_layout_app,
+)
 
 
 def _manifest_payload():
@@ -36,7 +41,7 @@ class DummyHub:
 
 
 def test_ui_event_invokes_handler_and_broadcasts_payload():
-    app = FastAPI()
+    app = Starlette()
     call_log: list[dict] = []
 
     async def builder(_: Request):
@@ -67,11 +72,13 @@ def test_ui_event_invokes_handler_and_broadcasts_payload():
     assert response.status_code == 200
     assert response.json()["payload"]["value"] == 5
     assert call_log == [{"value": 5}]
-    assert app.state.layout_engine_realtime.messages == [("demo.channel", {"value": 5})]
+    assert app.state.layout_engine_realtime.messages == [
+        ("demo.channel", {"value": 5})
+    ]
 
 
 def test_event_route_supports_get_queries():
-    app = FastAPI()
+    app = Starlette()
     captured: list[dict] = []
 
     async def builder(_: Request):

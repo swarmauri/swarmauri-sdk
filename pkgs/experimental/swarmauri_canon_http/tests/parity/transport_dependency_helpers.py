@@ -3,7 +3,11 @@ from __future__ import annotations
 from importlib import metadata
 from pathlib import Path
 import re
-import tomllib
+
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 import pytest
 
@@ -17,11 +21,15 @@ def _normalize_name(name: str) -> str:
     return name.lower().replace("-", "_")
 
 
-def _transport_requirements_from_distribution(distribution_name: str) -> set[str]:
+def _transport_requirements_from_distribution(
+    distribution_name: str,
+) -> set[str]:
     try:
         dist = metadata.distribution(distribution_name)
     except metadata.PackageNotFoundError:
-        pytest.skip(f"{distribution_name} is not installed in this environment")
+        pytest.skip(
+            f"{distribution_name} is not installed in this environment"
+        )
 
     requirements = dist.requires or []
     transport_requirements: set[str] = set()
@@ -34,7 +42,9 @@ def _transport_requirements_from_distribution(distribution_name: str) -> set[str
 
 def _transport_optional_dependencies_from_pyproject() -> set[str]:
     data = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
-    transport_dependencies = data["project"]["optional-dependencies"]["transports"]
+    transport_dependencies = data["project"]["optional-dependencies"][
+        "transports"
+    ]
 
     package_names: set[str] = set()
     for dependency in transport_dependencies:
@@ -47,13 +57,15 @@ def _transport_optional_dependencies_from_pyproject() -> set[str]:
 def assert_transport_dependency_parity(
     *, transport_package: str, parity_distribution_name: str
 ) -> None:
-    expected_transport_packages = _transport_optional_dependencies_from_pyproject()
+    expected_transport_packages = (
+        _transport_optional_dependencies_from_pyproject()
+    )
     normalized_transport_package = _normalize_name(transport_package)
 
     assert normalized_transport_package in expected_transport_packages
 
-    swarmauri_canon_http_requirements = _transport_requirements_from_distribution(
-        "swarmauri_canon_http"
+    swarmauri_canon_http_requirements = (
+        _transport_requirements_from_distribution("swarmauri_canon_http")
     )
     parity_requirements = _transport_requirements_from_distribution(
         parity_distribution_name

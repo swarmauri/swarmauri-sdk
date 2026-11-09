@@ -17,7 +17,8 @@ from layout_engine_atoms.manifest import (
 )
 
 
-# --- Demo configuration -------------------------------------------------------------------------
+# --- Demo configuration
+# -------------------------------------------------------------------------
 
 ROW_HEIGHT = 220
 VIEWPORT = Viewport(width=1440, height=960)
@@ -51,7 +52,10 @@ SUMMARY_STYLE = {
 
 ACTION_STYLE = {
     **PANEL_STYLE,
-    "background": "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.28), rgba(15,23,42,0.92))",
+    "background": (
+        "radial-gradient(circle at 20% 20%, rgba(56,189,248,0.28), "
+        "rgba(15,23,42,0.92))"
+    ),
 }
 
 
@@ -67,7 +71,7 @@ class PageDefinition:
     builder: Callable[[], tuple]
 
 
-# --- Page builders -------------------------------------------------------------------------------
+# --- Page builders -----------------------------------------------------------
 
 
 def _overview_page() -> tuple:
@@ -99,15 +103,24 @@ def _overview_page() -> tuple:
                 "cards": [
                     {
                         "title": "Autonomous services",
-                        "description": "27 providers are synced; 94% SLA adherence in the last 24h.",
+                        "description": (
+                            "27 providers are synced; 94% SLA adherence in "
+                            "the last 24h."
+                        ),
                     },
                     {
                         "title": "Signals this hour",
-                        "description": "3.1k realtime events processed with 0.2s median latency.",
+                        "description": (
+                            "3.1k realtime events processed with 0.2s median"
+                            " latency."
+                        ),
                     },
                     {
                         "title": "Experiments live",
-                        "description": "Nine experiments running across ops, growth, and market loops.",
+                        "description": (
+                            "Nine experiments running across ops, growth, "
+                            "and market loops."
+                        ),
                     },
                 ],
             },
@@ -117,7 +130,10 @@ def _overview_page() -> tuple:
             "swarmakit:vue:actionable-list",
             props={
                 "items": [
-                    {"label": "Review API catalogue drift", "actionLabel": "Inspect"},
+                    {
+                        "label": "Review API catalogue drift",
+                        "actionLabel": "Inspect",
+                    },
                     {
                         "label": "Enable adaptive throttling",
                         "actionLabel": "Activate",
@@ -137,7 +153,10 @@ def _overview_page() -> tuple:
             "swarmakit:vue:activity-indicators",
             props={
                 "type": "success",
-                "message": "All cores synchronized — next ingest checkpoint in 12 minutes.",
+                "message": (
+                    "All cores synchronized — next ingest checkpoint in 12 "
+                    "minutes."
+                ),
                 "style": {
                     "backgroundColor": "rgba(56, 189, 248, 0.16)",
                     "color": "#e0f2fe",
@@ -234,15 +253,22 @@ def _operations_page() -> tuple:
                 "cards": [
                     {
                         "title": "Incidents",
-                        "description": "0 active · 4 resolved in the last shift window.",
+                        "description": (
+                            "0 active · 4 resolved in the last shift window."
+                        ),
                     },
                     {
                         "title": "Escalations",
-                        "description": "3 teams on standby · pager latency 41s median.",
+                        "description": (
+                            "3 teams on standby · pager latency 41s median."
+                        ),
                     },
                     {
                         "title": "Workflow health",
-                        "description": "Auto-remediation closed 67% of triggered runbooks.",
+                        "description": (
+                            "Auto-remediation closed 67% of triggered "
+                            "runbooks."
+                        ),
                     },
                 ],
             },
@@ -253,7 +279,10 @@ def _operations_page() -> tuple:
             props={
                 "items": [
                     {"label": "Rebalance build runners", "actionLabel": "Run"},
-                    {"label": "Approve router firmware", "actionLabel": "Review"},
+                    {
+                        "label": "Approve router firmware",
+                        "actionLabel": "Review",
+                    },
                     {
                         "label": "Mute noisy insight feed",
                         "actionLabel": "Pause",
@@ -297,12 +326,16 @@ def _operations_page() -> tuple:
                     {
                         "id": "A-104",
                         "label": "Validate drift reports",
-                        "details": "Ensure new connectors conform to baseline schema.",
+                        "details": (
+                            "Ensure new connectors conform to baseline schema."
+                        ),
                     },
                     {
                         "id": "A-221",
                         "label": "Rotate ephemeral keys",
-                        "details": "Applies to fleet staging and XFN sandboxes.",
+                        "details": (
+                            "Applies to fleet staging and XFN sandboxes."
+                        ),
                     },
                     {
                         "id": "A-310",
@@ -345,15 +378,23 @@ def _revenue_page() -> tuple:
                 "cards": [
                     {
                         "title": "Quarter bookings",
-                        "description": "$48.2M recognised · tracking +12% above target.",
+                        "description": (
+                            "$48.2M recognised · tracking +12% above target."
+                        ),
                     },
                     {
                         "title": "Expansion velocity",
-                        "description": "Net retention 134% · 27 expansions closed this month.",
+                        "description": (
+                            "Net retention 134% · 27 expansions closed this "
+                            "month."
+                        ),
                     },
                     {
                         "title": "Enterprise pilots",
-                        "description": "Five Fortune 100 pilots active · two in procurement review.",
+                        "description": (
+                            "Five Fortune 100 pilots active · two in "
+                            "procurement review."
+                        ),
                     },
                 ],
             },
@@ -416,8 +457,14 @@ def _revenue_page() -> tuple:
             "swarmakit:vue:actionable-list",
             props={
                 "items": [
-                    {"label": "Launch lifecycle nurture", "actionLabel": "Send"},
-                    {"label": "Prep executive QBR deck", "actionLabel": "Draft"},
+                    {
+                        "label": "Launch lifecycle nurture",
+                        "actionLabel": "Send",
+                    },
+                    {
+                        "label": "Prep executive QBR deck",
+                        "actionLabel": "Draft",
+                    },
                     {
                         "label": "Prioritise CS follow-ups",
                         "actionLabel": "Review",
@@ -438,7 +485,10 @@ PAGE_SEQUENCE: tuple[PageDefinition, ...] = (
         title="Executive pulse",
         route="/",
         tagline="Strategic signals, live impact",
-        description="An executive overview combining live telemetry, team focus, and forward-looking signals.",
+        description=(
+            "An executive overview combining live telemetry, team focus, and"
+            " forward-looking signals."
+        ),
         builder=_overview_page,
     ),
     PageDefinition(
@@ -446,7 +496,10 @@ PAGE_SEQUENCE: tuple[PageDefinition, ...] = (
         title="Operations watch",
         route="/operations",
         tagline="Reliability command surface",
-        description="Deep dive into reliability workflows, shift posture, and automation throughput.",
+        description=(
+            "Deep dive into reliability workflows, shift posture, and "
+            "automation throughput."
+        ),
         builder=_operations_page,
     ),
     PageDefinition(
@@ -454,7 +507,10 @@ PAGE_SEQUENCE: tuple[PageDefinition, ...] = (
         title="Revenue intelligence",
         route="/revenue",
         tagline="Momentum with leading indicators",
-        description="Commercial momentum tracking bookings, expansion efficiency, and deal choreography.",
+        description=(
+            "Commercial momentum tracking bookings, expansion efficiency, "
+            "and deal choreography."
+        ),
         builder=_revenue_page,
     ),
 )
@@ -477,11 +533,16 @@ SITE_SPEC = SiteSpec(
 DEFAULT_PAGE_ID = PAGE_SEQUENCE[0].id
 
 
-# --- Registry helpers ----------------------------------------------------------------------------
+# --- Registry helpers
+# ----------------------------------------------------------------------------
 
 
 def _apply_atom_metadata(manifest: Manifest, registry) -> None:
-    tiles = manifest.tiles if isinstance(manifest.tiles, list) else list(manifest.tiles)
+    tiles = (
+        manifest.tiles
+        if isinstance(manifest.tiles, list)
+        else list(manifest.tiles)
+    )
     for entry in tiles:
         if not isinstance(entry, dict):
             continue
@@ -539,7 +600,8 @@ def get_registry():
     return registry
 
 
-# --- Manifest plumbing ---------------------------------------------------------------------------
+# --- Manifest plumbing
+# ---------------------------------------------------------------------------
 
 
 def _site_payload(active_page: str) -> dict[str, object]:
@@ -560,7 +622,9 @@ def _site_payload(active_page: str) -> dict[str, object]:
 
 
 def build_manifest(page_id: str) -> Manifest:
-    """Return a manifest for the requested page id with site metadata attached."""
+    """Return a manifest for the requested page id with site metadata
+    attached.
+    """
 
     try:
         page = PAGES[page_id]
@@ -604,7 +668,7 @@ def build_manifest(page_id: str) -> Manifest:
     return hydrated
 
 
-# --- Page utilities -------------------------------------------------------------------------------
+# --- Page utilities ----------------------------------------------------------
 
 
 def available_pages() -> tuple[PageDefinition, ...]:

@@ -1,0 +1,36 @@
+[project]
+name = "xk"
+version = "0.0.1.dev1"
+description = "Experimental Swarmauri placeholder package; no functional API is provided yet."
+readme = "README.md"
+requires-python = ">=3.10,<3.16"
+license = "Apache-2.0"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["xk", "swarmauri", "experimental", "placeholder"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+]
+
+[project.urls]
+Homepage = "https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/experimental/xk"
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
+
+[tool.pytest.ini_options]
+markers = ["unit: Unit tests"]
+
+

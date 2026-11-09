@@ -1,5 +1,7 @@
 import pytest
-from swarmauri.vcms.concrete.DeepFaceDistance import DeepFaceDistance
+from swarmauri_experimental.vcms.concrete.DeepFaceDistance import (
+    DeepFaceDistance,
+)
 
 
 @pytest.mark.unit

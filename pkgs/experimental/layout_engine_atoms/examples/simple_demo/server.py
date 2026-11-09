@@ -1,13 +1,14 @@
-"""FastAPI demo using the packaged layout engine Vue runtime."""
+"""Starlette demo using the packaged layout engine Vue runtime."""
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.requests import Request
 
 from layout_engine_atoms.runtime.vue import mount_layout_app
 from .manifest import build_manifest_dict
 
-app = FastAPI(title="Layout Engine Atoms Demo")
+app = Starlette()
 
 _MANIFEST_CACHE = build_manifest_dict()
 

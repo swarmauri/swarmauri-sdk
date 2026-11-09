@@ -12,7 +12,8 @@ This package provides:
   • Targets: WebGUI SSR shell helpers and Media exporters (HTML/SVG/PDF/Code)
 
 Ergonomics:
-  • quick_view_model_from_table(...) — authoring DSL → view-model (with optional atoms registry)
+  • quick_view_model_from_table(...) — authoring DSL → view-model (with
+  optional atoms registry)
   • quick_manifest_from_table(...)  — authoring DSL → manifest
 """
 

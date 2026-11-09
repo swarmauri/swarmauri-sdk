@@ -8,8 +8,6 @@ from typing import Final
 
 import pytest
 
-pytest.importorskip("fastapi")
-
 README_PATH: Final[Path] = Path(__file__).resolve().parents[2] / "README.md"
 
 

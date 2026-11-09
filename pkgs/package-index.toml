@@ -2636,6 +2636,66 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_live_model_amazon_nova"
+path = "community/swarmauri_live_model_amazon_nova"
+layer = "50-community"
+order = 0
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_live_model_gemini"
+path = "community/swarmauri_live_model_gemini"
+layer = "50-community"
+order = 0
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_live_model_openai"
+path = "community/swarmauri_live_model_openai"
+layer = "50-community"
+order = 0
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_live_model_qwen"
+path = "community/swarmauri_live_model_qwen"
+layer = "50-community"
+order = 0
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_live_model_xai"
+path = "community/swarmauri_live_model_xai"
+layer = "50-community"
+order = 0
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_ai21"
 path = "community/swarmauri_llm_ai21"
 layer = "50-community"
@@ -2660,8 +2720,32 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_azureopenai"
+path = "community/swarmauri_llm_azureopenai"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_cerebras"
 path = "community/swarmauri_llm_cerebras"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_cloudflare"
+path = "community/swarmauri_llm_cloudflare"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -2792,6 +2876,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_llm_nvidia_nim"
+path = "community/swarmauri_llm_nvidia_nim"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_llm_openai"
 path = "community/swarmauri_llm_openai"
 layer = "50-community"
@@ -2831,6 +2927,18 @@ composes = ["swarmauri_tts_playht"]
 [[packages]]
 name = "swarmauri_llm_whisper"
 path = "community/swarmauri_llm_whisper"
+layer = "50-community"
+order = 0
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_xai"
+path = "community/swarmauri_llm_xai"
 layer = "50-community"
 order = 0
 family = "llm"
@@ -3772,110 +3880,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_live_model_amazon_nova"
-path = "community/swarmauri_live_model_amazon_nova"
-layer = "50-community"
-order = 1
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_amazon_nova", "swarmauri_transport_aws_eventstream"]
-
-[[packages]]
-name = "swarmauri_live_model_gemini"
-path = "community/swarmauri_live_model_gemini"
-layer = "50-community"
-order = 1
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_gemini", "swarmauri_transport_websocket"]
-
-[[packages]]
-name = "swarmauri_live_model_openai"
-path = "community/swarmauri_live_model_openai"
-layer = "50-community"
-order = 1
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_openai", "swarmauri_transport_websocket"]
-
-[[packages]]
-name = "swarmauri_live_model_qwen"
-path = "community/swarmauri_live_model_qwen"
-layer = "50-community"
-order = 1
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_qwen", "swarmauri_transport_websocket"]
-
-[[packages]]
-name = "swarmauri_live_model_xai"
-path = "community/swarmauri_live_model_xai"
-layer = "50-community"
-order = 1
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_provider_xai", "swarmauri_transport_websocket"]
-
-[[packages]]
-name = "swarmauri_llm_azureopenai"
-path = "community/swarmauri_llm_azureopenai"
-layer = "50-community"
-order = 1
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-name = "swarmauri_llm_cloudflare"
-path = "community/swarmauri_llm_cloudflare"
-layer = "50-community"
-order = 1
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-name = "swarmauri_llm_nvidia_nim"
-path = "community/swarmauri_llm_nvidia_nim"
-layer = "50-community"
-order = 1
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 2 internal concrete packages"
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
 name = "swarmauri_llm_openrouter"
 path = "community/swarmauri_llm_openrouter"
 layer = "50-community"
@@ -3887,19 +3891,6 @@ workspace = true
 order_source = "explicit"
 order_reason = "OpenRouter models compose provider configuration with shared HTTP and retry transports"
 composes = ["swarmauri_provider_openrouter", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-name = "swarmauri_llm_xai"
-path = "community/swarmauri_llm_xai"
-layer = "50-community"
-order = 1
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "depends on 3 internal concrete packages"
-composes = ["swarmauri_provider_xai", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 name = "swarmauri_matrix_hamming74"
@@ -4160,6 +4151,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "do"
+path = "experimental/do"
+layer = "70-experimental"
+order = 0
+family = "do"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "FastTokenizer"
 path = "experimental/FastTokenizer"
 layer = "70-experimental"
@@ -4177,6 +4180,18 @@ path = "experimental/g9"
 layer = "70-experimental"
 order = 0
 family = "g9"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "gk"
+path = "experimental/gk"
+layer = "70-experimental"
+order = 0
+family = "gk"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = false
@@ -4276,6 +4291,18 @@ family = "parser"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "pj"
+path = "experimental/pj"
+layer = "70-experimental"
+order = 0
+family = "pj"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
 order_source = "inferred"
 order_reason = "single-capability package by default"
 
@@ -4396,6 +4423,66 @@ family = "tigr"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "uu"
+path = "experimental/uu"
+layer = "70-experimental"
+order = 0
+family = "uu"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "vb"
+path = "experimental/vb"
+layer = "70-experimental"
+order = 0
+family = "vb"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "xj"
+path = "experimental/xj"
+layer = "70-experimental"
+order = 0
+family = "xj"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "xk"
+path = "experimental/xk"
+layer = "70-experimental"
+order = 0
+family = "xk"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "xz"
+path = "experimental/xz"
+layer = "70-experimental"
+order = 0
+family = "xz"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
 order_source = "inferred"
 order_reason = "single-capability package by default"
 

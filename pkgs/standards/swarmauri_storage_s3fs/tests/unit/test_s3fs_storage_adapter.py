@@ -1,7 +1,11 @@
 import io
 import mmap
 from pathlib import Path
-import tomllib
+
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 import pytest
 
@@ -183,7 +187,9 @@ def test_from_uri(monkeypatch):
 
 
 def test_storage_entry_points_declared():
-    data = tomllib.loads(Path("pyproject.toml").read_text())
+    data = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text()
+    )
 
     assert (
         data["project"]["entry-points"]["swarmauri.storage_adapters"][
@@ -200,8 +206,9 @@ def test_storage_entry_points_declared():
 
 
 def test_s3fs_adapter_does_not_import_other_s3_backends():
-    source = Path(
-        "swarmauri_storage_s3fs/s3fs_storage_adapter.py",
+    source = (
+        Path(__file__).resolve().parents[2]
+        / "swarmauri_storage_s3fs/s3fs_storage_adapter.py"
     ).read_text()
 
     assert "import s3fs" in source

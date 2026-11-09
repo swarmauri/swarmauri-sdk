@@ -46,7 +46,9 @@ def registry_to_dict(registry) -> dict[str, dict]:
     return registry.dict()
 
 
-def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
+def registry_from_dict(
+    registry, data: Mapping[str, Mapping[str, Any]]
+) -> None:
     registry.update_from_dict(data)
 
 
@@ -62,7 +64,8 @@ class ServerBindings:
 
     Example:
         bindings = ServerBindings()
-        bindings.register("kpi", "html", lambda props: f"<div>{props['value']}</div>")
+        bindings.register("kpi", "html", lambda props:
+        f"<div>{props['value']}</div>")
         html = bindings.render("kpi", "html", {"value": 123})
     """
 
@@ -79,5 +82,7 @@ class ServerBindings:
         try:
             fn = self._map[role][target]
         except KeyError:
-            raise KeyError(f"No server renderer for role='{role}' target='{target}'")
+            raise KeyError(
+                f"No server renderer for role='{role}' target='{target}'"
+            )
         return fn(props)

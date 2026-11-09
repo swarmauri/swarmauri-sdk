@@ -4,7 +4,10 @@ from jaml import round_trip_loads, round_trip_dumps, loads
 
 @pytest.mark.unit
 @pytest.mark.xfail(
-    reason="Conditional table blocks with context attributes not fully implemented"
+    reason=(
+        "Conditional table blocks with context attributes not fully "
+        "implemented"
+    )
 )
 def test_conditional_block_with_external_context():
     # Test conditional block using external context variable ${}

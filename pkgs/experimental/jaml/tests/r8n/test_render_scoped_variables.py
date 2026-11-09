@@ -5,7 +5,8 @@ from jaml import render
 @pytest.mark.unit
 def test_render_global_scope_variable():
     """
-    Test that render evaluates a global scope reference correctly with provided context.
+    Test that render evaluates a global scope reference correctly with provided
+    context.
     """
     jml = """
 [logic]
@@ -55,7 +56,8 @@ name: str = "LocalName"
 greeting: str = ~( "Hello, " + @name )
     """.strip()
     context = {
-        "name": "GlobalName"  # Global context should be overridden by local 'name'
+        # Global context should be overridden by local 'name'
+        "name": "GlobalName"
     }
     rendered_jml = render(jml, context)
     assert 'greeting: str = "Hello, LocalName"' in rendered_jml
@@ -64,7 +66,8 @@ greeting: str = ~( "Hello, " + @name )
 @pytest.mark.unit
 def test_render_multiple_global_scopes():
     """
-    Test that render evaluates multiple global scope references in a single expression.
+    Test that render evaluates multiple global scope references in a single
+    expression.
     """
     jml = """
 [logic]

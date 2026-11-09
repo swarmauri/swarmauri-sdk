@@ -22,7 +22,7 @@ catalogue and rendered through the prebuilt layout engine Vue shell.
 
 ## What you get
 
-- A FastAPI server that mounts the layout engine Vue runtime assets.
+- A Starlette server that mounts the layout engine Vue runtime assets.
 - Three demo manifests (`overview`, `operations`, `revenue`) with rich props,
   consistent theming, and per-page metadata.
 - Classic MPA navigation: each link loads a route-specific manifest while
@@ -34,7 +34,7 @@ catalogue and rendered through the prebuilt layout engine Vue shell.
 # from repository root
 uv run --directory pkgs/experimental/layout_engine_atoms \
   --package layout-engine-atoms \
-  uvicorn layout_engine_atoms.examples.mpa_dashboard.server:app --reload
+  uvicorn examples.mpa_dashboard.server:app --reload
 ```
 
 Visit <http://127.0.0.1:8000> for the overview page. The navigation bar

@@ -19,7 +19,9 @@ def col(*blocks: Block, size: SizeToken = SizeToken.m) -> Column:
 
 
 def row(*columns: Column, height_rows: int = 1) -> Row:
-    """Create a Row from columns, with an optional row-height floor in logical units."""
+    """Create a Row from columns, with an optional row-height floor in logical
+    units.
+    """
     return Row(columns=tuple(columns), height_rows=height_rows)
 
 
@@ -31,12 +33,16 @@ def table(*rows: Row, gap_x: int = 12, gap_y: int = 12) -> Table:
 # ---- higher-level helpers ----
 
 
-def stack(*blocks: Block, size: SizeToken = SizeToken.m, height_rows: int = 1) -> Row:
+def stack(
+    *blocks: Block, size: SizeToken = SizeToken.m, height_rows: int = 1
+) -> Row:
     """Create a single-column row with blocks stacked vertically."""
     return row(col(*blocks, size=size), height_rows=height_rows)
 
 
-def hstack(*blocks: Block, size: SizeToken = SizeToken.m, height_rows: int = 1) -> Row:
+def hstack(
+    *blocks: Block, size: SizeToken = SizeToken.m, height_rows: int = 1
+) -> Row:
     """Create a row placing each block into its own column (uniform size)."""
     columns = tuple(col(b, size=size) for b in blocks)
     return row(*columns, height_rows=height_rows)
@@ -45,14 +51,18 @@ def hstack(*blocks: Block, size: SizeToken = SizeToken.m, height_rows: int = 1) 
 def build_grid(
     tbl: Table, vp: Viewport, *, row_height: int = 180, min_track_px: int = 200
 ) -> tuple[GridSpec, list[GridTile]]:
-    """Compile the authoring Table into a GridSpec + placements using GridBuilder."""
-    return GridBuilder(row_height=row_height, min_track_px=min_track_px).to_grid(
-        tbl, vp
-    )
+    """Compile the authoring Table into a GridSpec + placements using
+    GridBuilder.
+    """
+    return GridBuilder(
+        row_height=row_height, min_track_px=min_track_px
+    ).to_grid(tbl, vp)
 
 
 def gridify(
     tbl: Table, vp: Viewport, *, row_height: int = 180, min_track_px: int = 200
 ) -> tuple[GridSpec, list[GridTile]]:
     """Alias for :func:`build_grid` maintained for compatibility."""
-    return build_grid(tbl, vp, row_height=row_height, min_track_px=min_track_px)
+    return build_grid(
+        tbl, vp, row_height=row_height, min_track_px=min_track_px
+    )

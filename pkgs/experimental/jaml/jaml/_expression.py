@@ -61,7 +61,8 @@ def _tok_to_py(
             raw = raw[1:-1]
         return repr(raw)
 
-    # ───────────────────────────── Numerics & Booleans ─────────────────────────
+    # ───────────────────────────── Numerics & Booleans
+    # ─────────────────────────
     if tok.type in {"INTEGER", "FLOAT"}:
         return tok.value
     if tok.type == "BOOLEAN":
@@ -87,7 +88,11 @@ def _tok_to_py(
             return tok.value
 
         # Global (@{…}) or local (%{…})
-        val = _lookup(inner, g) if marker == "@" else _lookup(inner, local_env, g)
+        val = (
+            _lookup(inner, g)
+            if marker == "@"
+            else _lookup(inner, local_env, g)
+        )
         if val is None:
             return tok.value
         if hasattr(val, "evaluate"):
@@ -134,12 +139,20 @@ def evaluate_expression_tree(
         c
         for c in getattr(tree, "children", [])
         if not (
-            (isinstance(c, Token) and c.type in ("HSPACES", "INLINE_WS", "WHITESPACE"))
-            or isinstance(c, (HspacesNode, InlineWhitespaceNode, WhitespaceNode))
+            (
+                isinstance(c, Token)
+                and c.type in ("HSPACES", "INLINE_WS", "WHITESPACE")
+            )
+            or isinstance(
+                c, (HspacesNode, InlineWhitespaceNode, WhitespaceNode)
+            )
         )
     ]
     print(
-        f"[DEBUG EXPR] Expression items: {[getattr(c, 'value', repr(c)) for c in items]}"
+        (
+            f"[DEBUG EXPR] Expression items: "
+            f"{[getattr(c, 'value', repr(c)) for c in items]}"
+        )
     )
 
     parts: List[str] = []
@@ -178,7 +191,9 @@ def evaluate_expression_tree(
 
         # 5) AST nodes carrying a Token in .meta
         elif (
-            isinstance(c, BaseNode) and hasattr(c, "meta") and isinstance(c.meta, Token)
+            isinstance(c, BaseNode)
+            and hasattr(c, "meta")
+            and isinstance(c.meta, Token)
         ):
             snippet = _tok_to_py(c.meta, global_env, local_env, context)
 

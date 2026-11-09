@@ -8,8 +8,10 @@ def test_git_embed_method():
     # Test using the .embed() method to include raw content
     jml = """
 [scripts]
-deploy = git(url = "https://github.com/user/scripts", branch = "master").embed("deploy.sh")
-readme = git(url = "https://github.com/user/docs", tag = "v1.0").embed("README.md")
+deploy = git(url = "https://github.com/user/scripts", branch =\
+ "master").embed("deploy.sh")
+readme = git(url = "https://github.com/user/docs", tag =\
+ "v1.0").embed("README.md")
     """.strip()
 
     ast = round_trip_loads(jml)
@@ -27,7 +29,8 @@ def test_git_file_method():
     # Test using the .file() method to include structured data
     jml = """
 [data]
-config = git(url = "https://github.com/user/config", tag = "v1.0").file("settings.toml")
+config = git(url = "https://github.com/user/config", tag =\
+ "v1.0").file("settings.toml")
     """.strip()
 
     ast = round_trip_loads(jml)
@@ -47,8 +50,10 @@ def test_git_mixed_methods():
     # Test using both .embed() and .file() in the same configuration
     jml = """
 [deployment]
-script = git(url = "https://github.com/user/deploy", branch = "release").embed("start.sh")
-config = git(url = "https://github.com/user/deploy", tag = "v2.0").file("env.toml")
+script = git(url = "https://github.com/user/deploy", branch =\
+ "release").embed("start.sh")
+config = git(url = "https://github.com/user/deploy", tag =\
+ "v2.0").file("env.toml")
     """.strip()
 
     ast = round_trip_loads(jml)

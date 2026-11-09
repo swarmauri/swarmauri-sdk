@@ -10,7 +10,9 @@ from typing import BinaryIO, Optional
 from github import Github, UnknownObjectException
 from pydantic import SecretStr
 
-from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.git_filters.config import (
+    load_filter_config as load_peagen_toml,
+)
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.storage import StorageAdapterBase
 from swarmauri_base.git_filters import GitFilterBase

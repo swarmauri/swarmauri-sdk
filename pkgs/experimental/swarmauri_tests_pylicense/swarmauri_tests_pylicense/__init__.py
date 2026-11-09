@@ -6,7 +6,12 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
 import os
+import re
 import pytest
+from packaging.licenses import (
+    InvalidLicenseExpression,
+    canonicalize_license_expression,
+)
 from importlib.metadata import PackageNotFoundError, distribution
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
@@ -23,9 +28,14 @@ STANDARD_LICENSES = {
     "mit",
     "mit license",
     "mit-cmu",
+    "mit-0",
+    "bsl-1.0",
     "apache-2.0",
     "apache license",
     "apache license 2.0",
+    "apache license version 2.0",
+    "apache 2",
+    "apache 2.0",
     "apache license, version 2.0",
     "apache software license",
     "apache software license / bsd license",
@@ -39,19 +49,36 @@ STANDARD_LICENSES = {
     "bsd 2-clause license",
     "bsd 3-clause license",
     "bsd-3-clause license",
+    "3-clause bsd license",
     "python software foundation license",
     "python-2.0",
     "psf-2.0",
+    "psfl",
+    "cnri-python",
     "gpl",
     "gnu general public license",
     "lgpl",
+    "lgpl-2.1",
+    "lgplv3",
+    "bsd, public domain",
+    "bsd-3",
+    "unlicense",
+    "lgpl-2.0-only",
+    "lgpl-2.0-or-later",
+    "lgpl-2.1-only",
+    "lgpl-2.1-or-later",
+    "lgpl-3.0-only",
+    "lgpl-3.0-or-later",
     "lgpl with exceptions",
     "gnu lesser general public license",
+    "gnu library or lesser general public license (lgpl)",
     "mpl",
     "mozilla public license",
     "mozilla public license 2.0 (mpl 2.0)",
     "mpl-2.0",
     "isc license",
+    "isc license (iscl)",
+    "isc",
     "expat license",
     "dual license",
     # SPDX compound expressions common in transitive dependencies
@@ -96,6 +123,24 @@ LICENSE_PATTERNS = [
     "Mozilla Public License",
     "ISC License",
 ]
+
+
+def _standard_license(license: str) -> bool:
+    """Recognize expressions made entirely of approved SPDX license IDs."""
+    if license.lower() in STANDARD_LICENSES:
+        return True
+    try:
+        expression = canonicalize_license_expression(
+            re.sub(r"\bBSD 3-Clause\b", "BSD-3-Clause", license, flags=re.I)
+        )
+    except InvalidLicenseExpression:
+        return False
+    identifiers = re.findall(r"[^\s()]+", expression.lower())
+    return all(
+        token in STANDARD_LICENSES
+        or token in {"and", "or", "with", "llvm-exception"}
+        for token in identifiers
+    )
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -181,6 +226,10 @@ def _license_from_dist(dist) -> str:
             if pattern.lower() in license_str.lower():
                 license_str = pattern
                 break
+        else:
+            # Full legal text is not a license identifier. Use the package's
+            # license classifiers/files rather than failing on the entire text.
+            license_str = ""
     if not license_str or license_str == "UNKNOWN":
         classifiers = [
             c
@@ -285,7 +334,7 @@ class LicenseItem(pytest.Item):
                 f"{self.dep}=={self.version} has unknown license",
                 pytrace=False,
             )
-        if lic.lower() not in STANDARD_LICENSES:
+        if not _standard_license(lic):
             pytest.fail(
                 f"{self.dep}=={self.version} uses non-standard license {lic}",
                 pytrace=False,
@@ -335,7 +384,7 @@ class LicenseAggregateItem(pytest.Item):
             if lic == "UNKNOWN":
                 if canon not in _KNOWN_SAFE_UNKNOWN_DEPS:
                     failures.append(f"{dep}=={ver} has unknown license")
-            elif lic.lower() not in STANDARD_LICENSES:
+            elif not _standard_license(lic):
                 failures.append(
                     f"{dep}=={ver} uses non-standard license {lic}"
                 )

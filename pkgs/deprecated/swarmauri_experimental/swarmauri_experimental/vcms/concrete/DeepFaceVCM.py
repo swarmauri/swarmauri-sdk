@@ -1,16 +1,14 @@
 from typing import Any, Union, Optional, List, Literal, Tuple, Dict
 from pydantic import Field
 import numpy as np
-from deepface import DeepFace
-from swarmauri.vcms.base.VCMBase import VCMBase
-from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
+from swarmauri_experimental.vcms.base.DeepFaceBase import get_deepface
+from swarmauri_experimental.vcms.base.VCMBase import VCMBase
+from swarmauri_base.ComponentBase import ComponentBase
 
 
 class DeepFaceVCM(VCMBase, ComponentBase):
     type: Literal["DeepFaceVCM"] = "DeepFaceVCM"
-    resource: str = Field(
-        default=ResourceTypes.VCM.value, description="VCM resource"
-    )
+    resource: str = Field(default="VCM", description="VCM resource")
     detector_backend: str = Field(
         default="opencv", description="Backend to use for detection"
     )
@@ -36,7 +34,7 @@ class DeepFaceVCM(VCMBase, ComponentBase):
         silent: bool = False,
     ) -> List[Dict[str, Any]]:
         """
-        Analyze the given image using DeepFace.
+        Analyze the given image using get_deepface().
 
         :param img_path: Path to the image or image as a numpy array.
         :param actions: Tuple of actions to perform. Defaults to self.actions.
@@ -46,7 +44,7 @@ class DeepFaceVCM(VCMBase, ComponentBase):
         if actions is None:
             actions = self.actions
         try:
-            analysis = DeepFace.analyze(
+            analysis = get_deepface().analyze(
                 img_path=img_path,
                 actions=actions,
                 detector_backend=self.detector_backend,

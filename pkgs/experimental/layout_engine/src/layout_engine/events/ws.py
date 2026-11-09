@@ -10,7 +10,8 @@ Subscriber = Callable[[dict], None]
 class InProcEventBus:
     """A tiny in-process pub/sub with optional retained last message per topic.
 
-    This is intended for tests and lightweight servers; swap with a real broker in production.
+    This is intended for tests and lightweight servers; swap with a real broker
+    in production.
     """
 
     def __init__(self):
@@ -41,7 +42,9 @@ class InProcEventBus:
             lst.remove(fn)
 
     # ---- Publish API ----
-    def publish(self, topic: str, message: dict, *, retain: bool = False) -> int:
+    def publish(
+        self, topic: str, message: dict, *, retain: bool = False
+    ) -> int:
         if retain:
             self._retained[topic] = message
         count = 0
@@ -62,7 +65,9 @@ class InProcEventBus:
 
 
 class EventRouter:
-    """Validate envelopes and publish to topic derived from scope/page/slot/tile."""
+    """Validate envelopes and publish to topic derived from
+    scope/page/slot/tile.
+    """
 
     def __init__(self, bus: InProcEventBus):
         self.bus = bus

@@ -29,13 +29,16 @@ timeout = 60
 
     # If merges are resolved at parse/render time, check the final result:
     rendered = render(toml_str, context={})
-    # 'production' should have 'retries = 3' inherited from 'default', but 'timeout = 60'.
+    # 'production' should have 'retries = 3' inherited from 'default', but
+    # 'timeout = 60'.
     assert "retries = 3" in rendered
     assert "timeout = 60" in rendered
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Inline table merge functionality not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Inline table merge functionality not fully implemented yet."
+)
 def test_inline_table_merge():
     """
     MEP-015:
@@ -115,12 +118,15 @@ settings = { theme = "light", << = %{override} }
 
 @pytest.mark.spec
 @pytest.mark.xfail(
-    reason="Context scoped variable merge resolution not fully implemented yet."
+    reason=(
+        "Context scoped variable merge resolution not fully implemented yet."
+    )
 )
 def test_merge_with_scoped_variable_context():
     """
     MEP-015:
-      A table merges another table referenced by context scope ( ${} ) at render time.
+      A table merges another table referenced by context scope ( ${} ) at
+      render time.
     """
     toml_str = """
 [config]
@@ -161,7 +167,8 @@ timeout = 60
 def test_recursive_merge():
     """
     MEP-015:
-      Merging nested tables recursively, with later merges overriding earlier ones.
+      Merging nested tables recursively, with later merges overriding earlier
+      ones.
     """
     toml_str = """
 [base]
@@ -183,7 +190,9 @@ database = { port = 5433 }
 
 @pytest.mark.spec
 @pytest.mark.xfail(
-    reason="Multiple merges in a single inline table not fully implemented yet."
+    reason=(
+        "Multiple merges in a single inline table not fully implemented yet."
+    )
 )
 def test_multiple_merges_inline_table():
     """
@@ -217,7 +226,8 @@ stuff = { << = table1, << = table2 }
 def test_merge_type_mismatch_error():
     """
     MEP-015:
-      If we attempt to merge a table with a scalar or array, it should raise an error.
+      If we attempt to merge a table with a scalar or array, it should raise an
+      error.
     """
     invalid_toml = """
 [defaults]

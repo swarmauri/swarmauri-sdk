@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from fastapi import FastAPI, Response
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.responses import Response
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_securityheaders import SecurityHeadersMiddleware
 
@@ -28,8 +29,8 @@ def test_readme_usage_example_executes() -> None:
     exec(match.group("code"), namespace)
 
     app = namespace.get("app")
-    assert isinstance(app, FastAPI), (
-        "README example did not define a FastAPI app"
+    assert isinstance(app, Starlette), (
+        "README example did not define a Starlette app"
     )
 
     client = TestClient(app)

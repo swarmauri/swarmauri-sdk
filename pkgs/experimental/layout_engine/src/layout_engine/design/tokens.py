@@ -20,7 +20,9 @@ def _spacing_scale(baseline: int) -> dict[str, int]:
 
 
 def layout_tokens_from_grid(spec: GridSpec) -> dict[str, Any]:
-    """Derive layout tokens and SwarmaKit-friendly layout props from a grid spec."""
+    """Derive layout tokens and SwarmaKit-friendly layout props from a grid
+    spec.
+    """
 
     baseline = (
         int(spec.baseline_unit)
