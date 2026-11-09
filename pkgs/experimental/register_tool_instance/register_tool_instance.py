@@ -1,7 +1,8 @@
 import inspect
 import json
+from typing import Any
 
-from pydantic import ValidationError, create_model
+from pydantic import TypeAdapter, ValidationError, create_model
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -10,6 +11,7 @@ import uvicorn
 import nest_asyncio
 
 app = Starlette()
+_tool_result_adapter = TypeAdapter(Any)
 
 
 def register_tool_instance(app: Starlette, instance) -> None:
@@ -55,7 +57,11 @@ def register_tool_instance(app: Starlette, instance) -> None:
 
         try:
             # Call the __call__ method using the validated data.
-            return JSONResponse(func(**payload.model_dump(mode="python")))
+            result = func(**payload.model_dump(mode="python"))
+            content = _tool_result_adapter.dump_python(
+                result, mode="json", by_alias=True
+            )
+            return JSONResponse(content)
         except Exception as exc:
             return JSONResponse({"detail": str(exc)}, status_code=400)
 
