@@ -20,7 +20,6 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "peagen",
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
