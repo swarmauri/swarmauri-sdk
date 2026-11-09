@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware Session
 
-Session middleware for FastAPI and Starlette style applications that keeps a
+Session middleware for Starlette applications that keeps a
 lightweight, in-memory session store synchronized with every request and
 response.
 
@@ -59,29 +59,33 @@ uv pip install swarmauri_middleware_session
 ## Example
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_session import SessionMiddleware
 
 
-app = FastAPI()
+app = Starlette()
 session_middleware = SessionMiddleware()
 
 
-@app.middleware("http")
 async def attach_session(request: Request, call_next):
     return await session_middleware.dispatch(request, call_next)
 
 
-@app.get("/greet")
+app.add_middleware(BaseHTTPMiddleware, dispatch=attach_session)
+
 async def greet(request: Request):
     session_id = request.state.session_id
     session_data = session_middleware.session_storage.setdefault(session_id, {})
     session_data["visits"] = session_data.get("visits", 0) + 1
     return JSONResponse({"session_id": session_id, "visits": session_data["visits"]})
 
+
+app.add_route("/greet", greet)
 
 client = TestClient(app)
 

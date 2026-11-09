@@ -2,7 +2,8 @@ import logging
 import time
 from typing import Any, Callable
 
-from fastapi import HTTPException, Request
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 

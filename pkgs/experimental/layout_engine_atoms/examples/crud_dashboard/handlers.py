@@ -4,7 +4,7 @@ registration.
 
 from __future__ import annotations
 
-from fastapi import Request
+from starlette.requests import Request
 
 from layout_engine_atoms.patterns import ui_event, returns_update
 

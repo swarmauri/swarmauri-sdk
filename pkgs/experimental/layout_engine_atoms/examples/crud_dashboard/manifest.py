@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi import Request
+    from starlette.requests import Request
 
 from layout_engine.structure import block, col, row, table
 

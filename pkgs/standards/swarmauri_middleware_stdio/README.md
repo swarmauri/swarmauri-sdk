@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware Stdio
 
-`swarmauri_middleware_stdio` provides a lightweight FastAPI middleware that
+`swarmauri_middleware_stdio` provides a lightweight Starlette middleware that
 logs incoming requests and outgoing responses to standard output using
 Python's logging module. It is handy for development and debugging when a
 full logging stack is unnecessary.
@@ -43,23 +43,29 @@ uv add swarmauri_middleware_stdio
 import logging
 import sys
 
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 from swarmauri_middleware_stdio import StdioMiddleware
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-app = FastAPI()
+app = Starlette()
 stdio = StdioMiddleware()
 
 
-@app.middleware("http")
 async def log_to_stdout(request: Request, call_next):
     return await stdio.dispatch(request, call_next)
 
 
-@app.get("/")
-async def hello() -> dict[str, str]:
-    return {"message": "hello"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=log_to_stdout)
+
+async def hello(_request):
+    return JSONResponse({"message": "hello"})
+
+
+app.add_route("/", hello)
 ```
 
 ## How It Works

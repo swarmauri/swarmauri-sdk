@@ -30,7 +30,7 @@ pdf = [
     "playwright>=1.46",
 ]
 server = [
-    "fastapi>=0.115",
+    "starlette",
     "orjson>=3.9",
     "uvicorn>=0.30",
     "websockets>=12.0",

@@ -16,11 +16,11 @@
 
 # Swarmauri Middleware Security Headers
 
-Middleware for adding security-focused HTTP headers to FastAPI responses, helping shield applications from common web vulnerabilities.
+Middleware for adding security-focused HTTP headers to Starlette responses, helping shield applications from common web vulnerabilities.
 
 ## What it does
 
-`SecurityHeadersMiddleware` ensures every response produced by your FastAPI
+`SecurityHeadersMiddleware` ensures every response produced by your Starlette
 application carries the following headers and values:
 
 - `Content-Security-Policy`: `default-src 'self'; script-src 'self'
@@ -63,25 +63,31 @@ uv add swarmauri_middleware_securityheaders
 ## Usage
 
 ```python
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 from swarmauri_middleware_securityheaders import SecurityHeadersMiddleware
 
-app = FastAPI()
+app = Starlette()
 security_middleware = SecurityHeadersMiddleware(app)
 
 
-@app.middleware("http")
 async def apply_security_headers(request: Request, call_next):
     return await security_middleware.dispatch(request, call_next)
 
 
-@app.get("/")
-async def read_root() -> dict[str, str]:
-    return {"status": "ok"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=apply_security_headers)
+
+async def read_root(_request):
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/", read_root)
 ```
 
 This pattern instantiates the middleware once and reuses its `dispatch` method
-within FastAPI's `@app.middleware("http")` hook so that every response includes
+with Starlette’s `BaseHTTPMiddleware` so that every response includes
 the security headers listed above.
 
 ## Want to help?

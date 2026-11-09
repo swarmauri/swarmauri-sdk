@@ -48,31 +48,36 @@ uv pip install swarmauri_middleware_cachecontrol
 - `max_age`: Maximum cache lifetime (in seconds) communicated to clients. Defaults to `3600`.
 - `enabled`: When `False`, the middleware skips all cache headers and lets responses pass through untouched. Defaults to `True`.
 
-When enabled, the middleware injects cache headers into outgoing responses and mirrors conditional request headers to return `304 Not Modified` when the client already has fresh content. Integrate it with FastAPI or Starlette by instantiating the middleware once and delegating to its `dispatch` method from an `@app.middleware("http")` handler.
+When enabled, the middleware injects cache headers into outgoing responses and mirrors conditional request headers to return `304 Not Modified` when the client already has fresh content. Register its `dispatch` method with Starlette’s `BaseHTTPMiddleware`.
 
 ### Example
 
-The snippet below shows how to register the middleware with FastAPI and inspect the generated headers using `TestClient`:
+The snippet below shows how to register the middleware with Starlette and inspect the generated headers using `TestClient`:
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_cachecontrol import CacheControlMiddleware
 
-app = FastAPI()
+app = Starlette()
 cache_control = CacheControlMiddleware(max_age=60)
 
 
-@app.middleware("http")
 async def apply_cache_control(request: Request, call_next):
     return await cache_control.dispatch(request, call_next)
 
 
-@app.get("/status")
-def status() -> dict[str, str]:
-    return {"state": "fresh"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=apply_cache_control)
 
+async def status(_request):
+    return JSONResponse({"state": "fresh"})
+
+
+app.add_route("/status", status)
 
 def main() -> None:
     client = TestClient(app)

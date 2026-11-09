@@ -6,7 +6,8 @@ import hmac
 import logging
 from typing import Any, Callable, Literal, Optional
 
-from fastapi import HTTPException, Request
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from pydantic import Field
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase

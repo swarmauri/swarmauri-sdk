@@ -18,7 +18,7 @@
 
 `swarmauri_middleware_circuitbreaker` is the Swarmauri middleware component for
 protecting unstable request paths with a circuit-breaker policy backed by
-`pybreaker`. It is designed for FastAPI-style request middleware and prevents
+`pybreaker`. It is designed for Starlette request middleware and prevents
 repeated failures from repeatedly hitting unhealthy downstream services.
 
 ## Why Use Swarmauri Middleware Circuit Breaker
@@ -26,7 +26,7 @@ repeated failures from repeatedly hitting unhealthy downstream services.
 - Stop sending traffic to failing upstream dependencies after repeated errors.
 - Recover gradually by allowing a single half-open probe request before fully
   reopening traffic.
-- Add resilience controls to Swarmauri or FastAPI request flows without writing
+- Add resilience controls to Swarmauri or Starlette request flows without writing
   custom breaker logic.
 - Pair with retry and observability middleware to build layered failure
   protection.
@@ -44,7 +44,7 @@ repeated failures from repeatedly hitting unhealthy downstream services.
 > Yes. The main `dispatch(request, call_next)` entry point is asynchronous.
 
 > **What request type does it expect?**  
-> It is written for `fastapi.Request` / Starlette-style HTTP request handling.
+> It is written for `starlette.requests.Request`.
 
 ## Features
 
@@ -67,33 +67,45 @@ pip install swarmauri_middleware_circuitbreaker
 ## Usage
 
 ```python
-from fastapi import FastAPI
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
 from swarmauri_middleware_circuitbreaker import CircuitBreakerMiddleware
 
-app = FastAPI()
-
-app.add_middleware(
-    CircuitBreakerMiddleware,
+app = Starlette()
+breaker = CircuitBreakerMiddleware(
     fail_max=5,
     reset_timeout=30,
     half_open_wait_time=10,
 )
+
+
+async def check_circuit(request, call_next):
+    try:
+        return await breaker.dispatch(request, call_next)
+    except HTTPException as exc:
+        return JSONResponse(
+            {"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers
+        )
+
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=check_circuit)
 ```
 
 ## Examples
 
 ### Protect an unstable endpoint
 
+Add this route to the app above before serving requests.
+
 ```python
-from fastapi import FastAPI
-from swarmauri_middleware_circuitbreaker import CircuitBreakerMiddleware
-
-app = FastAPI()
-app.add_middleware(CircuitBreakerMiddleware, fail_max=5, reset_timeout=30)
-
-@app.get("/unstable")
-async def unstable():
+async def unstable(_request):
     raise RuntimeError("Simulated failure")
+
+
+app.add_route("/unstable", unstable)
 ```
 
 ### Observe circuit transitions in logs
@@ -133,7 +145,7 @@ logging.basicConfig(level=logging.INFO)
 
 ## More Documentation
 
-- [FastAPI middleware docs](https://fastapi.tiangolo.com/tutorial/middleware/)
+- [Starlette middleware docs](https://www.starlette.dev/middleware/)
 - [pybreaker package information](https://pypi.org/project/pybreaker/)
 
 ## Best Practices

@@ -4,7 +4,9 @@ import asyncio
 import random
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 
 from layout_engine_atoms.runtime.vue.app import (
     LayoutOptions,
@@ -23,7 +25,7 @@ from .manifests import DEFAULT_PAGE_ID, build_manifest
 
 APP_TITLE = "Swarmauri Mission Control"
 
-app = FastAPI(title="Layout Engine MPA Demo", docs_url=None)
+app = Starlette()
 
 MISSION_EVENTS_CHANNEL = RealtimeChannel(
     id="mission.events",

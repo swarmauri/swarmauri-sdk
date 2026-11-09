@@ -5,7 +5,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Mapping, MutableMapping, Sequence
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.applications import Starlette
+from starlette.routing import WebSocketRoute
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
 
@@ -92,19 +94,19 @@ class WebsocketMuxHub:
         if self.auth_handler:
             try:
                 is_authorized = await self.auth_handler(websocket)
-                if not is_authorized:
-                    logger.warning(
-                        f"WebSocket authentication failed for client: "
-                        f"{websocket.client}"
-                    )
-                    await websocket.close(code=1008, reason="Unauthorized")
-                    raise WebSocketDisconnect(code=1008, reason="Unauthorized")
             except Exception as e:
                 logger.error(f"Authentication error: {e}", exc_info=True)
                 await websocket.close(code=1011, reason="Authentication error")
                 raise WebSocketDisconnect(
                     code=1011, reason="Authentication error"
+                ) from e
+            if not is_authorized:
+                logger.warning(
+                    "WebSocket authentication failed for client: %s",
+                    websocket.client,
                 )
+                await websocket.close(code=1008, reason="Unauthorized")
+                raise WebSocketDisconnect(code=1008, reason="Unauthorized")
 
         await websocket.accept()
         async with self._lock:
@@ -220,12 +222,12 @@ class WebsocketMuxHub:
                 pass
         self._publisher_tasks.clear()
 
-    def mount(self, app: FastAPI, route_path: str) -> None:
-        """Register the websocket route on the FastAPI app."""
+    def mount(self, app: Starlette, route_path: str) -> None:
+        """Register the websocket route on the Starlette app."""
 
         async def _endpoint(websocket: WebSocket) -> None:
-            await self.connect(websocket)
             try:
+                await self.connect(websocket)
                 while True:
                     message = await websocket.receive_json()
                     action = message.get("action")
@@ -241,7 +243,7 @@ class WebsocketMuxHub:
             except WebSocketDisconnect:
                 await self.disconnect(websocket)
 
-        app.add_api_websocket_route(route_path, _endpoint)
+        app.router.routes.append(WebSocketRoute(route_path, _endpoint))
 
 
 @dataclass(slots=True)

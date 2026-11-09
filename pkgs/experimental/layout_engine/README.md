@@ -26,7 +26,7 @@
 - **Atom & micro-frontend registries** ? manage SSR-ready atoms and remote module manifests with predictable defaults.
 - **Format agnostic targets** ? render HTML, SVG, PDF, and code artifacts using interchangeable exporters.
 - **Extensible site composition** ? compose grids, tiles, and slots declaratively with Pydantic specs for validation and serialization.
-- **Optional realtime bridge** ? opt into FastAPI, Uvicorn, and WebSocket extras for live preview or event streaming.
+- **Optional realtime bridge** ? opt into Starlette, Uvicorn, and WebSocket extras for live preview or event streaming.
 
 ## Installation
 
@@ -35,7 +35,7 @@ Choose the workflow that matches your tooling. Extras are available for realtime
 ```bash
 # uv
 uv add layout-engine
-uv add layout-engine[server]  # for FastAPI/WebSocket extras
+uv add layout-engine[server]  # for Starlette/WebSocket extras
 uv add layout-engine[pdf]     # for Playwright-powered exports
 
 # pip
@@ -112,7 +112,7 @@ artifacts directly from the repository.
 - **Contracts** ? objects expose `.render(...)`, `.export(...)`, and optional `.server(...)` methods to support SSR, SSG, and service endpoints.
 - **Registries** ? manage atom defaults and micro-frontend remotes with predictable merge semantics.
 - **Site-aware routing helpers** ? `layout_engine.targets.SiteRouter` produces SSR HTML shells, manifest JSON payloads, and ESM
-  import maps you can bind directly to FastAPI, Starlette, or any HTTP framework route handlers.
+  import maps you can bind directly to Starlette or other HTTP framework route handlers.
 
 ### Unified manifest schema
 
@@ -411,27 +411,24 @@ required on the server to keep props synchronized.
 ### 3. Serve shells, manifests, and import maps with `SiteRouter`
 
 Bind the manifest builder to a `SiteRouter` so both SPA and MPA routes can be served from the same
-FastAPI (or Starlette) application. The SPA fetches a single manifest keyed by `PageSpec`, whereas
+Starlette application. The SPA fetches a single manifest keyed by `PageSpec`, whereas
 the MPA endpoints use `manifest_json_for_path` so each HTML page can request its own manifest.
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse
+from starlette.routing import Route
 
 from layout_engine.site.default import bind_page_builder
 from layout_engine.targets.webgui.router import SiteRouter
 
 router = SiteRouter(site=site, page_manifest_fn=bind_page_builder(build_manifest))
 
-app = FastAPI()
+async def spa_shell(_request: Request) -> HTMLResponse:
+    return HTMLResponse(router.render_shell(site.pages[0]))
 
 
-@app.get("/", response_class=HTMLResponse)
-async def spa_shell() -> str:
-    return router.render_shell(site.pages[0])
-
-
-@app.get("/spa/manifest.json")
 async def spa_manifest(request: Request) -> JSONResponse:
     data = router.manifest_json(
         site.pages[0],
@@ -440,13 +437,11 @@ async def spa_manifest(request: Request) -> JSONResponse:
     return JSONResponse(content=data)
 
 
-@app.get("/catalog", response_class=HTMLResponse)
-async def catalog_shell() -> str:
+async def catalog_shell(_request: Request) -> HTMLResponse:
     page = site.pages[1]
-    return router.render_shell(page)
+    return HTMLResponse(router.render_shell(page))
 
 
-@app.get("/catalog/manifest.json")
 async def catalog_manifest(request: Request) -> JSONResponse:
     data = router.manifest_json_for_path(
         "/catalog",
@@ -455,14 +450,13 @@ async def catalog_manifest(request: Request) -> JSONResponse:
     return JSONResponse(content=data)
 
 
-@app.get("/catalog/{item_id}", response_class=HTMLResponse)
-async def catalog_detail_shell(item_id: str) -> str:
+async def catalog_detail_shell(request: Request) -> HTMLResponse:
     page = site.pages[2]
-    return router.render_shell(page, params={"item_id": item_id})
+    return HTMLResponse(router.render_shell(page, params=request.path_params))
 
 
-@app.get("/catalog/{item_id}/manifest.json")
-async def catalog_detail_manifest(item_id: str, request: Request) -> JSONResponse:
+async def catalog_detail_manifest(request: Request) -> JSONResponse:
+    item_id = request.path_params["item_id"]
     data = router.manifest_json_for_path(
         f"/catalog/{item_id}",
         query=dict(request.query_params),
@@ -470,9 +464,21 @@ async def catalog_detail_manifest(item_id: str, request: Request) -> JSONRespons
     return JSONResponse(content=data)
 
 
-@app.get("/import-map.json")
-async def import_map() -> JSONResponse:
+async def import_map(_request: Request) -> JSONResponse:
     return JSONResponse(router.import_map(remotes))
+
+
+app = Starlette(
+    routes=[
+        Route("/", spa_shell),
+        Route("/spa/manifest.json", spa_manifest),
+        Route("/catalog", catalog_shell),
+        Route("/catalog/manifest.json", catalog_manifest),
+        Route("/catalog/{item_id}", catalog_detail_shell),
+        Route("/catalog/{item_id}/manifest.json", catalog_detail_manifest),
+        Route("/import-map.json", import_map),
+    ]
+)
 ```
 
 This wiring enables:
@@ -568,7 +574,7 @@ async def start_mux():
         await asyncio.Future()
 
 
-# Run alongside FastAPI via asyncio.create_task(start_mux()) in your startup event.
+# Start the mux task in the Starlette lifespan and cancel it on shutdown.
 ```
 
 Vue clients connect using the matching mux client:

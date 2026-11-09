@@ -8,9 +8,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal, Mapping, MutableMapping, Sequence
 
-from fastapi import APIRouter, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, Response
-from fastapi.staticfiles import StaticFiles
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.routing import Route
+from starlette.staticfiles import StaticFiles
 
 from .template import render_shell
 from .events import UiEvent, UiEventResult
@@ -21,7 +24,7 @@ from .rate_limit import InMemoryRateLimiter
 logger = logging.getLogger(__name__)
 
 ManifestBuilder = Callable[
-    [], Mapping[str, Any] | MutableMapping[str, Any] | Any
+    [Request], Mapping[str, Any] | MutableMapping[str, Any] | Any
 ]
 
 
@@ -83,7 +86,7 @@ _LAYOUT_ENGINE_DIST = _ASSETS_ROOT / "layout-engine-vue"
 
 
 def mount_layout_app(
-    app: FastAPI,
+    app: Starlette,
     manifest_builder: ManifestBuilder,
     *,
     base_path: str = "/dashboard",
@@ -93,7 +96,7 @@ def mount_layout_app(
     realtime: RealtimeOptions | None = None,
     events: Sequence[UiEvent] | Mapping[str, UiEvent] | None = None,
 ) -> None:
-    """Mount the layout engine Vue runtime on an existing FastAPI app."""
+    """Mount the layout engine Vue runtime on an existing Starlette app."""
 
     layout_options = layout_options or LayoutOptions()
     ui_hooks = ui_hooks or UIHooks()
@@ -142,7 +145,6 @@ def mount_layout_app(
             max_requests=layout_options.rate_limit_requests,
             window_seconds=layout_options.rate_limit_window,
         )
-        rate_limiter.start_cleanup()
     realtime_payload = {"enabled": False}
     ws_route: str | None = None
     hub: WebsocketMuxHub | None = None
@@ -202,16 +204,17 @@ def mount_layout_app(
         pre_boot_scripts=pre_boot_scripts,
     )
 
-    router = _create_layout_router(
+    routes = _create_layout_routes(
         manifest_builder,
         shell_html,
         router_options,
+        base_path=norm_base,
         realtime=realtime,
         ws_route=ws_route,
         events=event_registry,
         rate_limiter=rate_limiter,
     )
-    app.include_router(router, prefix=norm_base if norm_base != "/" else "")
+    app.router.routes.extend(routes)
     if event_registry:
         app.state.layout_engine_events = event_registry
     if realtime and hub:
@@ -249,6 +252,8 @@ def mount_layout_app(
             async with previous_lifespan(application) as state:
                 if realtime and hub and ws_route:
                     await _start_realtime()
+                if rate_limiter:
+                    rate_limiter.start_cleanup()
                 try:
                     yield state
                 finally:
@@ -260,27 +265,28 @@ def mount_layout_app(
         app.router.lifespan_context = layout_lifespan
 
 
-def _create_layout_router(
+def _create_layout_routes(
     manifest_builder: ManifestBuilder,
     shell_html: str,
     router_options: RouterOptions,
     *,
+    base_path: str,
     realtime: RealtimeOptions | None,
     ws_route: str | None,
     events: Mapping[str, UiEvent] | None,
     rate_limiter: InMemoryRateLimiter | None = None,
-) -> APIRouter:
-    router = APIRouter()
+) -> list[Route]:
     event_registry = events or {}
-    router.layout_engine_events = event_registry  # type: ignore[attr-defined]
+    prefix = "" if base_path == "/" else base_path
 
-    @router.get("/", response_class=HTMLResponse)
     async def layout_index(_: Request) -> HTMLResponse:  # noqa: D401
         return HTMLResponse(shell_html)
 
-    @router.get("/manifest.json", response_class=JSONResponse)
-    async def manifest_endpoint(request: Request) -> JSONResponse:
-        manifest = await _call_builder(manifest_builder, request)
+    async def manifest_endpoint(request: Request) -> Response:
+        try:
+            manifest = await _call_builder(manifest_builder, request)
+        except HTTPException as exc:
+            return _http_error_response(exc)
         payload = _normalize_manifest(manifest)
         if router_options.enable_multipage and router_options.page_param:
             requested = request.query_params.get(router_options.page_param)
@@ -291,13 +297,13 @@ def _create_layout_router(
         _inject_realtime_metadata(payload, realtime, ws_route)
         return JSONResponse(content=payload)
 
+    routes = [
+        Route(f"{prefix}/", layout_index),
+        Route(f"{prefix}/manifest.json", manifest_endpoint),
+    ]
+
     if event_registry:
 
-        @router.api_route(
-            "/events/{event_id}",
-            methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-            response_class=JSONResponse,
-        )
         async def handle_event(
             event_id: str,
             request: Request,
@@ -403,7 +409,33 @@ def _create_layout_router(
                 headers=result.headers,
             )
 
-    return router
+        async def event_endpoint(request: Request) -> Response:
+            try:
+                return await handle_event(
+                    request.path_params["event_id"], request
+                )
+            except HTTPException as exc:
+                return _http_error_response(exc)
+
+        routes.append(
+            Route(
+                f"{prefix}/events/{{event_id}}",
+                event_endpoint,
+                methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+            )
+        )
+
+    return routes
+
+
+def _http_error_response(exc: HTTPException) -> Response:
+    if exc.status_code < 200 or exc.status_code in {204, 205, 304}:
+        return Response(status_code=exc.status_code, headers=exc.headers)
+    return JSONResponse(
+        {"detail": exc.detail},
+        status_code=exc.status_code,
+        headers=exc.headers,
+    )
 
 
 def _normalize_base_path(base_path: str) -> str:

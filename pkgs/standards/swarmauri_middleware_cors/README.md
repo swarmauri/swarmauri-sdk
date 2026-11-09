@@ -16,12 +16,12 @@
 
 # Swarmauri Middleware CORS
 
-Custom CORS middleware for the Swarmauri framework that integrates with FastAPI applications.
+Custom CORS middleware for the Swarmauri framework that integrates with Starlette applications.
 
 ## Features
 
 - Handles CORS preflight (`OPTIONS`) requests directly and returns a `200` response with your configured headers.
-- Adds CORS headers to downstream responses produced by your FastAPI routes.
+- Adds CORS headers to downstream responses produced by your Starlette routes.
 - Rejects requests with a missing `Origin` header or an origin that is not explicitly allowed, returning a `403` response.
 - Allows fine-grained control of the exposed headers, allowed methods, credentials support, and cache duration of the CORS policy.
 
@@ -54,12 +54,14 @@ Configure the middleware with the exact origins, methods, and headers you want t
 ### Python example
 
 ```python
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_cors import CustomCORSMiddleware
 
-app = FastAPI()
+app = Starlette()
 
 cors = CustomCORSMiddleware(
     allow_origins=["https://frontend.example"],
@@ -70,15 +72,17 @@ cors = CustomCORSMiddleware(
 )
 
 
-@app.middleware("http")
 async def apply_custom_cors(request, call_next):
     return await cors.dispatch(request, call_next)
 
 
-@app.get("/ping")
-async def ping():
-    return {"status": "ok"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=apply_custom_cors)
 
+async def ping(_request):
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/ping", ping)
 
 client = TestClient(app)
 

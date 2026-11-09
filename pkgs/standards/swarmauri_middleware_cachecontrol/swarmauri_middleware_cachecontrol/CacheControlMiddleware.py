@@ -2,7 +2,8 @@ import logging
 from datetime import datetime
 from typing import Any, Callable
 
-from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
@@ -43,7 +44,7 @@ class CacheControlMiddleware(MiddlewareBase, ComponentBase):
         and handles conditional requests based on client headers.
 
         Args:
-            request: The incoming FastAPI request object
+            request: The incoming Starlette request object
             call_next: Callable that calls the next middleware or route handler
 
         Returns:

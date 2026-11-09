@@ -3,7 +3,8 @@ from datetime import datetime
 from unittest import mock
 
 import pytest
-from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 from swarmauri_middleware_cachecontrol.CacheControlMiddleware import (
     CacheControlMiddleware,
 )

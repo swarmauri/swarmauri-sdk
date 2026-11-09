@@ -1,7 +1,8 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 from swarmauri_middleware_session.SessionMiddleware import SessionMiddleware
 
 

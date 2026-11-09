@@ -1,7 +1,8 @@
 import logging
 
 import pytest
-from fastapi import HTTPException, Request
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from swarmauri_middleware_circuitbreaker.CircuitBreakerMiddleware import (
     CircuitBreakerMiddleware,
 )

@@ -25,7 +25,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "fastapi"
+    "starlette"
 ]
 keywords = [
     'swarmauri',

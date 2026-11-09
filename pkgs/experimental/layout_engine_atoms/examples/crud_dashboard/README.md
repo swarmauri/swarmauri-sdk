@@ -199,7 +199,7 @@ crud_dashboard/
 ├── database.py                 # In-memory DB (130 lines)
 ├── handlers.py                 # 8 decorated handlers (195 lines)
 ├── manifest.py                 # 30 tiles (310 lines)
-└── server.py                   # FastAPI app (160 lines)
+└── server.py                   # Starlette app (160 lines)
 ```
 
 **Total application code**: ~860 lines
@@ -251,20 +251,19 @@ mount_with_auto_events(
 
 ```bash
 cd pkgs/experimental/layout_engine_atoms
-pip install -e .
+pip install -e . email-validator
 ```
 
 ### Run Server
 
 ```bash
-cd examples/crud_dashboard
-python -m server
+python -m examples.crud_dashboard.server
 ```
 
 Or:
 
 ```bash
-python server.py
+uvicorn examples.crud_dashboard.server:app
 ```
 
 ### Open Browser

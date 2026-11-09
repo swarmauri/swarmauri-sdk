@@ -9,7 +9,8 @@ from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any
 
-from fastapi import HTTPException, Request
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +159,7 @@ class InMemoryRateLimiter:
         """Check if request is within rate limit.
 
         Args:
-            request: The FastAPI request
+            request: The Starlette request
             identifier: Optional custom identifier (defaults to IP address)
 
         Raises:
