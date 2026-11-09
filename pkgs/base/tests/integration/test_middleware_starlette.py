@@ -1,13 +1,16 @@
 import pytest
-from fastapi import FastAPI, Request
 from httpx import ASGITransport, AsyncClient
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 from swarmauri_core.middlewares.IMiddleware import ASGIApp, Message, Scope
 
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 
 class TrackingMiddleware(MiddlewareBase):
-    """Middleware that records hook order when executed in a FastAPI stack."""
+    """Middleware that records hook order when executed in a Starlette stack."""
 
     def __init__(self, app: ASGIApp, tracker: list[str]):
         super().__init__(app=app)
@@ -33,15 +36,14 @@ class TrackingMiddleware(MiddlewareBase):
         return response
 
 
+async def echo(request: Request) -> JSONResponse:
+    return JSONResponse({"payload": await request.json()})
+
+
 @pytest.mark.asyncio
-async def test_middleware_as_decorator_on_fastapi_stack() -> None:
+async def test_middleware_wrapping_starlette_app() -> None:
     tracker: list[str] = []
-    app = FastAPI()
-
-    @app.post("/echo")
-    async def echo(payload: dict) -> dict:
-        return {"payload": payload}
-
+    app = Starlette(routes=[Route("/echo", echo, methods=["POST"])])
     wrapped_app = TrackingMiddleware(app=app, tracker=tracker)
 
     transport = ASGITransport(app=wrapped_app)
@@ -70,14 +72,9 @@ async def test_middleware_as_decorator_on_fastapi_stack() -> None:
 
 
 @pytest.mark.asyncio
-async def test_middleware_added_to_fastapi_stack() -> None:
+async def test_middleware_added_to_starlette_stack() -> None:
     tracker: list[str] = []
-    app = FastAPI()
-
-    @app.post("/echo")
-    async def echo(payload: dict) -> dict:
-        return {"payload": payload}
-
+    app = Starlette(routes=[Route("/echo", echo, methods=["POST"])])
     app.add_middleware(TrackingMiddleware, tracker=tracker)
 
     transport = ASGITransport(app=app)

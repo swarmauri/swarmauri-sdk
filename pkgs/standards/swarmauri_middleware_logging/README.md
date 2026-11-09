@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware Logging
 
-HTTP middleware for logging requests and responses in Swarmauri and FastAPI applications.
+HTTP middleware for logging requests and responses in Swarmauri and Starlette applications.
 
 ## Features
 
@@ -48,24 +48,29 @@ uv add swarmauri_middleware_logging
 ## Example
 
 ```python
-from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_logging import LoggingMiddleware
 
-app = FastAPI()
+app = Starlette()
 logging_middleware = LoggingMiddleware()
 
 
-@app.middleware("http")
 async def log_requests(request: Request, call_next):
     return await logging_middleware.dispatch(request, call_next)
 
 
-@app.post("/echo")
-async def echo(payload: dict):
-    return payload
+app.add_middleware(BaseHTTPMiddleware, dispatch=log_requests)
 
+async def echo(request: Request):
+    return JSONResponse(await request.json())
+
+
+app.add_route("/echo", echo, methods=["POST"])
 
 client = TestClient(app)
 print(client.post("/echo", json={"message": "hello"}).json())

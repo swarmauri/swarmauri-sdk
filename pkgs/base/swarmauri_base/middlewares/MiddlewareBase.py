@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:  # pragma: no cover - imported for typing only
-    from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 
 from swarmauri_core.middlewares.IMiddleware import (
     ASGIApp,
@@ -83,13 +83,6 @@ class MiddlewareBase(IMiddleware, ComponentBase):
     async def _dispatch_with_request(
         self, scope: Scope, receive: ReceiveCallable, send: SendCallable
     ) -> None:
-        try:
-            from fastapi import Request, Response
-        except ImportError as exc:  # pragma: no cover - optional dependency
-            raise RuntimeError(
-                "FastAPI must be installed to use dispatch-style middleware."
-            ) from exc
-
         request = Request(scope, receive=receive)
 
         async def call_next(request: Request) -> Response:

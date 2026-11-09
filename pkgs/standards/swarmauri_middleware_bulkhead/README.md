@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware Bulkhead
 
-Concurrency isolation middleware for FastAPI applications. Limit the number of simultaneous requests to protect resources from overload and ensure reliable service operation.
+Concurrency isolation middleware for Starlette applications. Limit the number of simultaneous requests to protect resources from overload and ensure reliable service operation.
 
 ## Features
 
@@ -24,7 +24,7 @@ Concurrency isolation middleware for FastAPI applications. Limit the number of s
 - **Configurable limits** let you tune `max_concurrency` (default: 10) to match service capacity.
 - **Fail-fast validation** guards against non-positive concurrency limits at initialization.
 - **Structured logging** surfaces request flow and failure details for easier diagnostics.
-- **FastAPI compatibility** enables seamless integration into ASGI middleware stacks.
+- **ASGI integration** lets Starlette applications apply the concurrency limit to incoming requests.
 
 ## Installation
 
@@ -48,7 +48,7 @@ The middleware wraps a `call_next` handler and ensures that no more than `max_co
 ```python
 import asyncio
 
-from fastapi import Request
+from starlette.requests import Request
 
 from swarmauri_middleware_bulkhead import BulkheadMiddleware
 

@@ -4,7 +4,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from fastapi.testclient import TestClient
+from starlette.testclient import TestClient
 
 
 def _load_usage_example() -> str:

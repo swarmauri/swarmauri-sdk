@@ -1,8 +1,9 @@
-"""FastAPI demo showcasing UiEvents + realtime bindings."""
+"""Starlette demo showcasing UiEvents + realtime bindings."""
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.requests import Request
 
 from layout_engine_atoms.runtime.vue import (
     RealtimeBinding,
@@ -15,7 +16,7 @@ from layout_engine_atoms.runtime.vue import (
 
 from .manifest import build_manifest
 
-app = FastAPI(title="Layout Engine UiEvents Demo")
+app = Starlette()
 
 _state = {"counter": 0}
 

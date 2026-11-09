@@ -1,8 +1,9 @@
 import logging
 from typing import Any, Callable
 
-from fastapi import Request
 from pybreaker import CircuitBreaker
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
@@ -59,8 +60,6 @@ class CircuitBreakerMiddleware(MiddlewareBase):
                     )
                 )
             else:
-                from fastapi import HTTPException
-
                 raise HTTPException(status_code=429, detail="Circuit is open")
 
         try:

@@ -16,7 +16,7 @@
 
 # `swarmauri_middleware_gzipcompression`
 
-Middleware for adding gzip compression to FastAPI responses.
+Middleware for adding gzip compression to Starlette responses.
 
 ## Purpose
 
@@ -44,21 +44,22 @@ uv pip install swarmauri_middleware_gzipcompression
 
 ## How it works
 
-The middleware mirrors FastAPI's `BaseHTTPMiddleware` contract and can be plugged into an application using the standard `@app.middleware("http")` hook. Compression is only applied when all of the following are true:
+Register the `dispatch` method with Starlette’s `BaseHTTPMiddleware`. Compression is only applied when all of the following are true:
 
-- The downstream component returns a `fastapi.Response` (non-`Response` results pass through unchanged).
+- The downstream component returns a `starlette.responses.Response` (non-`Response` results pass through unchanged).
 - The response has a compressible media type such as `application/json` or any `text/*` content type.
 - The client opts into compression by sending an `Accept-Encoding` header that includes `gzip`.
 - The response is not already marked as gzip encoded.
 
 ## Example
 
-The snippet below simulates FastAPI's middleware pipeline and demonstrates how gzip compression is applied when the client opts in to receive gzip-encoded responses.
+The snippet below simulates Starlette's middleware pipeline and demonstrates how gzip compression is applied when the client opts in to receive gzip-encoded responses.
 
 ```python
 import asyncio
 import gzip
-from fastapi import Request, Response
+from starlette.requests import Request
+from starlette.responses import Response
 
 from swarmauri_middleware_gzipcompression import GzipCompressionMiddleware
 

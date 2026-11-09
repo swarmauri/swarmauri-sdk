@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware LlamaGuard
 
-A FastAPI middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end-to-end content inspection for both inbound requests and outbound responses. The middleware is designed to slot into any FastAPI application and enforce safety policies before your handlers are invoked.
+A Starlette middleware that wraps Groq's ``llama-guard-3-8b`` model to provide end-to-end content inspection for both inbound requests and outbound responses. The middleware is designed to slot into any Starlette application and enforce safety policies before your handlers are invoked.
 
 ## Features
 
@@ -55,25 +55,31 @@ Choose the workflow that matches your project tooling:
 ## Quickstart
 
 1. Configure your Groq API key (either export ``GROQ_API_KEY`` or pass ``api_key`` when constructing the middleware).
-2. Attach the middleware to your FastAPI application:
+2. Attach the middleware to your Starlette application:
 
 ```python
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
 
-app = FastAPI()
+app = Starlette()
 middleware = LlamaGuardMiddleware()  # Uses GROQ_API_KEY from the environment
 
 
-@app.middleware("http")
 async def llama_guard(request: Request, call_next):
     return await middleware.dispatch(request, call_next)
 
 
-@app.get("/health")
-async def health_check():
-    return {"status": "ok"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=llama_guard)
+
+async def health_check(_request):
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/health", health_check)
 ```
 
 The middleware will block requests or responses when ``llama-guard-3-8b`` labels the payload as ``unsafe``.
@@ -84,8 +90,11 @@ The middleware also accepts a custom language model implementation. The followin
 
 ```python
 # README Example: Basic request filtering
-from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_llamaguard import LlamaGuardMiddleware
 from swarmauri_standard.messages.AgentMessage import AgentMessage
@@ -98,19 +107,21 @@ class StubGuardModel:
         conversation.add_message(AgentMessage(content=verdict))
 
 
-app = FastAPI()
+app = Starlette()
 middleware = LlamaGuardMiddleware(llm=StubGuardModel())
 
 
-@app.middleware("http")
 async def llama_guard(request: Request, call_next):
     return await middleware.dispatch(request, call_next)
 
 
-@app.post("/echo")
-def echo(payload: dict) -> dict:
-    return payload
+app.add_middleware(BaseHTTPMiddleware, dispatch=llama_guard)
 
+async def echo(request: Request):
+    return JSONResponse(await request.json())
+
+
+app.add_route("/echo", echo, methods=["POST"])
 
 with TestClient(app) as client:
     assert client.post("/echo", json={"message": "hello"}).status_code == 200

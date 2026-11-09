@@ -6,7 +6,7 @@ import logging
 import re
 from typing import Any, Mapping
 
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 
 logger = logging.getLogger(__name__)
 

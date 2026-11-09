@@ -6,7 +6,7 @@ import inspect
 from functools import wraps
 from typing import Callable, get_type_hints
 
-from fastapi import Request
+from starlette.requests import Request
 from pydantic import BaseModel, ValidationError
 
 from ..runtime.vue import UiEvent, UiEventResult

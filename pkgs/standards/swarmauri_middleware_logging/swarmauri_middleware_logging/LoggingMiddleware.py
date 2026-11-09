@@ -2,7 +2,7 @@ import logging
 import time
 from typing import Any, Callable
 
-from fastapi import Request
+from starlette.requests import Request
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 

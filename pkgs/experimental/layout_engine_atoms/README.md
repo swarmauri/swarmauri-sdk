@@ -32,7 +32,7 @@ package you can:
   default props, and version metadata so manifests can stay declarative.
 - **Vue thin wrapper** ? packaged `mount_layout_app` helper mounts a drop-in
   dashboard with grid layout, shared theme tokens, plugin hooks, and optional
-  realtime updates straight from FastAPI.
+  realtime updates straight from Starlette.
 - **Swiss grid defaults** ? spacing, typography, and layout tokens follow Swiss
   graphic design ratios for consistent output across HTML, PDF, or SVG targets.
 - **Realtime ready** ? websocket bridge understands `manifest.replace`,
@@ -115,14 +115,14 @@ If you prefer the authoring DSL, build a `table`/`row`/`col` structure and call
 The Vue runtime lives under `layout_engine_atoms.runtime.vue` and ships both the
 server-side helper and the browser bundle.
 
-### One-line FastAPI mount
+### One-line Starlette mount
 
 ```python
-from fastapi import FastAPI
+from starlette.applications import Starlette
 from layout_engine_atoms.runtime.vue import mount_layout_app
 from my_manifests import build_manifest
 
-app = FastAPI()
+app = Starlette()
 
 mount_layout_app(
     app,
@@ -152,7 +152,7 @@ fetches `/dashboard/manifest.json`.
   realtime incident streaming via websocket patches
   (`pkgs/experimental/layout_engine_atoms/examples/customer_success`).
 - **Hybrid SPA/MPA Demo** ? mounts both a single-page and multi-page runtime in
-  one FastAPI app, showcasing realtime updates
+  one Starlette app, showcasing realtime updates
   (`pkgs/experimental/layout_engine_atoms/examples/hybrid_demo`).
 - **Revenue Ops Command Center** ? richer stream routing and manifest patches
   (`pkgs/experimental/layout_engine_atoms/examples/revenue_ops`).
@@ -162,17 +162,16 @@ You can run any example directly with `uvicorn`:
 ```bash
 uv run --directory pkgs/experimental/layout_engine_atoms \
   --package layout-engine-atoms \
-  uvicorn layout_engine_atoms.examples.simple_demo.server:app --reload
+  uvicorn examples.simple_demo.server:app --reload
 ```
 
-This demo mounts the packaged Vue shell and manifest under `/`. Run it with
-`uvicorn layout_engine_atoms.examples.simple_demo.server:app --reload` and visit
+This demo mounts the packaged Vue shell and manifest under `/`. Visit
 `http://127.0.0.1:8000/` to view the dashboard.
 
 ```bash
 uv run --directory pkgs/experimental/layout_engine_atoms \
   --package layout-engine-atoms \
-  uvicorn examples.customer_success.server:app --reload
+  uvicorn examples.events_demo.server:app --reload
 ```
 
 ---

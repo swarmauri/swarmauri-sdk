@@ -52,29 +52,33 @@ uv add swarmauri_middleware_time
 
 ## Usage
 
-The middleware exposes a standard `dispatch` method that matches FastAPI's middleware
-interface. Instantiate it once and forward requests through `dispatch` inside an
-`@app.middleware("http")` hook:
+Instantiate the middleware once and register its `dispatch` method with
+Starlette’s `BaseHTTPMiddleware`.
 
 ```python
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 from starlette.testclient import TestClient
 
 from swarmauri_middleware_time import TimerMiddleware
 
-app = FastAPI()
+app = Starlette()
 timer_middleware = TimerMiddleware()
 
 
-@app.middleware("http")
 async def add_timer(request: Request, call_next):
     return await timer_middleware.dispatch(request, call_next)
 
 
-@app.get("/ping")
-async def ping():
-    return {"message": "pong"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=add_timer)
 
+async def ping(_request):
+    return JSONResponse({"message": "pong"})
+
+
+app.add_route("/ping", ping)
 
 if __name__ == "__main__":
     client = TestClient(app)
