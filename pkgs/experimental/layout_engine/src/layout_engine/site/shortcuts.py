@@ -26,4 +26,6 @@ def page(
 
 
 def site(*pages: PageSpec, base_path: str = "/") -> SiteSpec:
-    return SiteSpec(base_path=normalize_base_path(base_path), pages=tuple(pages))
+    return SiteSpec(
+        base_path=normalize_base_path(base_path), pages=tuple(pages)
+    )

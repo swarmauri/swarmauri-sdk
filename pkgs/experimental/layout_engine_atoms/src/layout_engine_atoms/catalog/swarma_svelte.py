@@ -161,7 +161,9 @@ def build_registry(
 
 
 def build_default_registry() -> AtomRegistry:
-    """Return an AtomRegistry populated with the default SwarmaKit Svelte presets."""
+    """Return an AtomRegistry populated with the default SwarmaKit Svelte
+    presets.
+    """
 
     return build_registry()
 

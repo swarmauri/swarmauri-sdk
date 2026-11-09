@@ -16,7 +16,10 @@ def test_quick_manifest_builds_manifest() -> None:
     manifest = quick_manifest(
         [
             tile(
-                "hero", "swarmakit:vue:cardbased-list", span="full", props={"cards": []}
+                "hero",
+                "swarmakit:vue:cardbased-list",
+                span="full",
+                props={"cards": []},
             ),
             tile(
                 "summary",

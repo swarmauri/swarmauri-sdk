@@ -1,7 +1,8 @@
 """Minimal end-to-end example for layout_engine.
 
 Run with:
-    uv run --directory experimental/layout_engine --package layout-engine python examples/dashboard.py
+    uv run --directory experimental/layout_engine --package layout-engine
+    python examples/dashboard.py
 
 The script builds an atom registry, declares a table-based layout, compiles it
 into a manifest, and exports an HTML preview.
@@ -143,7 +144,10 @@ def main() -> int:
         frame = tile["frame"]
         props = tile.get("props", {})
         print(
-            f"- {tile['id']}: role={tile['role']} frame=({frame['x']}, {frame['y']}, {frame['w']}x{frame['h']}) props={props}"
+            (
+                f"- {tile['id']}: role={tile['role']} frame=({frame['x']}, "
+                f"{frame['y']}, {frame['w']}x{frame['h']}) props={props}"
+            )
         )
 
     exporter = HtmlExporter(
@@ -151,7 +155,8 @@ def main() -> int:
         inline_css="""
         body{margin:0;font-family:system-ui,sans-serif;background:#0f172a;color:#f8fafc;}
         .page{background:linear-gradient(135deg,#1e293b,#0f172a);}
-        .tile{border-radius:18px;padding:24px;background:rgba(15,118,110,0.2);border:1px solid rgba(45,212,191,0.35);}
+        .tile{border-radius:18px;padding:24px;background:rgba(15,118,110,0\
+.2);border:1px solid rgba(45,212,191,0.35);}
         .tile::after{content:attr(data-tile);position:absolute;top:16px;left:20px;font-size:14px;color:#a5f3fc;}
         .tile[data-tile^='stat']{background:rgba(14,116,144,0.2);border-color:rgba(56,189,248,0.45);}
         """,

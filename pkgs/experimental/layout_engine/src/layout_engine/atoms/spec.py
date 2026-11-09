@@ -6,14 +6,18 @@ from typing import Any, Mapping
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 _ROLE_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9_:-]{1,63}$")
-# Approximate ESM specifier sanity check (package or path, may include '@scope/', '.', '/', '-', digits)
+# Approximate ESM specifier sanity check (package or path, may include
+# '@scope/', '.', '/', '-', digits)
 _MODULE_RE = re.compile(r"^[a-zA-Z0-9@_./\-][a-zA-Z0-9@_./\-]*$")
 
 
 def validate_atom_role(role: str) -> str:
     if not _ROLE_RE.match(role):
         raise ValueError(
-            f"invalid atom role '{role}' (allowed: [A-Za-z][A-Za-z0-9_:-] 2..64)"
+            (
+                f"invalid atom role '{role}' (allowed: [A-Za-z][A-Za-z0-9_:-] "
+                f"2..64)"
+            )
         )
     return role
 
@@ -37,7 +41,8 @@ def merge_atom_props(
 class AtomSpec(BaseModel):
     """Declarative mapping for a tile role to an atom module/export.
 
-    - role: semantic name used by tiles (e.g., 'kpi','timeseries','map','table')
+    - role: semantic name used by tiles (e.g.,
+    'kpi','timeseries','map','table')
     - module: ESM specifier (resolved by import-map) for Svelte/Vue/React host
     - export: named export to load (default: 'default')
     - version: atom version tag for cache-busting/telemetry
@@ -69,12 +74,16 @@ class AtomSpec(BaseModel):
 
     @field_validator("defaults", mode="before")
     @classmethod
-    def _coerce_defaults(cls, value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    def _coerce_defaults(
+        cls, value: Mapping[str, Any] | None
+    ) -> Mapping[str, Any]:
         return dict(value or {})
 
     @field_validator("tokens", "registry", mode="before")
     @classmethod
-    def _coerce_mapping(cls, value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    def _coerce_mapping(
+        cls, value: Mapping[str, Any] | None
+    ) -> Mapping[str, Any]:
         return dict(value or {})
 
     def with_overrides(self, **fields: Any) -> AtomSpec:

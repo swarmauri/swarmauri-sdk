@@ -32,7 +32,8 @@ def tile(*, id: str, role: str = "generic", **kwargs):
 def validate_spec(fn):
     """Placeholder decorator to validate function-provided specs at call-time.
 
-    If the function returns a dict with 'id'/'role', attempt to build a TileSpec for validation.
+    If the function returns a dict with 'id'/'role', attempt to build a
+    TileSpec for validation.
     Otherwise, pass-through.
     """
 

@@ -31,7 +31,10 @@ MISSION_EVENTS_CHANNEL = RealtimeChannel(
     id="mission.events",
     scope="site",
     topic="mission-control:events",
-    description="Broadcasts live mission control pulses rendered in the overview banner.",
+    description=(
+        "Broadcasts live mission control pulses rendered in the overview "
+        "banner."
+    ),
     meta={"demo": True},
 )
 
@@ -50,7 +53,10 @@ async def mission_pulse_publisher(hub: WebsocketMuxHub) -> None:
 
     messages = [
         ("success", "Telemetry lock acquired — mission feed is nominal."),
-        ("warning", "Playbook 211 stalled for 3m — monitoring escalation lane."),
+        (
+            "warning",
+            "Playbook 211 stalled for 3m — monitoring escalation lane.",
+        ),
         ("info", "New insight cards generated from overnight batch windows."),
         ("success", "Realtime mux synced: 3.2k events/min with 120ms p99."),
     ]
@@ -110,7 +116,8 @@ EXTRA_STYLES = [
   }
   .le-shell__button {
     border: 1px solid rgba(56,189,248,0.45);
-    background: linear-gradient(120deg, rgba(56,189,248,0.32), rgba(56,189,248,0.16));
+    background: linear-gradient(120deg, rgba(56,189,248,0.32),\
+ rgba(56,189,248,0.16));
     color: #e0f2fe;
     padding: 0.65rem 1.2rem;
     border-radius: 14px;
@@ -171,7 +178,8 @@ EXTRA_STYLES = [
     border-radius: 18px;
     border: 1px solid rgba(148,163,184,0.24);
     background: rgba(15,23,42,0.67);
-    transition: border-color 0.2s ease, background 0.2s ease, transform 0.18s ease;
+    transition: border-color 0.2s ease, background 0.2s ease, transform\
+ 0.18s ease;
     display: grid;
     gap: 0.35rem;
   }
@@ -181,7 +189,8 @@ EXTRA_STYLES = [
   }
   .demo-nav__item.is-active {
     border-color: rgba(56,189,248,0.75);
-    background: linear-gradient(135deg, rgba(56,189,248,0.24), rgba(15,23,42,0.82));
+    background: linear-gradient(135deg, rgba(56,189,248,0.24),\
+ rgba(15,23,42,0.82));
     box-shadow: 0 18px 44px rgba(56,189,248,0.22);
     transform: translateY(-2px);
   }
@@ -232,16 +241,19 @@ ui_hooks = UIHooks(
     content_slot="""
       <div class="demo-overview">
         <div class="demo-meta">
-          <h2>{{ manifest.meta?.page?.title ?? site.activePage.value?.title ?? 'Overview' }}</h2>
+          <h2>{{ manifest.meta?.page?.title ??\
+ site.activePage.value?.title ?? 'Overview' }}</h2>
           <p>
             {{ manifest.meta?.page?.description ??
                manifest.meta?.page?.tagline ??
-               'Curated view powered by SwarmaKit atoms and the layout engine.' }}
+               'Curated view powered by SwarmaKit atoms and the layout\
+ engine.' }}
           </p>
         </div>
         <div class="demo-metrics" v-if="manifest.viewport">
           <span class="demo-metric">
-            Viewport {{ manifest.viewport.width }} × {{ manifest.viewport.height }}
+            Viewport {{ manifest.viewport.width }} × {{\
+ manifest.viewport.height }}
           </span>
           <span class="demo-metric">
             Tiles {{ manifest.tiles.length }}
@@ -260,7 +272,8 @@ ui_hooks = UIHooks(
               @click="handleNavigate(page.id)"
             >
               <span class="demo-nav__label">{{ page.title ?? page.id }}</span>
-              <span v-if="page.meta?.tagline" class="demo-nav__hint">{{ page.meta.tagline }}</span>
+              <span v-if="page.meta?.tagline" class="demo-nav__hint">{{\
+ page.meta.tagline }}</span>
             </button>
           </nav>
         </template>

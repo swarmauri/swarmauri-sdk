@@ -18,8 +18,10 @@ class LayoutCompiler:
 
     Responsibilities:
     - Convert an explicit GridSpec + GridTile placements into pixel Frames.
-    - (Optional) Compile from the authoring DSL (Table/Row/Col/Block) to explicit grid, then to Frames.
-    - (Optional) Assemble a framework-agnostic view-model consumable by the manifest builder.
+    - (Optional) Compile from the authoring DSL (Table/Row/Col/Block) to
+    explicit grid, then to Frames.
+    - (Optional) Assemble a framework-agnostic view-model consumable by the
+    manifest builder.
     """
 
     def __init__(self, resolver: IGridResolver | None = None) -> None:
@@ -29,14 +31,19 @@ class LayoutCompiler:
     def frames(
         self, gs: GridSpec, vp: Viewport, placements: list[GridTile]
     ) -> dict[str, Frame]:
-        """Compile placements to pixel frames using the configured grid resolver."""
+        """Compile placements to pixel frames using the configured grid
+        resolver.
+        """
         return self._resolver.frames(gs, vp, placements)
 
     # ---- Authoring DSL helpers (structure -> grid -> frames) ----
-    def frames_from_structure(self, tbl, vp: Viewport, *, row_height: int = 180):
+    def frames_from_structure(
+        self, tbl, vp: Viewport, *, row_height: int = 180
+    ):
         """Compile Table/Row/Col/Block to (GridSpec, placements, Frames).
 
-        Notes: We import structure lazily to avoid import cycles for users who don't use the DSL.
+        Notes: We import structure lazily to avoid import cycles for users who
+        don't use the DSL.
         """
         from ..structure.default import (
             GridBuilder,
@@ -58,10 +65,12 @@ class LayoutCompiler:
         channels: Sequence[Mapping[str, object]] | None = None,
         ws_routes: Sequence[Mapping[str, object]] | None = None,
     ) -> dict:
-        """Build a minimal view-model dict expected by `manifest.build_manifest`.
+        """Build a minimal view-model dict expected by
+        `manifest.build_manifest`.
 
         - Adds viewport, serialized grid, and a tile list with frames.
-        - Optionally includes atom mapping (module/export/version/defaults) from a registry.
+        - Optionally includes atom mapping (module/export/version/defaults)
+        from a registry.
         """
         from ..grid.bindings import gridspec_to_dict
 
@@ -126,7 +135,10 @@ class LayoutCompiler:
                             entry["atom"]["registry"] = registry_meta
                     # Defaults merge underneath author-specified props
                     entry["props"] = merged_props
-                    if swarma_layout and entry["atom"].get("family") == "swarmakit":
+                    if (
+                        swarma_layout
+                        and entry["atom"].get("family") == "swarmakit"
+                    ):
                         _merge_missing(entry["props"], swarma_layout)
             tiles_payload.append(entry)
 
@@ -138,18 +150,22 @@ class LayoutCompiler:
         if getattr(gs, "tokens", None):
             vm.setdefault("meta", {})["grid_tokens"] = dict(gs.tokens)
         if getattr(gs, "baseline_unit", None) is not None:
-            vm.setdefault("meta", {}).setdefault("grid", {})["baseline_unit"] = int(
-                gs.baseline_unit
-            )
+            vm.setdefault("meta", {}).setdefault("grid", {})[
+                "baseline_unit"
+            ] = int(gs.baseline_unit)
         if layout_meta:
-            vm.setdefault("meta", {}).setdefault("layout", {}).update(layout_meta)
+            vm.setdefault("meta", {}).setdefault("layout", {}).update(
+                layout_meta
+            )
         if atoms_registry is not None:
             try:
                 revision = getattr(atoms_registry, "revision", None)
             except Exception:
                 revision = None
             if revision is not None:
-                vm.setdefault("meta", {}).setdefault("atoms", {})["revision"] = revision
+                vm.setdefault("meta", {}).setdefault("atoms", {})[
+                    "revision"
+                ] = revision
         if channels:
             vm["channels"] = [dict(ch) for ch in channels]
         if ws_routes:
@@ -167,7 +183,9 @@ class LayoutCompiler:
         channels: Sequence[Mapping[str, object]] | None = None,
         ws_routes: Sequence[Mapping[str, object]] | None = None,
     ) -> dict:
-        """End-to-end convenience: Table/Row/Col/Block → Frames → view-model dict."""
+        """End-to-end convenience: Table/Row/Col/Block → Frames → view-model
+        dict.
+        """
         gs, placements, frames_map = self.frames_from_structure(
             tbl, vp, row_height=row_height
         )

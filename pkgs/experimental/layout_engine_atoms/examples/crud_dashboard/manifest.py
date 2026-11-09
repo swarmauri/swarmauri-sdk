@@ -1,4 +1,6 @@
-"""Manifest for CRUD dashboard - 30 interactive components with minimal wiring."""
+"""Manifest for CRUD dashboard - 30 interactive components with minimal
+wiring.
+"""
 
 from __future__ import annotations
 
@@ -20,7 +22,8 @@ def build_manifest(_request: "Request"):
     """Build the CRUD dashboard manifest with 30 components.
 
     This manifest demonstrates how decorator-based event handling
-    eliminates the need for manual UiEvent registration and binding declarations.
+    eliminates the need for manual UiEvent registration and binding
+    declarations.
     """
     registry = create_registry(catalog="vue")
 
@@ -32,7 +35,9 @@ def build_manifest(_request: "Request"):
             span="full",
             props={
                 "title": "User Management Dashboard",
-                "subtitle": "Demonstrating decorator-based event handling at scale",
+                "subtitle": (
+                    "Demonstrating decorator-based event handling at scale"
+                ),
             },
         ),
         # === STATS BADGES SECTION (5 tiles: 1 header + 4 badges) ===
@@ -257,17 +262,39 @@ def build_manifest(_request: "Request"):
             "swarmakit:vue:data-grid",
             span="full",
             props={
-                "headers": ["ID", "Name", "Email", "Role", "Status", "Created"],
+                "headers": [
+                    "ID",
+                    "Name",
+                    "Email",
+                    "Role",
+                    "Status",
+                    "Created",
+                ],
                 "columns": [
-                    {"field": "id", "header": "ID", "width": 60, "sortable": True},
-                    {"field": "name", "header": "Name", "width": 200, "sortable": True},
+                    {
+                        "field": "id",
+                        "header": "ID",
+                        "width": 60,
+                        "sortable": True,
+                    },
+                    {
+                        "field": "name",
+                        "header": "Name",
+                        "width": 200,
+                        "sortable": True,
+                    },
                     {
                         "field": "email",
                         "header": "Email",
                         "width": 250,
                         "sortable": True,
                     },
-                    {"field": "role", "header": "Role", "width": 100, "sortable": True},
+                    {
+                        "field": "role",
+                        "header": "Role",
+                        "width": 100,
+                        "sortable": True,
+                    },
                     {
                         "field": "active",
                         "header": "Status",
@@ -449,4 +476,6 @@ def build_manifest(_request: "Request"):
     )
 
     # Build manifest with structured layout
-    return quick_manifest_from_table(layout, tiles, registry=registry, row_height=80)
+    return quick_manifest_from_table(
+        layout, tiles, registry=registry, row_height=80
+    )

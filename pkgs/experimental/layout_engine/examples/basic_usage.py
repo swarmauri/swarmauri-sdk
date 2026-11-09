@@ -1,7 +1,8 @@
 """Simple quick-start example for ``layout_engine``.
 
 Run with:
-    uv run --directory experimental/layout_engine --package layout-engine python examples/basic_usage.py
+    uv run --directory experimental/layout_engine --package layout-engine
+    python examples/basic_usage.py
 
 The script assembles an atom registry, builds a small layout, generates a
 manifest JSON file, and emits an HTML preview next to the script.
@@ -58,14 +59,22 @@ def build_tiles() -> list[TileSpec]:
             role="stat",
             min_w=240,
             min_h=160,
-            props={"label": "Monthly revenue", "value": "$1.2M", "trend": "up"},
+            props={
+                "label": "Monthly revenue",
+                "value": "$1.2M",
+                "trend": "up",
+            },
         ),
         TileSpec(
             id="stat_growth",
             role="stat",
             min_w=240,
             min_h=160,
-            props={"label": "Subscriber growth", "value": "18%", "trend": "stable"},
+            props={
+                "label": "Subscriber growth",
+                "value": "18%",
+                "trend": "stable",
+            },
         ),
         TileSpec(
             id="ts_orders",

@@ -17,7 +17,9 @@ def build(view_model: Mapping[str, Any]) -> Manifest:
 
 
 def to_json(manifest: Manifest) -> str:
-    return json.dumps(_to_dict(manifest), separators=(",", ":"), sort_keys=True)
+    return json.dumps(
+        _to_dict(manifest), separators=(",", ":"), sort_keys=True
+    )
 
 
 def from_json(data: str) -> Manifest:

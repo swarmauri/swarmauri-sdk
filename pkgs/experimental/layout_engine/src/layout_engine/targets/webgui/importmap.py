@@ -6,7 +6,9 @@ from ...mfe.default import ImportMapBuilder, RemoteRegistry
 def import_map_json(
     registry: RemoteRegistry, *, include_integrity: bool = True
 ) -> dict:
-    return ImportMapBuilder().build(registry, include_integrity=include_integrity)
+    return ImportMapBuilder().build(
+        registry, include_integrity=include_integrity
+    )
 
 
 def import_map_text(

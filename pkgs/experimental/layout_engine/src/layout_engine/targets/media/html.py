@@ -14,7 +14,8 @@ class HtmlExporter(IMediaTarget):
     """
     Styled HTML exporter with optional CSS links and inline CSS.
     - Maintains class name and interface: export(manifest, out=...)->str
-    - Adds styling controls via constructor, but defaults are backward compatible.
+    - Adds styling controls via constructor, but defaults are backward
+    compatible.
     """
 
     def __init__(
@@ -45,7 +46,10 @@ class HtmlExporter(IMediaTarget):
 
         head_parts: list[str] = [
             "<meta charset='utf-8'>",
-            "<meta name='viewport' content='width=device-width, initial-scale=1'>",
+            (
+                "<meta name='viewport' content='width=device-width, "
+                "initial-scale=1'>"
+            ),
             f"<title>{self.title}</title>",
         ]
         for href in self.css_links:
@@ -87,7 +91,8 @@ class HtmlExporter(IMediaTarget):
             y = int(frame_data.get("y", 0))
             w = int(frame_data.get("w", 0))
             h = int(frame_data.get("h", 0))
-            # Allow a subtle default border to make areas visible; leave style hook for external CSS.
+            # Allow a subtle default border to make areas visible; leave style
+            # hook for external CSS.
             style = f"left:{x}px;top:{y}px;width:{w}px;height:{h}px;"
             tiles_html.append(
                 f"<div class='tile' data-tile='{tid}' style='{style}'></div>"

@@ -63,7 +63,10 @@ def build_manifest(counter_value: int = 0) -> dict:
         "page",
         {
             "title": "UiEvent Counter Demo",
-            "description": "Click the button to execute a Python handler and patch the counter tile via realtime events.",
+            "description": (
+                "Click the button to execute a Python handler and patch the "
+                "counter tile via realtime events."
+            ),
         },
     )
 

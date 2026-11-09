@@ -5,8 +5,10 @@ Scopes:
 
 Use:
   from layout_engine.events import (
-      EventEnvelope, ValidationError, validate_envelope, is_allowed, allowed_types_for,
-      route_topic, InProcEventBus, EventRouter, utc_now_iso, make_ack, make_error
+      EventEnvelope, ValidationError, validate_envelope, is_allowed,
+      allowed_types_for,
+      route_topic, InProcEventBus, EventRouter, utc_now_iso, make_ack,
+      make_error
   )
 """
 

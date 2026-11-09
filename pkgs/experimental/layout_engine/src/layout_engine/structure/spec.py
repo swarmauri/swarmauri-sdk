@@ -46,7 +46,8 @@ class Row(BaseModel):
 class Table(BaseModel):
     """High-level authoring artifact composed of Rows → Columns → Blocks.
 
-    The GridBuilder compiles this into an explicit GridSpec + GridTile placements.
+    The GridBuilder compiles this into an explicit GridSpec + GridTile
+    placements.
     """
 
     rows: Tuple[Row, ...]

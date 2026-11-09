@@ -7,7 +7,9 @@ import json
 
 class CodeExporter(IMediaTarget):
     def export(self, manifest: Manifest, *, out: str) -> str:
-        """Emit a portable page description (JSON) suitable for generating Svelte/Vue/React pages."""
+        """Emit a portable page description (JSON) suitable for generating
+        Svelte/Vue/React pages.
+        """
         payload = {
             "kind": manifest.kind,
             "version": manifest.version,

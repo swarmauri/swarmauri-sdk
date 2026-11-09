@@ -33,7 +33,9 @@ CatalogT = TypeVar("CatalogT", bound="AtomPresetCatalog")
 class AtomPresetCatalog(IAtomCatalog):
     """In-memory catalog backed by a mapping or iterable of presets."""
 
-    def __init__(self, presets: Mapping[str, AtomPreset] | Iterable[AtomPreset]):
+    def __init__(
+        self, presets: Mapping[str, AtomPreset] | Iterable[AtomPreset]
+    ):
         if isinstance(presets, Mapping):
             self._presets = dict(presets)
         else:
@@ -49,7 +51,9 @@ class AtomPresetCatalog(IAtomCatalog):
             raise KeyError(f"Unknown atom preset role: {role}") from exc
 
     def as_specs(self) -> dict[str, AtomSpec]:
-        return {role: preset.to_spec() for role, preset in self._presets.items()}
+        return {
+            role: preset.to_spec() for role, preset in self._presets.items()
+        }
 
     @classmethod
     def from_specs(cls: Type[CatalogT], specs: Iterable[AtomSpec]) -> CatalogT:

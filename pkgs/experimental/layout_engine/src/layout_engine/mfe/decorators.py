@@ -3,7 +3,9 @@ from functools import wraps
 
 
 def remote_ctx(id: str):
-    """Decorator to tag a function/factory with a remote_ctx id for discovery."""
+    """Decorator to tag a function/factory with a remote_ctx id for
+    discovery.
+    """
 
     def deco(fn):
         @wraps(fn)
@@ -17,7 +19,9 @@ def remote_ctx(id: str):
 
 
 def stable_entry(fn):
-    """Marker that the remote_ctx entry URL must be immutable (e.g., contains a version)."""
+    """Marker that the remote_ctx entry URL must be immutable (e.g., contains a
+    version).
+    """
 
     @wraps(fn)
     def wrapper(*a, **kw):

@@ -1,11 +1,18 @@
 """Atom registry for tiles (framework-agnostic).
 
-- AtomSpec defines how a tile role maps to a client module/export and default props.
+- AtomSpec defines how a tile role maps to a client module/export and
+default props.
 - AtomRegistry stores AtomSpec entries and can resolve merged props.
-- bindings provides JSON (de)serialization and optional server-side render bindings (html/svg).
+- bindings provides JSON (de)serialization and optional server-side render
+bindings (html/svg).
 """
 
-from .spec import AtomSpec, merge_atom_props, validate_atom_role, validate_atom_module
+from .spec import (
+    AtomSpec,
+    merge_atom_props,
+    validate_atom_role,
+    validate_atom_module,
+)
 from .base import IAtomRegistry
 from .default import AtomRegistry, Atom
 from .shortcuts import (

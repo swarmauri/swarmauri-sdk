@@ -93,7 +93,9 @@ def gridspec_from_dict(d: Mapping[str, Any]) -> GridSpec:
         gap_x=int(d.get("gap_x", 12)),
         gap_y=int(d.get("gap_y", 12)),
         baseline_unit=(
-            int(d["baseline_unit"]) if d.get("baseline_unit") is not None else None
+            int(d["baseline_unit"])
+            if d.get("baseline_unit") is not None
+            else None
         ),
         tokens=tokens,
     )
