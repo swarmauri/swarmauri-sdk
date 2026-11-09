@@ -9,7 +9,8 @@ from layout_engine import AtomSpec
 class AtomPreset(BaseModel):
     """Declarative definition of a UI atom preset.
 
-    Presets extend :class:`layout_engine.AtomSpec` with optional metadata that lets
+    Presets extend :class:`layout_engine.AtomSpec` with optional metadata that
+    lets
     downstream packages reason about origin, families, or display names.
     """
 

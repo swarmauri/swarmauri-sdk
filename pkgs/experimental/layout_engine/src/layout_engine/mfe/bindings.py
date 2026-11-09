@@ -36,7 +36,9 @@ def registry_to_dict(registry) -> dict[str, dict]:
     return {}
 
 
-def registry_from_dict(registry, data: Mapping[str, Mapping[str, Any]]) -> None:
+def registry_from_dict(
+    registry, data: Mapping[str, Mapping[str, Any]]
+) -> None:
     if hasattr(registry, "update_from_dict"):
         registry.update_from_dict(data)
 
@@ -47,7 +49,9 @@ def to_import_map(
     extra_imports: dict[str, str] | None = None,
     scopes: dict[str, dict[str, str]] | None = None,
 ) -> dict:
-    imports = {rid: info["entry"] for rid, info in registry_to_dict(registry).items()}
+    imports = {
+        rid: info["entry"] for rid, info in registry_to_dict(registry).items()
+    }
     if extra_imports:
         imports.update(extra_imports)
     out = {"imports": imports}
@@ -67,11 +71,15 @@ def to_import_map_json(
     return json.dumps(imap, indent=indent, sort_keys=True)
 
 
-def script_tag(import_map: Mapping[str, Any], *, indent: int | None = 2) -> str:
+def script_tag(
+    import_map: Mapping[str, Any], *, indent: int | None = 2
+) -> str:
     js = json.dumps(import_map, indent=indent, sort_keys=True)
     return f'<script type="importmap">{js}</script>'
 
 
 def modulepreload_html(import_map: Mapping[str, Any]) -> str:
     imports = list(import_map.get("imports", {}).values())
-    return "\n".join(f'<link rel="modulepreload" href="{href}">' for href in imports)
+    return "\n".join(
+        f'<link rel="modulepreload" href="{href}">' for href in imports
+    )

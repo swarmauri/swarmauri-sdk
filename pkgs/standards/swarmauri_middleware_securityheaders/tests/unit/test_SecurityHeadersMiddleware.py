@@ -1,8 +1,9 @@
 from typing import Callable, Dict
 
 import pytest
-from fastapi import Request, Response
-from fastapi.middleware import Middleware
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.middleware import Middleware
 from swarmauri_middleware_securityheaders.SecurityHeadersMiddleware import (
     SecurityHeadersMiddleware,
 )

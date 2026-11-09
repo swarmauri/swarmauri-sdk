@@ -6,7 +6,7 @@ import logging
 import re
 from typing import Any, Mapping
 
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +43,18 @@ def validate_payload_against_schema(
             raise PayloadValidationError(
                 f"Expected object, got {type(payload).__name__}"
             )
-        elif expected_type == "array" and not isinstance(payload, (list, tuple)):
+        elif expected_type == "array" and not isinstance(
+            payload, (list, tuple)
+        ):
             raise PayloadValidationError(
                 f"Expected array, got {type(payload).__name__}"
             )
 
     # Check required fields
     if "required" in schema and isinstance(schema["required"], list):
-        missing_fields = [field for field in schema["required"] if field not in payload]
+        missing_fields = [
+            field for field in schema["required"] if field not in payload
+        ]
         if missing_fields:
             raise PayloadValidationError(
                 f"Missing required fields: {', '.join(missing_fields)}"
@@ -64,7 +68,9 @@ def validate_payload_against_schema(
                 _validate_property(key, value, prop_schema)
 
 
-def _validate_property(key: str, value: Any, prop_schema: Mapping[str, Any]) -> None:
+def _validate_property(
+    key: str, value: Any, prop_schema: Mapping[str, Any]
+) -> None:
     """Validate a single property against its schema."""
     if "type" in prop_schema:
         expected_type = prop_schema["type"]
@@ -81,7 +87,10 @@ def _validate_property(key: str, value: Any, prop_schema: Mapping[str, Any]) -> 
             expected_python_type = type_map[expected_type]
             if not isinstance(value, expected_python_type):
                 raise PayloadValidationError(
-                    f"Field '{key}': expected {expected_type}, got {type(value).__name__}"
+                    (
+                        f"Field '{key}': expected {expected_type}, got "
+                        f"{type(value).__name__}"
+                    )
                 )
 
     # Check enum constraints
@@ -93,24 +102,42 @@ def _validate_property(key: str, value: Any, prop_schema: Mapping[str, Any]) -> 
 
     # Check string length
     if isinstance(value, str):
-        if "minLength" in prop_schema and len(value) < prop_schema["minLength"]:
+        if (
+            "minLength" in prop_schema
+            and len(value) < prop_schema["minLength"]
+        ):
             raise PayloadValidationError(
-                f"Field '{key}': string too short (min {prop_schema['minLength']})"
+                (
+                    f"Field '{key}': string too short (min "
+                    f"{prop_schema['minLength']})"
+                )
             )
-        if "maxLength" in prop_schema and len(value) > prop_schema["maxLength"]:
+        if (
+            "maxLength" in prop_schema
+            and len(value) > prop_schema["maxLength"]
+        ):
             raise PayloadValidationError(
-                f"Field '{key}': string too long (max {prop_schema['maxLength']})"
+                (
+                    f"Field '{key}': string too long (max "
+                    f"{prop_schema['maxLength']})"
+                )
             )
 
     # Check numeric ranges
     if isinstance(value, (int, float)):
         if "minimum" in prop_schema and value < prop_schema["minimum"]:
             raise PayloadValidationError(
-                f"Field '{key}': value below minimum ({prop_schema['minimum']})"
+                (
+                    f"Field '{key}': value below minimum "
+                    f"({prop_schema['minimum']})"
+                )
             )
         if "maximum" in prop_schema and value > prop_schema["maximum"]:
             raise PayloadValidationError(
-                f"Field '{key}': value above maximum ({prop_schema['maximum']})"
+                (
+                    f"Field '{key}': value above maximum "
+                    f"({prop_schema['maximum']})"
+                )
             )
 
 
@@ -125,9 +152,13 @@ DANGEROUS_JS_PATTERNS = [
     # data: protocol with potentially dangerous content
     re.compile(r"data:text/html", re.IGNORECASE),
     # eval and similar functions
-    re.compile(r"\b(eval|Function|setTimeout|setInterval)\s*\(", re.IGNORECASE),
+    re.compile(
+        r"\b(eval|Function|setTimeout|setInterval)\s*\(", re.IGNORECASE
+    ),
     # Suspicious string concatenation that might build code
-    re.compile(r"(document\.write|innerHTML|outerHTML)\s*[+\[]", re.IGNORECASE),
+    re.compile(
+        r"(document\.write|innerHTML|outerHTML)\s*[+\[]", re.IGNORECASE
+    ),
 ]
 
 
@@ -154,12 +185,14 @@ def validate_client_setup_code(code: str) -> None:
             raise ValueError(
                 f"Client setup code contains potentially dangerous pattern: "
                 f"'{pattern.pattern}'. This code will be injected directly "
-                f"into the HTML and must be carefully reviewed for security issues."
+                f"into the HTML and must be carefully reviewed for "
+                f"security issues."
             )
 
 
 def sanitize_string_for_logging(value: str, max_length: int = 100) -> str:
-    """Sanitize a string for safe logging by truncating and removing sensitive patterns.
+    """Sanitize a string for safe logging by truncating and removing
+    sensitive patterns.
 
     Args:
         value: The string to sanitize
@@ -206,7 +239,9 @@ def validate_event_payload(
     try:
         validate_payload_against_schema(payload, schema)
     except PayloadValidationError as e:
-        logger.warning(f"Payload validation failed for event '{event_id}': {str(e)}")
+        logger.warning(
+            f"Payload validation failed for event '{event_id}': {str(e)}"
+        )
         raise HTTPException(
             status_code=400,
             detail=f"Invalid payload: {str(e)}",

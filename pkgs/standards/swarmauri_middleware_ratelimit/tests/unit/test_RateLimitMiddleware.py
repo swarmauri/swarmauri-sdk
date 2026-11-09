@@ -1,5 +1,5 @@
 import pytest
-from fastapi import Response
+from starlette.responses import Response
 from swarmauri_middleware_ratelimit.RateLimitMiddleware import (
     RateLimitMiddleware,
 )

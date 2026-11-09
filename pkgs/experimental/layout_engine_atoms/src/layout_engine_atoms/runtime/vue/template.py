@@ -8,13 +8,17 @@ TEMPLATE_NAME = "mpa_shell.html"
 
 
 def _load_template() -> str:
-    template_path = files("layout_engine_atoms.runtime.vue.templates") / TEMPLATE_NAME
+    template_path = (
+        files("layout_engine_atoms.runtime.vue.templates") / TEMPLATE_NAME
+    )
     return template_path.read_text(encoding="utf-8")
 
 
 def _indent(content: str, spaces: int) -> str:
     prefix = " " * spaces
-    return "\n".join(f"{prefix}{line}" if line else "" for line in content.splitlines())
+    return "\n".join(
+        f"{prefix}{line}" if line else "" for line in content.splitlines()
+    )
 
 
 def _build_extra_styles(extra_styles: Iterable[str] | None) -> str:
@@ -48,7 +52,8 @@ def _build_css_variables(palette: dict[str, str]) -> str:
     if not palette:
         return "        --le-accent: rgba(56, 189, 248, 0.75);"
     lines = [
-        f"--le-{key.replace('_', '-')}: {value};" for key, value in palette.items()
+        f"--le-{key.replace('_', '-')}: {value};"
+        for key, value in palette.items()
     ]
     return _indent("\n".join(lines), 8)
 

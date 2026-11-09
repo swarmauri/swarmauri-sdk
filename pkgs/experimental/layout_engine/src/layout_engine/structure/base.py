@@ -8,4 +8,6 @@ from .spec import Table
 class IGridBuilder(ABC):
     """Convert an authoring Table into an explicit GridSpec and placements."""
 
-    def to_grid(self, t: Table, vp: Viewport) -> tuple[GridSpec, list[GridTile]]: ...
+    def to_grid(
+        self, t: Table, vp: Viewport
+    ) -> tuple[GridSpec, list[GridTile]]: ...

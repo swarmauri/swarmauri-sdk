@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from fastapi import FastAPI
+    from starlette.applications import Starlette
 
 from .decorators import EventRegistry
 from ..runtime.vue import mount_layout_app
 
 
 def mount_with_auto_events(
-    app: "FastAPI",
+    app: "Starlette",
     manifest_builder,
     **kwargs,
 ) -> None:
@@ -22,7 +22,7 @@ def mount_with_auto_events(
     and combines them with any manually provided events before mounting.
 
     Args:
-        app: FastAPI application instance
+        app: Starlette application instance
         manifest_builder: Function that returns manifest dict
         **kwargs: Additional arguments passed to mount_layout_app
 

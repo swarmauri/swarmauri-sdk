@@ -45,8 +45,8 @@ uv add swarmauri_middleware_httpsig
 
 ## Example
 
-The snippet below wires the middleware into FastAPI via the `@app.middleware`
-decorator, signs a request body, and demonstrates the `401` response that
+The example registers the signature check with Starlette’s `BaseHTTPMiddleware`,
+signs a request body, and demonstrates the `401` response that
 occurs when a tampered signature is supplied. The middleware raises
 `HTTPException`, so the example also converts those errors to JSON responses.
 
@@ -56,18 +56,20 @@ import hashlib
 import hmac
 import json
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.testclient import TestClient
-from fastapi.responses import JSONResponse
+from starlette.applications import Starlette
+from starlette.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_httpsig import HttpSigMiddleware
 
 
-app = FastAPI()
+app = Starlette()
 http_sig = HttpSigMiddleware(secret_key="supersecret")
 
 
-@app.middleware("http")
 async def verify_signature(request: Request, call_next):
     try:
         return await http_sig.dispatch(request, call_next)
@@ -75,10 +77,13 @@ async def verify_signature(request: Request, call_next):
         return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
-@app.post("/echo")
-async def echo(payload: dict) -> dict:
-    return payload
+app.add_middleware(BaseHTTPMiddleware, dispatch=verify_signature)
 
+async def echo(request: Request):
+    return JSONResponse(await request.json())
+
+
+app.add_route("/echo", echo, methods=["POST"])
 
 def create_signature(secret: str, body: bytes) -> str:
     digest = hmac.new(secret.encode(), body, hashlib.sha256).digest()

@@ -92,7 +92,7 @@ Key features:
 
 ```python
 from layout_engine_atoms.runtime.vue import RealtimeOptions, mount_layout_app
-from fastapi import WebSocket
+from starlette.websockets import WebSocket
 
 async def authenticate_websocket(websocket: WebSocket) -> bool:
     """Authenticate WebSocket connection using query param token."""
@@ -180,7 +180,7 @@ mount_layout_app(
 **Current Implementation**: In-memory rate limiting (suitable for single-instance deployments)
 
 **For Production/Distributed Systems**: Consider upgrading to Redis-based rate limiting:
-- Use `fastapi-limiter` with Redis backend
+- Use a shared Redis-backed rate limiter
 - Shared rate limits across multiple instances
 - Persistence across restarts
 

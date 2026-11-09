@@ -22,7 +22,11 @@ def test_view_model_includes_atom_metadata() -> None:
             framework="vue",
             package="@swarmakit/vue",
             family="swarmakit",
-            registry={"name": "swarmakit", "version": "0.0.22", "framework": "vue"},
+            registry={
+                "name": "swarmakit",
+                "version": "0.0.22",
+                "framework": "vue",
+            },
         )
     )
     registry.revision = "rev-1"  # type: ignore[attr-defined]
@@ -35,9 +39,15 @@ def test_view_model_includes_atom_metadata() -> None:
         tokens={"columns": "sgd:columns:8"},
     )
     placements = [GridTile(tile_id="btn", col=0, row=0)]
-    frames = compiler.frames(grid_spec, Viewport(width=800, height=600), placements)
+    frames = compiler.frames(
+        grid_spec, Viewport(width=800, height=600), placements
+    )
 
-    tiles = [TileSpec(id="btn", role="swarmakit:vue:button", props={"tone": "primary"})]
+    tiles = [
+        TileSpec(
+            id="btn", role="swarmakit:vue:button", props={"tone": "primary"}
+        )
+    ]
 
     vm = compiler.view_model(
         grid_spec,
@@ -45,7 +55,9 @@ def test_view_model_includes_atom_metadata() -> None:
         frames,
         tiles,
         atoms_registry=registry,
-        channels=[{"id": "ui.events", "scope": "page", "topic": "page:{page_id}:ui"}],
+        channels=[
+            {"id": "ui.events", "scope": "page", "topic": "page:{page_id}:ui"}
+        ],
         ws_routes=[{"path": "/ws/ui", "channels": ("ui.events",)}],
     )
 

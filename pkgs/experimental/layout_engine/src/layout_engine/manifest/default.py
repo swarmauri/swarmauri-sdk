@@ -75,8 +75,12 @@ class ManifestBuilder:
         version: str = "2025.10",
         site: SiteSpec | None = None,
         active_page: str | None = None,
-        channels: Sequence[ChannelManifest] | Iterable[ChannelManifest] | None = None,
-        ws_routes: Sequence[WsRouteManifest] | Iterable[WsRouteManifest] | None = None,
+        channels: Sequence[ChannelManifest]
+        | Iterable[ChannelManifest]
+        | None = None,
+        ws_routes: Sequence[WsRouteManifest]
+        | Iterable[WsRouteManifest]
+        | None = None,
     ) -> Manifest:
         if site is not None and "site" not in view_model:
             site_payload = _site_to_payload(site, active_page=active_page)

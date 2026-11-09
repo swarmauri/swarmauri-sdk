@@ -2,7 +2,7 @@ from asyncio import Semaphore
 from typing import Any
 
 import pytest
-from fastapi import Request
+from starlette.requests import Request
 from swarmauri_middleware_bulkhead.BulkheadMiddleware import BulkheadMiddleware
 
 

@@ -4,7 +4,7 @@ import hmac
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from fastapi import HTTPException
+from starlette.exceptions import HTTPException
 from swarmauri_middleware_httpsig.HttpSigMiddleware import HttpSigMiddleware
 
 

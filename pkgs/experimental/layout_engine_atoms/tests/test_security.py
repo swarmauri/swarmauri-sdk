@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 
 import pytest
-from fastapi import FastAPI, Request, WebSocket
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.websockets import WebSocket, WebSocketDisconnect
+from starlette.testclient import TestClient
 
 from layout_engine_atoms.runtime.vue import (
     LayoutOptions,
@@ -38,12 +40,16 @@ def test_payload_validation_with_schema():
     validate_payload_against_schema(valid_payload, schema)  # Should not raise
 
     # Missing required field
-    with pytest.raises(PayloadValidationError, match="Missing required fields"):
+    with pytest.raises(
+        PayloadValidationError, match="Missing required fields"
+    ):
         validate_payload_against_schema({"name": "John"}, schema)
 
     # Wrong type
     with pytest.raises(PayloadValidationError, match="expected integer"):
-        validate_payload_against_schema({"name": "John", "age": "thirty"}, schema)
+        validate_payload_against_schema(
+            {"name": "John", "age": "thirty"}, schema
+        )
 
     # Out of range
     with pytest.raises(PayloadValidationError, match="value above maximum"):
@@ -80,7 +86,7 @@ def test_xss_protection_in_client_setup():
 
 def test_event_payload_validation_integration():
     """Test that event payloads are validated in the API."""
-    app = FastAPI()
+    app = Starlette()
 
     async def test_handler(request: Request, payload: dict | None = None):
         return UiEventResult(body={"received": payload})
@@ -117,14 +123,16 @@ def test_event_payload_validation_integration():
     assert "Missing required fields" in response.json()["detail"]
 
     # Wrong type should fail
-    response = client.post("/dashboard/events/test.event", json={"value": "string"})
+    response = client.post(
+        "/dashboard/events/test.event", json={"value": "string"}
+    )
     assert response.status_code == 400
     assert "expected integer" in response.json()["detail"]
 
 
 def test_client_setup_validation_in_mount():
     """Test that client_setup is validated when mounting."""
-    app = FastAPI()
+    app = Starlette()
 
     def manifest_builder(request: Request):
         return {"kind": "LayoutManifest", "tiles": []}
@@ -139,7 +147,7 @@ def test_client_setup_validation_in_mount():
     )
 
     # Dangerous client_setup should raise
-    app2 = FastAPI()
+    app2 = Starlette()
     with pytest.raises(ValueError, match="Security validation failed"):
         mount_layout_app(
             app2,
@@ -148,10 +156,9 @@ def test_client_setup_validation_in_mount():
         )
 
 
-@pytest.mark.asyncio
-async def test_websocket_authentication():
+def test_websocket_authentication():
     """Test WebSocket authentication."""
-    app = FastAPI()
+    app = Starlette()
 
     async def auth_handler(websocket: WebSocket) -> bool:
         # Check for auth token in query params
@@ -171,14 +178,32 @@ async def test_websocket_authentication():
         ),
     )
 
-    # Test with valid token (would require actual WebSocket testing)
-    # This is a placeholder - actual WebSocket auth testing requires
-    # more complex setup with test WebSocket clients
+    with TestClient(app) as client:
+        with pytest.raises(WebSocketDisconnect) as denied:
+            with client.websocket_connect("/dashboard/ws/events"):
+                pytest.fail("The WebSocket accepted an unauthenticated client")
+        assert denied.value.code == 1008
+
+        with client.websocket_connect(
+            "/dashboard/ws/events?token=valid_token"
+        ) as websocket:
+            websocket.send_json({"action": "subscribe", "channel": "demo"})
+            websocket.send_json(
+                {
+                    "action": "publish",
+                    "channel": "demo",
+                    "payload": {"value": 1},
+                }
+            )
+            assert websocket.receive_json() == {
+                "channel": "demo",
+                "payload": {"value": 1},
+            }
 
 
 def test_rate_limiting_enabled():
     """Test that rate limiting works when enabled."""
-    app = FastAPI()
+    app = Starlette()
 
     async def test_handler(request: Request, payload: dict | None = None):
         return UiEventResult(body={"success": True})
@@ -214,7 +239,7 @@ def test_rate_limiting_enabled():
 
 def test_rate_limiting_disabled_by_default():
     """Test that rate limiting is disabled by default."""
-    app = FastAPI()
+    app = Starlette()
 
     async def test_handler(request: Request, payload: dict | None = None):
         return UiEventResult(body={"success": True})
@@ -265,7 +290,8 @@ async def test_websocket_subscription_limit():
     await hub.subscribe(ws, "channel2")
     await hub.subscribe(ws, "channel3")
 
-    # 4th subscription should be rejected (no error raised, but error sent to client)
+    # 4th subscription should be rejected (no error raised, but error sent to
+    # client)
     await hub.subscribe(ws, "channel4")
 
     # Verify only 3 channels are subscribed
@@ -274,7 +300,7 @@ async def test_websocket_subscription_limit():
 
 def test_invalid_json_payload_handling():
     """Test that invalid JSON payloads are properly handled."""
-    app = FastAPI()
+    app = Starlette()
 
     async def test_handler(request: Request, payload: dict | None = None):
         return UiEventResult(body={"received": payload})
@@ -293,7 +319,7 @@ def test_invalid_json_payload_handling():
     # Send invalid JSON
     response = client.post(
         "/dashboard/events/test.event",
-        data="not valid json",
+        content="not valid json",
         headers={"Content-Type": "application/json"},
     )
 
@@ -324,7 +350,10 @@ def test_payload_validation_with_enum():
     schema = {
         "type": "object",
         "properties": {
-            "status": {"type": "string", "enum": ["pending", "active", "completed"]},
+            "status": {
+                "type": "string",
+                "enum": ["pending", "active", "completed"],
+            },
         },
     }
 

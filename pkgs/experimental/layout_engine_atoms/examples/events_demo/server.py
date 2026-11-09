@@ -1,8 +1,9 @@
-"""FastAPI demo showcasing UiEvents + realtime bindings."""
+"""Starlette demo showcasing UiEvents + realtime bindings."""
 
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from starlette.applications import Starlette
+from starlette.requests import Request
 
 from layout_engine_atoms.runtime.vue import (
     RealtimeBinding,
@@ -15,7 +16,7 @@ from layout_engine_atoms.runtime.vue import (
 
 from .manifest import build_manifest
 
-app = FastAPI(title="Layout Engine UiEvents Demo")
+app = Starlette()
 
 _state = {"counter": 0}
 
@@ -42,13 +43,17 @@ async def _increment_event(_: Request, payload):
 increment_event = UiEvent(
     id="ui.increment",
     handler=_increment_event,
-    description="Increment the server-side counter and broadcast the latest value.",
+    description=(
+        "Increment the server-side counter and broadcast the latest value."
+    ),
     default_channel="demo.counter",
 )
 
 realtime = RealtimeOptions(
     path="/ws/events",
-    channels=(RealtimeChannel(id="demo.counter", description="Counter updates"),),
+    channels=(
+        RealtimeChannel(id="demo.counter", description="Counter updates"),
+    ),
     bindings=(
         RealtimeBinding(
             channel="demo.counter",

@@ -18,7 +18,7 @@
 
 Flexible rate limiting middleware for Swarmauri applications.
 
-This package provides a drop-in FastAPI middleware that throttles requests
+This package provides a drop-in Starlette middleware that throttles requests
 based on the client IP address or an authentication token. It is useful for
 preventing abuse of public APIs or protecting upstream services from bursts of
 traffic.
@@ -30,7 +30,7 @@ traffic.
 - Tracks callers by IP address or a custom authentication token header.
 - Maintains in-memory counters that reset automatically after the configured
   time window.
-- Returns FastAPI ``Response`` objects with HTTP ``429`` status codes when the
+- Returns Starlette ``Response`` objects with HTTP ``429`` status codes when the
   limit is exceeded.
 
 ## Installation
@@ -53,23 +53,27 @@ uv add swarmauri_middleware_ratelimit
 ### Basic IP-based limiting
 
 ```python
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 from swarmauri_middleware_ratelimit import RateLimitMiddleware
 
-app = FastAPI()
+app = Starlette()
 rate_limiter = RateLimitMiddleware(rate_limit=2, time_window=60)
 
 
-@app.middleware("http")
 async def limit_requests(request, call_next):
     return await rate_limiter.dispatch(request, call_next)
 
 
-@app.get("/ping")
-async def ping():
-    return {"status": "ok"}
+app.add_middleware(BaseHTTPMiddleware, dispatch=limit_requests)
 
+async def ping(_request):
+    return JSONResponse({"status": "ok"})
+
+
+app.add_route("/ping", ping)
 
 client = TestClient(app)
 
@@ -96,9 +100,11 @@ rate_limiter = RateLimitMiddleware(
 )
 
 
-@app.middleware("http")
 async def limit_requests(request, call_next):
     return await rate_limiter.dispatch(request, call_next)
+
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=limit_requests)
 ```
 
 When ``use_token`` is ``True`` the middleware looks for the configured header on

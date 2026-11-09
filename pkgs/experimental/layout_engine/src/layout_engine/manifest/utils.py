@@ -13,7 +13,9 @@ from ..core.frame import Frame
 def etag_of(obj: Mapping[str, Any]) -> str:
     """Stable content hash (sha256 over canonical JSON)."""
     return hashlib.sha256(
-        json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str).encode()
+        json.dumps(
+            obj, sort_keys=True, separators=(",", ":"), default=str
+        ).encode()
     ).hexdigest()
 
 
@@ -73,19 +75,30 @@ def _normalize_site(
     if isinstance(site, SiteManifest):
         return site
     pages = site.get("pages") or []
-    active = site.get("active_page") if "active_page" in site else site.get("active")
+    active = (
+        site.get("active_page")
+        if "active_page" in site
+        else site.get("active")
+    )
     navigation = dict(site.get("navigation") or {})
-    return SiteManifest(pages=list(pages), active_page=active, navigation=navigation)
+    return SiteManifest(
+        pages=list(pages), active_page=active, navigation=navigation
+    )
 
 
 def _normalize_channels(
-    channels: Mapping[str, Any] | ChannelManifest | list[Mapping[str, Any]] | None,
+    channels: Mapping[str, Any]
+    | ChannelManifest
+    | list[Mapping[str, Any]]
+    | None,
 ) -> list[dict[str, Any]]:
     if not channels:
         return []
     payload: list[dict[str, Any]] = []
     items = channels
-    if isinstance(channels, Mapping) and not isinstance(channels, ChannelManifest):
+    if isinstance(channels, Mapping) and not isinstance(
+        channels, ChannelManifest
+    ):
         items = channels.values()
     if isinstance(items, ChannelManifest):
         items = [items]
@@ -98,7 +111,10 @@ def _normalize_channels(
 
 
 def _normalize_ws_routes(
-    routes: Mapping[str, Any] | WsRouteManifest | list[Mapping[str, Any]] | None,
+    routes: Mapping[str, Any]
+    | WsRouteManifest
+    | list[Mapping[str, Any]]
+    | None,
 ) -> list[dict[str, Any]]:
     if not routes:
         return []
@@ -150,11 +166,15 @@ def build_manifest(
     manifest = Manifest(**payload, etag=etag_of(etag_payload))
     if manifest.channels:
         try:
-            from ..events.validators import register_channels as _register_channels
+            from ..events.validators import (
+                register_channels as _register_channels,
+            )
         except ImportError:
             pass
         else:
-            _register_channels([channel.model_dump() for channel in manifest.channels])
+            _register_channels(
+                [channel.model_dump() for channel in manifest.channels]
+            )
     return manifest
 
 
@@ -170,9 +190,13 @@ def to_dict(manifest: Manifest) -> dict:
     if manifest.site is not None:
         data["site"] = manifest.site.model_dump()
     if manifest.channels:
-        data["channels"] = [channel.model_dump() for channel in manifest.channels]
+        data["channels"] = [
+            channel.model_dump() for channel in manifest.channels
+        ]
     if manifest.ws_routes:
-        data["ws_routes"] = [route.model_dump() for route in manifest.ws_routes]
+        data["ws_routes"] = [
+            route.model_dump() for route in manifest.ws_routes
+        ]
     return data
 
 
@@ -234,19 +258,26 @@ def validate(manifest: Manifest) -> None:
                 raise ValueError(f"duplicate channel id: {ch.id}")
             channel_ids.add(ch.id)
             if ch.scope not in ALLOW:
-                raise ValueError(f"channel '{ch.id}' has unknown scope '{ch.scope}'")
+                raise ValueError(
+                    f"channel '{ch.id}' has unknown scope '{ch.scope}'"
+                )
             if not ch.topic:
                 raise ValueError(f"channel '{ch.id}' requires a topic")
     if manifest.ws_routes:
         for route in manifest.ws_routes:
             if not route.path.startswith("/"):
-                raise ValueError(f"ws route path must start with '/': {route.path}")
+                raise ValueError(
+                    f"ws route path must start with '/': {route.path}"
+                )
             for channel_id in route.channels:
                 if manifest.channels and channel_id not in {
                     c.id for c in manifest.channels
                 }:
                     raise ValueError(
-                        f"ws route '{route.path}' references unknown channel '{channel_id}'"
+                        (
+                            f"ws route '{route.path}' references unknown "
+                            f"channel '{channel_id}'"
+                        )
                     )
 
 

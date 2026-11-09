@@ -1,8 +1,9 @@
 import logging
 from typing import Callable
 
-from fastapi import Request, Response
-from fastapi.middleware import Middleware
+from starlette.requests import Request
+from starlette.responses import Response
+from starlette.middleware import Middleware
 
 logger = logging.getLogger(__name__)
 

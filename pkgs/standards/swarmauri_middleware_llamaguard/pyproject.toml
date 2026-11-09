@@ -24,7 +24,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "swarmauri_standard",
-    "fastapi",
+    "starlette",
     "python-dotenv>=1.0.0"
 ]
 keywords = [

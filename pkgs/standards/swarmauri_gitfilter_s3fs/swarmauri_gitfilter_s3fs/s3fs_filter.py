@@ -6,7 +6,9 @@ from pathlib import Path
 from typing import BinaryIO
 
 import s3fs
-from peagen._utils.config_loader import load_peagen_toml
+from swarmauri_base.git_filters.config import (
+    load_filter_config as load_peagen_toml,
+)
 from pydantic import SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.git_filters import GitFilterBase

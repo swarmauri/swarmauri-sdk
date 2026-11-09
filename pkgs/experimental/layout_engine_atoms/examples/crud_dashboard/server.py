@@ -1,4 +1,4 @@
-"""FastAPI server for CRUD dashboard demo.
+"""Starlette server for CRUD dashboard demo.
 
 This demonstrates how decorator-based event handling eliminates
 manual UiEvent registration - handlers are auto-discovered from decorators.
@@ -7,7 +7,9 @@ manual UiEvent registration - handlers are auto-discovered from decorators.
 from __future__ import annotations
 
 import uvicorn
-from fastapi import FastAPI
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from layout_engine_atoms import (
     LayoutOptions,
@@ -17,16 +19,10 @@ from layout_engine_atoms import (
 )
 from layout_engine_atoms.patterns import mount_with_auto_events
 
-from layout_engine_atoms.examples.crud_dashboard.manifest import build_manifest
+from . import handlers  # noqa: F401 - registers decorated events
+from .manifest import build_manifest
 
-# Import handlers to trigger @ui_event decorator registration
-
-
-app = FastAPI(
-    title="CRUD Dashboard Demo",
-    description="Demonstrating decorator-based event handling at scale",
-    version="1.0.0",
-)
+app = Starlette()
 
 
 # Mount with auto-registered events from decorators
@@ -352,10 +348,12 @@ mount_with_auto_events(
 )
 
 
-@app.get("/health")
-async def health_check():
+async def health_check(_request):
     """Health check endpoint."""
-    return {"status": "healthy", "service": "CRUD Dashboard"}
+    return JSONResponse({"status": "healthy", "service": "CRUD Dashboard"})
+
+
+app.router.routes.append(Route("/health", health_check))
 
 
 if __name__ == "__main__":
@@ -374,7 +372,7 @@ if __name__ == "__main__":
     print("=" * 60)
 
     uvicorn.run(
-        "layout_engine_atoms.examples.crud_dashboard.server:app",
+        "examples.crud_dashboard.server:app",
         host="0.0.0.0",
         port=8000,
         reload=True,

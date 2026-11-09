@@ -1,5 +1,5 @@
 import pytest
-from fastapi import Response
+from starlette.responses import Response
 from swarmauri_middleware_exceptionhandling.ExceptionHandlingMiddleware import (  # noqa: E501
     ExceptionHandlingMiddleware,
 )

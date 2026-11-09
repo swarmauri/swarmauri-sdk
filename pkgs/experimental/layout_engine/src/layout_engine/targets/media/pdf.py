@@ -65,7 +65,9 @@ class PdfExporter(IMediaTarget):
             browser = p.chromium.launch()
             page = browser.new_page()
             page.goto(
-                html_path.as_uri(), wait_until=self.wait_until, timeout=self.timeout_ms
+                html_path.as_uri(),
+                wait_until=self.wait_until,
+                timeout=self.timeout_ms,
             )
 
             pdf_kwargs: dict[str, Any] = {

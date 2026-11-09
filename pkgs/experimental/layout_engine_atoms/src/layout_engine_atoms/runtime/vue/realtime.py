@@ -5,7 +5,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable, Mapping, MutableMapping, Sequence
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from starlette.applications import Starlette
+from starlette.routing import WebSocketRoute
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +59,11 @@ class WebsocketMuxHub:
 
     Args:
         path: WebSocket endpoint path
-        auth_handler: Optional async function to authenticate WebSocket connections.
+        auth_handler: Optional async function to authenticate WebSocket
+        connections.
             Should return True to allow connection, False to reject.
-        max_subscriptions_per_client: Maximum number of channels a single client
+        max_subscriptions_per_client: Maximum number of channels a single
+        client
             can subscribe to (default: 100)
     """
 
@@ -90,17 +94,19 @@ class WebsocketMuxHub:
         if self.auth_handler:
             try:
                 is_authorized = await self.auth_handler(websocket)
-                if not is_authorized:
-                    logger.warning(
-                        f"WebSocket authentication failed for client: "
-                        f"{websocket.client}"
-                    )
-                    await websocket.close(code=1008, reason="Unauthorized")
-                    raise WebSocketDisconnect(code=1008, reason="Unauthorized")
             except Exception as e:
                 logger.error(f"Authentication error: {e}", exc_info=True)
                 await websocket.close(code=1011, reason="Authentication error")
-                raise WebSocketDisconnect(code=1011, reason="Authentication error")
+                raise WebSocketDisconnect(
+                    code=1011, reason="Authentication error"
+                ) from e
+            if not is_authorized:
+                logger.warning(
+                    "WebSocket authentication failed for client: %s",
+                    websocket.client,
+                )
+                await websocket.close(code=1008, reason="Unauthorized")
+                raise WebSocketDisconnect(code=1008, reason="Unauthorized")
 
         await websocket.accept()
         async with self._lock:
@@ -135,7 +141,8 @@ class WebsocketMuxHub:
                 current_subs = self._subscriptions[websocket]
                 if len(current_subs) >= self.max_subscriptions_per_client:
                     logger.warning(
-                        f"Client {websocket.client} exceeded subscription limit "
+                        f"Client {websocket.client} exceeded subscription "
+                        f"limit "
                         f"({self.max_subscriptions_per_client})"
                     )
                     # Send error message to client
@@ -148,7 +155,9 @@ class WebsocketMuxHub:
                     return
                 current_subs.add(channel)
 
-        logger.debug(f"Client {websocket.client} subscribed to channel: {channel}")
+        logger.debug(
+            f"Client {websocket.client} subscribed to channel: {channel}"
+        )
 
     async def unsubscribe(self, websocket: WebSocket, channel: str) -> None:
         async with self._lock:
@@ -159,7 +168,9 @@ class WebsocketMuxHub:
             if not channels:
                 self._subscriptions.pop(websocket, None)
 
-    async def broadcast(self, channel: str, payload: Mapping[str, Any]) -> None:
+    async def broadcast(
+        self, channel: str, payload: Mapping[str, Any]
+    ) -> None:
         message = {"channel": channel, "payload": dict(payload)}
         async with self._lock:
             targets = [
@@ -173,18 +184,26 @@ class WebsocketMuxHub:
                 await websocket.send_json(message)
             except WebSocketDisconnect:
                 logger.info(
-                    f"WebSocket disconnected during broadcast: {websocket.client}"
+                    (
+                        f"WebSocket disconnected during broadcast: "
+                        f"{websocket.client}"
+                    )
                 )
                 stale.append(websocket)
             except Exception as e:
                 logger.error(
-                    f"Failed to send message to WebSocket {websocket.client}: {e}"
+                    (
+                        f"Failed to send message to WebSocket "
+                        f"{websocket.client}: {e}"
+                    )
                 )
                 stale.append(websocket)
         for websocket in stale:
             await self.disconnect(websocket)
 
-    async def start_publishers(self, publishers: Sequence[RealtimePublisher]) -> None:
+    async def start_publishers(
+        self, publishers: Sequence[RealtimePublisher]
+    ) -> None:
         """Launch background publisher coroutines."""
 
         if not publishers:
@@ -203,12 +222,12 @@ class WebsocketMuxHub:
                 pass
         self._publisher_tasks.clear()
 
-    def mount(self, app: FastAPI, route_path: str) -> None:
-        """Register the websocket route on the FastAPI app."""
+    def mount(self, app: Starlette, route_path: str) -> None:
+        """Register the websocket route on the Starlette app."""
 
         async def _endpoint(websocket: WebSocket) -> None:
-            await self.connect(websocket)
             try:
+                await self.connect(websocket)
                 while True:
                     message = await websocket.receive_json()
                     action = message.get("action")
@@ -224,7 +243,7 @@ class WebsocketMuxHub:
             except WebSocketDisconnect:
                 await self.disconnect(websocket)
 
-        app.add_api_websocket_route(route_path, _endpoint)
+        app.router.routes.append(WebSocketRoute(route_path, _endpoint))
 
 
 @dataclass(slots=True)

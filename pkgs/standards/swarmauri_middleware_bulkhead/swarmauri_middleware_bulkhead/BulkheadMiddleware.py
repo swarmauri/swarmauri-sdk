@@ -2,7 +2,7 @@ from asyncio import Semaphore
 from logging import getLogger
 from typing import Any, Callable
 
-from fastapi import Request
+from starlette.requests import Request
 from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase

@@ -3,8 +3,8 @@ import os
 
 import pytest
 from dotenv import load_dotenv
-from fastapi import Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from starlette.requests import Request
+from starlette.responses import JSONResponse, StreamingResponse
 from swarmauri_middleware_llamaguard.LlamaGuardMiddleware import (
     LlamaGuardMiddleware,
 )

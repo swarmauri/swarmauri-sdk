@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "layout-engine",
-    "fastapi",
+    "starlette",
     "uvicorn[standard]",
     "httpx>=0.27",
 ]

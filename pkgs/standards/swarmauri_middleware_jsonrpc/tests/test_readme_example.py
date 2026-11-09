@@ -6,8 +6,10 @@ import re
 from pathlib import Path
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.testclient import TestClient
 
 
 @pytest.mark.example
@@ -23,14 +25,14 @@ def test_readme_usage_example() -> None:
     exec(compile(code_blocks[0], str(readme_path), "exec"), namespace)
 
     app = namespace.get("app")
-    assert isinstance(app, FastAPI), "README example must define a FastAPI app"
+    assert isinstance(app, Starlette), (
+        "README example must define a Starlette app"
+    )
 
-    @app.post("/echo")
-    async def echo(
-        payload: dict[str, object],
-    ) -> dict[str, object]:  # pragma: no cover - exercised via TestClient
-        return {"payload": payload}
+    async def echo(request: Request) -> JSONResponse:
+        return JSONResponse({"payload": await request.json()})
 
+    app.add_route("/echo", echo, methods=["POST"])
     client = TestClient(app)
 
     missing_jsonrpc = client.post("/echo", json={"method": "ping"})
@@ -39,7 +41,7 @@ def test_readme_usage_example() -> None:
 
     invalid_json = client.post(
         "/echo",
-        data="not json",
+        content="not json",
         headers={"content-type": "application/json"},
     )
     assert invalid_json.status_code == 400

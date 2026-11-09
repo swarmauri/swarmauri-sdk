@@ -6,7 +6,8 @@ from ..base import IWebGuiTarget
 class HtmlShell(IWebGuiTarget):
     """Render a minimal SSR HTML snippet for a single page manifest.
 
-    This does not emit <html>/<head>; it returns a <div class='page'> block intended to be
+    This does not emit <html>/<head>; it returns a <div class='page'> block
+    intended to be
     embedded into a larger shell (e.g., SiteRouter.render_shell).
     """
 
@@ -14,7 +15,10 @@ class HtmlShell(IWebGuiTarget):
         tiles_html = []
         for t in manifest.tiles:
             f = t.frame
-            style = f"position:absolute;left:{int(f['x'])}px;top:{int(f['y'])}px;width:{int(f['w'])}px;height:{int(f['h'])}px;"
+            style = (
+                f"position:absolute;left:{int(f['x'])}px;top:{int(f['y'])}px;w"
+                f"idth:{int(f['w'])}px;height:{int(f['h'])}px;"
+            )
             tiles_html.append(
                 f"<div class='tile' data-tile='{t.id}' style='{style}'></div>"
             )

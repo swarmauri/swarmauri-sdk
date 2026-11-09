@@ -16,7 +16,7 @@
 
 # Swarmauri Middleware Exception Handling
 
-Centralized exception and error handling for Swarmauri applications built on FastAPI.
+Centralized exception and error handling for Swarmauri applications built on Starlette.
 
 ## Features
 
@@ -25,7 +25,7 @@ Centralized exception and error handling for Swarmauri applications built on Fas
 - Logs request metadata (method, path, and headers) alongside the stack trace to
   simplify troubleshooting.
 - Registers through the Swarmauri component system and can be attached to any
-  FastAPI application via `app.middleware("http")`.
+  Starlette application using `BaseHTTPMiddleware`.
 
 ## Installation
 
@@ -51,19 +51,21 @@ Attach the middleware to convert uncaught exceptions into the structured error
 response returned by Swarmauri services.
 
 ```python
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+from starlette.applications import Starlette
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.testclient import TestClient
 
 from swarmauri_middleware_exceptionhandling import ExceptionHandlingMiddleware
 
-app = FastAPI()
-app.middleware("http")(ExceptionHandlingMiddleware())
+app = Starlette()
+app.add_middleware(BaseHTTPMiddleware, dispatch=ExceptionHandlingMiddleware())
 
 
-@app.get("/boom")
-async def boom():
+async def boom(_request):
     raise RuntimeError("Boom!")
 
+
+app.add_route("/boom", boom)
 
 client = TestClient(app)
 response = client.get("/boom")
