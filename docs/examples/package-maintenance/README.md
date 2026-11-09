@@ -79,6 +79,7 @@ uv run python -m swarmauri_package_maintenance_demo decide "$run_id" "$approval_
 uv build
 ```
 
-The wheel and source distribution include the Dockerfile and fixture.
+The `swarmauri-demo-package-maintenance` wheel and source distribution include
+the Dockerfile and fixture.
 The installed module uses those files when it builds the workspace, so the
 wheel can run independently of the SDK checkout.
