@@ -18,5 +18,5 @@ class IRunStore(ABC):
 
     @abstractmethod
     def save(self, checkpoint: RunCheckpoint) -> RunCheckpoint:
-        """Atomically advance the expected revision or raise RunConflictError."""
+        """Save atomically or raise RunConflictError on a stale revision."""
         pass

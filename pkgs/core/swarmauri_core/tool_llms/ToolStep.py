@@ -14,7 +14,7 @@ class ProposedToolCall:
 
 @dataclass(frozen=True)
 class ToolStep:
-    """A model response and the original items needed to continue its transcript."""
+    """A model response and the original items needed to continue."""
 
     items: list[dict[str, Any]]
     calls: list[ProposedToolCall] = field(default_factory=list)

@@ -13,7 +13,7 @@ from swarmauri_base.ComponentBase import ComponentBase, ResourceTypes
 
 @ComponentBase.register_model()
 class RunStoreBase(IRunStore, ComponentBase):
-    """Apply shared checkpoint rules over backend-specific atomic operations."""
+    """Apply shared revision rules over atomic backend operations."""
 
     resource: Literal["RunStore"] = ResourceTypes.RUN_STORE.value
     type: Literal["RunStoreBase"] = "RunStoreBase"
