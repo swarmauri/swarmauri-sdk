@@ -214,6 +214,7 @@ members = [
     "plugins/example_plugin",
     "plugins/media_signer",
     "plugins/zdx",
+    "standards/swarmauri_agent_compacting",
     "standards/swarmauri_agent_package_maintenance",
     "standards/swarmauri_agent_runner",
     "standards/swarmauri_agent_skill",

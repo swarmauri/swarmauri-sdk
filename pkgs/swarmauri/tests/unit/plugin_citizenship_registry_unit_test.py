@@ -54,6 +54,16 @@ def test_add_duplicate_entry_noop():
 
 
 @pytest.mark.unit
+def test_compacting_agent_is_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.agents.CompactingAgent"
+        ]
+        == "swarmauri_agent_compacting.CompactingAgent"
+    )
+
+
+@pytest.mark.unit
 def test_compacting_conversation_is_first_class():
     assert (
         PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
