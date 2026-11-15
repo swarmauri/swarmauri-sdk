@@ -2,11 +2,11 @@
 
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri-runstore-sqlite)](https://pepy.tech/projects/swarmauri-runstore-sqlite)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_runstore_sqlite)](https://pepy.tech/projects/swarmauri-runstore-sqlite)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_runstore_sqlite.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_runstore_sqlite)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri-runstore-sqlite/)
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/pypi/v/swarmauri-runstore-sqlite.svg)](https://pypi.org/project/swarmauri-runstore-sqlite/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_runstore_sqlite)](https://pypi.org/project/swarmauri-runstore-sqlite/)
+[![License](https://img.shields.io/pypi/l/swarmauri_runstore_sqlite)](LICENSE)
+[![Release](https://img.shields.io/pypi/v/swarmauri_runstore_sqlite?label=swarmauri_runstore_sqlite&color=green)](https://pypi.org/project/swarmauri-runstore-sqlite/)
 
 ## Features
 
