@@ -218,6 +218,7 @@ members = [
     "standards/swarmauri_agent_runner",
     "standards/swarmauri_agent_skill",
     "standards/swarmauri_agent_realtime",
+    "standards/swarmauri_conversation_compacting",
     "standards/swarmauri_process_docker",
     "standards/swarmauri_process_kubernetes",
     "standards/swarmauri_process_subprocess",
