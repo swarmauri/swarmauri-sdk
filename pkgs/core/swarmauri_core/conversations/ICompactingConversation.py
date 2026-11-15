@@ -40,5 +40,5 @@ class ICompactingConversation(IConversation):
 
     @abstractmethod
     def apply_compaction(self, plan: CompactionPlan, summary: str) -> bool:
-        """Apply a nonempty summary if the conversation still matches the plan."""
+        """Apply a nonempty summary if the plan still matches."""
         pass

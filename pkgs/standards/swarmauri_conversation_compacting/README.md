@@ -1,10 +1,10 @@
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_conversation_compacting)](https://pepy.tech/project/swarmauri_conversation_compacting)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_conversation_compacting)](https://pepy.tech/projects/swarmauri_conversation_compacting)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_conversation_compacting.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_conversation_compacting)
 [![Python](https://img.shields.io/pypi/pyversions/swarmauri_conversation_compacting.svg)](https://pypi.org/project/swarmauri_conversation_compacting/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](https://www.apache.org/licenses/LICENSE-2.0)
-[![PyPI](https://img.shields.io/pypi/v/swarmauri_conversation_compacting.svg)](https://pypi.org/project/swarmauri_conversation_compacting/)
+[![License](https://img.shields.io/pypi/l/swarmauri_conversation_compacting)](LICENSE)
+[![Release](https://img.shields.io/pypi/v/swarmauri_conversation_compacting?label=swarmauri_conversation_compacting&color=green)](https://pypi.org/project/swarmauri_conversation_compacting/)
 
 # Swarmauri Compacting Conversation
 

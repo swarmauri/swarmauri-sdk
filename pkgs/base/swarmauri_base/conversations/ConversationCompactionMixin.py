@@ -48,7 +48,7 @@ class ConversationCompactionMixin(ICompactingConversation, ConversationBase):
 
     @staticmethod
     def _is_complete_turn(messages: Sequence[MessageBase]) -> bool:
-        """Recognize a user turn with a final reply and matched tool results."""
+        """Require a final reply and a result for every tool call."""
         pending: set[str] = set()
         answered = False
         for message in messages[1:]:

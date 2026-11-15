@@ -30,6 +30,9 @@ swarmauri_standard = { workspace = true }
 requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry]
+include = [{ path = "NOTICE", format = ["sdist", "wheel"] }]
+
 [dependency-groups]
 dev = ["pytest>=8.0", "ruff>=0.9.9"]
 
