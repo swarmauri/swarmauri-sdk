@@ -19,12 +19,13 @@ from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.GeminiSchemaConverter import (
     GeminiSchemaConverter,
 )
+from swarmauri_standard.tool_llms._gemini_tool_step import GeminiToolStepMixin
 from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "GeminiToolModel")
-class GeminiToolModel(ToolLLMBase):
+class GeminiToolModel(GeminiToolStepMixin, ToolLLMBase):
     """
     A class that interacts with Gemini-based LLM APIs to process conversations,
     handle tool calls, and

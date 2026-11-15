@@ -216,6 +216,7 @@ members = [
     "plugins/zdx",
     "standards/swarmauri_agent_package_maintenance",
     "standards/swarmauri_agent_runner",
+    "standards/swarmauri_runstore_sqlite",
     "standards/swarmauri_agent_skill",
     "standards/swarmauri_agent_realtime",
     "standards/swarmauri_conversation_compacting",

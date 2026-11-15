@@ -83,3 +83,7 @@ The `swarmauri-demo-package-maintenance` wheel and source distribution include
 the Dockerfile and fixture.
 The installed module uses those files when it builds the workspace, so the
 wheel can run independently of the SDK checkout.
+
+The CLI uses `swarmauri_runstore_sqlite.SqliteRunStore` for checkpoints. To test
+restart, leave a request pending, exit the CLI, then reopen it with
+`resume <run_id>` using the same database.

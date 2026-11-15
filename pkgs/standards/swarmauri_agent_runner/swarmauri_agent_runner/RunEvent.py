@@ -1,9 +1,9 @@
 from typing import Literal
 
 from pydantic import BaseModel
+from swarmauri_standard.messages.QuestionMessage import QuestionMessage
 
 from .ApprovalRequest import ApprovalRequest
-from swarmauri_standard.messages.QuestionMessage import QuestionMessage
 
 
 class RunEvent(BaseModel):

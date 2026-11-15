@@ -5,12 +5,15 @@ from pydantic import Field, PrivateAttr
 from swarmauri_agent_runner import AgentRunner
 from swarmauri_agent_runner.ApprovalDecision import ApprovalDecision
 from swarmauri_agent_runner.RunStore import RunStore
-from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.agents.AgentBase import AgentBase
+from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_base.skills.SkillCatalog import SkillCatalog
+from swarmauri_core.run_stores import IRunStore
+from swarmauri_core.tool_llms import IToolStepModel
+from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_standard.messages.AnswerMessage import AnswerMessage
 from swarmauri_tool_runpackagechecks import RunPackageChecks
-from swarmauri_core.toolkits.IToolkit import IToolkit
 from swarmauri_toolkit_runtime import RuntimeToolkit
 from swarmauri_toolkit_skillset import SkillsetToolkit
 
@@ -22,7 +25,8 @@ class PackageMaintenanceAgent(AgentBase):
     """Run an SDK maintenance workflow in a configured container workspace."""
 
     type: Literal["PackageMaintenanceAgent"] = "PackageMaintenanceAgent"
-    store: RunStore = Field(exclude=True)
+    llm: IToolStepModel | SubclassUnion[LLMBase]
+    store: IRunStore | RunStore = Field(exclude=True)
     skills: SkillCatalog = Field(exclude=True)
     container: IToolkit = Field(exclude=True)
     on_output: Callable | None = Field(default=None, exclude=True)
@@ -52,7 +56,9 @@ class PackageMaintenanceAgent(AgentBase):
         tools.update(skillset.tools)
         tools[checks.name] = checks
         self._runner = AgentRunner(
-            self.llm.propose_tool_step,
+            self.llm
+            if isinstance(self.llm, IToolStepModel)
+            else self.llm.propose_tool_step,
             self.store,
             tools=tools,
             dynamic_tools=lambda: {

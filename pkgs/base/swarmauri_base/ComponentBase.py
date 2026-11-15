@@ -57,6 +57,7 @@ class ResourceTypes(Enum):
 
     UNIVERSAL_BASE = "ComponentBase"
     AGENT = "Agent"
+    RUN_STORE = "RunStore"
     AGENT_FACTORY = "AgentFactory"
     MODEL = "Model"
     MODEL_PROVIDER = "ModelProvider"

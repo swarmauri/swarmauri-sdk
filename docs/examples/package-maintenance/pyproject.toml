@@ -1,14 +1,15 @@
 [project]
 name = "swarmauri-demo-package-maintenance"
-version = "0.1.0"
+version = "0.1.1"
 description = "A runnable Swarmauri demo for streaming Docker checks and resuming approvals."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "swarmauri_agent_package_maintenance==0.1.0",
-    "swarmauri_agent_runner==0.1.0",
-    "swarmauri_base==0.11.0.dev6",
-    "swarmauri_standard==0.11.0.dev8",
+    "swarmauri_agent_package_maintenance==0.1.1",
+    "swarmauri_runstore_sqlite==0.1.0",
+    "swarmauri_agent_runner==0.1.1",
+    "swarmauri_base==0.11.0.dev7",
+    "swarmauri_standard==0.11.0.dev9",
     "swarmauri_toolkit_containertoolkit==0.11.0.dev4",
 ]
 

@@ -134,3 +134,11 @@ def test_query_tools_are_second_class():
         ]
         == "swarmauri_tool_queryknowledgebase.QueryKnowledgeBaseTool"
     )
+
+
+def test_sqlite_run_store_has_first_class_citizenship():
+    from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
+
+    assert PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+        "swarmauri.run_stores.SqliteRunStore"
+    ] == ("swarmauri_runstore_sqlite.SqliteRunStore")

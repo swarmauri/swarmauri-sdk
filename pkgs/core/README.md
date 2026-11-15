@@ -169,4 +169,9 @@ Apache-2.0
 
 When adding or changing a core interface, keep the contract narrow, update downstream base classes where needed, add focused tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
 
+## Run checkpoints and tool steps
 
+`swarmauri_core.run_stores` defines `IRunStore`, `RunCheckpoint`, and
+`RunConflictError`. Checkpoints have an opaque text payload and a revision
+guarded by an atomic save. `swarmauri_core.tool_llms.IToolStepModel` is the
+opt-in contract for proposing tool calls and formatting their results.

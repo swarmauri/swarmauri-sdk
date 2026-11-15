@@ -167,4 +167,8 @@ Apache-2.0
 
 When adding standard components, inherit from the matching `swarmauri_base` class, satisfy the `swarmauri_core` interface, register the component type, document direct instantiation, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
 
+## Resumable tool calls
 
+Pass either existing OpenAI or Gemini tool-model class to
+`swarmauri_agent_runner.AgentRunner` with a run store and an approval policy.
+The runner dispatches tools and the adapter preserves the provider transcript.

@@ -1,55 +1,31 @@
-import sqlite3
-from contextlib import closing
+"""Compatibility API for the original typed SQLite store."""
+
 from pathlib import Path
 
+from swarmauri_core.run_stores import RunConflictError
+
+from ._checkpoint_codec import encode_checkpoint
 from .RunState import RunState
 
-
-class RunConflictError(RuntimeError):
-    """Indicate another caller has already advanced the run."""
+__all__ = ["RunConflictError", "SqliteRunStore"]
 
 
 class SqliteRunStore:
-    """Keep run checkpoints in an on-disk SQLite database."""
+    """Use swarmauri_runstore_sqlite for new integrations."""
 
     def __init__(self, path: str | Path):
-        self.path = Path(path)
-        with closing(sqlite3.connect(self.path)) as conn, conn:
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS runs "
-                "(id TEXT PRIMARY KEY, revision INTEGER NOT NULL, "
-                "state TEXT NOT NULL)"
-            )
+        from swarmauri_runstore_sqlite import SqliteRunStore as CheckpointStore
+
+        self._store = CheckpointStore(path=path)
+        self.path = self._store.path
 
     def create(self, state: RunState) -> None:
-        with closing(sqlite3.connect(self.path)) as conn, conn:
-            conn.execute(
-                "INSERT INTO runs VALUES (?, ?, ?)",
-                (state.run_id, state.revision, state.model_dump_json()),
-            )
+        self._store.create(encode_checkpoint(state))
 
     def load(self, run_id: str) -> RunState:
-        with closing(sqlite3.connect(self.path)) as conn:
-            row = conn.execute(
-                "SELECT state FROM runs WHERE id = ?", (run_id,)
-            ).fetchone()
-        if row is None:
-            raise KeyError(run_id)
-        return RunState.model_validate_json(row[0])
+        return RunState.from_checkpoint(self._store.load(run_id))
 
     def save(self, state: RunState) -> RunState:
-        updated = state.model_copy(update={"revision": state.revision + 1})
-        with closing(sqlite3.connect(self.path)) as conn, conn:
-            cursor = conn.execute(
-                "UPDATE runs SET revision = ?, state = ? "
-                "WHERE id = ? AND revision = ?",
-                (
-                    updated.revision,
-                    updated.model_dump_json(),
-                    state.run_id,
-                    state.revision,
-                ),
-            )
-            if cursor.rowcount != 1:
-                raise RunConflictError(state.run_id)
-        return updated
+        return RunState.from_checkpoint(
+            self._store.save(encode_checkpoint(state, advance=True))
+        )

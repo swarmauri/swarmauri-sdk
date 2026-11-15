@@ -26,14 +26,14 @@ pip install swarmauri_agent_package_maintenance
 
 ```python
 from swarmauri_agent_package_maintenance import PackageMaintenanceAgent
-from swarmauri_agent_runner import SqliteRunStore
+from swarmauri_runstore_sqlite import SqliteRunStore
 from swarmauri_base.skills.SkillCatalog import SkillCatalog
 from swarmauri_standard.tool_llms.OpenAIToolModel import OpenAIToolModel
 from swarmauri_toolkit_containertoolkit import ContainerToolkit
 
 agent = PackageMaintenanceAgent(
     llm=OpenAIToolModel(api_key="your-api-key"),
-    store=SqliteRunStore("maintenance.db"),
+    store=SqliteRunStore(path="maintenance.db"),
     skills=SkillCatalog([]),
     container=ContainerToolkit(container_name="sdk-checks"),
     repository_scope="sdk-checks",
