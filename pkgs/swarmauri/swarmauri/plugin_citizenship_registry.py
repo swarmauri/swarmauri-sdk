@@ -239,6 +239,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.key_providers.InMemoryKeyProvider": (
             "swarmauri_standard.key_providers.InMemoryKeyProvider"
         ),
+        "swarmauri.run_stores.SqliteRunStore": (
+            "swarmauri_runstore_sqlite.SqliteRunStore"
+        ),
         "swarmauri.storage_adapters.MemoryStorageAdapter": (
             "swarmauri_storage_memory.MemoryStorageAdapter"
         ),

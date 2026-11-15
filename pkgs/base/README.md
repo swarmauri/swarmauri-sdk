@@ -180,4 +180,7 @@ Apache-2.0
 
 When adding or changing a base class, keep it aligned with the corresponding `swarmauri_core` interface, preserve direct plugin instantiation patterns, update exports and tests, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
 
+## Run storage
 
+`swarmauri_base.run_stores.RunStoreBase` implements shared checkpoint revision
+rules. A backend supplies an insert, a read, and an atomic compare-and-swap.

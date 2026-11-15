@@ -184,4 +184,6 @@ print(result.get_last().content)
 
 Apache-2.0
 
+## Resumable tool approvals
 
+Pass the tool model to `AgentRunner` to pause before application tools run. This requires `swarmauri_standard>=0.11.0.dev9`.

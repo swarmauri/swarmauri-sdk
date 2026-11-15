@@ -27,6 +27,7 @@ class InterfaceRegistry:
     """
 
     INTERFACE_IMPORT_PATHS: dict[str, str | None] = {
+        "swarmauri.run_stores": "swarmauri_base.run_stores.RunStoreBase",
         "swarmauri.agents": "swarmauri_base.agents.AgentBase",
         "swarmauri.chains": "swarmauri_base.chains.ChainBase",
         "swarmauri.chunkers": "swarmauri_base.chunkers.ChunkerBase",

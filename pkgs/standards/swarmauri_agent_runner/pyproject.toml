@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_runner"
-version = "0.1.0"
+version = "0.1.1"
 description = "Run model tool calls and resume checkpointed human interactions."
 readme = "README.md"
 license = "Apache-2.0"
@@ -14,12 +14,16 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: Apache Software License",
 ]
-dependencies = ["swarmauri_core>=0.11.0.dev6,<0.12","swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_standard>=0.11.0.dev8,<0.12","swarmauri_tool_askuser>=0.1.0,<0.2"]
+dependencies = ["swarmauri_core>=0.11.0.dev7,<0.12","swarmauri_base>=0.11.0.dev7,<0.12","swarmauri_standard>=0.11.0.dev9,<0.12","swarmauri_tool_askuser>=0.1.0,<0.2"]
+
+[project.optional-dependencies]
+sqlite = ["swarmauri_runstore_sqlite>=0.1.0,<0.2"]
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
 
 [tool.uv.sources]
+swarmauri_runstore_sqlite = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
@@ -33,4 +37,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.9.9"]
+dev = ["swarmauri_runstore_sqlite", "pytest>=8.0", "ruff>=0.9.9"]

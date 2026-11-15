@@ -22,6 +22,7 @@ from swarmauri_standard.messages.AgentMessage import AgentMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
+from swarmauri_standard.tool_llms._openai_tool_step import OpenAIToolStepMixin
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
@@ -35,7 +36,7 @@ warnings.warn(
 
 
 @ComponentBase.register_type(LLMBase, "OpenAIToolModel")
-class OpenAIToolModel(LLMBase):
+class OpenAIToolModel(OpenAIToolStepMixin, LLMBase):
     """
     GroqToolModel provides an interface to interact with Groq's large language
     models for tool usage.
