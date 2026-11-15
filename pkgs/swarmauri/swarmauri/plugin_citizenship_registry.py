@@ -290,6 +290,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.chunkers.SlidingWindowChunker": (
             "swarmauri_standard.chunkers.SlidingWindowChunker"
         ),
+        "swarmauri.conversations.CompactingConversation": (
+            "swarmauri_conversation_compacting.CompactingConversation"
+        ),
         "swarmauri.conversations.Conversation": (
             "swarmauri_standard.conversations.Conversation"
         ),
