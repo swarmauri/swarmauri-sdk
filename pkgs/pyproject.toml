@@ -216,6 +216,7 @@ members = [
     "plugins/zdx",
     "standards/swarmauri_agent_package_maintenance",
     "standards/swarmauri_agent_runner",
+    "standards/swarmauri_agent_wimse",
     "standards/swarmauri_runstore_sqlite",
     "standards/swarmauri_agent_skill",
     "standards/swarmauri_agent_realtime",
@@ -463,6 +464,7 @@ ptree_dag_extension_example = { workspace = true }
 swarmauri = { workspace = true }
 swarmauri_agent_package_maintenance = { workspace = true }
 swarmauri_agent_runner = { workspace = true }
+swarmauri_agent_wimse = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_process_docker = { workspace = true }

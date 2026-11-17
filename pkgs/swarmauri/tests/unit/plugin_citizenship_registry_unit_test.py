@@ -142,3 +142,20 @@ def test_sqlite_run_store_has_first_class_citizenship():
     assert PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
         "swarmauri.run_stores.SqliteRunStore"
     ] == ("swarmauri_runstore_sqlite.SqliteRunStore")
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("namespace", "component"),
+    [
+        ("agents", "WimseResearchAgent"),
+        ("tools", "WimseFileTool"),
+    ],
+)
+def test_wimse_research_components_are_first_class(namespace, component):
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            f"swarmauri.{namespace}.{component}"
+        ]
+        == f"swarmauri_agent_wimse.{component}"
+    )

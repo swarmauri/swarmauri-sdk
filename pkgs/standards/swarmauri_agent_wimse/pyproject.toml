@@ -1,0 +1,45 @@
+[project]
+name = "swarmauri_agent_wimse"
+version = "0.1.0"
+description = "Run a WIMSE-authenticated research agent with a delegated file read tool."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "wimse", "agent", "proof-of-possession", "delegation"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+    "swarmauri_base",
+    "swarmauri_standard",
+    "pydantic>=2",
+    "tba-profile-workload-credential-wimse-wit==0.4.0.dev3",
+    "tba-profile-workload-proof-wimse-http-signature==0.4.0.dev2",
+    "tba-provider-jose-cryptography==0.4.0.dev3",
+    "tba-concrete-jwt==0.4.0.dev2",
+]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.agents"]
+WimseResearchAgent = "swarmauri_agent_wimse:WimseResearchAgent"
+
+[project.entry-points."swarmauri.tools"]
+WimseFileTool = "swarmauri_agent_wimse:WimseFileTool"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
