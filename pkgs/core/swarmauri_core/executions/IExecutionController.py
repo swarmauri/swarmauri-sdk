@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from .models import DriverStep, ExecutionCapabilities, ExecutionSnapshot
+from .models import ExecutionSnapshot
 
 
 class IExecutionController(ABC):

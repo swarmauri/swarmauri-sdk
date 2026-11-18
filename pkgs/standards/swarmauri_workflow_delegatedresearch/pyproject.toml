@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["swarmauri_core", "swarmauri_base", "swarmauri_workflow_documentassistant", "swarmauri_workflow_statedriven"]
+dependencies = ["swarmauri_core>=0.11.0.dev8,<0.12", "swarmauri_base>=0.11.0.dev13,<0.12", "swarmauri_workflow_documentassistant>=0.1.0,<0.2", "swarmauri_workflow_statedriven>=0.11.0.dev3,<0.12"]
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"

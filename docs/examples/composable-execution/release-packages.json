@@ -1,0 +1,101 @@
+{
+  "source_pr": "https://github.com/swarmauri/swarmauri-sdk/pull/6321",
+  "packages": [
+    {
+      "name": "swarmauri_core",
+      "member": "core",
+      "version": "0.11.0.dev8",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_base",
+      "member": "base",
+      "version": "0.11.0.dev13",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_standard",
+      "member": "swarmauri_standard",
+      "version": "0.11.0.dev13",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_agent_runner",
+      "member": "standards/swarmauri_agent_runner",
+      "version": "0.1.2",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_workflow_statedriven",
+      "member": "experimental/swarmauri_workflow_statedriven",
+      "version": "0.11.0.dev3",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_tokens_jwt",
+      "member": "standards/swarmauri_tokens_jwt",
+      "version": "0.11.0.dev3",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri",
+      "member": "swarmauri",
+      "version": "0.11.0.dev12",
+      "first_publish": false
+    },
+    {
+      "name": "swarmauri_execution_default",
+      "member": "standards/swarmauri_execution_default",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_taskmanager_default",
+      "member": "standards/swarmauri_taskmanager_default",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_taskstore_sqlite",
+      "member": "standards/swarmauri_taskstore_sqlite",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_permission_explicit",
+      "member": "standards/swarmauri_permission_explicit",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_delegation_attenuating",
+      "member": "standards/swarmauri_delegation_attenuating",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_grantstore_sqlite",
+      "member": "standards/swarmauri_grantstore_sqlite",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_invoker_default",
+      "member": "standards/swarmauri_invoker_default",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_workflow_documentassistant",
+      "member": "standards/swarmauri_workflow_documentassistant",
+      "version": "0.1.0",
+      "first_publish": true
+    },
+    {
+      "name": "swarmauri_workflow_delegatedresearch",
+      "member": "standards/swarmauri_workflow_delegatedresearch",
+      "version": "0.1.0",
+      "first_publish": true
+    }
+  ]
+}
