@@ -180,3 +180,12 @@ legacy `OpenAIAudioTTS` imports emit deprecation warnings and delegate to it.
 DeepInfra and Together have separate `swarmauri_tts_deepinfra` and
 `swarmauri_tts_together` alpha packages. Live provider verification is pending;
 see [verification tracking](../../docs/verification/tts-providers.md).
+
+## TTS lifecycle and canonical imports
+
+New speech integrations use the standalone alpha provider packages, with
+verification issues in docs/verification/tts-providers.md. The bundled
+OpenaiTTS and LLM-named OpenAIAudioTTS remain warning compatibility imports.
+OpenAI's underlying Speech models shut down on 2027-01-06; Realtime requires
+a different adapter. Play.ht and Hyperbolic's old audio endpoint are retired:
+their legacy types remain importable and fail locally before network access.

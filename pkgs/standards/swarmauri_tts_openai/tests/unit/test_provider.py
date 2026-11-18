@@ -93,3 +93,20 @@ def test_invalid_settings_fail_before_requests(transport, settings):
     with pytest.raises(ValueError):
         OpenaiTTS(api_key="offline-key", **settings)
     assert transport == []
+
+
+def test_deprecated_speech_model_warns_without_changing_payload(
+    transport, tmp_path
+):
+    with pytest.warns(FutureWarning, match="2027-01-06"):
+        OpenaiTTS(api_key="offline-key", name="gpt-4o-mini-tts").predict(
+            "hello", str(tmp_path / "speech.mp3")
+        )
+    assert json.loads(transport[0].content)["model"] == "gpt-4o-mini-tts"
+    assert str(transport[0].url) == "https://api.openai.com/v1/audio/speech"
+
+
+def test_realtime_replacement_is_not_sent_to_speech_endpoint(transport):
+    with pytest.raises(ValueError):
+        OpenaiTTS(api_key="offline-key", name="gpt-realtime-2.1-mini")
+    assert not transport

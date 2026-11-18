@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_texttospeech"
-version = "0.11.0.dev4"
+version = "0.11.0.dev5"
 description = "Stateless Swarmauri agent for converting independent text prompts into audio through any TTSBase provider."
 license = "Apache-2.0"
 readme = "README.md"
@@ -39,6 +39,8 @@ keywords = [
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+swarmauri_tts_elevenlabs_dialogue = { workspace = true }
+swarmauri_tts_gemini_dialogue = { workspace = true }
 
 [project.entry-points.'swarmauri.agents']
 TextToSpeechAgent = "swarmauri_agent_texttospeech:TextToSpeechAgent"
@@ -54,6 +56,8 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "swarmauri_tts_elevenlabs_dialogue>=0.1.0a1,<0.2",
+    "swarmauri_tts_gemini_dialogue>=0.1.0a1,<0.2",
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
     "ruff>=0.9.9",

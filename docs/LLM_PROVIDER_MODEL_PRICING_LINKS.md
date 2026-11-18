@@ -369,9 +369,12 @@ Provider links:
 | `whisper-1` | `OpenAIAudio` | [Audio transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription) | [OpenAI pricing](https://openai.com/api/pricing/) |
 | `gpt-4o-transcribe` | `OpenAIAudio` | [Audio transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription) | [OpenAI pricing](https://openai.com/api/pricing/) |
 | `gpt-4o-mini-transcribe` | `OpenAIAudio` | [Audio transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription) | [OpenAI pricing](https://openai.com/api/pricing/) |
-| `tts-1` | `OpenAIAudioTTS` | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
-| `tts-1-hd` | `OpenAIAudioTTS` | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
-| `gpt-4o-mini-tts` | `OpenAIAudioTTS` | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
+| `tts-1` | `swarmauri_tts_openai.OpenaiTTS` (deprecated Speech models) | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
+| `tts-1-hd` | `swarmauri_tts_openai.OpenaiTTS` (deprecated Speech models) | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
+| `gpt-4o-mini-tts` | `swarmauri_tts_openai.OpenaiTTS` (deprecated Speech models) | [Text to speech](https://platform.openai.com/docs/guides/text-to-speech) | [OpenAI pricing](https://openai.com/api/pricing/) |
+
+OpenAI Speech models above are scheduled to shut down on 2027-01-06.
+See [the lifecycle guide](migrations/openai-speech.md); Realtime is a different API.
 
 ## Perplexity
 
@@ -392,7 +395,7 @@ Provider links:
 ## PlayHT (deprecated)
 
 Play.ht has discontinued its TTS service. The old model and pricing links are retired.
-Use the [migration guide](migrations/playht.md) to switch to OpenaiTTS.
+Use the [migration guide](migrations/playht.md) to select a standalone alpha provider; OpenAI Speech has a scheduled shutdown.
 
 ## PyTesseract
 

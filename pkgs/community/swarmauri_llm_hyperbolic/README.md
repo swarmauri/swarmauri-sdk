@@ -16,70 +16,26 @@
 
 # Swarmauri Hyperbolic LLM
 
-`swarmauri_llm_hyperbolic` provides provider-specific imports for Hyperbolic
-inference in Swarmauri applications. The package exports text chat,
-vision-language, and text-to-speech adapters while keeping implementation parity
-with `swarmauri_standard`.
+`swarmauri_llm_hyperbolic` preserves Hyperbolic chat and vision imports and the
+retired `HyperbolicAudioTTS` name. The old `.xyz/v1` API was decommissioned.
+The current Hyperbolic inference service documents text and vision, with new
+endpoints and credentials; it does not document a compatible audio replacement.
 
-Hyperbolic's inference documentation describes OpenAI-compatible chat
-completion APIs under `https://api.hyperbolic.xyz/v1/chat/completions`, model
-catalog discovery under `/v1/models`, vision-language models that accept images
-alongside text, and audio generation through `/v1/audio/generation`. This
-package maps those provider surfaces into Swarmauri components:
+`HyperbolicAudioTTS` now warns and raises a local retirement error on construction
+or execution. No audio request is sent. Select a standalone TTS adapter from the
+[SDK migration guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/migrations/playht.md).
 
-- `HyperbolicModel` for OpenAI-compatible text chat completions.
-- `HyperbolicVisionModel` for vision-language chat completions with image input.
-- `HyperbolicAudioTTS` for text-to-speech audio generation.
-
-## Why Use This Package?
-
-- Keep Hyperbolic-specific inference imports explicit in Swarmauri applications.
-- Use Swarmauri `Conversation` objects with Hyperbolic's OpenAI-compatible chat
-  and vision-language endpoints.
-- Add text-to-speech generation without wiring raw base64 audio responses in
-  application code.
-- Preserve a provider package boundary while relying on shared
-  `swarmauri_standard` runtime implementations.
-
-## FAQ
-
-### What does `swarmauri_llm_hyperbolic` install?
-
-It installs provider package entry points for `HyperbolicModel`,
-`HyperbolicVisionModel`, and `HyperbolicAudioTTS`.
-
-### Which Hyperbolic endpoints does it use?
-
-`HyperbolicModel` and `HyperbolicVisionModel` use Hyperbolic's
-OpenAI-compatible `chat/completions` endpoint. `HyperbolicAudioTTS` posts to
-`https://api.hyperbolic.xyz/v1/audio/generation` and writes the returned base64
-audio payload to a local file.
-
-### Does it support streaming?
-
-`HyperbolicModel` supports synchronous and asynchronous streaming for chat
-completion responses. `HyperbolicAudioTTS` does not support streaming and raises
-`NotImplementedError` for `stream` and `astream`.
-
-### Does it support vision-language prompts?
-
-Yes. `HyperbolicVisionModel` accepts Swarmauri message content lists with text
-and image input. Local image file paths can be converted to base64 data URLs by
-the runtime helper.
-
-### Is the TTS adapter a general LLM?
-
-No. `HyperbolicAudioTTS` is a text-to-speech adapter kept in this provider
-package for compatibility. The runtime deprecation warning points new projects
-toward newer Swarmauri TTS imports when available.
+The chat and vision implementations have not been migrated or live-verified in
+this TTS update. Their presence here does not establish current availability.
+See [Hyperbolic's migration notice](https://www.hyperbolic.ai/docs/inference/overview#moving-from-the-previous-inference-api).
 
 ## Features
 
 - `HyperbolicModel` for sync, async, streaming, and batch chat completion
   workflows.
 - `HyperbolicVisionModel` for image-plus-text prompts against Hyperbolic VLMs.
-- `HyperbolicAudioTTS` for synchronous and asynchronous text-to-speech
-  generation.
+- `HyperbolicAudioTTS` as an import-compatible retired type; it does not call
+  the decommissioned audio API.
 - Model discovery through Hyperbolic's `/models` endpoint.
 - Generation controls including `temperature`, `max_tokens`, `top_p`, `top_k`,
   and `stop`.
@@ -156,21 +112,12 @@ result = model.predict(conversation=conversation)
 print(result.get_last().content)
 ```
 
-### Text To Speech
+### Text To Speech (retired)
 
-```python
-from swarmauri_llm_hyperbolic import HyperbolicAudioTTS
-
-tts = HyperbolicAudioTTS(
-    api_key="HYPERBOLIC_API_KEY",
-    language="EN",
-    speaker="EN-US",
-    speed=1.0,
-)
-
-audio_path = tts.predict("Swarmauri turns model providers into components.")
-print(audio_path)
-```
+Do not construct HyperbolicAudioTTS or HyperbolicTTS: the legacy API was
+decommissioned. Imports remain, but use emits a warning and raises a local
+migration error. See [the SDK guide](../../../docs/migrations/playht.md) and
+[Hyperbolic's migration notice](https://www.hyperbolic.ai/docs/inference/overview#moving-from-the-previous-inference-api).
 
 ## Related Packages
 
@@ -179,7 +126,7 @@ print(audio_path)
 - [swarmauri_llm_mistral](https://pypi.org/project/swarmauri_llm_mistral/)
 - [swarmauri_llm_openai](https://pypi.org/project/swarmauri_llm_openai/)
 - [swarmauri_llm_perplexity](https://pypi.org/project/swarmauri_llm_perplexity/)
-- [OpenAI TTS (Play.ht replacement)](../../swarmauri_standard/swarmauri_standard/tts/OpenaiTTS.py)
+- [OpenAI TTS (Play.ht replacement)](../../standards/swarmauri_tts_openai/README.md)
 
 ## Foundational Swarmauri Packages
 
@@ -211,3 +158,7 @@ print(audio_path)
 Apache-2.0
 
 
+
+The audio retirement does not redirect API keys or rewrite the other LLM/VLM
+components. Those legacy integrations need their own provider migration and
+verification; this update does not claim their current hosted availability.

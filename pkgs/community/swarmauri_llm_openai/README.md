@@ -193,7 +193,7 @@ print(len(audio_bytes))
 - [swarmauri_llm_hyperbolic](https://pypi.org/project/swarmauri_llm_hyperbolic/)
 - [swarmauri_llm_deepinfra](https://pypi.org/project/swarmauri_llm_deepinfra/)
 - [swarmauri_llm_perplexity](https://pypi.org/project/swarmauri_llm_perplexity/)
-- [OpenAI TTS (Play.ht replacement)](../../swarmauri_standard/swarmauri_standard/tts/OpenaiTTS.py)
+- [OpenAI TTS (Play.ht replacement)](../../standards/swarmauri_tts_openai/README.md)
 
 ## Foundational Swarmauri Packages
 
@@ -230,3 +230,8 @@ Pass the tool model to `AgentRunner` to pause before application tools run. This
 install `swarmauri_tts_openai` and use `from swarmauri_tts_openai import OpenaiTTS`.
 The new provider remains alpha and live API verification is tracked in
 [issue #6268](https://github.com/swarmauri/swarmauri-sdk/issues/6268).
+
+OpenAIAudioTTS remains a deprecated compatibility import. The canonical
+swarmauri_tts_openai package also warns that OpenAI's Speech models shut down
+on 2027-01-06. The Realtime replacement uses a different API; see
+[the migration guide](../../../docs/migrations/openai-speech.md).

@@ -63,6 +63,40 @@ print(audio_path)
 Each call is independent. The agent passes only that call's text to the TTS
 provider and never constructs a conversation or system message.
 
+## Structured dialogue and bounded batches
+
+The agent also forwards a nonempty tuple of typed dialogue turns unchanged:
+
+```python
+import os
+
+from swarmauri_agent_texttospeech import TextToSpeechAgent
+from swarmauri_tts_gemini_dialogue import (
+    GeminiDialogueTTS, GeminiDialogueTurn,
+)
+
+provider = GeminiDialogueTTS(
+    api_key=os.environ["GEMINI_API_KEY"],
+    speaker_voices={"A": "Puck", "B": "Kore"},
+)
+agent = TextToSpeechAgent(tts=provider, output_path="dialogue.wav")
+turns = (
+    GeminiDialogueTurn(text="Hello", speaker="A"),
+    GeminiDialogueTurn(text="Hello back", speaker="B"),
+)
+agent.exec(turns)
+# await agent.abatch([turns], max_concurrent=2)
+```
+
+Speaker and voice validation belongs to the selected provider. A JSON string
+is not parsed into turns. Set filenames to match the codec; Gemini/native
+DeepInfra WAV defaults require .wav paths. Async batches default to at most
+five concurrent calls, with a positive integer max_concurrent override.
+
+The OpenAI Speech example above is temporary compatibility: its models have a
+scheduled 2027-01-06 shutdown. All new provider packages remain alpha and live
+verification is pending; see the SDK migration and verification guides.
+
 ## Contributing
 
 This package is part of the
