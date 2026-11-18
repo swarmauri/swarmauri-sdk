@@ -14,6 +14,10 @@ service, and no models or voice IDs are silently translated.
 
 ## Replacement choice
 
+See the [current TTS provider inventory](../research/tts-provider-options.md)
+for DeepInfra models and other hosted options. OpenAI is the immediate adapter
+we can use, rather than an exclusive provider choice.
+
 Use the existing `OpenaiTTS` for text-to-audio files, synchronous/asynchronous
 execution, streaming and batches. It already implements `TTSBase` and works with
 `TextToSpeechAgent`, so callers retain the same file-path contract.
