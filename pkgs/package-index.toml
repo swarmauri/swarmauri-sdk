@@ -2344,6 +2344,42 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tts_deepinfra_kokoro"
+path = "standards/swarmauri_tts_deepinfra_kokoro"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_deepinfra_qwen3"
+path = "standards/swarmauri_tts_deepinfra_qwen3"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_deepinfra_qwen3_voicedesign"
+path = "standards/swarmauri_tts_deepinfra_qwen3_voicedesign"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tts_elevenlabs"
 path = "standards/swarmauri_tts_elevenlabs"
 layer = "40-standards"
@@ -2356,8 +2392,32 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tts_elevenlabs_dialogue"
+path = "standards/swarmauri_tts_elevenlabs_dialogue"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tts_gemini"
 path = "standards/swarmauri_tts_gemini"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_gemini_dialogue"
+path = "standards/swarmauri_tts_gemini_dialogue"
 layer = "40-standards"
 order = 0
 family = "tts"

@@ -2,7 +2,7 @@
 
 # swarmauri_tts_deepinfra
 
-Standalone alpha deepinfra speech synthesis for Swarmauri. DeepInfra `/v1/audio/speech`: Kokoro, Chatterbox Turbo/Multilingual and Orpheus. Catalog model presence does not establish working coverage through this endpoint; verify each model. Native inference, voice cloning and voice design are excluded.
+Standalone alpha deepinfra speech synthesis for Swarmauri. DeepInfra `/v1/openai/audio/speech`: Kokoro, Chatterbox Turbo/Multilingual and Orpheus. Catalog model presence does not establish working coverage through this endpoint; verify each model. Native inference, voice cloning and voice design are excluded.
 
 [![Downloads](https://static.pepy.tech/badge/swarmauri_tts_deepinfra)](https://pepy.tech/projects/swarmauri_tts_deepinfra)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra)
@@ -79,3 +79,9 @@ Verification issue links and evidence requirements are maintained in
 ## License
 
 Apache-2.0. Part of the [Swarmauri SDK](https://github.com/swarmauri/swarmauri-sdk).
+
+The OpenAI-compatible route follows the provider's
+[current Kokoro example](https://api.deepinfra.com/models/hexgrad/Kokoro-82M/docs/openai-tts-http.md).
+Native schemas are separate packages: swarmauri_tts_deepinfra_kokoro,
+swarmauri_tts_deepinfra_qwen3 and swarmauri_tts_deepinfra_qwen3_voicedesign.
+They do not prove model coverage through this OpenAI-compatible adapter.

@@ -422,8 +422,13 @@ members = [
     "standards/swarmauri_tts_cartesia",
     "standards/swarmauri_tts_deepgram",
     "standards/swarmauri_tts_deepinfra",
+    "standards/swarmauri_tts_deepinfra_kokoro",
+    "standards/swarmauri_tts_deepinfra_qwen3",
+    "standards/swarmauri_tts_deepinfra_qwen3_voicedesign",
     "standards/swarmauri_tts_elevenlabs",
+    "standards/swarmauri_tts_elevenlabs_dialogue",
     "standards/swarmauri_tts_gemini",
+    "standards/swarmauri_tts_gemini_dialogue",
     "standards/swarmauri_tts_openai",
     "standards/swarmauri_tts_polly",
     "standards/swarmauri_tts_together",
@@ -503,10 +508,15 @@ swarmauri_transport_retry = { workspace = true }
 swarmauri_transport_websocket = { workspace = true }
 swarmauri_agent_texttospeech = { workspace = true }
 swarmauri_tts_polly = { workspace = true }
+swarmauri_tts_elevenlabs_dialogue = { workspace = true }
+swarmauri_tts_deepinfra_kokoro = { workspace = true }
+swarmauri_tts_deepinfra_qwen3 = { workspace = true }
+swarmauri_tts_deepinfra_qwen3_voicedesign = { workspace = true }
 swarmauri_tts_azure = { workspace = true }
 swarmauri_tts_cartesia = { workspace = true }
 swarmauri_tts_elevenlabs = { workspace = true }
 swarmauri_tts_deepgram = { workspace = true }
+swarmauri_tts_gemini_dialogue = { workspace = true }
 swarmauri_tts_gemini = { workspace = true }
 swarmauri_tts_openai = { workspace = true }
 swarmauri_tts_deepinfra = { workspace = true }

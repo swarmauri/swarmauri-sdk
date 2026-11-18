@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 222 | 222 | first-party split standard packages |
+| `40-standards` | 227 | 227 | first-party split standard packages |
 | `50-community` | 130 | 130 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 37 | 13 | incubating and planning-stage packages |
@@ -249,8 +249,13 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `standards/swarmauri_tts_cartesia` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `standards/swarmauri_tts_deepgram` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `standards/swarmauri_tts_deepinfra` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `standards/swarmauri_tts_deepinfra_kokoro` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `standards/swarmauri_tts_deepinfra_qwen3` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `standards/swarmauri_tts_deepinfra_qwen3_voicedesign` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `standards/swarmauri_tts_elevenlabs` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `standards/swarmauri_tts_elevenlabs_dialogue` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `standards/swarmauri_tts_gemini` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `standards/swarmauri_tts_gemini_dialogue` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `standards/swarmauri_tts_openai` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `standards/swarmauri_tts_polly` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `standards/swarmauri_tts_together` | `tts` | `atomic-concrete` | `standard` | yes |
@@ -706,8 +711,13 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1740,8 +1750,13 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `40-standards` | `standards/swarmauri_tts_cartesia` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `40-standards` | `standards/swarmauri_tts_deepgram` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `40-standards` | `standards/swarmauri_tts_deepinfra` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `40-standards` | `standards/swarmauri_tts_deepinfra_kokoro` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `40-standards` | `standards/swarmauri_tts_deepinfra_qwen3` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `40-standards` | `standards/swarmauri_tts_deepinfra_qwen3_voicedesign` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `40-standards` | `standards/swarmauri_tts_elevenlabs` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `40-standards` | `standards/swarmauri_tts_elevenlabs_dialogue` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `40-standards` | `standards/swarmauri_tts_gemini` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `40-standards` | `standards/swarmauri_tts_gemini_dialogue` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `40-standards` | `standards/swarmauri_tts_openai` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `40-standards` | `standards/swarmauri_tts_polly` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `40-standards` | `standards/swarmauri_tts_together` | `atomic-concrete` | `standard` | yes |

@@ -83,3 +83,7 @@ Never paste keys into logs or issues. See the
 ## License
 
 Apache-2.0. Part of the [Swarmauri SDK](https://github.com/swarmauri/swarmauri-sdk).
+
+For speaker-labelled turns with explicit voice bindings, use the separate
+swarmauri_tts_gemini_dialogue package. It reuses this package's audio decoding
+while preserving a distinct structured input contract.

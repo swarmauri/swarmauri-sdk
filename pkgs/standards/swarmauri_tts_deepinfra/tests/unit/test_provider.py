@@ -57,7 +57,10 @@ def test_file_request_contract(transport, tmp_path):
     path = tmp_path / "speech.mp3"
     assert provider.predict("hello", str(path)) == str(path.resolve())
     assert path.read_bytes() == b"audio"
-    assert str(transport[0].url) == "https://api.deepinfra.com/v1/audio/speech"
+    assert (
+        str(transport[0].url)
+        == "https://api.deepinfra.com/v1/openai/audio/speech"
+    )
     assert transport[0].headers["authorization"] == "Bearer offline-key"
     assert json.loads(transport[0].content) == {
         "model": "hexgrad/Kokoro-82M",
