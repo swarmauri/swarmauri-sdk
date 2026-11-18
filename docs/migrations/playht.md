@@ -82,13 +82,12 @@ and explicit batch paths to match the provider's actual codec, such as .wav
 for Gemini or native DeepInfra defaults. A filename does not convert audio.
 
 The realtime showcase keeps its Groq transcription/reasoning path, imports
-OpenaiTTS from swarmauri_tts_openai, and pins the SDK source revision while
-candidates are unpublished. Its MP3 contract is preserved. Website package
+OpenaiTTS from swarmauri_tts_openai, and pins the published SDK/provider versions from PyPI. Its MP3 contract is preserved. Website package
 examples and public documentation use canonical imports and show alpha status.
 
-Source updates do not publish PyPI releases, merge PRs, deploy consumers or
-verify provider billing/playability. Release the SDK candidates before replacing
-immutable source dependencies with index versions in downstream consumers.
+Source merge and package publication do not deploy consumers or verify provider
+billing/playability. The downstream PyPI pin change passed offline app tests,
+Linux CI, an image build and a network-disabled provider initialization check.
 
 ## Publication status (2026-11-18)
 
