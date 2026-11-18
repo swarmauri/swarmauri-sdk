@@ -17,7 +17,8 @@ See the [provider notice](https://www.hyperbolic.ai/docs/inference/overview#movi
 
 The [provider inventory](../research/tts-provider-options.md) and
 [verification tracker](../verification/tts-providers.md) cover fourteen alpha
-packages. They remain 0.1.0a1 / Development Status :: 3 - Alpha. None has been
+packages. OpenAI is 0.1.0a2; the other candidates are 0.1.0a1. All retain
+Development Status :: 3 - Alpha. None has been
 verified through paid synthesis in this work. Catalog entries, mocked tests
 and a successful import do not establish live availability or audio quality.
 
@@ -47,12 +48,12 @@ not a bidirectional voice session. See [interface boundaries](../research/tts-in
 ## Existing OpenAI integration
 
 The following keeps the previously selected Speech workflow until its shutdown.
-Install the standalone package after its candidate and base releases publish:
+The corrected standalone OpenAI alpha and base releases are published:
 
 ```bash
-uv add --prerelease allow swarmauri_tts_openai
+uv add --prerelease allow swarmauri_tts_openai==0.1.0a2
 # Or:
-pip install --pre swarmauri_tts_openai
+pip install --pre swarmauri_tts_openai==0.1.0a2
 ```
 
 ```python
@@ -81,10 +82,28 @@ and explicit batch paths to match the provider's actual codec, such as .wav
 for Gemini or native DeepInfra defaults. A filename does not convert audio.
 
 The realtime showcase keeps its Groq transcription/reasoning path, imports
-OpenaiTTS from swarmauri_tts_openai, and pins the SDK source revision while
-candidates are unpublished. Its MP3 contract is preserved. Website package
+OpenaiTTS from swarmauri_tts_openai, and pins the published SDK/provider versions from PyPI. Its MP3 contract is preserved. Website package
 examples and public documentation use canonical imports and show alpha status.
 
-Source updates do not publish PyPI releases, merge PRs, deploy consumers or
-verify provider billing/playability. Release the SDK candidates before replacing
-immutable source dependencies with index versions in downstream consumers.
+Source merge and package publication do not deploy consumers or verify provider
+billing/playability. The downstream PyPI pin change passed offline app tests,
+Linux CI, an image build and a network-disabled provider initialization check.
+
+## Publication status (2026-11-18)
+
+OpenAI 0.1.0a2, DeepInfra 0.1.0a1, Together 0.1.0a1 and Gemini 0.1.0a1
+are on PyPI, with base 0.11.0.dev12, standard 0.11.0.dev12,
+OpenAI community 0.11.0.dev5, Hyperbolic community 0.11.0.dev4 and
+TextToSpeechAgent 0.11.0.dev5. Core 0.11.0.dev7, typing 0.11.0.dev4 and
+S3FS 0.11.0.dev3 were already available.
+
+The ten remaining provider packages are source candidates: PyPI rejected the
+next new project with HTTP 429 (Too many new projects created). Their built
+wheels passed offline tests on Python 3.10-3.12, but are not index releases.
+The new facade release and its fourteen-provider tts extra must wait for those
+prerequisites. Follow [#6314](https://github.com/swarmauri/swarmauri-sdk/issues/6314)
+and [release evidence](../releases/tts-alpha-2026-11-18.yaml).
+
+OpenAI 0.1.0a1 is superseded by 0.1.0a2, which constrains HTTPX to the
+supported 0.27-0.28 API. Successful installation is not live API verification;
+all fourteen verification issues remain open and all providers remain Alpha.
