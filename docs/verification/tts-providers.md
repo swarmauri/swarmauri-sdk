@@ -1,6 +1,6 @@
 # Alpha TTS provider verification
 
-All seven packages start at `0.1.0a1` and retain
+All nine packages start at `0.1.0a1` and retain
 `Development Status :: 3 - Alpha` in their `pyproject.toml` and wheel metadata.
 They were implemented against public API documentation and tested offline.
 No live synthesis, speech-quality evaluation or paid provider request was run.
@@ -14,6 +14,8 @@ No live synthesis, speech-quality evaluation or paid provider request was run.
 | `swarmauri_tts_elevenlabs.ElevenLabsTTS` | Unverified | [#6295](https://github.com/swarmauri/swarmauri-sdk/issues/6295) |
 | `swarmauri_tts_deepgram.DeepgramTTS` | Unverified | [#6296](https://github.com/swarmauri/swarmauri-sdk/issues/6296) |
 | `swarmauri_tts_gemini.GeminiTTS` | Unverified | [#6298](https://github.com/swarmauri/swarmauri-sdk/issues/6298) |
+| `swarmauri_tts_polly.PollyTTS` | Unverified | [#6301](https://github.com/swarmauri/swarmauri-sdk/issues/6301) |
+| `swarmauri_tts_azure.AzureTTS` | Unverified | [#6302](https://github.com/swarmauri/swarmauri-sdk/issues/6302) |
 
 ## Run a verification
 
@@ -21,7 +23,10 @@ Use your own authorized account and set its credential locally:
 `OPENAI_API_KEY`, `DEEPINFRA_API_KEY`, `TOGETHER_API_KEY`, `CARTESIA_API_KEY`,
 `ELEVENLABS_API_KEY`, `DEEPGRAM_API_KEY` or `GEMINI_API_KEY`. A key alone never
 enables these live tests. Explicitly set `SWARMAURI_LIVE_TTS=1` to authorize
-billable requests, then run the selected package's `tests/i9n` suite:
+billable requests, then run the selected package's `tests/i9n` suite.
+Polly instead requires explicit `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
+`AWS_REGION` and, for temporary credentials, `AWS_SESSION_TOKEN`. Azure requires
+`AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION`. Credentials alone never opt in:
 
 ```bash
 uv run --directory pkgs/standards/swarmauri_tts_openai \
@@ -38,8 +43,12 @@ Use `SWARMAURI_TTS_MODEL` and `SWARMAURI_TTS_VOICE` to select each documented
 model/voice. Kokoro voices differ from Orpheus or Chatterbox voices. Do not assume
 one provider's voices or credentials transfer to another. Cartesia and ElevenLabs
 require an explicit account-accessible `SWARMAURI_TTS_VOICE`; Deepgram embeds
-the voice in the model ID. Gemini defaults to Kore. Do not paste keys or
-unmasked authorization headers into issues, logs or fixtures.
+the voice in the model ID. Gemini defaults to Kore. For Polly,
+`SWARMAURI_TTS_MODEL` is the engine and `SWARMAURI_TTS_VOICE` is a compatible
+voice. For Azure, `SWARMAURI_TTS_MODEL` is the voice ShortName; the separate
+voice variable is unused. The live harness uses default MP3 for these two;
+other formats require explicit component configuration in a local script. Do not
+paste keys or unmasked authorization headers into issues, logs or fixtures.
 
 Record the commit/package version, model, voice, operation, format/sample rate,
 date and sanitized outcome in the linked issue. Check playable file output,
@@ -80,6 +89,17 @@ Keep the alpha classifier until maintainers review sufficient live evidence.
   requests stateless. Older generateContent, multi-speaker, voice creation and
   Gemini Live contracts need distinct interfaces and are excluded.
 
+- Polly uses SigV4-signed UTF-8 JSON on regional `/v1/speech` endpoints.
+  `name` is the engine; `voice` is a compatible voice ID. Credentials are explicit,
+  including session tokens where applicable; there is no profile/IMDS lookup or
+  automatic credential refresh. Only commercial AWS regions and plain text are
+  supported. Speech marks, SSML and S3 synthesis jobs have different contracts.
+- Azure uses the public regional Speech REST endpoint, resource-key auth and
+  escaped SSML. `name` is a stock voice ShortName. MP3, WAV, raw PCM/mulaw and
+  Ogg/Opus are exposed through an output-format header. Custom voices, sovereign
+  endpoints, token acquisition and batch/Long Audio APIs are excluded. The REST
+  API truncates generated audio at ten minutes; no automatic splitting is done.
+
 Sources: [OpenAI speech API](https://developers.openai.com/api/reference/resources/audio/subresources/speech/methods/create),
 [DeepInfra speech API](https://docs.deepinfra.com/api-reference/audio/openai-audio-speech),
 [Together streaming](https://docs.together.ai/docs/inference/text-to-speech/streaming),
@@ -90,7 +110,11 @@ Sources: [OpenAI speech API](https://developers.openai.com/api/reference/resourc
 [Deepgram output settings](https://developers.deepgram.com/docs/tts-media-output-settings),
 [Gemini speech](https://aistudio.google.com/docs/speech-generation),
 [Gemini streaming](https://ai.google.dev/gemini-api/docs/streaming).
-The priority-two interfaces were checked on 2026-11-18; live behavior remains unverified.
+Priority-two and priority-three interfaces were checked on 2026-11-18;
+live behavior remains unverified. Priority-three references:
+[Polly SynthesizeSpeech](https://docs.aws.amazon.com/polly/latest/APIReference/API_SynthesizeSpeech.html),
+[botocore SigV4 signer](https://github.com/boto/botocore/blob/develop/botocore/auth.py),
+[Azure Speech REST](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/rest-text-to-speech).
 
 ## Compatibility and release order
 
@@ -99,6 +123,6 @@ not depend on `swarmauri_standard`. The standard and community OpenAI packages
 preserve legacy imports through warning shims. The facade exposes canonical
 TTS classes and has a separate `tts` installation extra.
 
-Release `swarmauri_base>=0.11.0.dev9` first, then the seven alpha providers,
+Release `swarmauri_base>=0.11.0.dev10` first, then the nine alpha providers,
 followed by the updated standard/community/facade distributions. Building and
 testing this source candidate does not publish these versions to PyPI.

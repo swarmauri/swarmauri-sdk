@@ -191,5 +191,7 @@ rules. A backend supplies an insert, a read, and an atomic compare-and-swap.
 standalone TTS providers. Provider packages own request schemas, fixed URLs and
 stream decoding. `_speech_endpoint(streaming)` selects provider-owned unary
 and streaming routes; `_audio_content(response)` decodes unary JSON audio when
-needed. Existing binary providers retain their default behavior. Transport does
+needed. `_speech_request(payload, streaming)` prepares headers and body once for
+providers that require XML or an exact body signature. Existing JSON/binary
+providers retain their default behavior. Transport does
 not replay potentially billable requests.

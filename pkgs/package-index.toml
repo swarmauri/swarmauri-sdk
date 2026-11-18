@@ -2296,6 +2296,18 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tts_azure"
+path = "standards/swarmauri_tts_azure"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tts_cartesia"
 path = "standards/swarmauri_tts_cartesia"
 layer = "40-standards"
@@ -2358,6 +2370,18 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tts_openai"
 path = "standards/swarmauri_tts_openai"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_polly"
+path = "standards/swarmauri_tts_polly"
 layer = "40-standards"
 order = 0
 family = "tts"

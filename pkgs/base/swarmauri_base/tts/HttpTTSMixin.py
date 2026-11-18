@@ -25,6 +25,12 @@ class HttpTTSMixin:
         "Select a provider-owned URL without accepting credential redirects."
         return self._speech_url
 
+    def _speech_request(
+        self, payload: dict[str, Any], streaming: bool
+    ) -> dict[str, Any]:
+        """Prepare the exact headers/body once, allowing XML and signing."""
+        return {"headers": self._speech_headers(), "json": payload}
+
     def _audio_content(self, response: httpx.Response) -> bytes:
         """Extract unary audio; JSON providers override this decoding hook."""
         return response.content
@@ -63,8 +69,7 @@ class HttpTTSMixin:
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
                 self._speech_endpoint(False),
-                headers=self._speech_headers(),
-                json=payload,
+                **self._speech_request(payload, False),
             )
             self._check_response(response)
             content = self._audio_content(response)
@@ -79,8 +84,7 @@ class HttpTTSMixin:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
                 self._speech_endpoint(False),
-                headers=self._speech_headers(),
-                json=payload,
+                **self._speech_request(payload, False),
             )
             self._check_response(response)
             content = self._audio_content(response)
@@ -106,8 +110,7 @@ class HttpTTSMixin:
             with client.stream(
                 "POST",
                 self._speech_endpoint(True),
-                headers=self._speech_headers(),
-                json=payload,
+                **self._speech_request(payload, True),
             ) as response:
                 self._check_response(response, streaming=True)
                 for chunk in self._audio_chunks(response):
@@ -124,8 +127,7 @@ class HttpTTSMixin:
             async with client.stream(
                 "POST",
                 self._speech_endpoint(True),
-                headers=self._speech_headers(),
-                json=payload,
+                **self._speech_request(payload, True),
             ) as response:
                 self._check_response(response, streaming=True)
                 async for chunk in self._async_audio_chunks(response):

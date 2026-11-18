@@ -422,6 +422,8 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
+        "swarmauri.tts.PollyTTS": "swarmauri_tts_polly.PollyTTS",
+        "swarmauri.tts.AzureTTS": "swarmauri_tts_azure.AzureTTS",
         "swarmauri.tts.CartesiaTTS": "swarmauri_tts_cartesia.CartesiaTTS",
         "swarmauri.tts.ElevenLabsTTS": (
             "swarmauri_tts_elevenlabs.ElevenLabsTTS"
