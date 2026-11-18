@@ -208,6 +208,12 @@ Default strategy state must be JSON serializable. Custom strategies can
 override dump_strategy/restore_strategy; checkpointing does not serialize
 Python callables or live agent instances.
 
+Built-in strategy callables remain configuration in the versioned graph
+definition and are rebound when the driver is reconstructed. Mutable JSON
+strategy state is checkpointed separately. SplitInputMode expansions enter
+the persisted ready queue, including when an authorized dispatcher is used;
+the dispatcher is not called for the expansion-only step.
+
 Compositions expose restore(execution_id) to rebind drivers on the current
 event loop using the same durable stores, model configuration and token keys.
 Do not call start() to resume an existing task.

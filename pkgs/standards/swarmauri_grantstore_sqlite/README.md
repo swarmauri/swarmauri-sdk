@@ -2,11 +2,11 @@
 
 # swarmauri_grantstore_sqlite
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_grantstore_sqlite/month)](https://pepy.tech/project/swarmauri_grantstore_sqlite)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_grantstore_sqlite)](https://pepy.tech/project/swarmauri_grantstore_sqlite)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_grantstore_sqlite.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_grantstore_sqlite)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_grantstore_sqlite)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_grantstore_sqlite)](https://pypi.org/project/swarmauri_grantstore_sqlite)
 [![License](https://img.shields.io/pypi/l/swarmauri_grantstore_sqlite)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_grantstore_sqlite)](https://pypi.org/project/swarmauri_grantstore_sqlite)
+[![Version](https://img.shields.io/pypi/v/swarmauri_grantstore_sqlite?label=swarmauri_grantstore_sqlite&color=green)](https://pypi.org/project/swarmauri_grantstore_sqlite)
 
 Interchangeable grant stores component for the composable execution framework.
 

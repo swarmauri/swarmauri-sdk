@@ -2,11 +2,11 @@
 
 # swarmauri_execution_default
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_execution_default/month)](https://pepy.tech/project/swarmauri_execution_default)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_execution_default)](https://pepy.tech/project/swarmauri_execution_default)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_execution_default.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_execution_default)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_execution_default)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_execution_default)](https://pypi.org/project/swarmauri_execution_default)
 [![License](https://img.shields.io/pypi/l/swarmauri_execution_default)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_execution_default)](https://pypi.org/project/swarmauri_execution_default)
+[![Version](https://img.shields.io/pypi/v/swarmauri_execution_default?label=swarmauri_execution_default&color=green)](https://pypi.org/project/swarmauri_execution_default)
 
 Interchangeable executions component for the composable execution framework.
 

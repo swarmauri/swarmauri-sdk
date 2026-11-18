@@ -40,6 +40,7 @@ swarmauri_standard = { workspace = true }
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 markers = [
     "test: standard test",
     "unit: Unit tests",

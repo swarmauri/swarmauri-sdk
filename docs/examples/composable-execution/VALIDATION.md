@@ -9,11 +9,13 @@ workspace packages in an isolated worktree.
 | Core execution/authorization contract tests | 10 passed |
 | Existing component, token and checkpoint base checks | 4 passed |
 | Agent runner suite including its new driver | 6 passed |
-| State-driven unit suite including restart/join checks | 156 passed, 1 skipped |
+| State-driven unit suite including restart/join/split/callable checks | 159 passed, 1 skipped |
 | Facade interface/citizenship suites including new components | 25 passed |
 | Existing round-robin assignment suite | 12 passed |
-| Total focused tests | 242 passed, 1 skipped |
+| Total focused tests | 245 passed, 1 skipped |
 | Ruff format/check on changed Python files | Passed |
+| Ruff check with CI's shared configuration | Passed |
+| Package metadata regression check against PR baseline | Passed |
 | Nine new wheel builds using Poetry Core | Passed |
 | Document assistant command | Completed with verified document result |
 | Delegated research command | Completed; recipient grant depths 2, 1, 0 |

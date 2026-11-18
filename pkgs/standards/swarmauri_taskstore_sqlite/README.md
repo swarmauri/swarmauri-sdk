@@ -2,11 +2,11 @@
 
 # swarmauri_taskstore_sqlite
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_taskstore_sqlite/month)](https://pepy.tech/project/swarmauri_taskstore_sqlite)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_taskstore_sqlite)](https://pepy.tech/project/swarmauri_taskstore_sqlite)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_taskstore_sqlite.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_taskstore_sqlite)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_taskstore_sqlite)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_taskstore_sqlite)](https://pypi.org/project/swarmauri_taskstore_sqlite)
 [![License](https://img.shields.io/pypi/l/swarmauri_taskstore_sqlite)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_taskstore_sqlite)](https://pypi.org/project/swarmauri_taskstore_sqlite)
+[![Version](https://img.shields.io/pypi/v/swarmauri_taskstore_sqlite?label=swarmauri_taskstore_sqlite&color=green)](https://pypi.org/project/swarmauri_taskstore_sqlite)
 
 Interchangeable task stores component for the composable execution framework.
 

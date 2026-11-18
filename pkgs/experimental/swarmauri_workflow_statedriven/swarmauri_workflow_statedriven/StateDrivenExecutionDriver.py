@@ -13,6 +13,18 @@ from swarmauri_core.executions import DriverStep, ExecutionCapabilities
 from .state_manager import StateManager
 
 
+class _QueuedStateManager(StateManager):
+    """Route input-mode expansion into the driver's durable ready queue."""
+
+    def __init__(self, queue):
+        super().__init__()
+        self.queue = queue
+
+    def enqueue(self, item):
+        name, value = item
+        self.queue.append([name, value])
+
+
 @ComponentBase.register_type(ExecutionDriverBase, "StateDrivenExecutionDriver")
 class StateDrivenExecutionDriver(ExecutionDriverBase):
     """Reuse conditions, joins and merges with durable scheduling state.
@@ -31,23 +43,37 @@ class StateDrivenExecutionDriver(ExecutionDriverBase):
         return ExecutionCapabilities()
 
     def dump_strategy(self, strategy):
-        return json.loads(json.dumps(vars(strategy)))
+        # Functions belong to the host's versioned graph definition, not
+        # execution state. Keep mutable JSON state such as join counters.
+        state = {
+            key: value
+            for key, value in vars(strategy).items()
+            if not callable(value)
+        }
+        return json.loads(json.dumps(state))
 
     def restore_strategy(self, strategy, state):
-        strategy.__dict__.update(state)
+        for key, value in state.items():
+            if callable(getattr(strategy, key, None)):
+                raise ValueError("Checkpoint cannot replace a callable")
+            setattr(strategy, key, value)
 
     async def step(self, snapshot):
         state = copy.deepcopy(snapshot.state)
-        version = state.setdefault("definition_version", self.definition_version)
+        version = state.setdefault(
+            "definition_version", self.definition_version
+        )
         if version != self.definition_version:
             raise ValueError("Workflow definition version changed")
-        queue = state.setdefault("queue", [[state["start"], state.get("input")]])
+        queue = state.setdefault(
+            "queue", [[state["start"], state.get("input")]]
+        )
         results = state.setdefault("results", {})
         buffers = state.setdefault("buffers", {})
         strategies = state.setdefault("strategies", {})
         if not queue:
             return DriverStep(state, completed=True, result=results)
-        manager = StateManager()
+        manager = _QueuedStateManager(queue)
         manager.state = dict(results)
         manager.join_buffers = buffers
         nodes = {}
@@ -58,7 +84,9 @@ class StateDrivenExecutionDriver(ExecutionDriverBase):
                 saved = strategies.get(name, {}).get(attribute)
                 if saved is not None:
                     self.restore_strategy(strategy, saved)
-                elif attribute == "join_strategy" and hasattr(strategy, "configure"):
+                elif attribute == "join_strategy" and hasattr(
+                    strategy, "configure"
+                ):
                     strategy.configure(
                         sum(t.target == name for t in self.graph.transitions)
                     )
@@ -70,14 +98,18 @@ class StateDrivenExecutionDriver(ExecutionDriverBase):
             output = await asyncio.to_thread(node.run, manager, data, results)
         else:
             prepared = node.prepare_input(manager, data, results)
-            output = self.dispatcher(name, prepared, snapshot)
-            if inspect.isawaitable(output):
-                output = await output
+            output = None
+            if prepared is not None:
+                output = self.dispatcher(name, prepared, snapshot)
+                if inspect.isawaitable(output):
+                    output = await output
         if output is not None:
             results[name] = output
             manager.update_state(name, output)
             for transition in self.graph.transitions:
-                if transition.source != name or not transition.is_triggered(results):
+                if transition.source != name or not transition.is_triggered(
+                    results
+                ):
                     continue
                 target = nodes[transition.target]
                 manager.buffer_input(transition.target, output)
@@ -85,13 +117,19 @@ class StateDrivenExecutionDriver(ExecutionDriverBase):
                 buffer = manager.get_buffer(transition.target)
                 if target.join_strategy.is_satisfied(buffer):
                     raw = manager.pop_buffer(transition.target)
-                    queue.append([transition.target, target.merge_strategy.merge(raw)])
+                    queue.append(
+                        [transition.target, target.merge_strategy.merge(raw)]
+                    )
                     target.join_strategy.reset()
         state["buffers"] = manager.join_buffers
         state["strategies"] = {
             name: {
                 attribute: self.dump_strategy(getattr(node, attribute))
-                for attribute in ("input_mode", "join_strategy", "merge_strategy")
+                for attribute in (
+                    "input_mode",
+                    "join_strategy",
+                    "merge_strategy",
+                )
             }
             for name, node in nodes.items()
         }

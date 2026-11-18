@@ -1,7 +1,7 @@
 """Run focused package-isolated checks for the composable runtime.
 
-Use a Python 3.10-3.12 virtual environment with uv on PATH. Install the selected
-workspace members listed below editable and with --no-deps, then install:
+Use a Python 3.10-3.12 virtual environment with uv on PATH. Install selected
+workspace members below editable and with --no-deps, then install:
 pydantic pyyaml toml numpy httpx starlette jsonschema cryptography PyJWT
 poetry-core pytest pytest-asyncio pytest-timeout pytest-mock pytest-json-report
 python-dotenv pyppeteer ruff==0.15.21
@@ -51,8 +51,6 @@ def main():
                 member,
                 "pytest",
                 "-q",
-                "-o",
-                "asyncio_mode=auto",
             ],
             check=True,
             env=environment,

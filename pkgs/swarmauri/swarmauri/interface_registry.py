@@ -27,16 +27,28 @@ class InterfaceRegistry:
     """
 
     INTERFACE_IMPORT_PATHS: dict[str, str | None] = {
-        "swarmauri.executions": "swarmauri_base.executions.ExecutionControllerBase",
-        "swarmauri.execution_drivers": "swarmauri_base.executions.ExecutionDriverBase",
+        "swarmauri.executions": (
+            "swarmauri_base.executions.ExecutionControllerBase"
+        ),
+        "swarmauri.execution_drivers": (
+            "swarmauri_base.executions.ExecutionDriverBase"
+        ),
         "swarmauri.tasks": "swarmauri_base.tasks.TaskManagerBase",
         "swarmauri.task_stores": "swarmauri_base.tasks.TaskStoreBase",
-        "swarmauri.permissions": "swarmauri_base.permissions.PermissionPolicyBase",
-        "swarmauri.delegations": "swarmauri_base.delegation.DelegationServiceBase",
+        "swarmauri.permissions": (
+            "swarmauri_base.permissions.PermissionPolicyBase"
+        ),
+        "swarmauri.delegations": (
+            "swarmauri_base.delegation.DelegationServiceBase"
+        ),
         "swarmauri.grant_stores": "swarmauri_base.delegation.GrantStoreBase",
         "swarmauri.invocations": "swarmauri_base.invocations.InvokerBase",
-        "swarmauri.authority_strategies": "swarmauri_base.invocations.AuthorityStrategyBase",
-        "swarmauri.workflows": "swarmauri_base.workflows.WorkflowDefinitionBase",
+        "swarmauri.authority_strategies": (
+            "swarmauri_base.invocations.AuthorityStrategyBase"
+        ),
+        "swarmauri.workflows": (
+            "swarmauri_base.workflows.WorkflowDefinitionBase"
+        ),
         "swarmauri.run_stores": "swarmauri_base.run_stores.RunStoreBase",
         "swarmauri.agents": "swarmauri_base.agents.AgentBase",
         "swarmauri.chains": "swarmauri_base.chains.ChainBase",

@@ -2,11 +2,11 @@
 
 # swarmauri_workflow_delegatedresearch
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_workflow_delegatedresearch/month)](https://pepy.tech/project/swarmauri_workflow_delegatedresearch)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_workflow_delegatedresearch)](https://pepy.tech/project/swarmauri_workflow_delegatedresearch)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_workflow_delegatedresearch.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_workflow_delegatedresearch)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_workflow_delegatedresearch)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_workflow_delegatedresearch)](https://pypi.org/project/swarmauri_workflow_delegatedresearch)
 [![License](https://img.shields.io/pypi/l/swarmauri_workflow_delegatedresearch)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_workflow_delegatedresearch)](https://pypi.org/project/swarmauri_workflow_delegatedresearch)
+[![Version](https://img.shields.io/pypi/v/swarmauri_workflow_delegatedresearch?label=swarmauri_workflow_delegatedresearch&color=green)](https://pypi.org/project/swarmauri_workflow_delegatedresearch)
 
 Runnable reference composition built from injectable Swarmauri factors.
 

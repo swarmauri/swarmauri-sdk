@@ -2,11 +2,11 @@
 
 # swarmauri_delegation_attenuating
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_delegation_attenuating/month)](https://pepy.tech/project/swarmauri_delegation_attenuating)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_delegation_attenuating)](https://pepy.tech/project/swarmauri_delegation_attenuating)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_delegation_attenuating.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_delegation_attenuating)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_delegation_attenuating)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_delegation_attenuating)](https://pypi.org/project/swarmauri_delegation_attenuating)
 [![License](https://img.shields.io/pypi/l/swarmauri_delegation_attenuating)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_delegation_attenuating)](https://pypi.org/project/swarmauri_delegation_attenuating)
+[![Version](https://img.shields.io/pypi/v/swarmauri_delegation_attenuating?label=swarmauri_delegation_attenuating&color=green)](https://pypi.org/project/swarmauri_delegation_attenuating)
 
 Interchangeable delegations component for the composable execution framework.
 

@@ -2,11 +2,11 @@
 
 # swarmauri_taskmanager_default
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_taskmanager_default/month)](https://pepy.tech/project/swarmauri_taskmanager_default)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_taskmanager_default)](https://pepy.tech/project/swarmauri_taskmanager_default)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_taskmanager_default.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_taskmanager_default)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_taskmanager_default)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_taskmanager_default)](https://pypi.org/project/swarmauri_taskmanager_default)
 [![License](https://img.shields.io/pypi/l/swarmauri_taskmanager_default)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_taskmanager_default)](https://pypi.org/project/swarmauri_taskmanager_default)
+[![Version](https://img.shields.io/pypi/v/swarmauri_taskmanager_default?label=swarmauri_taskmanager_default&color=green)](https://pypi.org/project/swarmauri_taskmanager_default)
 
 Interchangeable tasks component for the composable execution framework.
 

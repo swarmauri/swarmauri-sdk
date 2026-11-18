@@ -2,11 +2,11 @@
 
 # swarmauri_permission_explicit
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_permission_explicit/month)](https://pepy.tech/project/swarmauri_permission_explicit)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_permission_explicit)](https://pepy.tech/project/swarmauri_permission_explicit)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_permission_explicit.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_permission_explicit)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_permission_explicit)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_permission_explicit)](https://pypi.org/project/swarmauri_permission_explicit)
 [![License](https://img.shields.io/pypi/l/swarmauri_permission_explicit)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_permission_explicit)](https://pypi.org/project/swarmauri_permission_explicit)
+[![Version](https://img.shields.io/pypi/v/swarmauri_permission_explicit?label=swarmauri_permission_explicit&color=green)](https://pypi.org/project/swarmauri_permission_explicit)
 
 Interchangeable permissions component for the composable execution framework.
 

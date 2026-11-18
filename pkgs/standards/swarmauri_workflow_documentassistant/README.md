@@ -2,11 +2,11 @@
 
 # swarmauri_workflow_documentassistant
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_workflow_documentassistant/month)](https://pepy.tech/project/swarmauri_workflow_documentassistant)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_workflow_documentassistant)](https://pepy.tech/project/swarmauri_workflow_documentassistant)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_workflow_documentassistant.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_workflow_documentassistant)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_workflow_documentassistant)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_workflow_documentassistant)](https://pypi.org/project/swarmauri_workflow_documentassistant)
 [![License](https://img.shields.io/pypi/l/swarmauri_workflow_documentassistant)](LICENSE)
-[![Version](https://img.shields.io/pypi/v/swarmauri_workflow_documentassistant)](https://pypi.org/project/swarmauri_workflow_documentassistant)
+[![Version](https://img.shields.io/pypi/v/swarmauri_workflow_documentassistant?label=swarmauri_workflow_documentassistant&color=green)](https://pypi.org/project/swarmauri_workflow_documentassistant)
 
 Runnable reference composition built from injectable Swarmauri factors.
 
