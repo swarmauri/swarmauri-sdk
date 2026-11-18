@@ -422,7 +422,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
-        "swarmauri.tts.OpenaiTTS": "swarmauri_standard.tts.OpenaiTTS",
+        "swarmauri.tts.OpenaiTTS": "swarmauri_tts_openai.OpenaiTTS",
+        "swarmauri.tts.DeepInfraTTS": "swarmauri_tts_deepinfra.DeepInfraTTS",
+        "swarmauri.tts.TogetherTTS": "swarmauri_tts_together.TogetherTTS",
         # Deprecated import compatibility; constructors explain migration.
         "swarmauri.tts.PlayHTModel": "swarmauri_tts_playht.PlayHTModel",
         "swarmauri.tts.PlayhtTTS": "swarmauri_standard.tts.PlayhtTTS",

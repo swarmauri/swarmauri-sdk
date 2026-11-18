@@ -418,6 +418,9 @@ members = [
     "standards/swarmauri_transport_uds_unicast",
     "standards/swarmauri_transport_wsjsonrpcmux",
     "deprecated/swarmauri_tts_playht",
+    "standards/swarmauri_tts_deepinfra",
+    "standards/swarmauri_tts_openai",
+    "standards/swarmauri_tts_together",
     "standards/swarmauri_vectorstore_doc2vec",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
@@ -493,6 +496,9 @@ swarmauri_transport_httpx = { workspace = true }
 swarmauri_transport_retry = { workspace = true }
 swarmauri_transport_websocket = { workspace = true }
 swarmauri_agent_texttospeech = { workspace = true }
+swarmauri_tts_openai = { workspace = true }
+swarmauri_tts_deepinfra = { workspace = true }
+swarmauri_tts_together = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
 swarmauri_auth_idp_azure = { workspace = true }

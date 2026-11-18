@@ -29,16 +29,16 @@ uv add swarmauri_agent_texttospeech
 pip install swarmauri_agent_texttospeech
 ```
 
-Install a TTS provider package alongside the agent. For OpenAI:
+Install a TTS provider package alongside the agent. For the alpha OpenAI provider:
 
 ```bash
-uv add swarmauri_standard
+uv add --prerelease allow swarmauri_tts_openai
 ```
 
 Or with `pip`:
 
 ```bash
-pip install swarmauri_standard
+pip install --pre swarmauri_tts_openai
 ```
 
 ## Usage
@@ -47,7 +47,7 @@ pip install swarmauri_standard
 import os
 
 from swarmauri_agent_texttospeech import TextToSpeechAgent
-from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
+from swarmauri_tts_openai import OpenaiTTS
 
 tts = OpenaiTTS(
     api_key=os.environ["OPENAI_API_KEY"],

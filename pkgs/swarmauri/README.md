@@ -200,3 +200,13 @@ Apache-2.0
 Contributions are welcome. Before adding a new public namespace path, update the interface and citizenship registries, add package-level tests for import resolution, and follow the [Swarmauri SDK contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md).
 
 
+
+## Alpha TTS providers
+
+The `tts` extra installs the separate OpenAI, DeepInfra and Together TTS packages.
+Install with `uv add --prerelease allow "swarmauri[tts]"` or
+`pip install --pre "swarmauri[tts]"` after the candidate releases are published.
+Use `from swarmauri.tts.OpenaiTTS import OpenaiTTS`, or the corresponding
+`DeepInfraTTS` and `TogetherTTS` facade modules. Provider packages remain alpha
+and their live verification issues are listed in
+[the verification guide](../../docs/verification/tts-providers.md).

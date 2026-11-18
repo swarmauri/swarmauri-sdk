@@ -7,17 +7,23 @@ evaluate DeepInfra next rather than assuming OpenAI is the only replacement.
 
 ## Existing Swarmauri adapters
 
-The current SDK has `OpenaiTTS` and `HyperbolicTTS` under
-`swarmauri_standard.tts`. The former supports `tts-1`, `tts-1-hd` and
-`gpt-4o-mini-tts`. Hyperbolic's adapter calls `/v1/audio/generation` and accepts
-language, speaker and speed; its current hosted availability was not verified.
-The older LLM-named audio wrappers are compatibility surfaces.
+This branch adds `swarmauri_tts_openai`, `swarmauri_tts_deepinfra` and
+`swarmauri_tts_together` as standalone **alpha** packages. Their live API coverage
+is still unverified; see the [verification tracker](../verification/tts-providers.md).
 
-No dedicated DeepInfra, Together, ElevenLabs, Cartesia, Deepgram, Gemini TTS,
-Polly or Azure Speech `TTSBase` adapter was found in this checkout. Existing LLM
-integrations with these vendors do not establish TTS support. `OpenaiTTS` has a
-fixed OpenAI URL and model/voice validation, so changing a key alone cannot make
-it call an OpenAI-compatible TTS vendor.
+The bundled `OpenaiTTS` and legacy `OpenAIAudioTTS` imports are compatibility
+shims with deprecation warnings. They share the new OpenAI implementation.
+`HyperbolicTTS` remains bundled and its hosted availability is unverified.
+
+The new adapters implement their specific provider APIs. Together streaming
+requires SSE decoding into raw PCM, unlike OpenAI's binary audio stream.
+DeepInfra's `/v1/audio/speech` adapter deliberately excludes native inference
+and voice-cloning/design endpoints. Catalog model availability does not establish
+endpoint compatibility; verify each model in issue #6269.
+
+No dedicated ElevenLabs, Cartesia, Deepgram, Gemini TTS, Polly or Azure Speech
+`TTSBase` adapter is added here. Existing LLM integrations do not establish TTS
+support.
 
 ## DeepInfra
 
@@ -60,7 +66,7 @@ parameters per model instead of assuming every catalog entry has identical APIs.
 ## Recommended evaluation
 
 1. Keep OpenAI's existing adapter as the immediate supported migration.
-2. Prototype a dedicated `DeepInfraTTS` implementing `TTSBase`: start with Kokoro
+2. Verify the new alpha `DeepInfraTTS` implementing `TTSBase`: start with Kokoro
    and Chatterbox, then Qwen3-TTS for cloning and style controls. Use distinct
    provider configuration; never send one provider's credentials to another.
 3. Compare Cartesia Sonic and Deepgram Aura-2 for interactive voice agents;
@@ -69,5 +75,5 @@ parameters per model instead of assuming every catalog entry has identical APIs.
    prompts. Measure first audio, total generation time, listenability, actual
    billed cost, voice controls, output format and interruption cleanup.
 
-These are integration priorities inferred from documented capabilities. No new
-adapter, provider account, paid synthesis run or benchmark is claimed here.
+These are integration priorities inferred from documented capabilities. The three new adapters are alpha and unverified with live APIs; no provider
+account, paid synthesis run or benchmark is claimed here.

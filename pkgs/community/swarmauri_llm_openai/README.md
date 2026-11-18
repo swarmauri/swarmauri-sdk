@@ -223,3 +223,10 @@ Apache-2.0
 ## Resumable tool approvals
 
 Pass the tool model to `AgentRunner` to pause before application tools run. This requires `swarmauri_standard>=0.11.0.dev9`.
+
+## Speech import migration
+
+`OpenAIAudioTTS` is retained with a deprecation warning. For new speech code,
+install `swarmauri_tts_openai` and use `from swarmauri_tts_openai import OpenaiTTS`.
+The new provider remains alpha and live API verification is tracked in
+[issue #6268](https://github.com/swarmauri/swarmauri-sdk/issues/6268).

@@ -172,3 +172,11 @@ When adding standard components, inherit from the matching `swarmauri_base` clas
 Pass either existing OpenAI or Gemini tool-model class to
 `swarmauri_agent_runner.AgentRunner` with a run store and an approval policy.
 The runner dispatches tools and the adapter preserves the provider transcript.
+
+## Standalone alpha TTS providers
+
+OpenAI speech now lives in `swarmauri_tts_openai`; the bundled `OpenaiTTS` and
+legacy `OpenAIAudioTTS` imports emit deprecation warnings and delegate to it.
+DeepInfra and Together have separate `swarmauri_tts_deepinfra` and
+`swarmauri_tts_together` alpha packages. Live provider verification is pending;
+see [verification tracking](../../docs/verification/tts-providers.md).

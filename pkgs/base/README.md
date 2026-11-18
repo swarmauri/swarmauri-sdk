@@ -184,3 +184,9 @@ When adding or changing a base class, keep it aligned with the corresponding `sw
 
 `swarmauri_base.run_stores.RunStoreBase` implements shared checkpoint revision
 rules. A backend supplies an insert, a read, and an atomic compare-and-swap.
+
+## HTTP TTS transport
+
+`tts.HttpTTSMixin` shares file, streaming and bounded async batch transport for
+standalone TTS providers. Provider packages own request schemas, fixed URLs and
+stream decoding. Transport does not replay potentially billable requests.

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev8"
+version = "0.11.0.dev9"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -51,7 +51,7 @@ dependencies = [
     "typing_extensions",
     "swarmauri_core>=0.11.0.dev7,<0.12",
     "swarmauri_base>=0.11.0.dev7,<0.12",
-    "swarmauri_standard>=0.11.0.dev10,<0.12",
+    "swarmauri_standard>=0.11.0.dev11,<0.12",
 ]
 
 [project.optional-dependencies]
@@ -79,6 +79,12 @@ full = [
     "swarmauri_signing_ed25519",
 ]
 
+tts = [
+    "swarmauri_tts_openai>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra>=0.1.0a1,<0.2",
+    "swarmauri_tts_together>=0.1.0a1,<0.2",
+]
+
 llms = [
     "swarmauri_llm_ai21",
     "swarmauri_llm_anthropic",
@@ -103,6 +109,9 @@ llms = [
 ]
 
 [tool.uv.sources]
+swarmauri_tts_openai = { workspace = true }
+swarmauri_tts_deepinfra = { workspace = true }
+swarmauri_tts_together = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
@@ -166,6 +175,10 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    'swarmauri_tts_deepinfra; python_version < "3.13"',
+    'swarmauri_tts_openai; python_version < "3.13"',
+    'swarmauri_tts_together; python_version < "3.13"',
+
     "pytest>=8.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
