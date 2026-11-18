@@ -3,7 +3,8 @@
 Play.ht's TTS service is discontinued. AudioStack confirmed its voices no longer
 work in its [provider deprecation notice](https://docs.audiostack.ai/changelog/30th-july-2025-playht-deprecation-notice).
 
-Both `swarmauri_tts_playht` and `swarmauri_llm_playht` are deprecated and marked
+Both packages now live under `pkgs/deprecated/` and retain their distribution
+and import names. `swarmauri_tts_playht` and `swarmauri_llm_playht` are deprecated and marked
 inactive. The bundled `PlayhtTTS` and legacy LLM `PlayHTModel` are deprecated too.
 Old imports and facade names remain available for compatibility, but construction
 raises a local error before credentials are validated or a network request occurs.

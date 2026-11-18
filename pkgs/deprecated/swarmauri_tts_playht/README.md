@@ -9,7 +9,7 @@ Its `PlayHTModel` implements `TTSBase` and converts independent text inputs into
 audio files without pretending to be an LLM.
 
 [![PyPI Downloads](https://static.pepy.tech/badge/swarmauri_tts_playht)](https://pepy.tech/projects/swarmauri_tts_playht)
-[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_playht.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_playht/)
+[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_tts_playht.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_tts_playht/)
 [![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_playht/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_playht)](https://pypi.org/project/swarmauri_tts_playht/)
 [![PyPI Version](https://img.shields.io/pypi/v/swarmauri_tts_playht)](https://pypi.org/project/swarmauri_tts_playht/)

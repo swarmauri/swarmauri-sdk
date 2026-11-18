@@ -64,8 +64,44 @@ order_source = "inferred"
 order_reason = "foundation layers are atomic by policy"
 
 [[packages]]
+name = "swarmauri_agent_package_maintenance"
+path = "standards/swarmauri_agent_package_maintenance"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_agent_realtime"
 path = "standards/swarmauri_agent_realtime"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_agent_runner"
+path = "standards/swarmauri_agent_runner"
+layer = "40-standards"
+order = 0
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_agent_skill"
+path = "standards/swarmauri_agent_skill"
 layer = "40-standards"
 order = 0
 family = "agent"
@@ -513,6 +549,18 @@ path = "standards/swarmauri_cipher_suite_yubikey_fips"
 layer = "40-standards"
 order = 0
 family = "cipher_suite"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_conversation_compacting"
+path = "standards/swarmauri_conversation_compacting"
+layer = "40-standards"
+order = 0
+family = "conversation"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1240,6 +1288,42 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_process_docker"
+path = "standards/swarmauri_process_docker"
+layer = "40-standards"
+order = 0
+family = "process"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_process_kubernetes"
+path = "standards/swarmauri_process_kubernetes"
+layer = "40-standards"
+order = 0
+family = "process"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_process_subprocess"
+path = "standards/swarmauri_process_subprocess"
+layer = "40-standards"
+order = 0
+family = "process"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_prompt_j2prompttemplate"
 path = "standards/swarmauri_prompt_j2prompttemplate"
 layer = "40-standards"
@@ -1281,6 +1365,18 @@ path = "standards/swarmauri_publisher_webhook"
 layer = "40-standards"
 order = 0
 family = "publisher"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_runstore_sqlite"
+path = "standards/swarmauri_runstore_sqlite"
+layer = "40-standards"
+order = 0
+family = "runstore"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1708,6 +1804,42 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_activateskill"
+path = "standards/swarmauri_tool_activateskill"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_askuser"
+path = "standards/swarmauri_tool_askuser"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_cancelprocess"
+path = "standards/swarmauri_tool_cancelprocess"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_containerfeedchars"
 path = "standards/swarmauri_tool_containerfeedchars"
 layer = "40-standards"
@@ -1768,8 +1900,140 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tool_inspectruntimetool"
+path = "standards/swarmauri_tool_inspectruntimetool"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_inspectskill"
+path = "standards/swarmauri_tool_inspectskill"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_listruntimetools"
+path = "standards/swarmauri_tool_listruntimetools"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_listskills"
+path = "standards/swarmauri_tool_listskills"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tool_matplotlib"
 path = "standards/swarmauri_tool_matplotlib"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_readprocessoutput"
+path = "standards/swarmauri_tool_readprocessoutput"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_readskillresource"
+path = "standards/swarmauri_tool_readskillresource"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_registerruntimetool"
+path = "standards/swarmauri_tool_registerruntimetool"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_replaceruntimetool"
+path = "standards/swarmauri_tool_replaceruntimetool"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_runbashscript"
+path = "standards/swarmauri_tool_runbashscript"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_runcommand"
+path = "standards/swarmauri_tool_runcommand"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_runpackagechecks"
+path = "standards/swarmauri_tool_runpackagechecks"
 layer = "40-standards"
 order = 0
 family = "tool"
@@ -1794,6 +2058,30 @@ order_reason = "single-capability package by default"
 [[packages]]
 name = "swarmauri_tool_subprocess"
 path = "standards/swarmauri_tool_subprocess"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_unregisterruntimetool"
+path = "standards/swarmauri_tool_unregisterruntimetool"
+layer = "40-standards"
+order = 0
+family = "tool"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tool_writestdin"
+path = "standards/swarmauri_tool_writestdin"
 layer = "40-standards"
 order = 0
 family = "tool"
@@ -2104,19 +2392,6 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
-name = "swarmauri_agent_skill"
-path = "standards/swarmauri_agent_skill"
-layer = "40-standards"
-order = 1
-family = "agent"
-role = "composite-concrete"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "raised to order 1 because it depends on same-layer package swarmauri_tool_skill_execution at 40.0"
-composes = ["swarmauri_tool_skill_execution"]
-
-[[packages]]
 name = "swarmauri_certs_composite"
 path = "standards/swarmauri_certs_composite"
 layer = "40-standards"
@@ -2257,19 +2532,6 @@ order_reason = "raised to order 1 because it depends on same-layer package swarm
 composes = ["swarmauri_transport_h2mux"]
 
 [[packages]]
-name = "swarmauri_tts_playht"
-path = "standards/swarmauri_tts_playht"
-layer = "40-standards"
-order = 1
-family = "tts"
-role = "composite-concrete"
-maturity = "standard"
-workspace = true
-order_source = "inferred"
-order_reason = "raised to order 1 because it depends on same-layer package swarmauri_agent_texttospeech at 40.0"
-composes = ["swarmauri_agent_texttospeech"]
-
-[[packages]]
 name = "swarmauri_vectorstore_doc2vec"
 path = "standards/swarmauri_vectorstore_doc2vec"
 layer = "40-standards"
@@ -2319,7 +2581,6 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "orchestrator signal from metadata for swarmauri_toolkit_containertoolkit"
-composes = ["swarmauri_tool_containerfeedchars", "swarmauri_tool_containermakepr", "swarmauri_tool_containernewsession"]
 
 [[packages]]
 name = "swarmauri_toolkit_runtime"
@@ -2332,6 +2593,18 @@ maturity = "standard"
 workspace = true
 order_source = "inferred"
 order_reason = "orchestrator signal from metadata for swarmauri_toolkit_runtime"
+
+[[packages]]
+name = "swarmauri_toolkit_skillset"
+path = "standards/swarmauri_toolkit_skillset"
+layer = "40-standards"
+order = 2
+family = "toolkit"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "orchestrator signal from metadata for swarmauri_toolkit_skillset"
 
 [[packages]]
 name = "swarmauri_transport_https_unicast"
@@ -2814,19 +3087,6 @@ maturity = "community"
 workspace = true
 order_source = "inferred"
 order_reason = "single-capability package by default"
-
-[[packages]]
-name = "swarmauri_llm_playht"
-path = "community/swarmauri_llm_playht"
-layer = "50-community"
-order = 0
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-order_source = "inferred"
-order_reason = "single-capability package by default"
-composes = ["swarmauri_tts_playht"]
 
 [[packages]]
 name = "swarmauri_llm_whisper"
@@ -4502,6 +4762,30 @@ path = "deprecated/swarmauri_experimental"
 layer = "90-deprecated"
 order = 0
 family = "experimental"
+role = "compat"
+maturity = "deprecated"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_llm_playht"
+path = "deprecated/swarmauri_llm_playht"
+layer = "90-deprecated"
+order = 0
+family = "llm"
+role = "compat"
+maturity = "deprecated"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_playht"
+path = "deprecated/swarmauri_tts_playht"
+layer = "90-deprecated"
+order = 0
+family = "tts"
 role = "compat"
 maturity = "deprecated"
 workspace = true

@@ -1,0 +1,46 @@
+contract_version: "1.0.0"
+artifact_type: release
+id: playht-deprecation-2026-11-17
+version: "1.0.0"
+owner: swarmauri-sdk maintainers
+status: validated
+review_date: "2026-11-17"
+sources:
+  - https://github.com/swarmauri/swarmauri-sdk/pull/6267
+  - https://docs.audiostack.ai/changelog/30th-july-2025-playht-deprecation-notice
+facts:
+  - Both Play.ht distributions move to pkgs/deprecated without changing import names.
+  - Stable 0.11.0 releases carry Development Status 7 - Inactive.
+  - Import emits FutureWarning; construction fails locally with migration guidance.
+assumptions:
+  - Existing repository PyPI publishing credentials remain available to the release workflow.
+inferences:
+  - Stable releases are needed so PyPI default project metadata displays inactive status.
+dependencies:
+  - swarmauri_tts_playht==0.11.0 must publish before swarmauri_llm_playht==0.11.0.
+risks:
+  - Already installed older releases cannot be changed remotely.
+  - Publication is irreversible; source rollback does not revoke distributed wheels.
+metrics:
+  - Both PyPI project JSON responses must report version 0.11.0 and the inactive classifier.
+acceptance_criteria:
+  - Clean wheel installation, visible import warning and no-network construction checks pass.
+  - Workspace and package index point to deprecated paths.
+  - Published wheel hashes match the release workflow artifacts.
+release_version:
+  - swarmauri_tts_playht==0.11.0
+  - swarmauri_llm_playht==0.11.0
+scope:
+  - pkgs/deprecated/swarmauri_tts_playht
+  - pkgs/deprecated/swarmauri_llm_playht
+gates:
+  - Package tests, Ruff, wheel metadata inspection and clean-install verification.
+  - Repository PyPI authentication and environment policies apply.
+artifacts:
+  - Wheel and source distribution for each release.
+rollout:
+  - Publish the standalone TTS package, verify PyPI metadata, then publish the LLM-named alias.
+  - Update catalog source paths and migration guidance after the move.
+rollback:
+  - Correct an erroneous release with a new version; do not silently restore the discontinued service.
+  - Yank a defective artifact only if necessary and separately authorized.
