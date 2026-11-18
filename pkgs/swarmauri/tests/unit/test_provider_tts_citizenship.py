@@ -8,6 +8,8 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     "name,package",
     [
+        ("PollyTTS", "swarmauri_tts_polly"),
+        ("AzureTTS", "swarmauri_tts_azure"),
         ("CartesiaTTS", "swarmauri_tts_cartesia"),
         ("ElevenLabsTTS", "swarmauri_tts_elevenlabs"),
         ("DeepgramTTS", "swarmauri_tts_deepgram"),
@@ -42,13 +44,15 @@ def test_facade_imports_point_to_standalone_classes():
 @pytest.mark.parametrize(
     "name,vendor",
     [
+        ("PollyTTS", "polly"),
+        ("AzureTTS", "azure"),
         ("CartesiaTTS", "cartesia"),
         ("ElevenLabsTTS", "elevenlabs"),
         ("DeepgramTTS", "deepgram"),
         ("GeminiTTS", "gemini"),
     ],
 )
-def test_priority_two_facade_imports(name, vendor):
+def test_standalone_facade_imports(name, vendor):
     import importlib
 
     facade = importlib.import_module(f"swarmauri.tts.{name}")

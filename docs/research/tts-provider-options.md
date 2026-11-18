@@ -1,6 +1,6 @@
 # TTS provider options
 
-Initial inventory checked on 2026-11-17; priority-two API contracts updated on 2026-11-18. This is an API and
+Initial inventory checked on 2026-11-17; priority-two/three API contracts updated on 2026-11-18. This is an API and
 integration inventory, not a listening test or latency benchmark. Model catalogs
 and prices can change. Keep `gpt-4o-mini-tts` as the immediate migration option;
 evaluate DeepInfra next rather than assuming OpenAI is the only replacement.
@@ -8,7 +8,7 @@ evaluate DeepInfra next rather than assuming OpenAI is the only replacement.
 ## Existing Swarmauri adapters
 
 This branch adds standalone **alpha** packages for OpenAI, DeepInfra, Together,
-Cartesia, ElevenLabs, Deepgram Aura and Gemini Interactions TTS. Their live API coverage
+Cartesia, ElevenLabs, Deepgram Aura, Gemini Interactions, Amazon Polly and Azure Speech TTS. Their live API coverage
 is still unverified; see the [verification tracker](../verification/tts-providers.md).
 
 The bundled `OpenaiTTS` and legacy `OpenAIAudioTTS` imports are compatibility
@@ -21,7 +21,10 @@ DeepInfra's `/v1/audio/speech` adapter deliberately excludes native inference
 and voice-cloning/design endpoints. Catalog model availability does not establish
 endpoint compatibility; verify each model in issue #6269.
 
-Polly and Azure Speech remain future candidates. The four priority-two packages
+Priority three adds `swarmauri_tts_polly` and `swarmauri_tts_azure`. Polly
+uses explicit SigV4 credentials and engine/voice pairs; Azure uses a regional
+resource key and escaped SSML with stock voice ShortNames. Their distinct APIs
+remain separate packages. The four priority-two packages
 implement separate contracts: Cartesia versioned bytes, ElevenLabs single-speaker
 REST, Deepgram Aura REST and Gemini 3.8 Interactions JSON/SSE. Other API families,
 including structured dialogue, Gemini Live and voice management, need distinct
@@ -77,5 +80,5 @@ parameters per model instead of assuming every catalog entry has identical APIs.
    prompts. Measure first audio, total generation time, listenability, actual
    billed cost, voice controls, output format and interruption cleanup.
 
-These are integration priorities inferred from documented capabilities. All seven new adapters are alpha and unverified with live APIs; no provider
+These are integration priorities inferred from documented capabilities. All nine new adapters are alpha and unverified with live APIs; no provider
 account, paid synthesis run or benchmark is claimed here.
