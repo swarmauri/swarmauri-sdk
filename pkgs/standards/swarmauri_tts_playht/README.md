@@ -1,3 +1,5 @@
+> **Deprecated: Play.ht service discontinued.** This package is retained for import compatibility. Construction fails locally with migration instructions. Use `swarmauri_standard.tts.OpenaiTTS.OpenaiTTS`; install with `uv add swarmauri_standard` or `pip install swarmauri_standard`. See the [migration guide](../../../docs/migrations/playht.md). The examples below describe the retired service and must not be used for new integrations.
+
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 # Swarmauri PlayHT Text-to-Speech

@@ -12,10 +12,7 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Importing PlayHTModel from swarmauri.llms is deprecated and will be "
-    "removed in a future version. Please use 'from swarmauri_standard.tts "
-    "import "
-    "PlayhtTTS' or 'from swarmauri.tts import PlayhtTTS' instead.",
+    "Play.ht has discontinued its TTS service. This provider is deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI voice. Play.ht credentials and voice IDs cannot be reused.",
     DeprecationWarning,
     stacklevel=2,
 )
@@ -72,6 +69,10 @@ class PlayHTModel(LLMBase):
         """
         Initialize the PlayHTModel with API credentials and voice settings.
         """
+        message = "Play.ht has discontinued its TTS service. This provider is deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI voice. Play.ht credentials and voice IDs cannot be reused."
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        raise RuntimeError(message)
+
         super().__init__(**data)
         self._headers = {
             "accept": "audio/mpeg",

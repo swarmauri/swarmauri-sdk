@@ -389,21 +389,10 @@ Provider links:
 | `sonar` | `PerplexityModel` | [Model cards](https://docs.perplexity.ai/guides/model-cards) | [Pricing](https://docs.perplexity.ai/docs/getting-started/pricing) |
 | `r1-1776` | `PerplexityModel` | [Model cards](https://docs.perplexity.ai/guides/model-cards) | [Pricing](https://docs.perplexity.ai/docs/getting-started/pricing) |
 
-## PlayHT
+## PlayHT (deprecated)
 
-Provider links:
-
-- API reference: [PlayHT API docs](https://docs.play.ht/)
-- OpenAPI reference: [PlayHT generated API reference](https://playht.github.io/api-docs-generator/)
-- Pricing: [PlayHT pricing](https://play.ht/pricing/)
-
-| Model | SDK surface | Model documentation | Pricing documentation |
-| --- | --- | --- | --- |
-| `PlayDialog` | `PlayhtTTS` | [PlayHT API docs](https://docs.play.ht/) | [PlayHT pricing](https://play.ht/pricing/) |
-| `Play3.0-mini` | `PlayHTModel`, `PlayhtTTS` | [PlayHT API docs](https://docs.play.ht/) | [PlayHT pricing](https://play.ht/pricing/) |
-| `PlayHT2.0-turbo` | `PlayHTModel`, `PlayhtTTS` | [PlayHT API docs](https://docs.play.ht/) | [PlayHT pricing](https://play.ht/pricing/) |
-| `PlayHT1.0` | `PlayHTModel`, `PlayhtTTS` | [PlayHT API docs](https://docs.play.ht/) | [PlayHT pricing](https://play.ht/pricing/) |
-| `PlayHT2.0` | `PlayHTModel`, `PlayhtTTS` | [PlayHT API docs](https://docs.play.ht/) | [PlayHT pricing](https://play.ht/pricing/) |
+Play.ht has discontinued its TTS service. The old model and pricing links are retired.
+Use the [migration guide](migrations/playht.md) to switch to OpenaiTTS.
 
 ## PyTesseract
 

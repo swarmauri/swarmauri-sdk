@@ -1,13 +1,13 @@
 [project]
 name = "swarmauri_tts_playht"
-version = "0.11.0.dev4"
-description = "Standalone PlayHT text-to-speech provider, stateless agent integration, and CLI for Swarmauri."
+version = "0.11.0.dev5"
+description = "Deprecated Play.ht compatibility package; migrate to swarmauri_standard OpenaiTTS."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk"
 requires-python = ">=3.10,<3.13"
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 7 - Inactive",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",

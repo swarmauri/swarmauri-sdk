@@ -10,6 +10,16 @@ from swarmauri_tts_playht.cli import build_parser, main
 pytestmark = pytest.mark.unit
 
 
+def test_retired_cli_explains_migration_without_credentials(monkeypatch):
+    monkeypatch.delenv("PLAYHT_API_KEY", raising=False)
+    monkeypatch.delenv("PLAYHT_USER_ID", raising=False)
+    stderr = io.StringIO()
+    result = main(["hello"], error_stream=stderr)
+    assert result == 2
+    assert "discontinued" in stderr.getvalue()
+    assert "OpenaiTTS" in stderr.getvalue()
+
+
 class FakePlayHTTTS:
     """Record CLI inputs without calling PlayHT."""
 

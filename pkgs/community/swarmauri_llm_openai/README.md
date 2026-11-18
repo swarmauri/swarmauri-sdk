@@ -193,7 +193,7 @@ print(len(audio_bytes))
 - [swarmauri_llm_hyperbolic](https://pypi.org/project/swarmauri_llm_hyperbolic/)
 - [swarmauri_llm_deepinfra](https://pypi.org/project/swarmauri_llm_deepinfra/)
 - [swarmauri_llm_perplexity](https://pypi.org/project/swarmauri_llm_perplexity/)
-- [swarmauri_llm_playht](https://pypi.org/project/swarmauri_llm_playht/)
+- [OpenAI TTS (Play.ht replacement)](../../swarmauri_standard/swarmauri_standard/tts/OpenaiTTS.py)
 
 ## Foundational Swarmauri Packages
 

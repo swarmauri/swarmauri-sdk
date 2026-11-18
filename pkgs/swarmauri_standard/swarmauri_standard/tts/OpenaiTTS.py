@@ -1,5 +1,4 @@
 import asyncio
-import io
 import os
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal
 
@@ -148,25 +147,20 @@ class OpenaiTTS(TTSBase):
             "model": self.name,
             "voice": self.voice,
             "input": text,
-            "stream": True,
         }
 
         try:
             with httpx.Client(timeout=30) as client:
-                response = client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
-
-            audio_bytes = io.BytesIO()
-            for chunk in response.iter_bytes():
-                if chunk:
-                    yield chunk
-                    audio_bytes.write(chunk)
+                with client.stream(
+                    "POST", self._BASE_URL, headers=self._headers, json=payload
+                ) as response:
+                    response.raise_for_status()
+                    for chunk in response.iter_bytes():
+                        if chunk:
+                            yield chunk
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Text-to-Speech streaming failed: {e}")
 
-    @retry_on_status_codes((429, 529), max_retries=1)
     async def astream(self, text: str) -> AsyncIterator[bytes]:
         """
         Asynchronously streams TTS audio using httpx.
@@ -180,21 +174,17 @@ class OpenaiTTS(TTSBase):
             "model": self.name,
             "voice": self.voice,
             "input": text,
-            "stream": True,
         }
 
         try:
             async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.post(
-                    self._BASE_URL, headers=self._headers, json=payload
-                )
-                response.raise_for_status()
-                audio_bytes = io.BytesIO()
-
-                async for chunk in response.aiter_bytes():
-                    if chunk:
-                        yield chunk
-                        audio_bytes.write(chunk)
+                async with client.stream(
+                    "POST", self._BASE_URL, headers=self._headers, json=payload
+                ) as response:
+                    response.raise_for_status()
+                    async for chunk in response.aiter_bytes():
+                        if chunk:
+                            yield chunk
         except httpx.HTTPStatusError as e:
             raise RuntimeError(f"Text-to-Speech streaming failed: {e}")
 
@@ -254,5 +244,5 @@ class OpenaiTTS(TTSBase):
         Returns:
             List[str]: List of allowed model names.
         """
-        models_data = ["tts-1", "tts-1-hd"]
+        models_data = list(self.allowed_models)
         return models_data
