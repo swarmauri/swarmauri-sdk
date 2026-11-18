@@ -4,11 +4,11 @@
 
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri_llm_playht/">
-        <img src="https://static.pepy.tech/badge/swarmauri_llm_playht/month" alt="PyPI - Downloads"/></a>
+        <img src="https://img.shields.io/pypi/dm/swarmauri_llm_playht" alt="PyPI - Downloads"/></a>
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_llm_playht/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_llm_playht.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_playht/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
+        <img src="https://img.shields.io/pypi/pyversions/swarmauri_llm_playht alt="PyPI - Python Version"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_playht/">
         <img src="https://img.shields.io/pypi/l/swarmauri_llm_playht" alt="PyPI - License"/></a>
     <a href="https://pypi.org/project/swarmauri_llm_playht/">

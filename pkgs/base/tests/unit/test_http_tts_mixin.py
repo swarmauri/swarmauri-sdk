@@ -1,4 +1,4 @@
-"""Exercise transport behavior without any provider credentials or API calls."""
+"Exercise transport behavior without any provider credentials or API calls."
 
 import asyncio
 from pathlib import Path

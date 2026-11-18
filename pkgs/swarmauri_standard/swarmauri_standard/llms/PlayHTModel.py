@@ -12,7 +12,12 @@ from swarmauri_base.llms.LLMBase import LLMBase
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 warnings.warn(
-    "Play.ht has discontinued its TTS service. This provider is deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI voice. Play.ht credentials and voice IDs cannot be reused.",
+    (
+        "Play.ht has discontinued its TTS service. This provider is "
+        "deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS "
+        "with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI "
+        "voice. Play.ht credentials and voice IDs cannot be reused."
+    ),
     DeprecationWarning,
     stacklevel=2,
 )
@@ -69,7 +74,13 @@ class PlayHTModel(LLMBase):
         """
         Initialize the PlayHTModel with API credentials and voice settings.
         """
-        message = "Play.ht has discontinued its TTS service. This provider is deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI voice. Play.ht credentials and voice IDs cannot be reused."
+        message = (
+            "Play.ht has discontinued its TTS service. This provider is"
+            " deprecated; use "
+            "swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with "
+            "OPENAI_API_KEY, a supported OpenAI model, and an OpenAI "
+            "voice. Play.ht credentials and voice IDs cannot be reused."
+        )
         warnings.warn(message, DeprecationWarning, stacklevel=2)
         raise RuntimeError(message)
 
