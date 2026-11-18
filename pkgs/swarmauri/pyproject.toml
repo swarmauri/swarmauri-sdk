@@ -187,17 +187,17 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "swarmauri_tts_azure",
-    "swarmauri_tts_polly",
+    'swarmauri_tts_azure; python_version < "3.13"',
+    'swarmauri_tts_polly; python_version < "3.13"',
 
-    "swarmauri_tts_cartesia",
-    "swarmauri_tts_deepgram",
-    "swarmauri_tts_elevenlabs",
-    "swarmauri_tts_gemini",
+    'swarmauri_tts_cartesia; python_version < "3.13"',
+    'swarmauri_tts_deepgram; python_version < "3.13"',
+    'swarmauri_tts_elevenlabs; python_version < "3.13"',
+    'swarmauri_tts_gemini; python_version < "3.13"',
 
-    "swarmauri_tts_deepinfra",
-    "swarmauri_tts_openai",
-    "swarmauri_tts_together",
+    'swarmauri_tts_deepinfra; python_version < "3.13"',
+    'swarmauri_tts_openai; python_version < "3.13"',
+    'swarmauri_tts_together; python_version < "3.13"',
 
     "pytest>=8.0",
     "pytest-xdist>=3.6.1",
