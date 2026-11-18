@@ -106,3 +106,7 @@ should follow the repository contribution and style guides.
 ## License
 
 Apache-2.0
+
+Provider instances are validated against TTSBase at call-time construction, so
+providers imported after the agent class remain usable. Serialized providers
+retain their concrete fields; import that provider before deserialization.
