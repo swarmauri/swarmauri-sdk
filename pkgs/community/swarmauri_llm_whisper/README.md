@@ -133,7 +133,7 @@ async def main() -> None:
 ## Related Packages
 
 - [swarmauri_llm_openai](https://pypi.org/project/swarmauri_llm_openai/)
-- [swarmauri_llm_playht](https://pypi.org/project/swarmauri_llm_playht/)
+- [OpenAI TTS (Play.ht replacement)](../../swarmauri_standard/swarmauri_standard/tts/OpenaiTTS.py)
 - [swarmauri_llm_groq](https://pypi.org/project/swarmauri_llm_groq/)
 - [swarmauri_llm_perplexity](https://pypi.org/project/swarmauri_llm_perplexity/)
 - [swarmauri_llm_hyperbolic](https://pypi.org/project/swarmauri_llm_hyperbolic/)

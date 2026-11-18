@@ -25,7 +25,9 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the PlayHT command-line parser."""
     parser = argparse.ArgumentParser(
         prog="swarmauri-playht",
-        description="Generate an audio file from text with PlayHT.",
+        description=(
+            "Deprecated: Play.ht is discontinued. Migrate to OpenaiTTS."
+        ),
     )
     parser.add_argument(
         "prompt",
@@ -130,6 +132,16 @@ def generate_audio(
     """Generate an audio file and return its absolute path."""
     if args.timeout <= 0:
         raise ValueError("--timeout must be greater than zero.")
+
+    if tts_factory is None:
+        raise ValueError(
+            (
+                "Play.ht has discontinued its TTS service. This provider is "
+                "deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS "
+                "with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI "
+                "voice. Play.ht credentials and voice IDs cannot be reused."
+            )
+        )
 
     api_key, user_id = resolve_credentials(args)
     if tts_factory is None:

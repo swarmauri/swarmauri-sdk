@@ -29,16 +29,16 @@ uv add swarmauri_agent_texttospeech
 pip install swarmauri_agent_texttospeech
 ```
 
-Install a TTS provider package alongside the agent. For PlayHT:
+Install a TTS provider package alongside the agent. For OpenAI:
 
 ```bash
-uv add swarmauri_tts_playht
+uv add swarmauri_standard
 ```
 
 Or with `pip`:
 
 ```bash
-pip install swarmauri_tts_playht
+pip install swarmauri_standard
 ```
 
 ## Usage
@@ -47,13 +47,12 @@ pip install swarmauri_tts_playht
 import os
 
 from swarmauri_agent_texttospeech import TextToSpeechAgent
-from swarmauri_tts_playht import PlayHTModel
+from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
 
-tts = PlayHTModel(
-    api_key=os.environ["PLAYHT_API_KEY"],
-    user_id=os.environ["PLAYHT_USER_ID"],
-    name="Play3.0-mini",
-    voice="Adolfo",
+tts = OpenaiTTS(
+    api_key=os.environ["OPENAI_API_KEY"],
+    name="gpt-4o-mini-tts",
+    voice="alloy",
 )
 agent = TextToSpeechAgent(tts=tts, output_path="greeting.mp3")
 

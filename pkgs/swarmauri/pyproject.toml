@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev7"
+version = "0.11.0.dev8"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -51,7 +51,7 @@ dependencies = [
     "typing_extensions",
     "swarmauri_core>=0.11.0.dev7,<0.12",
     "swarmauri_base>=0.11.0.dev7,<0.12",
-    "swarmauri_standard>=0.11.0.dev9,<0.12",
+    "swarmauri_standard>=0.11.0.dev10,<0.12",
 ]
 
 [project.optional-dependencies]
@@ -98,7 +98,6 @@ llms = [
     "swarmauri_llm_nvidia_nim",
     "swarmauri_llm_openai",
     "swarmauri_llm_perplexity",
-    "swarmauri_llm_playht",
     "swarmauri_llm_whisper",
     "swarmauri_llm_xai",
 ]
@@ -125,7 +124,6 @@ swarmauri_llm_mistral = { workspace = true }
 swarmauri_llm_nvidia_nim = { workspace = true }
 swarmauri_llm_openai = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
-swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }
 swarmauri_llm_xai = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }

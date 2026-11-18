@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_standard"
-version = "0.11.0.dev9"
+version = "0.11.0.dev10"
 description = "First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows."
 keywords = [
     "swarmauri",
@@ -67,12 +67,14 @@ dependencies = [
 
 
 [tool.uv.sources]
+swarmauri_agent_texttospeech = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 
 
 [dependency-groups]
 dev = [
+'swarmauri_agent_texttospeech; python_version < "3.13"',
 "flake8>=7.0",
 "pytest>=8.0",
 "pytest-asyncio>=0.24.0",

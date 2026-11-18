@@ -1,3 +1,5 @@
+> **Deprecated: Play.ht service discontinued.** This package is retained for import compatibility. Construction fails locally with migration instructions. Use `swarmauri_standard.tts.OpenaiTTS.OpenaiTTS`; install with `uv add swarmauri_standard` or `pip install swarmauri_standard`. See the [migration guide](../../../docs/migrations/playht.md). The examples below describe the retired service and must not be used for new integrations.
+
 ![Swarmauri Logo](https://github.com/swarmauri/swarmauri-sdk/blob/3d4d1cfa949399d7019ae9d8f296afba773dfb7f/assets/swarmauri.brand.theme.svg)
 
 # Swarmauri PlayHT Text-to-Speech
@@ -6,11 +8,11 @@
 Its `PlayHTModel` implements `TTSBase` and converts independent text inputs into
 audio files without pretending to be an LLM.
 
-[![PyPI Downloads](https://static.pepy.tech/badge/swarmauri_tts_playht)](https://pepy.tech/projects/swarmauri_tts_playht)
-[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_playht.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_playht/)
-[![Python Versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_playht/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_playht)](https://pepy.tech/projects/swarmauri_tts_playht)
+[![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_tts_playht.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/deprecated/swarmauri_tts_playht/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/swarmauri_tts_playht)](https://pypi.org/project/swarmauri_tts_playht/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_playht)](https://pypi.org/project/swarmauri_tts_playht/)
-[![PyPI Version](https://img.shields.io/pypi/v/swarmauri_tts_playht)](https://pypi.org/project/swarmauri_tts_playht/)
+[![PyPI Version](https://img.shields.io/pypi/v/swarmauri_tts_playht?label=swarmauri_tts_playht&color=green)](https://pypi.org/project/swarmauri_tts_playht/)
 
 ## Features
 
