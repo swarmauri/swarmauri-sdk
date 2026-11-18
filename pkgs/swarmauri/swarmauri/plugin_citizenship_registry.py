@@ -429,7 +429,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.tts.PollyTTS": "swarmauri_tts_polly.PollyTTS",
         "swarmauri.tts.AzureTTS": "swarmauri_tts_azure.AzureTTS",
         "swarmauri.tts.CartesiaTTS": "swarmauri_tts_cartesia.CartesiaTTS",
-        "swarmauri.tts.ElevenLabsTTS": "swarmauri_tts_elevenlabs.ElevenLabsTTS",
+        "swarmauri.tts.ElevenLabsTTS": (
+            "swarmauri_tts_elevenlabs.ElevenLabsTTS"
+        ),
         "swarmauri.tts.DeepgramTTS": "swarmauri_tts_deepgram.DeepgramTTS",
         "swarmauri.tts.GeminiDialogueTTS": "swarmauri_tts_gemini_dialogue.GeminiDialogueTTS",
         "swarmauri.tts.GeminiTTS": "swarmauri_tts_gemini.GeminiTTS",

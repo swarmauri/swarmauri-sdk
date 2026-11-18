@@ -4,11 +4,11 @@
 
 Alpha Swarmauri Amazon Polly TTS provider. AWS Signature V4 signing with explicit credentials. `name` selects an engine (`standard`, `neural`, `long-form`, `generative`); `voice` selects a compatible voice ID. Engine/voice/region availability must be verified with your account.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_polly)](https://pepy.tech/projects/swarmauri_tts_polly)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_polly)](https://pepy.tech/projects/swarmauri_tts_polly)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_polly.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_polly)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_polly/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_polly)](https://pypi.org/project/swarmauri_tts_polly/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_polly)](https://pypi.org/project/swarmauri_tts_polly/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_polly)](https://pypi.org/project/swarmauri_tts_polly/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_polly?label=swarmauri_tts_polly&color=green)](https://pypi.org/project/swarmauri_tts_polly/)
 
 ## Features
 

@@ -4,11 +4,11 @@
 
 Standalone alpha deepinfra speech synthesis for Swarmauri. DeepInfra `/v1/openai/audio/speech`: Kokoro, Chatterbox Turbo/Multilingual and Orpheus. Catalog model presence does not establish working coverage through this endpoint; verify each model. Native inference, voice cloning and voice design are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_deepinfra)](https://pepy.tech/projects/swarmauri_tts_deepinfra)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_deepinfra)](https://pepy.tech/projects/swarmauri_tts_deepinfra)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_deepinfra/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_deepinfra)](https://pypi.org/project/swarmauri_tts_deepinfra/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_deepinfra)](https://pypi.org/project/swarmauri_tts_deepinfra/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra)](https://pypi.org/project/swarmauri_tts_deepinfra/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra?label=swarmauri_tts_deepinfra&color=green)](https://pypi.org/project/swarmauri_tts_deepinfra/)
 
 ## Features
 
