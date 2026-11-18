@@ -89,6 +89,23 @@ per-dialect aliases, policy constraints, and defaulted parameters. Crypto and
 signing providers consume this descriptor to select the correct primitives
 without re-implementing JWA policy logic.
 
+### Opt-in X448 key agreement
+
+```python
+from swarmauri_cipher_suite_jwa import JwaCipherSuite
+
+suite = JwaCipherSuite(enable_x448=True)
+agreement = suite.normalize(
+    op="key_agreement",
+    alg="ECDH-ES",
+    key={"kty": "OKP", "crv": "X448"},
+    params={"enc": "A256GCM"},
+)
+```
+
+The suite validates the selection. Use `JweCrypto(enable_x448=True)`
+from `swarmauri-crypto-jwe` to perform compact JWE encryption or decryption.
+
 ## Entry Point
 
 The suite registers under the `swarmauri.cipher_suites` entry point as

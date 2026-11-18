@@ -168,3 +168,28 @@ def test_normalize_rejects_unsupported_alg(
 ) -> None:
     with pytest.raises(ValueError):
         cipher_suite.normalize(op="sign", alg="HS256")
+
+
+@pytest.mark.unit
+def test_x448_key_agreement_is_opt_in() -> None:
+    key = {"kty": "OKP", "crv": "X448"}
+    assert "key_agreement" not in JwaCipherSuite().supports()
+    with pytest.raises(ValueError, match="not supported"):
+        JwaCipherSuite().normalize(op="key_agreement", key=key)
+
+    suite = JwaCipherSuite(enable_x448=True)
+    assert suite.supports()["key_agreement"] == ("ECDH-ES",)
+    decision = suite.normalize(op="key_agreement", key=key)
+    assert decision["alg"] == "ECDH-ES"
+    assert decision["params"] == {"enc": "A256GCM", "crv": "X448"}
+    assert suite.features()["constraints"]["key_agreement"] == {
+        "kty": "OKP",
+        "crv": "X448",
+        "enc": "A256GCM",
+    }
+    with pytest.raises(ValueError, match="OKP/X448"):
+        suite.normalize(
+            op="key_agreement", key={"kty": "OKP", "crv": "X25519"}
+        )
+    with pytest.raises(ValueError, match="A256GCM"):
+        suite.normalize(op="key_agreement", key=key, params={"enc": "A128GCM"})
