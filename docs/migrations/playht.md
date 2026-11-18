@@ -94,7 +94,7 @@ Linux CI, an image build and a network-disabled provider initialization check.
 OpenAI 0.1.0a2, DeepInfra 0.1.0a1, Together 0.1.0a1 and Gemini 0.1.0a1
 are on PyPI, with base 0.11.0.dev12, standard 0.11.0.dev12,
 OpenAI community 0.11.0.dev5, Hyperbolic community 0.11.0.dev4 and
-TextToSpeechAgent 0.11.0.dev5. Core 0.11.0.dev7, typing 0.11.0.dev4 and
+TextToSpeechAgent 0.11.0.dev6. Core 0.11.0.dev7, typing 0.11.0.dev4 and
 S3FS 0.11.0.dev3 were already available.
 
 The ten remaining provider packages are source candidates: PyPI rejected the
@@ -107,3 +107,6 @@ and [release evidence](../releases/tts-alpha-2026-11-18.yaml).
 OpenAI 0.1.0a1 is superseded by 0.1.0a2, which constrains HTTPX to the
 supported 0.27-0.28 API. Successful installation is not live API verification;
 all fourteen verification issues remain open and all providers remain Alpha.
+
+TextToSpeechAgent 0.11.0.dev6 fixes late provider discovery and preserves
+concrete provider fields when serializing an agent. It supersedes 0.11.0.dev5.
