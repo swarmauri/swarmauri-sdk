@@ -79,3 +79,13 @@ Verification issue links and evidence requirements are maintained in
 ## License
 
 Apache-2.0. Part of the [Swarmauri SDK](https://github.com/swarmauri/swarmauri-sdk).
+
+## Provider lifecycle
+
+OpenAI lists tts-1, tts-1-hd and gpt-4o-mini-tts for shutdown on 2027-01-06.
+This alpha package preserves the legacy Speech API contract and warns on use.
+The recommended gpt-realtime-2.1-mini uses the Realtime API, not this endpoint.
+See the [lifecycle guide](../../../docs/migrations/openai-speech.md) and
+[official schedule](https://developers.openai.com/api/docs/deprecations).
+
+Migration tracking: [#6310](https://github.com/swarmauri/swarmauri-sdk/issues/6310).

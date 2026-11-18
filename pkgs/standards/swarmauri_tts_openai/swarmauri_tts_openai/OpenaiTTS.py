@@ -1,5 +1,6 @@
 """Provide OpenAI speech synthesis as a standalone alpha component."""
 
+import warnings
 from typing import Any, ClassVar, Literal
 
 from pydantic import Field, SecretStr, model_validator
@@ -52,6 +53,17 @@ class OpenaiTTS(HttpTTSMixin, TTSBase):
         return self
 
     def _speech_payload(self, text: str, streaming: bool) -> dict[str, Any]:
+        warnings.warn(
+            "OpenAI Speech API models (including "
+            + self.name
+            + ") are deprecated "
+            "and scheduled to shut down on 2027-01-06. The recommended "
+            "gpt-realtime-2.1-mini uses the Realtime API "
+            "and cannot be sent to "
+            "this speech endpoint. See docs/migrations/openai-speech.md.",
+            FutureWarning,
+            stacklevel=3,
+        )
         payload = {
             "model": self.name,
             "voice": self.voice,

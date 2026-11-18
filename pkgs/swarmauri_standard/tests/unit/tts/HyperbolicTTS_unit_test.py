@@ -1,145 +1,45 @@
-import logging
-import os
-from pathlib import Path
+"""Retirement must not inspect credentials or contact a provider."""
 
+import httpx
 import pytest
-from dotenv import load_dotenv
-
 from swarmauri_standard.tts.HyperbolicTTS import HyperbolicTTS
 
-load_dotenv()
-
-API_KEY = os.getenv("HYPERBOLIC_API_KEY")
+pytestmark = pytest.mark.unit
 
 
-# Get the current working directory
-root_dir = Path(__file__).resolve().parents[2]
+@pytest.mark.parametrize("settings", [{}, {"api_key": "old-key"}])
+def test_retired_provider_fails_before_network(monkeypatch, settings):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Retired provider attempted HTTP")
 
-# Construct file paths dynamically
-file_path = os.path.join(root_dir, "static", "hyperbolic_test_tts.mp3")
-file_path2 = os.path.join(root_dir, "static", "hyperbolic_test2.mp3")
-file_path3 = os.path.join(root_dir, "static", "hyperbolic_test3.mp3")
-
-
-@pytest.fixture(scope="module")
-def hyperbolic_tts_model():
-    if not API_KEY:
-        pytest.skip("Skipping due to environment variable not set")
-    llm = HyperbolicTTS(api_key=API_KEY)
-    return llm
+    monkeypatch.setattr(httpx, "Client", forbidden)
+    monkeypatch.setattr(httpx, "AsyncClient", forbidden)
+    with pytest.warns(FutureWarning, match="decommissioned"):
+        with pytest.raises(RuntimeError, match="decommissioned"):
+            HyperbolicTTS(**settings)
 
 
-@pytest.mark.timeout(5)
-def get_allowed_languages():
-    if not API_KEY:
-        return []
-    llm = HyperbolicTTS(api_key=API_KEY)
-    return llm.allowed_languages
+@pytest.mark.asyncio
+async def test_validation_bypass_cannot_reenable_requests(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Retired provider attempted HTTP")
 
-
-@pytest.mark.timeout(5)
-@pytest.mark.unit
-def test_ubc_resource(hyperbolic_tts_model):
-    assert hyperbolic_tts_model.resource == "TTS"
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.unit
-def test_ubc_type(hyperbolic_tts_model):
-    assert hyperbolic_tts_model.type == "HyperbolicTTS"
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.unit
-def test_serialization(hyperbolic_tts_model):
-    assert (
-        hyperbolic_tts_model.id
-        == HyperbolicTTS.model_validate_json(
-            hyperbolic_tts_model.model_dump_json()
-        ).id
-    )
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.unit
-def test_default_speed(hyperbolic_tts_model):
-    assert hyperbolic_tts_model.speed == 1.0
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.parametrize("language", get_allowed_languages())
-@pytest.mark.unit
-def test_predict(hyperbolic_tts_model, language):
-    """
-    Test prediction with different languages
-    Note: Adjust the text according to the language if needed
-    """
-    # Set the language for the test
-    hyperbolic_tts_model.language = language
-
-    # Select an appropriate text based on the language
-    texts = {
-        "EN": "Hello, this is a test of text-to-speech output in English.",
-        "ES": "Hola, esta es una prueba de salida de texto a voz en español.",
-        "FR": "Bonjour, ceci est un test de sortie de texte en français.",
-        "ZH": "这是一个中文语音转换测试。",
-        "JP": "これは日本語の音声合成テストです。",
-        "KR": "이것은 한국어 음성 합성 테스트입니다.",
-    }
-
-    text = texts.get(
-        language, "Hello, this is a generic test of text-to-speech output."
-    )
-
-    audio_file_path = hyperbolic_tts_model.predict(
-        text=text, audio_path=file_path
-    )
-
-    logging.info(audio_file_path)
-
-    assert isinstance(audio_file_path, str)
-    assert os.path.exists(audio_file_path)
-    assert os.path.getsize(audio_file_path) > 0
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.unit
-def test_batch(hyperbolic_tts_model):
-    """
-    Test batch processing of multiple texts
-    """
-    text_path_dict = {
-        "Hello": file_path,
-        "Hi there": file_path2,
-        "Good morning": file_path3,
-    }
-
-    results = hyperbolic_tts_model.batch(text_path_dict=text_path_dict)
-    assert len(results) == len(text_path_dict)
-
-    for result in results:
-        assert isinstance(result, str)
-        assert os.path.exists(result)
-        assert os.path.getsize(result) > 0
-
-
-@pytest.mark.timeout(5)
-@pytest.mark.asyncio(loop_scope="session")
-@pytest.mark.unit
-async def test_abatch(hyperbolic_tts_model):
-    """
-    Test asynchronous batch processing of multiple texts
-    """
-    text_path_dict = {
-        "Hello": file_path,
-        "Hi there": file_path2,
-        "Good morning": file_path3,
-    }
-
-    results = await hyperbolic_tts_model.abatch(text_path_dict=text_path_dict)
-    assert len(results) == len(text_path_dict)
-
-    for result in results:
-        assert isinstance(result, str)
-        assert os.path.exists(result)
-        assert os.path.getsize(result) > 0
+    monkeypatch.setattr(httpx, "Client", forbidden)
+    monkeypatch.setattr(httpx, "AsyncClient", forbidden)
+    provider = HyperbolicTTS.model_construct()
+    for operation in [
+        lambda: provider.predict("hello"),
+        lambda: provider.batch({"hello": "out.mp3"}),
+        lambda: provider.stream("hello"),
+    ]:
+        with pytest.warns(FutureWarning, match="decommissioned"):
+            with pytest.raises(RuntimeError):
+                operation()
+    for operation in [
+        lambda: provider.apredict("hello"),
+        lambda: provider.abatch({"hello": "out.mp3"}),
+        lambda: provider.astream("hello"),
+    ]:
+        with pytest.warns(FutureWarning, match="decommissioned"):
+            with pytest.raises(RuntimeError):
+                await operation()

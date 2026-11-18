@@ -1,82 +1,90 @@
-# Migrate from Play.ht
+# Migrate from retired TTS providers
 
-Play.ht's TTS service is discontinued. AudioStack confirmed its voices no longer
-work in its [provider deprecation notice](https://docs.audiostack.ai/changelog/30th-july-2025-playht-deprecation-notice).
+Play.ht is discontinued. Both distributions live in pkgs/deprecated with their
+original distribution/import names, inactive metadata and published retirement
+releases. PlayhtTTS and both PlayHTModel compatibility paths warn and fail
+locally before credential validation or network access. Historical release
+records remain in docs/releases/playht-deprecation.yaml.
 
-Both packages now live under `pkgs/deprecated/` and retain their distribution
-and import names. `swarmauri_tts_playht` and `swarmauri_llm_playht` are deprecated and marked
-inactive. The bundled `PlayhtTTS` and legacy LLM `PlayHTModel` are deprecated too.
-Old imports and facade names remain available for compatibility, but construction
-raises a local error before credentials are validated or a network request occurs.
-The `swarmauri-playht` command reports the same migration guidance. The facade's
-`llms` extra no longer installs Play.ht. No credentials are redirected to another
-service, and no models or voice IDs are silently translated.
+Hyperbolic's old api.hyperbolic.xyz/v1 endpoint is also decommissioned.
+HyperbolicTTS and HyperbolicAudioTTS imports remain available, but construction
+and execution warn and fail locally. The replacement Hyperbolic inference
+service documents text/vision, not a compatible replacement audio endpoint.
+Do not redirect old audio credentials or payloads to its new chat endpoint.
+See the [provider notice](https://www.hyperbolic.ai/docs/inference/overview#moving-from-the-previous-inference-api).
 
-## Replacement choice
+## Select a standalone provider
 
-See the [current TTS provider inventory](../research/tts-provider-options.md)
-for DeepInfra models and other hosted options. OpenAI is the immediate adapter
-we can use, rather than an exclusive provider choice.
+The [provider inventory](../research/tts-provider-options.md) and
+[verification tracker](../verification/tts-providers.md) cover fourteen alpha
+packages. They remain 0.1.0a1 / Development Status :: 3 - Alpha. None has been
+verified through paid synthesis in this work. Catalog entries, mocked tests
+and a successful import do not establish live availability or audio quality.
 
-Use the existing `OpenaiTTS` for text-to-audio files, synchronous/asynchronous
-execution, streaming and batches. It already implements `TTSBase` and works with
-`TextToSpeechAgent`, so callers retain the same file-path contract.
+| API family | Packages |
+| --- | --- |
+| Existing OpenAI Speech compatibility | swarmauri_tts_openai |
+| DeepInfra OpenAI-compatible speech | swarmauri_tts_deepinfra |
+| Native DeepInfra schemas | swarmauri_tts_deepinfra_kokoro, swarmauri_tts_deepinfra_qwen3, swarmauri_tts_deepinfra_qwen3_voicedesign |
+| Together | swarmauri_tts_together |
+| Cartesia | swarmauri_tts_cartesia |
+| ElevenLabs single speaker / dialogue | swarmauri_tts_elevenlabs, swarmauri_tts_elevenlabs_dialogue |
+| Deepgram Aura REST | swarmauri_tts_deepgram |
+| Gemini Interactions single speaker / dialogue | swarmauri_tts_gemini, swarmauri_tts_gemini_dialogue |
+| AWS / Azure | swarmauri_tts_polly, swarmauri_tts_azure |
 
-| Option | Fit | Migration cost |
-| --- | --- | --- |
-| OpenAI `OpenaiTTS` | Existing Swarmauri provider; file, async, streaming and batch workflows | New API key, model and voice |
-| ElevenLabs | Voice cloning and streaming APIs | A new Swarmauri adapter and separate voice provisioning |
-| Cartesia | Realtime streaming TTS | A new Swarmauri adapter and separate voice provisioning |
+OpenAI's Speech API models have a scheduled shutdown on January 6, 2027.
+See [the OpenAI lifecycle guide](openai-speech.md) before selecting that
+compatibility adapter for a new deployment. The recommended Realtime model
+uses a different API; changing a model name on the Speech endpoint is invalid.
 
-This choice is based on integration coverage, not a quality, latency or price
-benchmark. OpenAI is not a drop-in replacement for Play.ht voice management.
-Voice cloning, listing and deletion require a separate provider-specific migration.
-Re-provision voices using source recordings you are authorized to use; Play.ht
-credentials, user IDs, voice names and clone IDs cannot be reused.
+Native DeepInfra packages implement complete JSON-audio file/async/batch
+workflows, and intentionally reject streaming locally. The dialogue packages
+accept typed turn tuples; do not flatten speaker assignments into JSON text.
+Other HTTP/SSE adapters expose their documented streaming contract, which is
+not a bidirectional voice session. See [interface boundaries](../research/tts-interface-boundaries.md).
 
-Provider references: [OpenAI speech guide](https://developers.openai.com/api/docs/guides/text-to-speech),
-[ElevenLabs streaming](https://elevenlabs.io/docs/api-reference/text-to-speech/stream),
-[Cartesia migration guide](https://www.cartesia.ai/migrate/playht).
+## Existing OpenAI integration
 
-## Install and configure
+The following keeps the previously selected Speech workflow until its shutdown.
+Install the standalone package after its candidate and base releases publish:
 
 ```bash
-uv add swarmauri_standard
+uv add --prerelease allow swarmauri_tts_openai
 # Or:
-pip install swarmauri_standard
+pip install --pre swarmauri_tts_openai
 ```
-
-Set `OPENAI_API_KEY` to a new OpenAI API key, then replace your provider:
 
 ```python
 import os
+from swarmauri_tts_openai import OpenaiTTS
 
-from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
-
+# Legacy Speech API: scheduled shutdown 2027-01-06.
 tts = OpenaiTTS(
     api_key=os.environ["OPENAI_API_KEY"],
     name="gpt-4o-mini-tts",
     voice="alloy",
 )
-audio_path = tts.predict("Welcome to Swarmauri.", "welcome.mp3")
-# Async: await tts.apredict(text, audio_path)
-# Streaming: tts.stream(text) or async iteration over tts.astream(text)
+path = tts.predict("Welcome to Swarmauri.", "welcome.mp3")
 ```
 
-Pass this `tts` to `TextToSpeechAgent` without changing its execution methods.
-Remove Play.ht dependencies and `PLAYHT_*` environment settings. For the realtime
-voice showcase, use `GROQ_API_KEY`, `OPENAI_API_KEY`, `OPENAI_TTS_MODEL` and
-`OPENAI_TTS_VOICE`; select `VOICE_PIPELINE=swarmauri` or `groq_openai`.
+The bundled standard import and legacy OpenAIAudioTTS imports still warn and
+forward to this implementation; new code should import the standalone class.
+Play.ht and Hyperbolic keys, user IDs and voice IDs cannot be reused. Voice
+cloning/listing/deletion require a separately provisioned provider workflow.
 
-## Impact and release order
+## Existing consumers
 
-- SDK: both standalone packages, bundled implementations, facade aggregate
-  dependencies, agent examples and retirement tests.
-- `tigrbl/tigrbl_realtime_ws_agent2user`: provider, dependency, environment
-  example, Compose configuration and setup instructions.
-- `swarmauri/swarmauri-com`: package catalog generator and generated listings.
-- `swarmauri/docs-swarmauri-com`: public provider navigation and overview.
+TextToSpeechAgent accepts strings, text IMessage objects and typed dialogue
+turn tuples. Calls remain stateless; async batches are bounded. Set output_path
+and explicit batch paths to match the provider's actual codec, such as .wav
+for Gemini or native DeepInfra defaults. A filename does not convert audio.
 
-Historical release records are retained. Publish the SDK deprecation releases,
-then release consumers and regenerate/deploy the public documentation. Source
-changes alone do not update already published PyPI releases or live deployments.
+The realtime showcase keeps its Groq transcription/reasoning path, imports
+OpenaiTTS from swarmauri_tts_openai, and pins the SDK source revision while
+candidates are unpublished. Its MP3 contract is preserved. Website package
+examples and public documentation use canonical imports and show alpha status.
+
+Source updates do not publish PyPI releases, merge PRs, deploy consumers or
+verify provider billing/playability. Release the SDK candidates before replacing
+immutable source dependencies with index versions in downstream consumers.

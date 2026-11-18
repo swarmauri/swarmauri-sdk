@@ -149,3 +149,12 @@ remain alpha and do not replace any existing import path.
 Release `swarmauri_base>=0.11.0.dev11` first, then the fourteen alpha packages,
 followed by the updated standard/community/facade distributions. Building and
 testing this source candidate does not publish these versions to PyPI.
+
+## Existing provider lifecycle
+
+OpenAI Speech models remain live-unverified here and are scheduled to shut down
+on 2027-01-06. #6268 is not a promotion path around that lifecycle; track the
+separate Realtime migration in [#6310](https://github.com/swarmauri/swarmauri-sdk/issues/6310).
+See [the lifecycle guide](../migrations/openai-speech.md).
+HyperbolicTTS and HyperbolicAudioTTS now fail locally because their old endpoint
+was decommissioned; no paid verification should be attempted against that route.

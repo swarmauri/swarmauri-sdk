@@ -2,8 +2,8 @@
 
 Initial inventory checked on 2026-11-17; priority-two/three API contracts updated on 2026-11-18. This is an API and
 integration inventory, not a listening test or latency benchmark. Model catalogs
-and prices can change. Keep `gpt-4o-mini-tts` as the immediate migration option;
-evaluate DeepInfra next rather than assuming OpenAI is the only replacement.
+and prices can change. The existing OpenAI Speech models shut down on 2027-01-06; see
+[their lifecycle guide](../migrations/openai-speech.md).
 
 ## Existing Swarmauri adapters
 
@@ -15,7 +15,8 @@ is still unverified; see the [verification tracker](../verification/tts-provider
 
 The bundled `OpenaiTTS` and legacy `OpenAIAudioTTS` imports are compatibility
 shims with deprecation warnings. They share the new OpenAI implementation.
-`HyperbolicTTS` remains bundled and its hosted availability is unverified.
+`HyperbolicTTS` remains importable as a retired compatibility type: its old
+endpoint was decommissioned and construction/execution fail locally.
 
 The new adapters implement their specific provider APIs. Together streaming
 requires SSE decoding into raw PCM, unlike OpenAI's binary audio stream.
@@ -72,7 +73,8 @@ parameters per model instead of assuming every catalog entry has identical APIs.
 
 ## Recommended evaluation
 
-1. Keep OpenAI's existing adapter as the immediate supported migration.
+1. Treat OpenAI's existing Speech adapter as temporary compatibility until
+   its scheduled 2027-01-06 shutdown; a Realtime migration is a separate API.
 2. Verify the new alpha `DeepInfraTTS` implementing `TTSBase`: start with Kokoro
    and Chatterbox, then Qwen3-TTS for cloning and style controls. Use distinct
    provider configuration; never send one provider's credentials to another.
