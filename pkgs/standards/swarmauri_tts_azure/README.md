@@ -28,7 +28,7 @@ pip install --pre swarmauri_tts_azure
 ```
 
 Python 3.10-3.12. This source candidate requires the companion
-`swarmauri_base>=0.11.0.dev10` release before index installation.
+`swarmauri_base>=0.11.0.dev12` release before index installation.
 
 ## Usage
 
