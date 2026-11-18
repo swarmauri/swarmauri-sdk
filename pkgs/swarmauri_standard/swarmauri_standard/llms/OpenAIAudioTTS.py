@@ -17,7 +17,7 @@ warnings.warn(
 
 @ComponentBase.register_type(LLMBase, "OpenAIAudioTTS")
 class OpenAIAudioTTS(OpenaiTTS, LLMBase):
-    """Keep legacy type/resource serialization while sharing speech behavior."""
+    "Keep legacy type/resource serialization while sharing speech behavior."
 
     type: Literal["OpenAIAudioTTS"] = "OpenAIAudioTTS"
     resource: str | None = Field(default=ResourceTypes.LLM.value, frozen=True)
