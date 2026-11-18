@@ -4,11 +4,11 @@
 
 Standalone alpha openai speech synthesis for Swarmauri. OpenAI `tts-1`, `tts-1-hd` and `gpt-4o-mini-tts`; optional speed, output format and mini-TTS instructions.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_openai)](https://pepy.tech/projects/swarmauri_tts_openai)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_openai)](https://pepy.tech/projects/swarmauri_tts_openai)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_openai.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_openai)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_openai/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_openai)](https://pypi.org/project/swarmauri_tts_openai/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_openai)](https://pypi.org/project/swarmauri_tts_openai/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_openai)](https://pypi.org/project/swarmauri_tts_openai/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_openai?label=swarmauri_tts_openai&color=green)](https://pypi.org/project/swarmauri_tts_openai/)
 
 ## Features
 

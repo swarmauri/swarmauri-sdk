@@ -175,6 +175,10 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "swarmauri_tts_deepinfra",
+    "swarmauri_tts_openai",
+    "swarmauri_tts_together",
+
     "pytest>=8.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",

@@ -4,11 +4,11 @@
 
 Standalone alpha together speech synthesis for Swarmauri. Together `/v1/audio/speech`: Orpheus and Kokoro. HTTP file synthesis and SSE audio streaming are implemented. WebSocket sessions are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_together)](https://pepy.tech/projects/swarmauri_tts_together)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_together)](https://pepy.tech/projects/swarmauri_tts_together)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_together.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_together)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_together/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_together)](https://pypi.org/project/swarmauri_tts_together/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_together)](https://pypi.org/project/swarmauri_tts_together/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_together)](https://pypi.org/project/swarmauri_tts_together/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_together?label=swarmauri_tts_together&color=green)](https://pypi.org/project/swarmauri_tts_together/)
 
 ## Features
 
