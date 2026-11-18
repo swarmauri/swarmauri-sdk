@@ -68,6 +68,7 @@ dependencies = [
 
 
 [tool.uv.sources]
+swarmauri_agent_texttospeech = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_tts_openai = { workspace = true }
@@ -75,6 +76,7 @@ swarmauri_tts_openai = { workspace = true }
 
 [dependency-groups]
 dev = [
+'swarmauri_agent_texttospeech; python_version < "3.13"',
 "flake8>=7.0",
 "pytest>=8.0",
 "pytest-asyncio>=0.24.0",
