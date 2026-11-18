@@ -4,11 +4,11 @@
 
 Alpha Swarmauri Cartesia speech provider. Versioned Sonic bytes API. WebSockets, SSE and voice management are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_cartesia)](https://pepy.tech/projects/swarmauri_tts_cartesia)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_cartesia)](https://pepy.tech/projects/swarmauri_tts_cartesia)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_cartesia.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_cartesia)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_cartesia/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_cartesia)](https://pypi.org/project/swarmauri_tts_cartesia/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_cartesia)](https://pypi.org/project/swarmauri_tts_cartesia/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_cartesia)](https://pypi.org/project/swarmauri_tts_cartesia/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_cartesia?label=swarmauri_tts_cartesia&color=green)](https://pypi.org/project/swarmauri_tts_cartesia/)
 
 ## Features
 

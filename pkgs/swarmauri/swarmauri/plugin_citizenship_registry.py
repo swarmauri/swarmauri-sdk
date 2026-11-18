@@ -423,7 +423,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
         "swarmauri.tts.CartesiaTTS": "swarmauri_tts_cartesia.CartesiaTTS",
-        "swarmauri.tts.ElevenLabsTTS": "swarmauri_tts_elevenlabs.ElevenLabsTTS",
+        "swarmauri.tts.ElevenLabsTTS": (
+            "swarmauri_tts_elevenlabs.ElevenLabsTTS"
+        ),
         "swarmauri.tts.DeepgramTTS": "swarmauri_tts_deepgram.DeepgramTTS",
         "swarmauri.tts.GeminiTTS": "swarmauri_tts_gemini.GeminiTTS",
         "swarmauri.tts.OpenaiTTS": "swarmauri_tts_openai.OpenaiTTS",

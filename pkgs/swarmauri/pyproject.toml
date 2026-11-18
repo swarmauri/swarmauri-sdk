@@ -183,6 +183,11 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "swarmauri_tts_cartesia",
+    "swarmauri_tts_deepgram",
+    "swarmauri_tts_elevenlabs",
+    "swarmauri_tts_gemini",
+
     "swarmauri_tts_deepinfra",
     "swarmauri_tts_openai",
     "swarmauri_tts_together",

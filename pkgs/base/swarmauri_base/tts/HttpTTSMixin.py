@@ -22,7 +22,7 @@ class HttpTTSMixin:
         raise NotImplementedError
 
     def _speech_endpoint(self, streaming: bool) -> str:
-        """Select a provider-owned URL without accepting credential redirects."""
+        "Select a provider-owned URL without accepting credential redirects."
         return self._speech_url
 
     def _audio_content(self, response: httpx.Response) -> bytes:
