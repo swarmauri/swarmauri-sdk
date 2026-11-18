@@ -8,7 +8,7 @@ import pytest
 from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
 
 pytestmark = pytest.mark.unit
-module = importlib.import_module("swarmauri_standard.tts.OpenaiTTS")
+module = importlib.import_module("swarmauri_base.tts.HttpTTSMixin")
 
 
 @pytest.fixture

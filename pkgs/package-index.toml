@@ -2296,6 +2296,42 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tts_deepinfra"
+path = "standards/swarmauri_tts_deepinfra"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_openai"
+path = "standards/swarmauri_tts_openai"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_together"
+path = "standards/swarmauri_tts_together"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_xmp_gif"
 path = "standards/swarmauri_xmp_gif"
 layer = "40-standards"

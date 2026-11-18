@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 213 | 213 | first-party split standard packages |
+| `40-standards` | 216 | 216 | first-party split standard packages |
 | `50-community` | 130 | 130 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 37 | 13 | incubating and planning-stage packages |
@@ -245,6 +245,9 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `standards/swarmauri_transport_uds_unicast` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_websocket](standards/swarmauri_transport_websocket/) | `standards/swarmauri_transport_websocket` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `standards/swarmauri_transport_wsjsonrpcmux` | `transport` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `standards/swarmauri_tts_deepinfra` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `standards/swarmauri_tts_openai` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `standards/swarmauri_tts_together` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `standards/swarmauri_xmp_gif` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `standards/swarmauri_xmp_jpeg` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `standards/swarmauri_xmp_mp4` | `xmp` | `atomic-concrete` | `standard` | yes |
@@ -693,6 +696,9 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_websocket](standards/swarmauri_transport_websocket/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_together](standards/swarmauri_tts_together/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1718,6 +1724,9 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `40-standards` | `standards/swarmauri_tts_deepinfra` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `40-standards` | `standards/swarmauri_tts_openai` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `40-standards` | `standards/swarmauri_tts_together` | `atomic-concrete` | `standard` | yes |
 | `90.0` | [swarmauri_tts_playht](deprecated/swarmauri_tts_playht/) | `90-deprecated` | `deprecated/swarmauri_tts_playht` | `compat` | `deprecated` | yes |
 
 ### `typing`
