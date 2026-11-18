@@ -8,6 +8,10 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     "name,package",
     [
+        ("CartesiaTTS", "swarmauri_tts_cartesia"),
+        ("ElevenLabsTTS", "swarmauri_tts_elevenlabs"),
+        ("DeepgramTTS", "swarmauri_tts_deepgram"),
+        ("GeminiTTS", "swarmauri_tts_gemini"),
         ("OpenaiTTS", "swarmauri_tts_openai"),
         ("DeepInfraTTS", "swarmauri_tts_deepinfra"),
         ("TogetherTTS", "swarmauri_tts_together"),
@@ -33,3 +37,20 @@ def test_facade_imports_point_to_standalone_classes():
         DeepInfra,
         Together,
     )
+
+
+@pytest.mark.parametrize(
+    "name,vendor",
+    [
+        ("CartesiaTTS", "cartesia"),
+        ("ElevenLabsTTS", "elevenlabs"),
+        ("DeepgramTTS", "deepgram"),
+        ("GeminiTTS", "gemini"),
+    ],
+)
+def test_priority_two_facade_imports(name, vendor):
+    import importlib
+
+    facade = importlib.import_module(f"swarmauri.tts.{name}")
+    canonical = importlib.import_module(f"swarmauri_tts_{vendor}")
+    assert getattr(facade, name) is getattr(canonical, name)

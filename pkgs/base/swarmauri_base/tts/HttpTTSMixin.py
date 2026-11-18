@@ -21,6 +21,14 @@ class HttpTTSMixin:
     def _speech_payload(self, text: str, streaming: bool) -> dict[str, Any]:
         raise NotImplementedError
 
+    def _speech_endpoint(self, streaming: bool) -> str:
+        """Select a provider-owned URL without accepting credential redirects."""
+        return self._speech_url
+
+    def _audio_content(self, response: httpx.Response) -> bytes:
+        """Extract unary audio; JSON providers override this decoding hook."""
+        return response.content
+
     def _speech_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self.api_key.get_secret_value()}",
@@ -54,10 +62,12 @@ class HttpTTSMixin:
         payload = self._payload(text, streaming=False)
         with httpx.Client(timeout=self.timeout) as client:
             response = client.post(
-                self._speech_url, headers=self._speech_headers(), json=payload
+                self._speech_endpoint(False),
+                headers=self._speech_headers(),
+                json=payload,
             )
             self._check_response(response)
-            content = response.content
+            content = self._audio_content(response)
         if not content:
             raise ValueError("Speech API returned empty audio.")
         path = Path(audio_path).expanduser().resolve()
@@ -68,10 +78,12 @@ class HttpTTSMixin:
         payload = self._payload(text, streaming=False)
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                self._speech_url, headers=self._speech_headers(), json=payload
+                self._speech_endpoint(False),
+                headers=self._speech_headers(),
+                json=payload,
             )
             self._check_response(response)
-            content = response.content
+            content = self._audio_content(response)
         if not content:
             raise ValueError("Speech API returned empty audio.")
         path = Path(audio_path).expanduser().resolve()
@@ -93,7 +105,7 @@ class HttpTTSMixin:
         with httpx.Client(timeout=self.timeout) as client:
             with client.stream(
                 "POST",
-                self._speech_url,
+                self._speech_endpoint(True),
                 headers=self._speech_headers(),
                 json=payload,
             ) as response:
@@ -111,7 +123,7 @@ class HttpTTSMixin:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             async with client.stream(
                 "POST",
-                self._speech_url,
+                self._speech_endpoint(True),
                 headers=self._speech_headers(),
                 json=payload,
             ) as response:

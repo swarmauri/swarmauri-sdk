@@ -2296,8 +2296,56 @@ order_source = "inferred"
 order_reason = "single-capability package by default"
 
 [[packages]]
+name = "swarmauri_tts_cartesia"
+path = "standards/swarmauri_tts_cartesia"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_deepgram"
+path = "standards/swarmauri_tts_deepgram"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
 name = "swarmauri_tts_deepinfra"
 path = "standards/swarmauri_tts_deepinfra"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_elevenlabs"
+path = "standards/swarmauri_tts_elevenlabs"
+layer = "40-standards"
+order = 0
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+order_source = "inferred"
+order_reason = "single-capability package by default"
+
+[[packages]]
+name = "swarmauri_tts_gemini"
+path = "standards/swarmauri_tts_gemini"
 layer = "40-standards"
 order = 0
 family = "tts"

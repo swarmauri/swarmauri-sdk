@@ -189,4 +189,7 @@ rules. A backend supplies an insert, a read, and an atomic compare-and-swap.
 
 `tts.HttpTTSMixin` shares file, streaming and bounded async batch transport for
 standalone TTS providers. Provider packages own request schemas, fixed URLs and
-stream decoding. Transport does not replay potentially billable requests.
+stream decoding. `_speech_endpoint(streaming)` selects provider-owned unary
+and streaming routes; `_audio_content(response)` decodes unary JSON audio when
+needed. Existing binary providers retain their default behavior. Transport does
+not replay potentially billable requests.
