@@ -4,11 +4,11 @@
 
 Alpha Swarmauri ElevenLabs speech provider. Single-speaker speech and stream endpoints for Multilingual v2 and Flash v2.5. Dialogue, v4/Turbo dialogue interfaces, WebSockets and cloning are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_elevenlabs)](https://pepy.tech/projects/swarmauri_tts_elevenlabs)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_elevenlabs)](https://pepy.tech/projects/swarmauri_tts_elevenlabs)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_elevenlabs.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_elevenlabs)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_elevenlabs/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_elevenlabs)](https://pypi.org/project/swarmauri_tts_elevenlabs/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_elevenlabs)](https://pypi.org/project/swarmauri_tts_elevenlabs/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_elevenlabs)](https://pypi.org/project/swarmauri_tts_elevenlabs/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_elevenlabs?label=swarmauri_tts_elevenlabs&color=green)](https://pypi.org/project/swarmauri_tts_elevenlabs/)
 
 ## Features
 

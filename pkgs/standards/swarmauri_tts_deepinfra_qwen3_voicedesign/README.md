@@ -4,11 +4,11 @@
 
 Alpha Swarmauri DeepInfraQwen3VoiceDesignTTS component. Native Qwen3 voice-description synthesis, separate from preset voice IDs.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_deepinfra_qwen3_voicedesign)](https://pepy.tech/projects/swarmauri_tts_deepinfra_qwen3_voicedesign)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_deepinfra_qwen3_voicedesign)](https://pepy.tech/projects/swarmauri_tts_deepinfra_qwen3_voicedesign)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra_qwen3_voicedesign.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra_qwen3_voicedesign)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3_voicedesign/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_deepinfra_qwen3_voicedesign)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3_voicedesign/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_deepinfra_qwen3_voicedesign)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3_voicedesign/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra_qwen3_voicedesign)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3_voicedesign/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra_qwen3_voicedesign?label=swarmauri_tts_deepinfra_qwen3_voicedesign&color=green)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3_voicedesign/)
 
 ## Features
 

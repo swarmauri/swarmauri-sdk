@@ -4,11 +4,11 @@
 
 Alpha Swarmauri Azure Speech TTS provider. Public-cloud regional REST synthesis using a Speech resource key and escaped SSML. `name` is the voice ShortName, rather than a separate model ID.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_azure)](https://pepy.tech/projects/swarmauri_tts_azure)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_azure)](https://pepy.tech/projects/swarmauri_tts_azure)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_azure.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_azure)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_azure/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_azure)](https://pypi.org/project/swarmauri_tts_azure/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_azure)](https://pypi.org/project/swarmauri_tts_azure/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_azure)](https://pypi.org/project/swarmauri_tts_azure/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_azure?label=swarmauri_tts_azure&color=green)](https://pypi.org/project/swarmauri_tts_azure/)
 
 ## Features
 

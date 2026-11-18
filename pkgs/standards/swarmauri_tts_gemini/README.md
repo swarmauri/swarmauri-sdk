@@ -4,11 +4,11 @@
 
 Alpha Swarmauri Gemini speech provider. Single-speaker Gemini 3.8 Interactions API. Older generateContent models, multi-speaker dialogue, voice management and Gemini Live are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_gemini)](https://pepy.tech/projects/swarmauri_tts_gemini)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_gemini)](https://pepy.tech/projects/swarmauri_tts_gemini)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_gemini.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_gemini)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_gemini/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_gemini)](https://pypi.org/project/swarmauri_tts_gemini/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_gemini)](https://pypi.org/project/swarmauri_tts_gemini/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_gemini)](https://pypi.org/project/swarmauri_tts_gemini/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_gemini?label=swarmauri_tts_gemini&color=green)](https://pypi.org/project/swarmauri_tts_gemini/)
 
 ## Features
 

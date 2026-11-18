@@ -4,11 +4,11 @@
 
 Alpha Swarmauri Deepgram speech provider. Aura REST /v1/speak. The voice is part of the model ID. Flux v2 and WebSocket sessions are excluded.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_deepgram)](https://pepy.tech/projects/swarmauri_tts_deepgram)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_deepgram)](https://pepy.tech/projects/swarmauri_tts_deepgram)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepgram.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepgram)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_deepgram/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_deepgram)](https://pypi.org/project/swarmauri_tts_deepgram/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_deepgram)](https://pypi.org/project/swarmauri_tts_deepgram/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepgram)](https://pypi.org/project/swarmauri_tts_deepgram/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepgram?label=swarmauri_tts_deepgram&color=green)](https://pypi.org/project/swarmauri_tts_deepgram/)
 
 ## Features
 

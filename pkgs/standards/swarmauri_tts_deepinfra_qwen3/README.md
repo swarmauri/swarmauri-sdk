@@ -4,11 +4,11 @@
 
 Alpha Swarmauri DeepInfraQwen3TTS component. Native Qwen3 input/voice/instruct schema, separate from Kokoro and voice design.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_deepinfra_qwen3)](https://pepy.tech/projects/swarmauri_tts_deepinfra_qwen3)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_deepinfra_qwen3)](https://pepy.tech/projects/swarmauri_tts_deepinfra_qwen3)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra_qwen3.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_deepinfra_qwen3)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_deepinfra_qwen3)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_deepinfra_qwen3)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra_qwen3)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_deepinfra_qwen3?label=swarmauri_tts_deepinfra_qwen3&color=green)](https://pypi.org/project/swarmauri_tts_deepinfra_qwen3/)
 
 ## Features
 

@@ -1,4 +1,4 @@
-"""Transport complete base64 audio in JSON without claiming incremental audio."""
+"Transport complete base64 audio in JSON without claiming incremental audio."
 
 import base64
 import binascii
