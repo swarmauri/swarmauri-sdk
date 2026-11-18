@@ -48,6 +48,15 @@ Set a stable approval scope that identifies the workspace and permissions.
 A run interrupted during tool dispatch records that state for reconciliation.
 Runtime tool instances and open process handles live in the application process.
 
+## Execution controller integration
+
+`AgentRunnerExecutionDriver(runner=runner)` adapts the existing runner to
+`IExecutionDriver`. `initialize(prompt)` creates a checkpoint without running
+work; `advance(run_id, max_steps=1)` yields after one runner step. Existing
+`start`, `resume` and approval APIs remain supported. Pause/stop acknowledge
+between steps, not in the middle of an external tool effect.
+See the [composition guide](../../../docs/examples/composable-execution/README.md).
+
 ## Tool approvals and run stores
 
 Install `swarmauri-runstore-sqlite` to run the SQLite example. The runner

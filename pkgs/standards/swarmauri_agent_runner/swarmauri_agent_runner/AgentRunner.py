@@ -62,6 +62,13 @@ class AgentRunner:
         self.approval_scope = approval_scope
 
     def start(self, prompt: str, *, run_id: str | None = None) -> RunState:
+        state = self.initialize(prompt, run_id=run_id)
+        return self.advance(state.run_id)
+
+    def initialize(
+        self, prompt: str, *, run_id: str | None = None
+    ) -> RunState:
+        """Create a checkpoint without dispatching model or tool work."""
         state = RunState(
             run_id=run_id or str(uuid4()),
             messages=(
@@ -81,7 +88,7 @@ class AgentRunner:
             else state
         )
         self.store.create(checkpoint)
-        return self.advance(state.run_id)
+        return state
 
     def load(self, run_id: str) -> RunState:
         """Read the typed state of a saved run."""
@@ -125,9 +132,14 @@ class AgentRunner:
         self._save(state)
         return self.advance(run_id)
 
-    def advance(self, run_id: str) -> RunState:
+    def advance(
+        self, run_id: str, *, max_steps: int | None = None
+    ) -> RunState:
         state = self.load(run_id)
-        for _ in range(self.max_steps):
+        limit = self.max_steps if max_steps is None else max_steps
+        if limit <= 0:
+            raise ValueError("max_steps must be positive")
+        for _ in range(limit):
             if state.status != "ready":
                 return state
             if not state.pending_calls:

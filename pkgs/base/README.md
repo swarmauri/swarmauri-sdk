@@ -16,6 +16,13 @@
 
 # Swarmauri Base
 
+## Composable execution bases
+
+Matching `executions`, `tasks`, `workflows`, `permissions`, `delegation` and
+`invocations` modules provide abstract component bases for interchangeable
+implementations. They do not add a transport or authenticator family.
+See the [composition guide](../../docs/examples/composable-execution/README.md).
+
 `swarmauri_base` provides the reusable base classes, mixins, and dynamic component model used by Swarmauri SDK implementations. It builds on `swarmauri_core` interfaces and adds Pydantic models, typed component registration, JSON/YAML/TOML serialization, logging helpers, service helpers, and base classes for each major component family.
 
 ## Why Swarmauri Base?

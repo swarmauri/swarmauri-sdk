@@ -1,0 +1,45 @@
+[project]
+name = "swarmauri_invoker_default"
+version = "0.1.0"
+description = "Invoke services over existing Swarmauri transports."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "invocations", "composition", "execution", "authorization"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = ["swarmauri_core", "swarmauri_base"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.invocations"]
+DefaultInvoker = "swarmauri_invoker_default:DefaultInvoker"
+
+[project.entry-points."swarmauri.authority_strategies"]
+DelegatedAuthorityStrategy = "swarmauri_invoker_default:DelegatedAuthorityStrategy"
+WorkloadAuthorityStrategy = "swarmauri_invoker_default:WorkloadAuthorityStrategy"
+
+[tool.uv.sources]
+swarmauri_workflow_documentassistant = { workspace = true }
+swarmauri_transport_httpx = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio", "ruff==0.15.21", "swarmauri_workflow_documentassistant", "swarmauri_transport_httpx"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["unit: Unit tests", "i9n: Integration tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,39 @@
+[project]
+name = "swarmauri_permission_explicit"
+version = "0.1.0"
+description = "Evaluate exact action resource and tenant permissions."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "permissions", "composition", "execution", "authorization"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = ["swarmauri_core", "swarmauri_base"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.permissions"]
+ExplicitPermissionPolicy = "swarmauri_permission_explicit:ExplicitPermissionPolicy"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio", "ruff==0.15.21"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["unit: Unit tests", "i9n: Integration tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

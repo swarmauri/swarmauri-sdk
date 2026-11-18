@@ -16,6 +16,14 @@
 
 # Swarmauri Core
 
+## Composable execution contracts
+
+The `executions`, `tasks`, `workflows`, `permissions`, `delegation` and
+`invocations` namespaces define driver-neutral lifecycle, admitted task
+authority and invocation contracts. Existing service registries, task
+assignment, transports and token interfaces remain in use.
+See the [composition guide](../../docs/examples/composable-execution/README.md).
+
 `swarmauri_core` provides the interface contracts for the Swarmauri SDK. It is the package component authors use when they need stable abstract interfaces for agents, tools, LLMs, parsers, vector stores, cryptography, signing, key providers, transports, middleware, billing, storage, XMP, and other composable intelligence infrastructure components.
 
 ## Why Swarmauri Core?

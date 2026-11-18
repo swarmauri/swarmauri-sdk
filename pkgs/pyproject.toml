@@ -290,6 +290,7 @@ members = [
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
+    "standards/swarmauri_delegation_attenuating",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_distance_canberra",
     "standards/swarmauri_distance_chebyshev",
@@ -311,10 +312,13 @@ members = [
     "standards/swarmauri_evaluator_externalimports",
     "standards/swarmauri_evaluator_subprocess",
     "standards/swarmauri_evaluatorpool_accessibility",
+    "standards/swarmauri_execution_default",
     "standards/swarmauri_gitfilter_file",
     "standards/swarmauri_gitfilter_gh_release",
     "standards/swarmauri_gitfilter_minio",
     "standards/swarmauri_gitfilter_s3fs",
+    "standards/swarmauri_grantstore_sqlite",
+    "standards/swarmauri_invoker_default",
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyprovider_hierarchical",
     "standards/swarmauri_keyprovider_inmemory",
@@ -345,6 +349,7 @@ members = [
     "standards/swarmauri_mre_crypto_shamir",
     "standards/swarmauri_parser_beautifulsoupelement",
     "standards/swarmauri_parser_keywordextractor",
+    "standards/swarmauri_permission_explicit",
     "standards/swarmauri_pop_cwt",
     "standards/swarmauri_pop_dpop",
     "standards/swarmauri_pop_x509",
@@ -382,6 +387,8 @@ members = [
     "standards/swarmauri_storage_s3_over_sftp",
     "standards/swarmauri_storage_s3fs",
     "standards/swarmauri_storage_webdav",
+    "standards/swarmauri_taskmanager_default",
+    "standards/swarmauri_taskstore_sqlite",
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_tokens_introspection",
@@ -433,6 +440,8 @@ members = [
     "standards/swarmauri_tts_polly",
     "standards/swarmauri_tts_together",
     "standards/swarmauri_vectorstore_doc2vec",
+    "standards/swarmauri_workflow_delegatedresearch",
+    "standards/swarmauri_workflow_documentassistant",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
     "standards/swarmauri_xmp_mp4",
@@ -448,6 +457,15 @@ members = [
 ]
 
 [tool.uv.sources]
+swarmauri_delegation_attenuating = { workspace = true }
+swarmauri_execution_default = { workspace = true }
+swarmauri_grantstore_sqlite = { workspace = true }
+swarmauri_invoker_default = { workspace = true }
+swarmauri_permission_explicit = { workspace = true }
+swarmauri_taskmanager_default = { workspace = true }
+swarmauri_taskstore_sqlite = { workspace = true }
+swarmauri_workflow_delegatedresearch = { workspace = true }
+swarmauri_workflow_documentassistant = { workspace = true }
 # 6w = { workspace = true }
 # 6x = { workspace = true }
 # 6y = { workspace = true }

@@ -50,6 +50,19 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.executions.DefaultExecutionController": "swarmauri_execution_default.DefaultExecutionController",
+        "swarmauri.tasks.DefaultTaskManager": "swarmauri_taskmanager_default.DefaultTaskManager",
+        "swarmauri.task_stores.SqliteTaskStore": "swarmauri_taskstore_sqlite.SqliteTaskStore",
+        "swarmauri.permissions.ExplicitPermissionPolicy": "swarmauri_permission_explicit.ExplicitPermissionPolicy",
+        "swarmauri.delegations.AttenuatingDelegationService": "swarmauri_delegation_attenuating.AttenuatingDelegationService",
+        "swarmauri.grant_stores.SqliteGrantStore": "swarmauri_grantstore_sqlite.SqliteGrantStore",
+        "swarmauri.invocations.DefaultInvoker": "swarmauri_invoker_default.DefaultInvoker",
+        "swarmauri.workflows.DocumentAssistantWorkflow": "swarmauri_workflow_documentassistant.DocumentAssistantWorkflow",
+        "swarmauri.workflows.DelegatedResearchWorkflow": "swarmauri_workflow_delegatedresearch.DelegatedResearchWorkflow",
+        "swarmauri.authority_strategies.DelegatedAuthorityStrategy": "swarmauri_invoker_default.DelegatedAuthorityStrategy",
+        "swarmauri.authority_strategies.WorkloadAuthorityStrategy": "swarmauri_invoker_default.WorkloadAuthorityStrategy",
+        "swarmauri.execution_drivers.AgentRunnerExecutionDriver": "swarmauri_agent_runner.AgentRunnerExecutionDriver",
+        "swarmauri.execution_drivers.StateDrivenExecutionDriver": "swarmauri_workflow_statedriven.StateDrivenExecutionDriver",
         "swarmauri.agents.PackageMaintenanceAgent": (
             "swarmauri_agent_package_maintenance.PackageMaintenanceAgent"
         ),
