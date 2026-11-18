@@ -87,3 +87,6 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
 ]
+
+[tool.poetry]
+include = [{ path = "NOTICE", format = ["sdist", "wheel"] }]

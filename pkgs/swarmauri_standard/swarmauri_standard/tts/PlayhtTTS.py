@@ -63,7 +63,13 @@ class PlayhtTTS(TTSBase):
         """
         Initialize the PlayhtTTS with API credentials and voice settings.
         """
-        message = "Play.ht has discontinued its TTS service. This provider is deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI voice. Play.ht credentials and voice IDs cannot be reused."
+        message = (
+            "Play.ht has discontinued its TTS service. This provider is"
+            " deprecated; use "
+            "swarmauri_standard.tts.OpenaiTTS.OpenaiTTS with "
+            "OPENAI_API_KEY, a supported OpenAI model, and an OpenAI "
+            "voice. Play.ht credentials and voice IDs cannot be reused."
+        )
         warnings.warn(message, DeprecationWarning, stacklevel=2)
         raise RuntimeError(message)
 
