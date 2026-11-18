@@ -203,10 +203,12 @@ Contributions are welcome. Before adding a new public namespace path, update the
 
 ## Alpha TTS providers
 
-The `tts` extra installs the separate OpenAI, DeepInfra and Together TTS packages.
+The `tts` extra installs separate OpenAI, DeepInfra, Together, Cartesia,
+ElevenLabs, Deepgram and Gemini TTS packages.
 Install with `uv add --prerelease allow "swarmauri[tts]"` or
 `pip install --pre "swarmauri[tts]"` after the candidate releases are published.
 Use `from swarmauri.tts.OpenaiTTS import OpenaiTTS`, or the corresponding
-`DeepInfraTTS` and `TogetherTTS` facade modules. Provider packages remain alpha
+`DeepInfraTTS`, `TogetherTTS`, `CartesiaTTS`, `ElevenLabsTTS`, `DeepgramTTS`
+and `GeminiTTS` facade modules. Provider packages remain alpha
 and their live verification issues are listed in
 [the verification guide](../../docs/verification/tts-providers.md).
