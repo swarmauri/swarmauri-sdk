@@ -204,11 +204,15 @@ Contributions are welcome. Before adding a new public namespace path, update the
 ## Alpha TTS providers
 
 The `tts` extra installs separate OpenAI, DeepInfra, Together, Cartesia,
-ElevenLabs, Deepgram, Gemini, Amazon Polly and Azure Speech TTS packages.
+ElevenLabs, Deepgram, Gemini, Amazon Polly and Azure Speech TTS packages, plus native DeepInfra Kokoro/Qwen3/
+voice-design, ElevenLabs dialogue and Gemini dialogue packages.
 Install with `uv add --prerelease allow "swarmauri[tts]"` or
 `pip install --pre "swarmauri[tts]"` after the candidate releases are published.
 Use `from swarmauri.tts.OpenaiTTS import OpenaiTTS`, or the corresponding
 `DeepInfraTTS`, `TogetherTTS`, `CartesiaTTS`, `ElevenLabsTTS`, `DeepgramTTS`
-`GeminiTTS`, `PollyTTS` and `AzureTTS` facade modules. Provider packages remain alpha
+`GeminiTTS`, `PollyTTS`, `AzureTTS`, `DeepInfraKokoroTTS`,
+`DeepInfraQwen3TTS`, `DeepInfraQwen3VoiceDesignTTS`, `ElevenLabsDialogueTTS`
+and `GeminiDialogueTTS`
+facade modules. Provider packages remain alpha
 and their live verification issues are listed in
 [the verification guide](../../docs/verification/tts-providers.md).

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev11"
+version = "0.11.0.dev12"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -80,6 +80,11 @@ full = [
 ]
 
 tts = [
+    "swarmauri_tts_gemini_dialogue>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_qwen3_voicedesign>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_qwen3>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_kokoro>=0.1.0a1,<0.2",
+    "swarmauri_tts_elevenlabs_dialogue>=0.1.0a1,<0.2",
     "swarmauri_tts_azure>=0.1.0a1,<0.2",
     "swarmauri_tts_polly>=0.1.0a1,<0.2",
     "swarmauri_tts_cartesia>=0.1.0a1,<0.2",
@@ -116,10 +121,15 @@ llms = [
 
 [tool.uv.sources]
 swarmauri_tts_polly = { workspace = true }
+swarmauri_tts_elevenlabs_dialogue = { workspace = true }
+swarmauri_tts_deepinfra_kokoro = { workspace = true }
+swarmauri_tts_deepinfra_qwen3 = { workspace = true }
+swarmauri_tts_deepinfra_qwen3_voicedesign = { workspace = true }
 swarmauri_tts_azure = { workspace = true }
 swarmauri_tts_cartesia = { workspace = true }
 swarmauri_tts_elevenlabs = { workspace = true }
 swarmauri_tts_deepgram = { workspace = true }
+swarmauri_tts_gemini_dialogue = { workspace = true }
 swarmauri_tts_gemini = { workspace = true }
 swarmauri_tts_openai = { workspace = true }
 swarmauri_tts_deepinfra = { workspace = true }
@@ -187,6 +197,12 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    'swarmauri_tts_deepinfra_kokoro; python_version < "3.13"',
+    'swarmauri_tts_deepinfra_qwen3; python_version < "3.13"',
+    'swarmauri_tts_deepinfra_qwen3_voicedesign; python_version < "3.13"',
+    'swarmauri_tts_elevenlabs_dialogue; python_version < "3.13"',
+    'swarmauri_tts_gemini_dialogue; python_version < "3.13"',
+
     'swarmauri_tts_azure; python_version < "3.13"',
     'swarmauri_tts_polly; python_version < "3.13"',
 

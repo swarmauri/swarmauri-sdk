@@ -10,13 +10,15 @@ from swarmauri_base.tts.TTSBase import TTSBase
 
 @ComponentBase.register_type(TTSBase, "DeepInfraTTS")
 class DeepInfraTTS(HttpTTSMixin, TTSBase):
-    """Generate audio through DeepInfra's documented /v1/audio/speech API.
+    """Generate binary audio through DeepInfra's OpenAI-compatible speech API.
 
     Model availability and voices require live verification. Native inference,
     cloning and voice-design operations are outside this component's scope.
     """
 
-    _speech_url: ClassVar[str] = "https://api.deepinfra.com/v1/audio/speech"
+    _speech_url: ClassVar[str] = (
+        "https://api.deepinfra.com/v1/openai/audio/speech"
+    )
     api_key: SecretStr = Field(repr=False)
     timeout: float = Field(default=60.0, gt=0)
     allowed_models: list[str] = [

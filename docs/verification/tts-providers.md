@@ -1,6 +1,6 @@
 # Alpha TTS provider verification
 
-All nine packages start at `0.1.0a1` and retain
+All fourteen packages start at `0.1.0a1` and retain
 `Development Status :: 3 - Alpha` in their `pyproject.toml` and wheel metadata.
 They were implemented against public API documentation and tested offline.
 No live synthesis, speech-quality evaluation or paid provider request was run.
@@ -16,6 +16,11 @@ No live synthesis, speech-quality evaluation or paid provider request was run.
 | `swarmauri_tts_gemini.GeminiTTS` | Unverified | [#6298](https://github.com/swarmauri/swarmauri-sdk/issues/6298) |
 | `swarmauri_tts_polly.PollyTTS` | Unverified | [#6301](https://github.com/swarmauri/swarmauri-sdk/issues/6301) |
 | `swarmauri_tts_azure.AzureTTS` | Unverified | [#6302](https://github.com/swarmauri/swarmauri-sdk/issues/6302) |
+| `swarmauri_tts_elevenlabs_dialogue.ElevenLabsDialogueTTS` | Unverified | [#6304](https://github.com/swarmauri/swarmauri-sdk/issues/6304) |
+| `swarmauri_tts_gemini_dialogue.GeminiDialogueTTS` | Unverified | [#6308](https://github.com/swarmauri/swarmauri-sdk/issues/6308) |
+| `swarmauri_tts_deepinfra_kokoro.DeepInfraKokoroTTS` | Unverified | [#6305](https://github.com/swarmauri/swarmauri-sdk/issues/6305) |
+| `swarmauri_tts_deepinfra_qwen3.DeepInfraQwen3TTS` | Unverified | [#6306](https://github.com/swarmauri/swarmauri-sdk/issues/6306) |
+| `swarmauri_tts_deepinfra_qwen3_voicedesign.DeepInfraQwen3VoiceDesignTTS` | Unverified | [#6307](https://github.com/swarmauri/swarmauri-sdk/issues/6307) |
 
 ## Run a verification
 
@@ -62,10 +67,11 @@ Keep the alpha classifier until maintainers review sufficient live evidence.
 - OpenAI uses binary audio from `/v1/audio/speech`. The legacy standard and
   LLM-named imports warn and delegate to the new package; the legacy
   `OpenAIAudioTTS` class retains its `type`, LLM resource and timeout default.
-- DeepInfra uses `https://api.deepinfra.com/v1/audio/speech`, not the native
+- DeepInfra uses `https://api.deepinfra.com/v1/openai/audio/speech`, not the native
   `/v1/inference/{model}` route. Confirm that each listed catalog model works
-  through this endpoint and returns binary audio; its reference schema labels
-  the response JSON. A native-only model needs a separate adapter/interface.
+  through this endpoint and returns binary audio; the current Kokoro model
+  example documents this route and binary output. A native-only model needs
+  a separate adapter/interface.
   HTTP chunk iteration is implemented, but no realtime latency claim is made.
 - Together file generation uses binary MP3, WAV or raw audio. Streaming sends
   `stream=true` and `response_format=raw`, decodes base64 audio SSE events and
@@ -116,13 +122,30 @@ live behavior remains unverified. Priority-three references:
 [botocore SigV4 signer](https://github.com/boto/botocore/blob/develop/botocore/auth.py),
 [Azure Speech REST](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/rest-text-to-speech).
 
+## Interface-specific adapters
+
+See [interface boundaries](../research/tts-interface-boundaries.md) for the
+split between native Kokoro, native Qwen3 presets, Qwen3 voice descriptions and
+ElevenLabs ordered dialogue. The DeepInfra native packages decode complete JSON
+responses; stream/astream are intentionally unsupported and raise locally.
+Their four supported operations make six calls when all are selected. Their
+live suites collect but skip the two unsupported streaming operations even
+when opted in. The ElevenLabs dialogue suite needs two account-accessible IDs
+in SWARMAURI_TTS_VOICE and SWARMAURI_TTS_SECOND_VOICE; all six operations make
+eight calls. Gemini dialogue uses speaker-labelled turns with two voice bindings;
+its six-operation suite also makes eight calls and defaults to Puck/Kore.
+Its file output is WAV and streams are raw PCM24k. Voice design requires SWARMAURI_TTS_VOICE_DESCRIPTION. The native
+suites default to WAV, and the dialogue suite defaults to MP3. Default selection
+remains predict only (one call).
+
 ## Compatibility and release order
 
 The new packages depend on `swarmauri_base` for the HTTP transport mixin and do
 not depend on `swarmauri_standard`. The standard and community OpenAI packages
 preserve legacy imports through warning shims. The facade exposes canonical
-TTS classes and has a separate `tts` installation extra.
+TTS classes and has a separate `tts` installation extra. The new five packages
+remain alpha and do not replace any existing import path.
 
-Release `swarmauri_base>=0.11.0.dev10` first, then the nine alpha providers,
+Release `swarmauri_base>=0.11.0.dev11` first, then the fourteen alpha packages,
 followed by the updated standard/community/facade distributions. Building and
 testing this source candidate does not publish these versions to PyPI.

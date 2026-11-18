@@ -8,7 +8,9 @@ evaluate DeepInfra next rather than assuming OpenAI is the only replacement.
 ## Existing Swarmauri adapters
 
 This branch adds standalone **alpha** packages for OpenAI, DeepInfra, Together,
-Cartesia, ElevenLabs, Deepgram Aura, Gemini Interactions, Amazon Polly and Azure Speech TTS. Their live API coverage
+Cartesia, ElevenLabs, Deepgram Aura, Gemini Interactions, Amazon Polly and Azure Speech TTS. Interface-specific packages also cover native
+DeepInfra Kokoro, Qwen3 presets, Qwen3 voice design, ElevenLabs dialogue and Gemini dialogue;
+see [the interface inventory](tts-interface-boundaries.md). Their live API coverage
 is still unverified; see the [verification tracker](../verification/tts-providers.md).
 
 The bundled `OpenaiTTS` and legacy `OpenAIAudioTTS` imports are compatibility
@@ -17,7 +19,7 @@ shims with deprecation warnings. They share the new OpenAI implementation.
 
 The new adapters implement their specific provider APIs. Together streaming
 requires SSE decoding into raw PCM, unlike OpenAI's binary audio stream.
-DeepInfra's `/v1/audio/speech` adapter deliberately excludes native inference
+DeepInfra's `/v1/openai/audio/speech` adapter deliberately excludes native inference
 and voice-cloning/design endpoints. Catalog model availability does not establish
 endpoint compatibility; verify each model in issue #6269.
 
@@ -80,5 +82,5 @@ parameters per model instead of assuming every catalog entry has identical APIs.
    prompts. Measure first audio, total generation time, listenability, actual
    billed cost, voice controls, output format and interruption cleanup.
 
-These are integration priorities inferred from documented capabilities. All nine new adapters are alpha and unverified with live APIs; no provider
+These are integration priorities inferred from documented capabilities. All fourteen new adapters are alpha and unverified with live APIs; no provider
 account, paid synthesis run or benchmark is claimed here.

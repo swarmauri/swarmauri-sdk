@@ -8,11 +8,19 @@ pytestmark = pytest.mark.unit
 @pytest.mark.parametrize(
     "name,package",
     [
+        ("DeepInfraKokoroTTS", "swarmauri_tts_deepinfra_kokoro"),
+        ("DeepInfraQwen3TTS", "swarmauri_tts_deepinfra_qwen3"),
+        (
+            "DeepInfraQwen3VoiceDesignTTS",
+            "swarmauri_tts_deepinfra_qwen3_voicedesign",
+        ),
+        ("ElevenLabsDialogueTTS", "swarmauri_tts_elevenlabs_dialogue"),
         ("PollyTTS", "swarmauri_tts_polly"),
         ("AzureTTS", "swarmauri_tts_azure"),
         ("CartesiaTTS", "swarmauri_tts_cartesia"),
         ("ElevenLabsTTS", "swarmauri_tts_elevenlabs"),
         ("DeepgramTTS", "swarmauri_tts_deepgram"),
+        ("GeminiDialogueTTS", "swarmauri_tts_gemini_dialogue"),
         ("GeminiTTS", "swarmauri_tts_gemini"),
         ("OpenaiTTS", "swarmauri_tts_openai"),
         ("DeepInfraTTS", "swarmauri_tts_deepinfra"),
@@ -44,11 +52,16 @@ def test_facade_imports_point_to_standalone_classes():
 @pytest.mark.parametrize(
     "name,vendor",
     [
+        ("DeepInfraKokoroTTS", "deepinfra_kokoro"),
+        ("DeepInfraQwen3TTS", "deepinfra_qwen3"),
+        ("DeepInfraQwen3VoiceDesignTTS", "deepinfra_qwen3_voicedesign"),
+        ("ElevenLabsDialogueTTS", "elevenlabs_dialogue"),
         ("PollyTTS", "polly"),
         ("AzureTTS", "azure"),
         ("CartesiaTTS", "cartesia"),
         ("ElevenLabsTTS", "elevenlabs"),
         ("DeepgramTTS", "deepgram"),
+        ("GeminiDialogueTTS", "gemini_dialogue"),
         ("GeminiTTS", "gemini"),
     ],
 )

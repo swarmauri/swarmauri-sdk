@@ -195,3 +195,9 @@ needed. `_speech_request(payload, streaming)` prepares headers and body once for
 providers that require XML or an exact body signature. Existing JSON/binary
 providers retain their default behavior. Transport does
 not replay potentially billable requests.
+
+`tts.JsonAudioTTSMixin` decodes complete base64/data-URI audio from JSON for
+file and batch workflows. It rejects URL audio and malformed/empty data, and
+checks WAV headers when WAV is requested. Providers validate their own status
+and format fields. Its stream/astream methods raise locally; a complete JSON
+response is never labeled an incremental stream.

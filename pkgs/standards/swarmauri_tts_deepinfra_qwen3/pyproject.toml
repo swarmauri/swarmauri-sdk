@@ -1,0 +1,46 @@
+[project]
+name = "swarmauri_tts_deepinfra_qwen3"
+version = "0.1.0a1"
+description = "Alpha Swarmauri Deepinfra Qwen3 text-to-speech provider with native JSON audio, async synthesis and bounded batches; live API verification pending."
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+keywords = ["swarmauri", "deepinfra_qwen3", "tts", "text-to-speech", "speech-synthesis", "json-audio", "async-audio", "alpha-provider"]
+dependencies = ["swarmauri_base>=0.11.0.dev11,<0.12", "httpx>=0.27", "pydantic>=2.0"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+Issues = "https://github.com/swarmauri/swarmauri-sdk/issues"
+
+[project.entry-points."swarmauri.tts"]
+DeepInfraQwen3TTS = "swarmauri_tts_deepinfra_qwen3:DeepInfraQwen3TTS"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+
+[tool.pytest.ini_options]
+markers = ["unit: Offline unit tests", "i9n: Opt-in live API tests that may incur charges"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.24", "jsonschema>=4.18", "ruff==0.15.21"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+include = [{ path = "NOTICE", format = ["sdist", "wheel"] }]
