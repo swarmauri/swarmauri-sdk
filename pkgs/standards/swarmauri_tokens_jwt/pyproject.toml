@@ -19,9 +19,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_signing_jws",
+    "swarmauri_core>=0.11.0.dev8,<0.12",
+    "swarmauri_base>=0.11.0.dev13,<0.12",
+    "swarmauri_signing_jws>=0.11.0.dev1,<0.12",
 ]
 keywords = [
     'swarmauri',

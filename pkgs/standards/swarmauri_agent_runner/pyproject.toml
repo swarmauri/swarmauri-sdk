@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_runner"
-version = "0.1.1"
+version = "0.1.2"
 description = "Run model tool calls and resume checkpointed human interactions."
 readme = "README.md"
 license = "Apache-2.0"
@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: Apache Software License",
 ]
-dependencies = ["swarmauri_core>=0.11.0.dev7,<0.12","swarmauri_base>=0.11.0.dev7,<0.12","swarmauri_standard>=0.11.0.dev9,<0.12","swarmauri_tool_askuser>=0.1.0,<0.2"]
+dependencies = ["swarmauri_core>=0.11.0.dev8,<0.12","swarmauri_base>=0.11.0.dev13,<0.12","swarmauri_standard>=0.11.0.dev13,<0.12","swarmauri_tool_askuser>=0.1.0,<0.2"]
 
 [project.optional-dependencies]
 sqlite = ["swarmauri_runstore_sqlite>=0.1.0,<0.2"]

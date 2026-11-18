@@ -2,8 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from .models import Grant, DelegatedCredential
-from swarmauri_core.permissions import Permission
+from .models import Grant
 
 
 class IGrantStore(ABC):

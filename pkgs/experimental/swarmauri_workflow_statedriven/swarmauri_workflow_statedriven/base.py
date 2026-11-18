@@ -70,7 +70,9 @@ class WorkflowBase:
             raise InvalidTransitionError(
                 f"Cannot add transition: '{source}' → '{target}'"
             )
-        self.transitions.append(Transition(source, target, condition, edge_id=edge_id))
+        self.transitions.append(
+            Transition(source, target, condition, edge_id=edge_id)
+        )
 
     def run(self, start: str, initial_input: Any) -> Dict[str, Any]:
         """
@@ -78,7 +80,9 @@ class WorkflowBase:
         Single‐threaded execution loop.
         """
         if start not in self.nodes:
-            raise InvalidTransitionError(f"Start state '{start}' is not defined")
+            raise InvalidTransitionError(
+                f"Start state '{start}' is not defined"
+            )
 
         results: Dict[str, Any] = {}
         queue: List[Tuple[str, Any]] = [(start, initial_input)]
@@ -128,7 +132,9 @@ class WorkflowBase:
         Executes ready‐to‐run node invocations in parallel threads.
         """
         if start not in self.nodes:
-            raise InvalidTransitionError(f"Start state '{start}' is not defined")
+            raise InvalidTransitionError(
+                f"Start state '{start}' is not defined"
+            )
 
         results: Dict[str, Any] = {}
         executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -159,7 +165,9 @@ class WorkflowBase:
 
                 # Schedule downstream work
                 for t in self.transitions:
-                    if t.source != state_name or not t.condition.evaluate(results):
+                    if t.source != state_name or not t.condition.evaluate(
+                        results
+                    ):
                         continue
 
                     with self._lock:
@@ -169,7 +177,9 @@ class WorkflowBase:
                     if self.nodes[t.target].join_strategy.is_satisfied(buffer):
                         raw = self.state_manager.pop_buffer(t.target)
                         merged = self.nodes[t.target].merge_strategy.merge(raw)
-                        futures.append(executor.submit(_run_node, t.target, merged))
+                        futures.append(
+                            executor.submit(_run_node, t.target, merged)
+                        )
 
         executor.shutdown(wait=True)
         return results

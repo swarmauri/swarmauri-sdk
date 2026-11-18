@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from .models import InvocationRequest, InvocationContext, InvocationResult
+from .models import InvocationRequest, InvocationContext
 
 
 class IAuthorityStrategy(ABC):

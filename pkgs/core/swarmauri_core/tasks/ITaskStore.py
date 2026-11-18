@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 
 from .models import TaskRecord
-from swarmauri_core.permissions import Permission
 
 
 class ITaskStore(ABC):

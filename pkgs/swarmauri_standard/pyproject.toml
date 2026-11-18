@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_standard"
-version = "0.11.0.dev12"
+version = "0.11.0.dev13"
 description = "First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows."
 keywords = [
     "swarmauri",
@@ -61,8 +61,8 @@ dependencies = [
 "aiofiles",
 "rich",
 "typing_extensions",
-"swarmauri_core>=0.11.0.dev7,<0.12",
-"swarmauri_base>=0.11.0.dev12,<0.12",
+"swarmauri_core>=0.11.0.dev8,<0.12",
+"swarmauri_base>=0.11.0.dev13,<0.12",
 "swarmauri_tts_openai>=0.1.0a2,<0.2",
 ]
 
