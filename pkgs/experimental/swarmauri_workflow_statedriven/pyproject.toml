@@ -28,6 +28,9 @@ dependencies = [
 ]
 
 
+[project.entry-points."swarmauri.execution_drivers"]
+StateDrivenExecutionDriver = "swarmauri_workflow_statedriven:StateDrivenExecutionDriver"
+
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
@@ -37,6 +40,7 @@ swarmauri_standard = { workspace = true }
 ignore = ["E501"]
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
 markers = [
     "test: standard test",
     "unit: Unit tests",

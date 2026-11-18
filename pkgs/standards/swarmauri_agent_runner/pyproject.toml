@@ -22,6 +22,9 @@ sqlite = ["swarmauri_runstore_sqlite>=0.1.0,<0.2"]
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
 
+[project.entry-points."swarmauri.execution_drivers"]
+AgentRunnerExecutionDriver = "swarmauri_agent_runner:AgentRunnerExecutionDriver"
+
 [tool.uv.sources]
 swarmauri_runstore_sqlite = { workspace = true }
 swarmauri_core = { workspace = true }
@@ -30,6 +33,8 @@ swarmauri_standard = { workspace = true }
 swarmauri_tool_askuser = { workspace = true }
 
 [tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 markers = ["unit: Unit tests", "i9n: Integration tests"]
 
 [build-system]
@@ -37,4 +42,4 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = ["swarmauri_runstore_sqlite", "pytest>=8.0", "ruff>=0.9.9"]
+dev = ["swarmauri_runstore_sqlite", "pytest>=8.0", "pytest-asyncio>=0.24.0", "ruff>=0.9.9"]

@@ -16,6 +16,17 @@
 
 # Swarmauri Workflow Statedriven
 
+## Execution controller integration
+
+`StateDrivenExecutionDriver(graph=graph, definition_version="1")` reuses
+existing conditions, input modes, joins and merge strategies while returning
+one durable node boundary per step. An optional authorized dispatcher routes
+nodes through the shared invoker. Queues, results, join buffers and JSON
+strategy state survive reconstruction; custom strategies can override their
+checkpoint codec. Change the definition version when the graph changes.
+Existing graph execution methods and transition constructors remain supported.
+See the [composition guide](../../../docs/examples/composable-execution/README.md).
+
 An experimental state-driven workflow engine for building graph-based processes using nodes and transitions. It supports conditions, join strategies, merge strategies and input modes to control execution flow.
 
 ## Installation

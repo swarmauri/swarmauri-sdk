@@ -55,6 +55,17 @@ class ComponentBase(
 class ResourceTypes(Enum):
     """Enumeration of built-in resource type names."""
 
+    PERMISSION_POLICY = "PermissionPolicy"
+    TASK_STORE = "TaskStore"
+    TASK_MANAGER = "TaskManager"
+    GRANT_STORE = "GrantStore"
+    DELEGATION_SERVICE = "DelegationService"
+    EXECUTION_DRIVER = "ExecutionDriver"
+    EXECUTION_CONTROLLER = "ExecutionController"
+    WORKFLOW_DEFINITION = "WorkflowDefinition"
+    INVOKER = "Invoker"
+    AUTHORITY_STRATEGY = "AuthorityStrategy"
+
     UNIVERSAL_BASE = "ComponentBase"
     AGENT = "Agent"
     RUN_STORE = "RunStore"
