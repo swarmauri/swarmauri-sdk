@@ -422,10 +422,19 @@ class PluginCitizenshipRegistry:
         "swarmauri.stt.GroqSTT": "swarmauri_standard.stt.GroqSTT",
         "swarmauri.stt.OpenaiSTT": "swarmauri_standard.stt.OpenaiSTT",
         "swarmauri.tts.HyperbolicTTS": "swarmauri_standard.tts.HyperbolicTTS",
-        "swarmauri.tts.ElevenLabsDialogueTTS": "swarmauri_tts_elevenlabs_dialogue.ElevenLabsDialogueTTS",
-        "swarmauri.tts.DeepInfraKokoroTTS": "swarmauri_tts_deepinfra_kokoro.DeepInfraKokoroTTS",
-        "swarmauri.tts.DeepInfraQwen3TTS": "swarmauri_tts_deepinfra_qwen3.DeepInfraQwen3TTS",
-        "swarmauri.tts.DeepInfraQwen3VoiceDesignTTS": "swarmauri_tts_deepinfra_qwen3_voicedesign.DeepInfraQwen3VoiceDesignTTS",
+        "swarmauri.tts.ElevenLabsDialogueTTS": (
+            "swarmauri_tts_elevenlabs_dialogue.ElevenLabsDialogueTTS"
+        ),
+        "swarmauri.tts.DeepInfraKokoroTTS": (
+            "swarmauri_tts_deepinfra_kokoro.DeepInfraKokoroTTS"
+        ),
+        "swarmauri.tts.DeepInfraQwen3TTS": (
+            "swarmauri_tts_deepinfra_qwen3.DeepInfraQwen3TTS"
+        ),
+        "swarmauri.tts.DeepInfraQwen3VoiceDesignTTS": (
+            "swarmauri_tts_deepinfra_qwen3_voicedesign.DeepInfraQwen3Vo"
+            "iceDesignTTS"
+        ),
         "swarmauri.tts.PollyTTS": "swarmauri_tts_polly.PollyTTS",
         "swarmauri.tts.AzureTTS": "swarmauri_tts_azure.AzureTTS",
         "swarmauri.tts.CartesiaTTS": "swarmauri_tts_cartesia.CartesiaTTS",
@@ -433,7 +442,9 @@ class PluginCitizenshipRegistry:
             "swarmauri_tts_elevenlabs.ElevenLabsTTS"
         ),
         "swarmauri.tts.DeepgramTTS": "swarmauri_tts_deepgram.DeepgramTTS",
-        "swarmauri.tts.GeminiDialogueTTS": "swarmauri_tts_gemini_dialogue.GeminiDialogueTTS",
+        "swarmauri.tts.GeminiDialogueTTS": (
+            "swarmauri_tts_gemini_dialogue.GeminiDialogueTTS"
+        ),
         "swarmauri.tts.GeminiTTS": "swarmauri_tts_gemini.GeminiTTS",
         "swarmauri.tts.OpenaiTTS": "swarmauri_tts_openai.OpenaiTTS",
         "swarmauri.tts.DeepInfraTTS": "swarmauri_tts_deepinfra.DeepInfraTTS",

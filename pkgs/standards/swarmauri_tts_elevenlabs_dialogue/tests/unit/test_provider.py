@@ -122,9 +122,9 @@ def test_ordered_turns_use_dialogue_route(transport, tmp_path):
     provider = ElevenLabsDialogueTTS(api_key="offline-key")
     provider.predict(turns, str(tmp_path / "dialogue.mp3"))
     request = transport[0]
-    assert (
-        str(request.url)
-        == "https://api.elevenlabs.io/v1/text-to-dialogue?output_format=mp3_44100_128"
+    assert str(request.url) == (
+        "https://api.elevenlabs.io/v1/text-to-dialogue?output_forma"
+        "t=mp3_44100_128"
     )
     assert request.headers["xi-api-key"] == "offline-key"
     assert "authorization" not in request.headers

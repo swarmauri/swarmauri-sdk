@@ -197,6 +197,12 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "swarmauri_tts_deepinfra_kokoro",
+    "swarmauri_tts_deepinfra_qwen3",
+    "swarmauri_tts_deepinfra_qwen3_voicedesign",
+    "swarmauri_tts_elevenlabs_dialogue",
+    "swarmauri_tts_gemini_dialogue",
+
     "swarmauri_tts_azure",
     "swarmauri_tts_polly",
 

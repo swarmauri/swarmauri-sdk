@@ -4,11 +4,11 @@
 
 Alpha Swarmauri ElevenLabsDialogueTTS component. Ordered text/voice turns on the dialogue API, separate from single-speaker ElevenLabs TTS.
 
-[![Downloads](https://static.pepy.tech/badge/swarmauri_tts_elevenlabs_dialogue)](https://pepy.tech/projects/swarmauri_tts_elevenlabs_dialogue)
+[![Downloads](https://img.shields.io/pypi/dm/swarmauri_tts_elevenlabs_dialogue)](https://pepy.tech/projects/swarmauri_tts_elevenlabs_dialogue)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_elevenlabs_dialogue.svg)](https://github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_tts_elevenlabs_dialogue)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/)
+[![Python](https://img.shields.io/pypi/pyversions/swarmauri_tts_elevenlabs_dialogue)](https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tts_elevenlabs_dialogue)](https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/)
-[![Version](https://img.shields.io/pypi/v/swarmauri_tts_elevenlabs_dialogue)](https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/)
+[![Version](https://img.shields.io/pypi/v/swarmauri_tts_elevenlabs_dialogue?label=swarmauri_tts_elevenlabs_dialogue&color=green)](https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/)
 
 ## Features
 
