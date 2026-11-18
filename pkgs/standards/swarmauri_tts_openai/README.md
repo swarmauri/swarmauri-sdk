@@ -89,3 +89,9 @@ See the [lifecycle guide](../../../docs/migrations/openai-speech.md) and
 [official schedule](https://developers.openai.com/api/docs/deprecations).
 
 Migration tracking: [#6310](https://github.com/swarmauri/swarmauri-sdk/issues/6310).
+
+## Dependency compatibility
+
+Version 0.1.0a2 constrains HTTPX to the supported 0.27-0.28 API and
+requires swarmauri_base>=0.11.0.dev12. Use this alpha instead of 0.1.0a1,
+whose unconstrained dependency can select incompatible HTTPX 1.0 prereleases.

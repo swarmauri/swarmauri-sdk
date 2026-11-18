@@ -1,6 +1,6 @@
 # Alpha TTS provider verification
 
-All fourteen packages start at `0.1.0a1` and retain
+OpenAI is `0.1.0a2`; the other thirteen packages are `0.1.0a1`. All retain
 `Development Status :: 3 - Alpha` in their `pyproject.toml` and wheel metadata.
 They were implemented against public API documentation and tested offline.
 No live synthesis, speech-quality evaluation or paid provider request was run.
@@ -146,7 +146,7 @@ preserve legacy imports through warning shims. The facade exposes canonical
 TTS classes and has a separate `tts` installation extra. The new five packages
 remain alpha and do not replace any existing import path.
 
-Release `swarmauri_base>=0.11.0.dev11` first, then the fourteen alpha packages,
+Release `swarmauri_base>=0.11.0.dev12` first, then the fourteen alpha packages,
 followed by the updated standard/community/facade distributions. Building and
 testing this source candidate does not publish these versions to PyPI.
 

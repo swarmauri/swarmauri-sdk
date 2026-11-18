@@ -22,8 +22,8 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
+    "swarmauri_core>=0.11.0.dev7,<0.12",
+    "swarmauri_base>=0.11.0.dev12,<0.12",
 ]
 keywords = [
     "swarmauri",

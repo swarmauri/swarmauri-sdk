@@ -27,7 +27,7 @@ uv add --prerelease allow swarmauri_tts_deepinfra_qwen3
 pip install --pre swarmauri_tts_deepinfra_qwen3
 ```
 
-This source candidate needs swarmauri_base>=0.11.0.dev11 published first.
+This source candidate needs swarmauri_base>=0.11.0.dev12 published first.
 
 ## Usage
 
