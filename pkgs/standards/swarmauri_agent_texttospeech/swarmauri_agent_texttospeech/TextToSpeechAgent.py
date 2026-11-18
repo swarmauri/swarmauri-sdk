@@ -7,9 +7,15 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializeAsAny,
+    field_validator,
+)
 
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.messages.IMessage import IMessage
@@ -21,23 +27,28 @@ class TextToSpeechAgent(AgentBase):
 
     llm: None = Field(default=None, exclude=True)
     llm_kwargs: None = Field(default=None, exclude=True)
-    tts: SubclassUnion[TTSBase]
+    tts: SerializeAsAny[TTSBase]
     output_path: str = "output.mp3"
     tts_kwargs: Dict[str, Any] = Field(default_factory=dict)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TextToSpeechAgent"] = "TextToSpeechAgent"
 
-    def model_post_init(self, __context: Any) -> None:
-        """Rehydrate a serialized TTS component through its base registry."""
-        if not isinstance(self.tts, dict):
-            return
-        type_name = self.tts.get("type")
+    @field_validator("tts", mode="before")
+    @classmethod
+    def _restore_tts(cls, value):
+        """Resolve serialized providers at validation time, after discovery."""
+        if not isinstance(value, dict):
+            return value
+        type_name = value.get("type")
         registry = TTSBase._registry.get("TTSBase", {})
         tts_class = registry.get("subtypes", {}).get(type_name)
         if tts_class is None and type_name == "TTSBase":
             tts_class = registry.get("model_cls", TTSBase)
-        if tts_class is not None:
-            self.tts = tts_class.model_validate(self.tts)
+        if tts_class is None:
+            raise ValueError(
+                "Import the serialized TTS provider before loading it."
+            )
+        return tts_class.model_validate(value)
 
     def exec(
         self,
