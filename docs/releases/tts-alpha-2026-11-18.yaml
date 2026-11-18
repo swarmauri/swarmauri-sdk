@@ -12,7 +12,9 @@
     "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44269947498",
     "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44272628821",
     "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44270264837",
-    "https://github.com/tigrbl/tigrbl_realtime_ws_agent2user/pull/3"
+    "https://github.com/tigrbl/tigrbl_realtime_ws_agent2user/pull/3",
+    "https://github.com/swarmauri/swarmauri-sdk/pull/6319",
+    "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44275111014"
   ],
   "facts": [
     "All fourteen TTS components remain Alpha and live-unverified.",
@@ -23,7 +25,9 @@
     "PyPI rejected Cartesia first publication with HTTP 429 Too many new projects created on 2026-11-18. No further new-project uploads were attempted after that response.",
     "The facade remains unpublished because its tts extra depends on ten still-unpublished providers.",
     "The TextToSpeechAgent wheel has only core/base runtime requirements; both were verified published before its release.",
-    "Realtime downstream SDK Git references were replaced by exact PyPI pins and merged in tigrbl_realtime_ws_agent2user#3."
+    "Realtime downstream SDK Git references were replaced by exact PyPI pins and merged in tigrbl_realtime_ws_agent2user#3.",
+    "Agent 0.11.0.dev5 is superseded by 0.11.0.dev6, fixing providers imported after the agent class and preserving serialized provider fields.",
+    "Actual PyPI-installed target versions passed 97 offline tests on each of Python 3.10, 3.11 and 3.12; local wheels for all fourteen providers passed 302 offline tests per version."
   ],
   "assumptions": [
     "The configured PyPI publisher may be subject to the documented daily new-project quota."
@@ -46,7 +50,8 @@
       "3.10",
       "3.11",
       "3.12"
-    ]
+    ],
+    "published_index_tests_per_python": 97
   },
   "acceptance_criteria": [
     "All intended exact package versions present with wheel and source artifacts.",
@@ -367,22 +372,22 @@
     },
     {
       "name": "swarmauri_agent_texttospeech",
-      "version": "0.11.0.dev5",
-      "url": "https://pypi.org/pypi/swarmauri_agent_texttospeech/0.11.0.dev5/json",
+      "version": "0.11.0.dev6",
+      "url": "https://pypi.org/pypi/swarmauri_agent_texttospeech/0.11.0.dev6/json",
       "requires_dist": [
         "swarmauri_base<0.12,>=0.11.0.dev12",
         "swarmauri_core<0.12,>=0.11.0.dev7"
       ],
       "artifacts": [
         {
-          "filename": "swarmauri_agent_texttospeech-0.11.0.dev5-py3-none-any.whl",
-          "sha256": "24aabe9622de1d1b1c6f4e08cce1a4930570f520e66e5610284c93fb280f6518",
-          "url": "https://files.pythonhosted.org/packages/03/ce/d9e279c6726e25be10a0aa5c89143ed8f1ac3df101f2577cf6fc65492953/swarmauri_agent_texttospeech-0.11.0.dev5-py3-none-any.whl"
+          "filename": "swarmauri_agent_texttospeech-0.11.0.dev6-py3-none-any.whl",
+          "sha256": "300c32000b6698b4418b2f35b2d07ed0133020ec38293177a94ef83847047474",
+          "url": "https://files.pythonhosted.org/packages/53/ca/8d940d3f8700077c851b4b2069a7b04d02cd606c1f4b3f0d470139faeab8/swarmauri_agent_texttospeech-0.11.0.dev6-py3-none-any.whl"
         },
         {
-          "filename": "swarmauri_agent_texttospeech-0.11.0.dev5.tar.gz",
-          "sha256": "489df9a18d2b7ca370a32bd42bbfec7e8bf6714a8374b749eb7d49dc14c6e3f2",
-          "url": "https://files.pythonhosted.org/packages/6a/be/1de3e3b67dffa2f99d2dd7e8bb6c37eff8b4ce6c6b766be9191948f58a55/swarmauri_agent_texttospeech-0.11.0.dev5.tar.gz"
+          "filename": "swarmauri_agent_texttospeech-0.11.0.dev6.tar.gz",
+          "sha256": "2518d44e6df8ee348e08b8b1fdeaa63d86b14cfb49a92b2365b9cf59fec9dd9c",
+          "url": "https://files.pythonhosted.org/packages/54/7b/6ed4ef49487832ae6991dad037621d90ce4ef56d9a124b5a15c7a8d25a3c/swarmauri_agent_texttospeech-0.11.0.dev6.tar.gz"
         }
       ]
     }
