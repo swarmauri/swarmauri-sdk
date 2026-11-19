@@ -15,11 +15,11 @@ Interchangeable executions component for the composable execution framework.
 - Export `DefaultExecutionController` with SDK interface/base-class inheritance and entry-point discovery.
 - Keep user authority, workload identity, lifecycle and delivery dependencies explicit.
 - Reuse existing service registries, transports, checkpoints and token providers.
-- Support Python 3.10, 3.11 and 3.12.
+- Support Python 3.10, 3.11, 3.12, 3.13 and 3.14.
 
 ## Installation
 
-These packages introduce unreleased core/base APIs. Install the matching workspace revision together; do not combine with older published core/base releases. Release validation must publish compatible dependency versions first.
+Install the package with its declared dependencies. The composable APIs require swarmauri_core 0.11.0.dev8 or newer and swarmauri_base 0.11.0.dev13 or newer within the declared version bounds.
 
 ```sh
 uv pip install ./pkgs/standards/swarmauri_execution_default

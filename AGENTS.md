@@ -24,7 +24,7 @@ avoid using the ``PluginManager`` unless explicitly directed otherwise.
   list Jacob Stewart `<jacob@swarmauri.com>` as an author (do not add the
   Swarmauri organization as a separate author entry).
 - Package metadata and documentation must communicate support for Python 3.10
-  through 3.12, and classifiers should be added accordingly.
+  through 3.14, and classifiers should be added accordingly.
 - When working on Tigrbl packages the same rules apply, but swap the branding
   image with the Tigrbl SVG theme.
 - Branding asset locations:

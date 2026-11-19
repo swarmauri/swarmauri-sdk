@@ -15,7 +15,7 @@ Alpha Swarmauri ElevenLabsDialogueTTS component. Ordered text/voice turns on the
 - Structured multi-voice files, async synthesis, streams and bounded batches.
 - Provider-specific schemas and local input validation.
 - Fixed provider endpoints and no automatic replay of billable requests.
-- Python 3.10-3.12; no swarmauri_standard dependency.
+- Python 3.10-3.14; no swarmauri_standard dependency.
 
 ## Installation
 

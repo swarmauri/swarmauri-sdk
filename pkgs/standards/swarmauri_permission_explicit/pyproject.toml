@@ -1,10 +1,10 @@
 [project]
 name = "swarmauri_permission_explicit"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evaluate exact action resource and tenant permissions."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri", "permissions", "composition", "execution", "authorization"]
 classifiers = [
@@ -13,6 +13,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = ["swarmauri_core>=0.11.0.dev8,<0.12", "swarmauri_base>=0.11.0.dev13,<0.12"]
 

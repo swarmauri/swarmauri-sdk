@@ -13,7 +13,7 @@ Stream and control commands running on the local host.
 ## Features
 
 - Stream and control commands running on the local host.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

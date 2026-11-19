@@ -24,7 +24,7 @@ mapping.
 - Converts AWS stream exception events into `AwsEventStreamError`.
 - Keeps credentials out of serialized component state.
 
-The codec and package metadata support Python 3.10 through 3.12. Amazon's
+The codec and package metadata support Python 3.10 through 3.14. Amazon's
 official `aws-sdk-bedrock-runtime` currently requires Python 3.12, so opening a
 live Bedrock connection requires Python 3.12.
 

@@ -15,7 +15,7 @@ Alpha Swarmauri DeepInfraQwen3VoiceDesignTTS component. Native Qwen3 voice-descr
 - File synthesis, async synthesis and bounded batches from JSON-encoded audio.
 - Provider-specific schemas and local input validation.
 - Fixed provider endpoints and no automatic replay of billable requests.
-- Python 3.10-3.12; no swarmauri_standard dependency.
+- Python 3.10-3.14; no swarmauri_standard dependency.
 
 ## Installation
 

@@ -13,7 +13,7 @@ Compose human input, skills, and container checks for SDK maintenance.
 ## Features
 
 - Compose human input, skills, and container checks for SDK maintenance.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

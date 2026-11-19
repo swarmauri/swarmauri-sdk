@@ -13,7 +13,7 @@ Inspect a runtime tool and its declared inputs.
 ## Features
 
 - Inspect a runtime tool and its declared inputs.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

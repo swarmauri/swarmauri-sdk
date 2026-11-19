@@ -1,6 +1,6 @@
 """Run focused package-isolated checks for the composable runtime.
 
-Use a Python 3.10-3.12 virtual environment with uv on PATH. Install selected
+Use a Python 3.10-3.14 virtual environment with uv on PATH. Install selected
 workspace members below editable and with --no-deps, then install:
 pydantic pyyaml toml numpy httpx starlette jsonschema cryptography PyJWT
 poetry-core pytest pytest-asyncio pytest-timeout pytest-mock pytest-json-report

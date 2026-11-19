@@ -13,7 +13,7 @@ Run the SDK Ruff and pytest checks for a configured member.
 ## Features
 
 - Run the SDK Ruff and pytest checks for a configured member.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

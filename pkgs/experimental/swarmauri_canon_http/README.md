@@ -87,6 +87,6 @@ asyncio.run(main())
 
 ## Python support
 
-This package targets Python 3.10 through 3.12 in project-level documentation.
+This package targets Python 3.10 through 3.14 in project-level documentation.
 
 

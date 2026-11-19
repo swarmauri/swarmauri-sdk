@@ -13,7 +13,7 @@ Load a skill and expose its approved tools.
 ## Features
 
 - Load a skill and expose its approved tools.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

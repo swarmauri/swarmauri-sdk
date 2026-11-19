@@ -26,7 +26,7 @@
 - Evaluates runtime `__call__` bodies through a restricted expression rail rather than unrestricted Python execution.
 - Returns agent-friendly dictionaries for reads, lists, and mutation results.
 - Protects the toolkit's own management tools from accidental overwrite or removal.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Support
 

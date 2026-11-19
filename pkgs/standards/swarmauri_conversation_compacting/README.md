@@ -8,7 +8,7 @@
 
 # Swarmauri Compacting Conversation
 
-Keep a rolling summary of older conversation turns while retaining recent messages for the next model request. Supports Python 3.10 through 3.12.
+Keep a rolling summary of older conversation turns while retaining recent messages for the next model request. Supports Python 3.10 through 3.14.
 
 ## Features
 

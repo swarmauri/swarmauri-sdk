@@ -13,7 +13,7 @@ Read process output from a continuation cursor.
 ## Features
 
 - Read process output from a continuation cursor.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

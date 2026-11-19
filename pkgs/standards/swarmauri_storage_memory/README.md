@@ -26,7 +26,7 @@ storage and rely entirely on process memory.
 - Supports optional key prefixes to scope uploads and downloads.
 - Provides helper methods for bulk upload/download operations.
 - Emits ``memory://`` URIs so downstream components can trace stored artifacts.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

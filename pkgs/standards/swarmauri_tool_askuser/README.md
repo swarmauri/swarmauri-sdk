@@ -13,7 +13,7 @@ Collect validated human input through an application-provided handler.
 ## Features
 
 - Collect validated human input through an application-provided handler.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

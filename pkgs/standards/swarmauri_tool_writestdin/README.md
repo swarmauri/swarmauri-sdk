@@ -13,7 +13,7 @@ Write text to an existing process or close its input.
 ## Features
 
 - Write text to an existing process or close its input.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 
