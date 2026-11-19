@@ -6,6 +6,7 @@ on:
       - "pkgs/**"
       - "docs/releases/python-310-314-remaining-2026-11-19.json"
       - "scripts/verify_remaining_python_support.py"
+      - "scripts/tests/test_verify_remaining_python_support.py"
       - ".github/workflows/python-support-remaining.yml"
   workflow_dispatch:
 
@@ -28,6 +29,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v6
+      - name: Verify publication index gate
+        run: uv run --no-project --with poetry-core --with packaging --with tomli --with pytest python -m pytest -q scripts/tests/test_verify_remaining_python_support.py
       - name: Verify candidate packages independently
         run: uv run --no-project --with poetry-core --with packaging --with tomli python scripts/verify_remaining_python_support.py
       - uses: actions/upload-artifact@v4
