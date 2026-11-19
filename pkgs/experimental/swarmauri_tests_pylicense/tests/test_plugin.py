@@ -71,6 +71,32 @@ def test_pep639_license_expression():
     assert _license_from_dist(DummyDist()) == "BSD-2-Clause"
 
 
+def test_legacy_apache_two_metadata_preserves_license_policy(
+    pytester, monkeypatch
+):
+    class DummyDist:
+        metadata = Message()
+
+    DummyDist.metadata["License"] = "Apache 2"
+    license_name = _license_from_dist(DummyDist())
+    assert license_name == "Apache-2.0"
+    monkeypatch.setattr(
+        "swarmauri_tests_pylicense._collect_dependency_paths",
+        lambda pkg: [DependencyPath(("dummy", "dep"), license_name, "1.0")],
+    )
+    result = pytester.runpytest(
+        "-p", "swarmauri_tests_pylicense", "--pylicense-package=dummy"
+    )
+    result.assert_outcomes(passed=1)
+    result = pytester.runpytest(
+        "-p",
+        "swarmauri_tests_pylicense",
+        "--pylicense-package=dummy",
+        "--pylicense-disallow-list=Apache-2.0",
+    )
+    result.assert_outcomes(failed=1)
+
+
 def test_allow_disallow_lists(pytester, monkeypatch):
     monkeypatch.setattr(
         "swarmauri_tests_pylicense._collect_dependency_paths",
