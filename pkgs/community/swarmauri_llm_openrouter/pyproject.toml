@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_openrouter"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 description = "OpenRouter models for Swarmauri chat, tool-calling, vision-language, and image-generation workflows."
 license = "Apache-2.0"
 readme = "README.md"
@@ -26,12 +26,12 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_provider_openrouter",
-    "swarmauri_standard",
-    "swarmauri_transport_httpx",
-    "swarmauri_transport_retry",
+    "swarmauri_core<0.12,>=0.11.0.dev8",
+    "swarmauri_base<0.12,>=0.11.0.dev13",
+    "swarmauri_provider_openrouter>=0.1.0.dev2",
+    "swarmauri_standard<0.12,>=0.11.0.dev13",
+    "swarmauri_transport_httpx>=0.1.0.dev6",
+    "swarmauri_transport_retry>=0.1.0.dev2",
 ]
 keywords = [
     "swarmauri",

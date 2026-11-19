@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_agent_texttospeech"
-version = "0.11.0.dev6"
+version = "0.11.0.dev7"
 description = "Stateless Swarmauri agent for converting independent text prompts into audio through any TTSBase provider."
 license = "Apache-2.0"
 readme = "README.md"
@@ -24,8 +24,8 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core>=0.11.0.dev7,<0.12",
-    "swarmauri_base>=0.11.0.dev12,<0.12",
+    "swarmauri_core<0.12,>=0.11.0.dev8",
+    "swarmauri_base<0.12,>=0.11.0.dev13",
 ]
 keywords = [
     "swarmauri",
@@ -59,7 +59,7 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "swarmauri_tts_openai>=0.1.0a2,<0.2",
+    "swarmauri_tts_openai<0.2,>=0.1.0a3",
     "swarmauri_tts_elevenlabs_dialogue>=0.1.0a1,<0.2",
     "swarmauri_tts_gemini_dialogue>=0.1.0a1,<0.2",
     "pytest>=8.0",

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_s3_over_sftp"
-version = "0.11.0.dev5"
+version = "0.11.0.dev6"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "S3-style Swarmauri storage adapter backed by SFTP"
 readme = "README.md"
@@ -23,9 +23,9 @@ classifiers = [
 dependencies = [
     "paramiko>=3.4,<4.0",
     "pycparser<3",
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_standard",
+    "swarmauri_core<0.12,>=0.11.0.dev8",
+    "swarmauri_base<0.12,>=0.11.0.dev13",
+    "swarmauri_standard<0.12,>=0.11.0.dev13",
 ]
 keywords = [
     "swarmauri",
@@ -78,6 +78,7 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "tomli>=2.0; python_version < '3.11'",
     "pytest>=8.0",
     "pytest-asyncio>=0.24.0",
     "pytest-xdist>=3.6.1",
