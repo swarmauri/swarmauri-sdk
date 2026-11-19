@@ -12,7 +12,7 @@ on:
 jobs:
   detect-changed-files:
     if: ${{ !cancelled() }}
-    runs-on: [testing]
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
@@ -94,10 +94,11 @@ jobs:
   run-tests:
     needs: detect-changed-files
     if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
-    runs-on: [testing]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
       fail-fast: false
+      max-parallel: 10
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
 
