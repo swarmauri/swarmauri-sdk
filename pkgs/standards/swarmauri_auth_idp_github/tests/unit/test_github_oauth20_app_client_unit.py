@@ -129,12 +129,11 @@ async def test_access_token_request_contract(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_access_token_request_body_restrictions(
+async def test_access_token_request_body_repository_ids(
     client: GitHubOAuth20AppClient, recording_client
 ) -> None:
     client.permissions = {"contents": "read"}
     client.repository_ids = [1, 2]
-    client.repository_names = ["octo-repo"]
     stub = recording_client((201, {"token": "ghs_test"}))
     client.http_client_factory = lambda: stub  # type: ignore[assignment]
 
@@ -143,9 +142,26 @@ async def test_access_token_request_body_restrictions(
     assert stub.requests[0].json == {
         "permissions": {"contents": "read"},
         "repository_ids": [1, 2],
-        "repository_names": ["octo-repo"],
     }
     assert stub.requests[0].headers["Authorization"] == "Bearer jwt"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="GitHub expects `repositories`, not repository_names (#6328)",
+)
+async def test_access_token_request_body_repository_names(
+    client: GitHubOAuth20AppClient, recording_client
+) -> None:
+    client.repository_names = ["octo-repo"]
+    stub = recording_client((201, {"token": "ghs_test"}))
+    client.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    await client.access_token()
+
+    assert stub.requests[0].json == {"repositories": ["octo-repo"]}
 
 
 @pytest.mark.unit
