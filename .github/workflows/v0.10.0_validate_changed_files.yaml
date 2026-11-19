@@ -49,7 +49,9 @@ jobs:
           echo "Detecting changed packages …"
           # Exclude the monorepo root pyproject.toml as it does not represent
           # a real package and will always fail validation.
-          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' || true)
+          # Documentation-only edits do not change package installation or runtime.
+          # pyproject.toml changes still receive the full package validation below.
+          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' | grep -vE '\.(md|rst)$' || true)
           if [ -z "$CHANGED_FILES" ]; then
             echo "No changes in pkgs/. Exiting."
             echo 'matrix=[]' >> "$GITHUB_OUTPUT"
