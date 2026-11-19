@@ -14,7 +14,7 @@ Provider integrations elsewhere in the SDK still require their own runtime tests
 ## Corrective releases
 
 The nine composable execution packages move from 0.1.0 to 0.1.1. Their HTTPX transport
-dependency moves from 0.1.0.dev4 to 0.1.0.dev5. The compositions require the corrected
+dependency moves from 0.1.0.dev4 to 0.1.0.dev6. The compositions require the corrected
 dependency versions so Python 3.13 and 3.14 can resolve the complete dependency chain.
 Publish HTTPX first, followed by the seven factors, documentassistant, then delegatedresearch.
 
