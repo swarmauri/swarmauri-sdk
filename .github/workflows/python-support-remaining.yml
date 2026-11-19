@@ -1,0 +1,37 @@
+name: Remaining package Python support
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "docs/releases/python-310-314-remaining-2026-11-19.json"
+      - "scripts/verify_remaining_python_support.py"
+      - ".github/workflows/python-support-remaining.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+      - name: Verify candidate packages independently
+        run: uv run --no-project --with poetry-core --with packaging --with tomli python scripts/verify_remaining_python_support.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: remaining-package-tests-${{ matrix.python }}
+          path: .venv-remaining-compat/**/*.xml

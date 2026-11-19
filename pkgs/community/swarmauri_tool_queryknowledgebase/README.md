@@ -2,7 +2,7 @@
 
 [![Downloads](https://static.pepy.tech/badge/swarmauri_tool_queryknowledgebase/month)](https://pepy.tech/project/swarmauri_tool_queryknowledgebase)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_queryknowledgebase.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_queryknowledgebase/)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tool_queryknowledgebase/)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/swarmauri_tool_queryknowledgebase/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tool_queryknowledgebase)](https://pypi.org/project/swarmauri_tool_queryknowledgebase/)
 [![Release](https://img.shields.io/pypi/v/swarmauri_tool_queryknowledgebase)](https://pypi.org/project/swarmauri_tool_queryknowledgebase/)
 

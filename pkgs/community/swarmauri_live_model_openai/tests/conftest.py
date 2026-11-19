@@ -41,8 +41,9 @@ def _connect(model):
 async def _realtime_aconnect(model):
     model.provider = OpenAIProvider(api_key="test-key")
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_openai.OpenAIRealtimeModel.OpenAIRealtimeSession.create",
+    with patch.object(
+        OpenAIRealtimeSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"
@@ -51,8 +52,9 @@ async def _realtime_aconnect(model):
 async def _responses_aconnect(model):
     model.provider = OpenAIProvider(api_key="test-key")
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_openai.OpenAIResponsesWSModel.OpenAIRealtimeSession.create",
+    with patch.object(
+        OpenAIRealtimeSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"

@@ -1,12 +1,12 @@
 [project]
 name = "swarmauri_transport_websocket"
-version = "0.1.0.dev4"
+version = "0.1.0.dev5"
 description = "Synchronous and asynchronous WebSocket client transport for Swarmauri."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = { file = "LICENSE" }
-dependencies = ["websockets>=14", "swarmauri_core", "swarmauri_base"]
+dependencies = ["websockets>=14", "swarmauri_core<0.12,>=0.11.0.dev8", "swarmauri_base<0.12,>=0.11.0.dev13"]
 classifiers = [
   "Development Status :: 1 - Planning",
   "License :: OSI Approved :: Apache Software License",
