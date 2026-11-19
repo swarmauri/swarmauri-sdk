@@ -13,7 +13,7 @@ Start an explicit Bash script and return its process handle.
 ## Features
 
 - Start an explicit Bash script and return its process handle.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

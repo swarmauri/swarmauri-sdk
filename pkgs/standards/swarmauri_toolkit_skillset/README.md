@@ -13,7 +13,7 @@ Compose tools that discover, activate, and read agent skills.
 ## Features
 
 - Compose tools that discover, activate, and read agent skills.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

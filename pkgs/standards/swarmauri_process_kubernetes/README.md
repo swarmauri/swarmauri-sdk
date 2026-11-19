@@ -13,7 +13,7 @@ Stream and control processes in a kubernetes workspace with Python 3 installed.
 ## Features
 
 - Stream and control processes in a kubernetes workspace with Python 3 installed.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

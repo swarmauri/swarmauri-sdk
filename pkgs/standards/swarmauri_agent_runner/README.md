@@ -13,7 +13,7 @@ Run model tool calls and resume checkpointed human interactions.
 ## Features
 
 - Run model tool calls and resume checkpointed human interactions.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

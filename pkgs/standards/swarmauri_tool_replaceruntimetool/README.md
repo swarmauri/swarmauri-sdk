@@ -13,7 +13,7 @@ Replace a tool in a runtime toolkit.
 ## Features
 
 - Replace a tool in a runtime toolkit.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

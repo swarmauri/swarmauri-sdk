@@ -13,7 +13,7 @@ Cancel a running process by handle.
 ## Features
 
 - Cancel a running process by handle.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

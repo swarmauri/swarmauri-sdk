@@ -13,7 +13,7 @@ Inspect metadata for a named skill.
 ## Features
 
 - Inspect metadata for a named skill.
-- Supports Python 3.10 through 3.12.
+- Supports Python 3.10 through 3.14.
 
 ## Installation
 

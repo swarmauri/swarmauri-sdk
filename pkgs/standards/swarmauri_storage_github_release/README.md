@@ -39,7 +39,7 @@ still being usable as a standalone utility.
 - A GitHub personal access token (PAT) or GitHub App token with sufficient
   permissions to view, create and manage releases on the target repository.
 - Network access to the GitHub REST API (provided by `PyGithub`).
-- Python 3.10 through 3.12.
+- Python 3.10 through 3.14.
 
 ## Installation
 
