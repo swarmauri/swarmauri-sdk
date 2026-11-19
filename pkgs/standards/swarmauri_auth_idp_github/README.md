@@ -83,6 +83,25 @@ asyncio.run(run_flow())
 - `swarmauri.auth_idp:GitHubOAuth20AppClient`
 - `swarmauri.auth_idp:GitHubOAuth21AppClient`
 
+## Testing
+
+The test suite runs fully offline. From the repository's `pkgs/` directory:
+
+```bash
+uv run --package swarmauri_auth_idp_github --directory standards/swarmauri_auth_idp_github pytest
+```
+
+The tests replace the HTTP client with a recording fake that replays canned
+GitHub responses, and they sign GitHub App JWTs with a throwaway RSA key
+generated at test time. No GitHub account, OAuth app, credentials, environment
+secrets, or network access are required.
+
+These tests verify the requests the adapter builds (URLs, methods, headers,
+form fields, and JSON bodies) and how it shapes the returned identities and
+tokens. They do not verify interoperability with live GitHub. Confirming live
+provider support requires a manual run against a real GitHub OAuth app or
+GitHub App installation.
+
 ## Contributing
 
 To contribute to swarmauri-sdk, review the

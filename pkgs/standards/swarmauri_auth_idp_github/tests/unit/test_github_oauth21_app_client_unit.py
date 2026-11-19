@@ -1,6 +1,8 @@
 import time
 from typing import Any, Dict
 
+import httpx
+import jwt
 import pytest
 from pydantic import SecretStr
 
@@ -86,3 +88,105 @@ async def test_access_token_refreshes(client: GitHubOAuth21AppClient) -> None:
 async def test_scope_not_supported(client: GitHubOAuth21AppClient) -> None:
     with pytest.raises(ValueError):
         await client.access_token("repo")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_request_contract(
+    rsa_key_pair, recording_client
+) -> None:
+    private_pem, public_pem = rsa_key_pair
+    signed = GitHubOAuth21AppClient(
+        app_id="123",
+        installation_id=42,
+        private_key_pem=SecretStr(private_pem),
+    )
+    stub = recording_client(
+        (201, {"token": "ghs_test", "expires_at": "2099-01-01T00:00:00Z"})
+    )
+    signed.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    token = await signed.access_token()
+
+    assert token == "ghs_test"
+    assert len(stub.requests) == 1
+    request = stub.requests[0]
+    assert request.method == "POST"
+    assert (
+        request.url
+        == "https://api.github.com/app/installations/42/access_tokens"
+    )
+    assert request.json == {}
+    assert request.headers["Accept"] == "application/vnd.github+json"
+    scheme, app_jwt = request.headers["Authorization"].split(" ", 1)
+    assert scheme == "Bearer"
+    assert jwt.get_unverified_header(app_jwt)["alg"] == "RS256"
+    claims = jwt.decode(app_jwt, public_pem, algorithms=["RS256"])
+    assert claims["iss"] == "123"
+    assert claims["exp"] - claims["iat"] == 660
+    assert claims["iat"] <= time.time() <= claims["exp"]
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_request_body_restrictions(
+    client: GitHubOAuth21AppClient, recording_client
+) -> None:
+    client.permissions = {"contents": "read"}
+    client.repository_ids = [1, 2]
+    client.repository_names = ["octo-repo"]
+    stub = recording_client((201, {"token": "ghs_test"}))
+    client.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    await client.access_token()
+
+    assert stub.requests[0].json == {
+        "permissions": {"contents": "read"},
+        "repository_ids": [1, 2],
+        "repository_names": ["octo-repo"],
+    }
+    assert stub.requests[0].headers["Authorization"] == "Bearer jwt"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_api_base_override(
+    client: GitHubOAuth21AppClient, recording_client
+) -> None:
+    client.api_base = "https://ghe.example.com/api/v3/"
+    stub = recording_client((201, {"token": "ghs_test"}))
+    client.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    await client.access_token()
+
+    assert (
+        stub.requests[0].url
+        == "https://ghe.example.com/api/v3/app/installations/42/access_tokens"
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_http_error_is_not_cached(
+    client: GitHubOAuth21AppClient, recording_client
+) -> None:
+    stub = recording_client((401, {"message": "Bad credentials"}))
+    client.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    with pytest.raises(httpx.HTTPStatusError):
+        await client.access_token()
+    assert client.cached_token is None
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_access_token_missing_token_field(
+    client: GitHubOAuth21AppClient, recording_client
+) -> None:
+    # Current behavior: a response without ``token`` surfaces as KeyError.
+    stub = recording_client((201, {"expires_at": "2099-01-01T00:00:00Z"}))
+    client.http_client_factory = lambda: stub  # type: ignore[assignment]
+
+    with pytest.raises(KeyError):
+        await client.access_token()
+    assert client.cached_token is None
