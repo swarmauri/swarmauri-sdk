@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://pepy.tech/project/swarmauri_llm_nvidia_nim"><img src="https://static.pepy.tech/badge/swarmauri_llm_nvidia_nim/month" alt="Downloads"></a>
   <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_nvidia_nim/"><img src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_llm_nvidia_nim.svg" alt="Hits"></a>
-  <a href="https://pypi.org/project/swarmauri_llm_nvidia_nim/"><img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Python"></a>
+  <a href="https://pypi.org/project/swarmauri_llm_nvidia_nim/"><img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="Python"></a>
   <a href="https://pypi.org/project/swarmauri_llm_nvidia_nim/"><img src="https://img.shields.io/pypi/l/swarmauri_llm_nvidia_nim" alt="License"></a>
   <a href="https://pypi.org/project/swarmauri_llm_nvidia_nim/"><img src="https://img.shields.io/pypi/v/swarmauri_llm_nvidia_nim" alt="Release"></a>
 </p>

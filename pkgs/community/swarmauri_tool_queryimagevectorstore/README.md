@@ -2,7 +2,7 @@
 
 [![Downloads](https://static.pepy.tech/badge/swarmauri_tool_queryimagevectorstore/month)](https://pepy.tech/project/swarmauri_tool_queryimagevectorstore)
 [![Hits](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_queryimagevectorstore.svg)](https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_queryimagevectorstore/)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pypi.org/project/swarmauri_tool_queryimagevectorstore/)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/swarmauri_tool_queryimagevectorstore/)
 [![License](https://img.shields.io/pypi/l/swarmauri_tool_queryimagevectorstore)](https://pypi.org/project/swarmauri_tool_queryimagevectorstore/)
 [![Release](https://img.shields.io/pypi/v/swarmauri_tool_queryimagevectorstore)](https://pypi.org/project/swarmauri_tool_queryimagevectorstore/)
 

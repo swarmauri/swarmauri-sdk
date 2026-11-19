@@ -473,6 +473,36 @@ jobs:
               time.sleep(5)
           PY
 
+      - name: Verify published compatibility releases on Python 3.10 through 3.14
+        env:
+          PACKAGE_NAME: ${{ matrix.package_name }}
+        run: |
+          python - <<'PY'
+          from concurrent.futures import ThreadPoolExecutor
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import time
+
+          manifest = Path("docs/releases/python-310-314-remaining-2026-11-19.json")
+          name = os.environ["PACKAGE_NAME"]
+          if not manifest.exists() or name not in {p["name"] for p in json.loads(manifest.read_text())["scope"]}:
+              print(f"{name} is outside the remaining-package compatibility release.")
+              raise SystemExit(0)
+          def verify(version):
+              command = ["uv", "run", "--no-project", "--python", "3.12", "--with", "poetry-core", "--with", "packaging", "--with", "tomli", "python", "scripts/verify_remaining_python_support.py", "--published", "--package", name, "--python", version]
+              for attempt in range(3):
+                  result = subprocess.run(command)
+                  if result.returncode == 0:
+                      break
+                  if attempt == 2:
+                      raise SystemExit(result.returncode)
+                  time.sleep(10)
+          with ThreadPoolExecutor(max_workers=5) as executor:
+              list(executor.map(verify, ("3.10", "3.11", "3.12", "3.13", "3.14")))
+          PY
+
       - name: Prepare release variables
         id: prepare_release
         run: |

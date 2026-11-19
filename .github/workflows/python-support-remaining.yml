@@ -29,7 +29,7 @@ jobs:
           python-version: ${{ matrix.python }}
       - uses: astral-sh/setup-uv@v6
       - name: Verify candidate packages independently
-        run: uv run --no-project --with poetry-core --with tomli python scripts/verify_remaining_python_support.py
+        run: uv run --no-project --with poetry-core --with packaging --with tomli python scripts/verify_remaining_python_support.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

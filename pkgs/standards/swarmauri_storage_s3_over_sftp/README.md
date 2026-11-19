@@ -6,7 +6,7 @@
     <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_s3_over_sftp/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/standards/swarmauri_storage_s3_over_sftp.svg"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_s3_over_sftp/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue" alt="Supported Python Versions"/></a>
+        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="Supported Python Versions"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_s3_over_sftp/">
         <img src="https://img.shields.io/pypi/l/swarmauri_storage_s3_over_sftp" alt="License"/></a>
     <a href="https://pypi.org/project/swarmauri_storage_s3_over_sftp/">
