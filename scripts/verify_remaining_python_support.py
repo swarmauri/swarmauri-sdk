@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 from uuid import uuid4
 
 try:
@@ -19,6 +20,24 @@ from packaging.specifiers import SpecifierSet
 
 def run(*args, **kwargs):
     subprocess.run([str(arg) for arg in args], check=True, **kwargs)
+
+
+def install_published_runtime(command, timeout=300, poll_seconds=10):
+    """Require a successful index-only installation despite propagation delays."""
+    deadline = time.monotonic() + timeout
+    last_error = ""
+    while time.monotonic() < deadline:
+        result = subprocess.run(
+            [str(arg) for arg in command], capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            print(result.stdout, result.stderr, flush=True)
+            return
+        last_error = result.stdout + result.stderr
+        print(last_error, flush=True)
+        print("Waiting for a successful PyPI runtime installation", flush=True)
+        time.sleep(poll_seconds)
+    raise TimeoutError("PyPI runtime installation did not succeed: " + last_error)
 
 
 def main():
@@ -83,7 +102,9 @@ def main():
         development = metadata.get("dependency-groups", {}).get("dev", [])
         if args.published:
             # Install runtime solely from PyPI before introducing test fixtures.
-            run(*install, "--no-cache", f"{name}=={package['version']}")
+            install_published_runtime(
+                [*install, "--no-cache", "--refresh", f"{name}=={package['version']}"]
+            )
         else:
             run(
                 *install,
