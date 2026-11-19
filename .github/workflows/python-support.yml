@@ -1,0 +1,69 @@
+name: Python support
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "scripts/verify_python_support.py"
+      - ".github/workflows/python-support.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  declarations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install packaging
+      - run: python scripts/verify_python_support.py
+
+  composable-runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+      - name: Install candidate packages with published dependencies
+        shell: bash
+        run: |
+          uv pip install --system --prerelease allow \
+            swarmauri_core==0.11.0.dev8 swarmauri_base==0.11.0.dev13 \
+            swarmauri_standard==0.11.0.dev13 swarmauri_agent_runner==0.1.2 \
+            swarmauri_workflow_statedriven==0.11.0.dev3 swarmauri_tokens_jwt==0.11.0.dev3 \
+            ./pkgs/standards/swarmauri_transport_httpx \
+            ./pkgs/standards/swarmauri_execution_default \
+            ./pkgs/standards/swarmauri_taskmanager_default \
+            ./pkgs/standards/swarmauri_taskstore_sqlite \
+            ./pkgs/standards/swarmauri_permission_explicit \
+            ./pkgs/standards/swarmauri_delegation_attenuating \
+            ./pkgs/standards/swarmauri_grantstore_sqlite \
+            ./pkgs/standards/swarmauri_invoker_default \
+            ./pkgs/standards/swarmauri_workflow_documentassistant \
+            ./pkgs/standards/swarmauri_workflow_delegatedresearch \
+            pytest pytest-asyncio pytest-timeout pytest-mock pytest-json-report pytest-benchmark
+          uv pip check --system
+      - name: Verify both workflow examples
+        run: |
+          swarmauri-workflow-documentassistant
+          swarmauri-workflow-delegatedresearch
+      - name: Test packages in isolation
+        shell: bash
+        run: |
+          for member in transport_httpx execution_default taskmanager_default taskstore_sqlite permission_explicit delegation_attenuating grantstore_sqlite invoker_default workflow_documentassistant workflow_delegatedresearch; do
+            (cd "pkgs/standards/swarmauri_$member" && python -m pytest -q tests)
+          done

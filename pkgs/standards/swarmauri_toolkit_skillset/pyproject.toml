@@ -12,6 +12,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = ["swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_tool_listskills>=0.1.0,<0.2","swarmauri_tool_inspectskill>=0.1.0,<0.2","swarmauri_tool_activateskill>=0.1.0,<0.2","swarmauri_tool_readskillresource>=0.1.0,<0.2"]

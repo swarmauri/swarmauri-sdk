@@ -27,7 +27,7 @@ uv add --prerelease allow swarmauri_tts_polly
 pip install --pre swarmauri_tts_polly
 ```
 
-Python 3.10-3.12. This source candidate requires the companion
+Python 3.10-3.14. This source candidate requires the companion
 `swarmauri_base>=0.11.0.dev12` release before index installation.
 
 ## Usage
