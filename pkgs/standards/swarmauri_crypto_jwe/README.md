@@ -111,6 +111,17 @@ crypto = pm.load("swarmauri.cryptos", "JweCrypto")
 - Decryption requires the matching private key via `dir_key`, `rsa_private_pem`/`rsa_private_password`, or `ecdh_private_key`.
 - `expected_algs` and `expected_encs` constrain acceptable algorithms during decryption, and `aad` must match the authenticated data provided at encryption time.
 
+### Opt-in X448
+
+Use `JweCrypto(enable_x448=True)` with `alg=JWAAlg.ECDH_ES`,
+`enc=JWAAlg.A256GCM`, and a public recipient JWK with `kty="OKP"`,
+`crv="X448"`, and a base64url-encoded `x`. Pass an
+`X448PrivateKey` as `ecdh_private_key` to decrypt.
+
+New ECDH-ES tokens use the RFC 7518 Concat KDF. To read X25519 or
+NIST-curve tokens issued with the previous Swarmauri KDF, pass
+`legacy_ecdh_kdf=True` to `decrypt_compact` for those known tokens.
+
 ## Entry point
 
 The provider is registered under the `swarmauri.cryptos` entry point as `JweCrypto`.

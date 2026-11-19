@@ -11,6 +11,7 @@ CipherOp = Literal[
     "unwrap",
     "seal",
     "unseal",
+    "key_agreement",
 ]
 
 Dialect = Literal[
