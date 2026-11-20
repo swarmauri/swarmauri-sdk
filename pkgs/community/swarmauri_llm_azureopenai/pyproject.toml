@@ -7,7 +7,14 @@ readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri", "llm", "azure openai", "microsoft foundry", "entra id", "tool calling", "streaming"]
-classifiers = ["Development Status :: 1 - Planning", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 dependencies = [
   "swarmauri_base<0.12,>=0.11.0.dev13",
   "swarmauri_core<0.12,>=0.11.0.dev8",

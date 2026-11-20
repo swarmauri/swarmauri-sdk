@@ -6,7 +6,18 @@ license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-classifiers = ["Development Status :: 3 - Alpha", "Intended Audience :: Developers", "Operating System :: OS Independent", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14", "Topic :: Multimedia :: Sound/Audio :: Speech"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
 keywords = ["swarmauri", "deepinfra_qwen3", "tts", "text-to-speech", "speech-synthesis", "json-audio", "async-audio", "alpha-provider"]
 dependencies = ["swarmauri_base>=0.11.0.dev12,<0.12", "httpx>=0.27,<0.29", "pydantic>=2.0"]
 license-files = ["LICENSE", "NOTICE"]
