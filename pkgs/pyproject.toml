@@ -17,6 +17,8 @@ classifiers = [
 ]
 
 package = false
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 
 [dependency-groups]
 dev = [
@@ -31,6 +33,7 @@ dev = [
     "jsonschema>=4.18.5",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
 
 [tool.uv]
@@ -903,6 +906,54 @@ exclude = ["experimental", ".config", "**/*.bak.py", "standards/peagen/test_proj
 [tool.ruff.lint]
 extend-select = ["E501"]
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs"
+layer = "workspace"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_monorepo"
+published = false
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -8,20 +8,68 @@ requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 keywords = ["swarmauri", "tool", "knowledge base", "retrieval", "RAG", "metadata filtering"]
 classifiers = [
-  "Development Status :: 1 - Planning",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "Programming Language :: Python :: 3.14",
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = ["swarmauri_base<0.12,>=0.11.0.dev13", "swarmauri_standard<0.12,>=0.11.0.dev13"]
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.uv.sources]
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/community/swarmauri_tool_queryknowledgebase"
+layer = "community"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_tool_queryknowledgebase"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_queryknowledgebase/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_queryknowledgebase/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [project.entry-points."swarmauri.tools"]
 QueryKnowledgeBaseTool = "swarmauri_tool_queryknowledgebase:QueryKnowledgeBaseTool"
 
@@ -30,7 +78,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.9.9"]
+dev = ["pytest>=8.0", "ruff>=0.9.9", "readme-standards==0.1.1; python_version >= \"3.11\""]
 
 [tool.pytest.ini_options]
 markers = ["unit: Unit tests"]
