@@ -110,7 +110,7 @@ poetry add swarmauri_tests_pylicense
 Source: [docs/readme/quick_start.sh](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/experimental/swarmauri_tests_pylicense/docs/readme/quick_start.sh).
 
 ```bash
-pytest --pylicense-package=<your-package>
+pytest --pylicense-package=swarmauri_tests_pylicense
 ```
 <!-- readme-standards:end example.quick-start -->
 
@@ -128,7 +128,7 @@ The example demonstrates the documented `swarmauri_tests_pylicense` source bound
 Source: [docs/readme/usage.sh](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/experimental/swarmauri_tests_pylicense/docs/readme/usage.sh).
 
 ```bash
-pytest --pylicense-package=<your-package>
+pytest --pylicense-package=swarmauri_tests_pylicense
 ```
 <!-- readme-standards:end example.usage -->
 

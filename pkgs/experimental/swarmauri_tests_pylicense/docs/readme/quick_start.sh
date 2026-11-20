@@ -1,1 +1,1 @@
-pytest --pylicense-package=<your-package>
+pytest --pylicense-package=swarmauri_tests_pylicense

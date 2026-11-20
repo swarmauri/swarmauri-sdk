@@ -1150,7 +1150,7 @@
       "name": "swarmauri_tests_pylicense",
       "manifest": "pkgs/experimental/swarmauri_tests_pylicense/pyproject.toml",
       "before_sha256": "97c864e29258d855d35fbb7c7e8da66ce805d672505afcb0316bb21b12768440",
-      "after_sha256": "b6760586e0b44244dc7e01b95b1d4d4cb54d834dc3d981605286b72cf2c6e885",
+      "after_sha256": "567a54aff3030c96327d6532df6376f71f320d4369579b25ced2236f0a341eab",
       "example_origin": "existing README command workflow"
     },
     {
