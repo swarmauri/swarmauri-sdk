@@ -14,9 +14,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = ["swarmauri_base>=0.11.0.dev6,<0.12","swarmauri_tool_listskills>=0.1.0,<0.2","swarmauri_tool_inspectskill>=0.1.0,<0.2","swarmauri_tool_activateskill>=0.1.0,<0.2","swarmauri_tool_readskillresource>=0.1.0,<0.2"]
+license-files = ["LICENSE", "NOTICE"]
 
 [project.urls]
 Repository = "https://github.com/swarmauri/swarmauri-sdk"
@@ -34,9 +34,57 @@ swarmauri_tool_readskillresource = { workspace = true }
 [tool.pytest.ini_options]
 markers = ["unit: Unit tests", "i9n: Integration tests"]
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/standards/swarmauri_toolkit_skillset"
+layer = "standards"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_toolkit_skillset"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_toolkit_skillset/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_toolkit_skillset/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.9.9"]
+dev = ["pytest>=8.0", "ruff>=0.9.9", "readme-standards==0.1.1; python_version >= \"3.11\""]

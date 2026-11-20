@@ -1,0 +1,17 @@
+[brands.tigrbl-auth]
+name = "Tigrbl Auth"
+homepage = "https://github.com/tigrbl/tigrbl_auth"
+logo_url = "https://raw.githubusercontent.com/tigrbl/tigrbl_auth/master/docs/assets/tba-brand.png"
+logo_alt = "TBA · Tigrbl Auth"
+
+[brands.tigrbl]
+name = "Tigrbl"
+homepage = "https://github.com/tigrbl/tigrbl"
+logo_url = "https://raw.githubusercontent.com/tigrbl/tigrbl/master/assets/tigrbl.brand.theme.svg"
+logo_alt = "Tigrbl"
+
+[brands.swarmauri]
+name = "Swarmauri"
+homepage = "https://github.com/swarmauri/swarmauri-sdk"
+logo_url = "https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg"
+logo_alt = "Swarmauri SDK"
