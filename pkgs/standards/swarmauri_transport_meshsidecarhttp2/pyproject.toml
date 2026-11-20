@@ -5,7 +5,7 @@ description = "Client transport for Swarmauri agents targeting mesh sidecar prox
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 dependencies = [
     "swarmauri-base",
     "swarmauri-core",
@@ -24,21 +24,8 @@ keywords = [
     "standards",
     "meshsidecarhttp2",
 ]
-classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: System :: Networking",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-]
+classifiers = ["Development Status :: 2 - Pre-Alpha", "Intended Audience :: Developers", "Topic :: Internet :: WWW/HTTP", "Topic :: System :: Networking", "Programming Language :: Python", "Programming Language :: Python :: 3", "Programming Language :: Python :: 3 :: Only", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14"]
+license-files = ["LICENSE", "NOTICE"]
 
 [project.urls]
 Homepage = "https://github.com/swarmauri/swarmauri-sdk"
@@ -66,6 +53,54 @@ log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "--pylicense-accept-deps=sniffio"
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/standards/swarmauri_transport_meshsidecarhttp2"
+layer = "standards"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_transport_meshsidecarhttp2"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_transport_meshsidecarhttp2/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_transport_meshsidecarhttp2/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [dependency-groups]
 dev = [
     "pytest>=8.0",
@@ -76,4 +111,5 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "ruff>=0.9.9",
     "swarmauri_tests_pylicense",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]

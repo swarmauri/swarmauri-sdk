@@ -57,6 +57,10 @@ def readme_has_header_and_badges(
     if not readme.is_file():
         return False
     text = readme.read_text(encoding="utf-8", errors="ignore")
+    if "<!-- readme-standards:begin branding -->" in text:
+        from readme_standards.check import check_package
+
+        return not check_package(pkg_dir)
     header_ok = "assets/swarmauri.brand.theme.svg" in text
     rel_path = pkg_dir.relative_to(repo_root).as_posix()
     badge_patterns = [

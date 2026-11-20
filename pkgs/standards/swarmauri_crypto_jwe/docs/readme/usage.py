@@ -1,0 +1,35 @@
+import asyncio
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from swarmauri_core.crypto.types import JWAAlg
+from swarmauri_crypto_jwe import JweCrypto
+
+
+async def main() -> None:
+    crypto = JweCrypto()
+
+    sk = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    pk_pem = sk.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+    jwe = await crypto.encrypt_compact(
+        payload=b"secret",
+        alg=JWAAlg.RSA_OAEP_256,
+        enc=JWAAlg.A256GCM,
+        key={"pub": pk_pem},
+    )
+
+    result = await crypto.decrypt_compact(
+        jwe,
+        rsa_private_pem=sk.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ),
+    )
+    assert result.plaintext == b"secret"
+
+
+asyncio.run(main())

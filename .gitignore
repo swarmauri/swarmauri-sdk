@@ -62,3 +62,7 @@ __pycache__/
 .ruff_cache/
 .tox/
 .nox/
+
+# Generated README gate reports
+readme-standards-results.xml
+tls-readme-results.xml
