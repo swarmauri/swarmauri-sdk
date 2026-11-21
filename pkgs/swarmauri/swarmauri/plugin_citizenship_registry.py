@@ -50,6 +50,10 @@ class PluginCitizenshipRegistry:
 
     # Class variables for registries
     FIRST_CLASS_REGISTRY: dict[str, str] = {
+        "swarmauri.agents.WimseResearchAgent": (
+            "swarmauri_agent_wimse.WimseResearchAgent"
+        ),
+        "swarmauri.tools.WimseFileTool": "swarmauri_agent_wimse.WimseFileTool",
         "swarmauri.executions.DefaultExecutionController": (
             "swarmauri_execution_default.DefaultExecutionController"
         ),
