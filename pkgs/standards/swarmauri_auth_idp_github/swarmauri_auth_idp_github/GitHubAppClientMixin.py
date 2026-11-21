@@ -53,7 +53,7 @@ class GitHubAppClientMixin:
         if self.repository_ids:
             payload["repository_ids"] = list(self.repository_ids)
         if self.repository_names:
-            payload["repository_names"] = list(self.repository_names)
+            payload["repositories"] = list(self.repository_names)
         return payload
 
     @staticmethod
