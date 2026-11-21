@@ -1,4 +1,5 @@
 import json
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from pydantic import SecretBytes, SecretStr
@@ -63,3 +64,27 @@ async def test_auth_url_uses_discovery(login: SalesforceOAuth21Login) -> None:
 async def test_exchange_invalid_state(login: SalesforceOAuth21Login) -> None:
     with pytest.raises(ValueError):
         await login.exchange_and_identity("code", "invalid-state")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_auth_url_preserves_endpoint_query(
+    login: SalesforceOAuth21Login,
+) -> None:
+
+    login.discovery_cache["authorization_endpoint"] = (
+        "https://login.salesforce.com/services/oauth2/authorize"
+        "?existing=hello%20world&state=attacker&code_challenge_method=plain"
+    )
+    login.client_id = "client&extra=bad"
+    login.redirect_uri = "https://example.com/callback?x=1&y=2"
+
+    payload = await login.auth_url()
+    params = parse_qs(urlsplit(payload["url"]).query)
+
+    assert params["existing"] == ["hello world"]
+    assert params["client_id"] == [login.client_id]
+    assert params["redirect_uri"] == [login.redirect_uri]
+    assert params["state"] == [payload["state"]]
+    assert params["code_challenge_method"] == ["S256"]
+    assert "extra" not in params

@@ -19,14 +19,21 @@ class RoundRobinStrategy(TaskMgmtStrategyBase):
     type: Literal["RoundRobinStrategy"] = "RoundRobinStrategy"
 
     def assign_task(
-        self, task: Dict[str, Any], service_registry: Callable[[], List[str]]
-    ) -> None:
+        self,
+        task: Dict[str, Any],
+        agent_factory: Callable | None = None,
+        service_registry: Callable[[], List[str]] | None = None,
+    ) -> str:
         """
         Assign a task to a service using the round-robin strategy.
         :param task: Task metadata and payload.
         :param service_registry: Callable that returns available services.
         """
-        available_services = service_registry()
+        # Preserve the legacy (task, registry) positional call.
+        registry = service_registry or agent_factory
+        if registry is None:
+            raise ValueError("A service registry callback is required")
+        available_services = registry()
         if not available_services:
             raise ValueError("No services available for task assignment.")
 
@@ -39,6 +46,7 @@ class RoundRobinStrategy(TaskMgmtStrategyBase):
         logging.info(
             f"Task '{task['task_id']}' assigned to service '{service}'."
         )
+        return service
 
     def add_task(self, task: Dict[str, Any]) -> None:
         """

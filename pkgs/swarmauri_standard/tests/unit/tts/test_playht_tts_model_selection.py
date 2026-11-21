@@ -1,31 +1,20 @@
+import httpx
 import pytest
 
-from swarmauri_standard.tts.PlayhtTTS import PlayhtTTS
+from swarmauri_standard.llms.PlayHTModel import PlayHTModel
 
 pytestmark = pytest.mark.unit
 
 
-def test_playht_tts_preserves_selected_model(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    voices = {
-        "PlayDialog": [],
-        "Play3.0-mini": [],
-        "PlayHT2.0-turbo": [{"voice-id": "Adolfo"}],
-        "PlayHT1.0": [],
-        "PlayHT2.0": [],
-    }
-    monkeypatch.setattr(
-        PlayhtTTS,
-        "_fetch_prebuilt_voices",
-        lambda self: voices,
-    )
+@pytest.mark.parametrize(
+    "credentials", [{}, {"api_key": "old-key", "user_id": "old-user"}]
+)
+def test_retired_provider_fails_before_network(monkeypatch, credentials):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Retired provider attempted network access")
 
-    tts = PlayhtTTS(
-        api_key="test-key",
-        user_id="test-user",
-        name="PlayHT2.0-turbo",
-        voice="Adolfo",
-    )
-
-    assert tts.name == "PlayHT2.0-turbo"
+    monkeypatch.setattr(httpx, "Client", forbidden)
+    monkeypatch.setattr(httpx, "AsyncClient", forbidden)
+    with pytest.warns(DeprecationWarning, match="Play.ht"):
+        with pytest.raises(RuntimeError, match="OpenaiTTS"):
+            PlayHTModel(**credentials)

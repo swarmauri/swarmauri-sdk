@@ -457,7 +457,7 @@ LLM provider packages to mention:
 - `swarmauri_llm_mistral`
 - `swarmauri_llm_openai`
 - `swarmauri_llm_perplexity`
-- `swarmauri_llm_playht`
+- `swarmauri_llm_playht` (deprecated; select a standalone alpha TTS provider; see `docs/migrations/playht.md`)
 - `swarmauri_llm_whisper`
 
 Identity provider packages to mention:

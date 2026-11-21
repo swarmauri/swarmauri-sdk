@@ -1,0 +1,408 @@
+{
+  "contract_version": "1.0.0",
+  "artifact_type": "release",
+  "id": "tts-alpha-release-2026-11-18",
+  "version": "0.1.0",
+  "owner": "Swarmauri SDK maintainers",
+  "status": "partially-published",
+  "review_date": "2026-11-18",
+  "sources": [
+    "https://github.com/swarmauri/swarmauri-sdk/issues/6314",
+    "https://github.com/swarmauri/swarmauri-sdk/pull/6317",
+    "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44269947498",
+    "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44272628821",
+    "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44270264837",
+    "https://github.com/tigrbl/tigrbl_realtime_ws_agent2user/pull/3",
+    "https://github.com/swarmauri/swarmauri-sdk/pull/6319",
+    "https://github.com/swarmauri/swarmauri-sdk/actions/runs/44275111014"
+  ],
+  "facts": [
+    "All fourteen TTS components remain Alpha and live-unverified.",
+    "Clean prerelease resolution exposed HTTPX 1.0.dev6 removal of AsyncClient.",
+    "Corrected candidates constrain HTTPX >=0.27,<0.29 and require base >=0.11.0.dev12.",
+    "OpenAI 0.1.0a1 uploaded before the initial batch was cancelled; 0.1.0a2 supersedes it.",
+    "Core 0.11.0.dev7, typing 0.11.0.dev4 and storage_s3fs 0.11.0.dev3 already exist on PyPI.",
+    "PyPI rejected Cartesia first publication with HTTP 429 Too many new projects created on 2026-11-18. No further new-project uploads were attempted after that response.",
+    "The facade remains unpublished because its tts extra depends on ten still-unpublished providers.",
+    "The TextToSpeechAgent wheel has only core/base runtime requirements; both were verified published before its release.",
+    "Realtime downstream SDK Git references were replaced by exact PyPI pins and merged in tigrbl_realtime_ws_agent2user#3.",
+    "Agent 0.11.0.dev5 is superseded by 0.11.0.dev6, fixing providers imported after the agent class and preserving serialized provider fields.",
+    "Actual PyPI-installed target versions passed 97 offline tests on each of Python 3.10, 3.11 and 3.12; local wheels for all fourteen providers passed 302 offline tests per version."
+  ],
+  "assumptions": [
+    "The configured PyPI publisher may be subject to the documented daily new-project quota."
+  ],
+  "inferences": [],
+  "dependencies": [],
+  "risks": [
+    "No paid synthesis or production deployment is authorized by this release evidence.",
+    "New-project rate limits may prevent completion of all fourteen first publications in one day."
+  ],
+  "metrics": {
+    "provider_count": 14,
+    "live_verified": 0,
+    "published_providers": 4,
+    "pending_providers": 10,
+    "published_companions": 5,
+    "pending_companions": 1,
+    "offline_provider_tests_per_python": 302,
+    "python_versions": [
+      "3.10",
+      "3.11",
+      "3.12"
+    ],
+    "published_index_tests_per_python": 97
+  },
+  "acceptance_criteria": [
+    "All intended exact package versions present with wheel and source artifacts.",
+    "All provider metadata retains Alpha status.",
+    "Clean Python 3.10, 3.11 and 3.12 installation and mocked behavior succeed.",
+    "Downstream source pins replaced by verified index versions; opt-in live tests remain disabled.",
+    "All fourteen verification issues remain open."
+  ],
+  "release_version": "2026.11.18-alpha",
+  "scope": {
+    "providers": [
+      {
+        "name": "swarmauri_tts_azure",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_cartesia",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_deepgram",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_deepinfra",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "published"
+      },
+      {
+        "name": "swarmauri_tts_deepinfra_kokoro",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_deepinfra_qwen3",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_deepinfra_qwen3_voicedesign",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_elevenlabs",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_elevenlabs_dialogue",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_gemini",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "published"
+      },
+      {
+        "name": "swarmauri_tts_gemini_dialogue",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_openai",
+        "version": "0.1.0a2",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "published"
+      },
+      {
+        "name": "swarmauri_tts_polly",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "blocked-by-new-project-quota"
+      },
+      {
+        "name": "swarmauri_tts_together",
+        "version": "0.1.0a1",
+        "status": "Alpha",
+        "verification": "unverified",
+        "publication": "published"
+      }
+    ],
+    "companions": [
+      "swarmauri_base",
+      "swarmauri_standard",
+      "swarmauri",
+      "swarmauri_llm_openai",
+      "swarmauri_llm_hyperbolic",
+      "swarmauri_agent_texttospeech"
+    ]
+  },
+  "gates": [
+    "Package CI and release workflow validation",
+    "First-publication protected environment approval",
+    "Exact PyPI artifact and metadata verification"
+  ],
+  "artifacts": [
+    {
+      "name": "swarmauri_base",
+      "version": "0.11.0.dev12",
+      "url": "https://pypi.org/pypi/swarmauri_base/0.11.0.dev12/json",
+      "requires_dist": [
+        "httpx<0.29,>=0.27",
+        "numpy>=1.26.4",
+        "pydantic>=2.0",
+        "pyyaml>=6.0.2",
+        "starlette",
+        "swarmauri_core<0.12,>=0.11.0.dev7",
+        "swarmauri_typing",
+        "toml>=0.10.2",
+        "tomli>=2.0; python_version < \"3.11\""
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_base-0.11.0.dev12-py3-none-any.whl",
+          "sha256": "f57353e83426e33b2f9f0c5b0af591954f64366337d677ca9b9283cbc626da76",
+          "url": "https://files.pythonhosted.org/packages/64/16/e092de9c0452b050a5306c101df3e8e98ade31e10f22c53e02fb53303eab/swarmauri_base-0.11.0.dev12-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_base-0.11.0.dev12.tar.gz",
+          "sha256": "e9966d2d4244abb094e6de8746390c0a92cc74e34fc094070b3e9e8b9b8dd254",
+          "url": "https://files.pythonhosted.org/packages/2b/b4/deb73cfc7bb91a2e31e7400d28c375b62000e61a5f4e77806660b590bca0/swarmauri_base-0.11.0.dev12.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_tts_openai",
+      "version": "0.1.0a2",
+      "url": "https://pypi.org/pypi/swarmauri_tts_openai/0.1.0a2/json",
+      "requires_dist": [
+        "httpx<0.29,>=0.27",
+        "pydantic>=2.0",
+        "swarmauri_base<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_tts_openai-0.1.0a2-py3-none-any.whl",
+          "sha256": "ccf7440418d38b4c230e76a88facf7b861bf6382f2276d6d84c3d88d0c7ee9a8",
+          "url": "https://files.pythonhosted.org/packages/76/25/33e55611388a0b8c25769a877bce767021e294a4ab4d26f5e40ad32a7cd8/swarmauri_tts_openai-0.1.0a2-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_tts_openai-0.1.0a2.tar.gz",
+          "sha256": "1d8896196516edd274f3d3365b377c0c370ff1f2b2521ad112c8e79aeb883cea",
+          "url": "https://files.pythonhosted.org/packages/05/32/2f1482e19c7eb1bb397c9e933a913ddb54843f93ddd4addb72d23970cfea/swarmauri_tts_openai-0.1.0a2.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_tts_deepinfra",
+      "version": "0.1.0a1",
+      "url": "https://pypi.org/pypi/swarmauri_tts_deepinfra/0.1.0a1/json",
+      "requires_dist": [
+        "httpx<0.29,>=0.27",
+        "pydantic>=2.0",
+        "swarmauri_base<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_tts_deepinfra-0.1.0a1-py3-none-any.whl",
+          "sha256": "c4113b2779fbea6d73211bc0bd3a48344fb38729fec291a3ef244e8a4bbaff55",
+          "url": "https://files.pythonhosted.org/packages/6d/ba/1a4fde22d367791f601b35b08396a45c3dd9e2d2466663a5280e40417d0c/swarmauri_tts_deepinfra-0.1.0a1-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_tts_deepinfra-0.1.0a1.tar.gz",
+          "sha256": "dbf5320284735985fd5e2dc06335a67d3a0770f09f5acf97b3ac4f84607abe28",
+          "url": "https://files.pythonhosted.org/packages/f3/db/452ca70ab9ac11d74d7f87af958b17717f6664c42bf4c54d8555ae296a35/swarmauri_tts_deepinfra-0.1.0a1.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_tts_together",
+      "version": "0.1.0a1",
+      "url": "https://pypi.org/pypi/swarmauri_tts_together/0.1.0a1/json",
+      "requires_dist": [
+        "httpx<0.29,>=0.27",
+        "pydantic>=2.0",
+        "swarmauri_base<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_tts_together-0.1.0a1-py3-none-any.whl",
+          "sha256": "1fe4b75caba1c1bcc4b42b4f0410d4e5115c2528291a0ee5f58d3491cc9ec20f",
+          "url": "https://files.pythonhosted.org/packages/5f/87/45006b81c0ae225f3ba4bd2902e6545114d64c965649b259f5b90ecc6d3e/swarmauri_tts_together-0.1.0a1-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_tts_together-0.1.0a1.tar.gz",
+          "sha256": "aa56dea7795159d71aa1ed12940cfa3c233abdafbf79b46784afcf2a204fb4a5",
+          "url": "https://files.pythonhosted.org/packages/b9/1b/d484f8299f1ff5f51d241a28485567f5411b7d8553faee22ef1b6db570c5/swarmauri_tts_together-0.1.0a1.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_tts_gemini",
+      "version": "0.1.0a1",
+      "url": "https://pypi.org/pypi/swarmauri_tts_gemini/0.1.0a1/json",
+      "requires_dist": [
+        "httpx<0.29,>=0.27",
+        "pydantic>=2.0",
+        "swarmauri_base<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_tts_gemini-0.1.0a1-py3-none-any.whl",
+          "sha256": "5397b19076968395eb12c7a44fb0c366c40296c37617211f13954d6193236fd8",
+          "url": "https://files.pythonhosted.org/packages/79/df/ec35ee22f506fe30f5cd785e519d802e07a6383599c4ce7ab0b8f85fb12a/swarmauri_tts_gemini-0.1.0a1-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_tts_gemini-0.1.0a1.tar.gz",
+          "sha256": "41fa5ede8a6628b2fba75d3d567efa9a0e6d13c30cd770dbead18a58604ec60f",
+          "url": "https://files.pythonhosted.org/packages/3f/ec/eda6d7ad57e25a9b5eb6c52204958119704ba98a9f137a67fd170b608d76/swarmauri_tts_gemini-0.1.0a1.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_standard",
+      "version": "0.11.0.dev12",
+      "url": "https://pypi.org/pypi/swarmauri_standard/0.11.0.dev12/json",
+      "requires_dist": [
+        "aiofiles",
+        "h11>=0.16.0",
+        "httpx<0.29,>=0.27",
+        "joblib>=1.4.0",
+        "numpy",
+        "pandas",
+        "pillow>=11.1.0",
+        "pydantic>=2.9.2",
+        "rich",
+        "swarmauri_base<0.12,>=0.11.0.dev12",
+        "swarmauri_core<0.12,>=0.11.0.dev7",
+        "swarmauri_tts_openai<0.2,>=0.1.0a2",
+        "toml>=0.10.2",
+        "typing_extensions"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_standard-0.11.0.dev12-py3-none-any.whl",
+          "sha256": "3af98de08acfef86170912786f8e9c633031ef19e2d867af99d1be482c61eb50",
+          "url": "https://files.pythonhosted.org/packages/91/d9/2e71608d208bef4ed4151564f69b5afafa23da9d4ea6f44aa03931540392/swarmauri_standard-0.11.0.dev12-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_standard-0.11.0.dev12.tar.gz",
+          "sha256": "15322ddec7b3b4260a8d4da74f6c152f1d2603cd08fbf4c333ccbdc129931d5e",
+          "url": "https://files.pythonhosted.org/packages/dd/c3/8439229d3e682827e234966f102278d5d579fa700c69adb7536701b54481/swarmauri_standard-0.11.0.dev12.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_llm_openai",
+      "version": "0.11.0.dev5",
+      "url": "https://pypi.org/pypi/swarmauri_llm_openai/0.11.0.dev5/json",
+      "requires_dist": [
+        "swarmauri_base",
+        "swarmauri_core",
+        "swarmauri_standard<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_llm_openai-0.11.0.dev5-py3-none-any.whl",
+          "sha256": "841dfbe982f8d29c769c7001d499302423f00193b0c3dbdaf9218310fea71035",
+          "url": "https://files.pythonhosted.org/packages/ae/fa/54000c2c4f280ea7ee6b5546018fc470a03969327a80e139cca0cf3e4910/swarmauri_llm_openai-0.11.0.dev5-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_llm_openai-0.11.0.dev5.tar.gz",
+          "sha256": "209e79a705f993b633fbf7e67ed5992d34bb29707064eebdd7af80aeca255771",
+          "url": "https://files.pythonhosted.org/packages/f2/02/3bff0c42420128245d454e3a3c73ab5c51c6af4f2cef25ea3a9a71a0ee41/swarmauri_llm_openai-0.11.0.dev5.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_llm_hyperbolic",
+      "version": "0.11.0.dev4",
+      "url": "https://pypi.org/pypi/swarmauri_llm_hyperbolic/0.11.0.dev4/json",
+      "requires_dist": [
+        "swarmauri_base",
+        "swarmauri_core",
+        "swarmauri_standard<0.12,>=0.11.0.dev12"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_llm_hyperbolic-0.11.0.dev4-py3-none-any.whl",
+          "sha256": "8e0a032fef87580483e134318be50b77fa78f1585ab379082bb4a1682f2957a7",
+          "url": "https://files.pythonhosted.org/packages/91/e6/6deac710c559984b4303f9f56be3e0ee9233bc8e93643c297e6652347453/swarmauri_llm_hyperbolic-0.11.0.dev4-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_llm_hyperbolic-0.11.0.dev4.tar.gz",
+          "sha256": "89753d8c89ed819934e21912c4e133ec840ea97603bbc1ae826a9aba8be96742",
+          "url": "https://files.pythonhosted.org/packages/8a/e6/a208bb7eb175275cc73115421132ce6e71921865dee27c04dc5941864cae/swarmauri_llm_hyperbolic-0.11.0.dev4.tar.gz"
+        }
+      ]
+    },
+    {
+      "name": "swarmauri_agent_texttospeech",
+      "version": "0.11.0.dev6",
+      "url": "https://pypi.org/pypi/swarmauri_agent_texttospeech/0.11.0.dev6/json",
+      "requires_dist": [
+        "swarmauri_base<0.12,>=0.11.0.dev12",
+        "swarmauri_core<0.12,>=0.11.0.dev7"
+      ],
+      "artifacts": [
+        {
+          "filename": "swarmauri_agent_texttospeech-0.11.0.dev6-py3-none-any.whl",
+          "sha256": "300c32000b6698b4418b2f35b2d07ed0133020ec38293177a94ef83847047474",
+          "url": "https://files.pythonhosted.org/packages/53/ca/8d940d3f8700077c851b4b2069a7b04d02cd606c1f4b3f0d470139faeab8/swarmauri_agent_texttospeech-0.11.0.dev6-py3-none-any.whl"
+        },
+        {
+          "filename": "swarmauri_agent_texttospeech-0.11.0.dev6.tar.gz",
+          "sha256": "2518d44e6df8ee348e08b8b1fdeaa63d86b14cfb49a92b2365b9cf59fec9dd9c",
+          "url": "https://files.pythonhosted.org/packages/54/7b/6ed4ef49487832ae6991dad037621d90ce4ef56d9a124b5a15c7a8d25a3c/swarmauri_agent_texttospeech-0.11.0.dev6.tar.gz"
+        }
+      ]
+    }
+  ],
+  "rollout": [
+    "Existing typing/core",
+    "Corrected base 0.11.0.dev12",
+    "OpenAI 0.1.0a2 and thirteen other providers at 0.1.0a1; Gemini before Gemini dialogue",
+    "Standard then community/agent/facade",
+    "Downstream pinned dependency lockfiles"
+  ],
+  "rollback": [
+    "No deletion or reuse of published versions.",
+    "Use a later alpha version for corrections; do not promote status or redirect credentials.",
+    "Restore previous downstream lockfile if offline consumer checks fail.",
+    "OpenAI 0.1.0a1 is superseded by 0.1.0a2; it was not yanked or overwritten."
+  ]
+}

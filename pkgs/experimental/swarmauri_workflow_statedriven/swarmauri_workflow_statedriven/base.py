@@ -56,7 +56,11 @@ class WorkflowBase:
         self.nodes[name] = node
 
     def add_transition(
-        self, source: str, target: str, condition: Condition
+        self,
+        source: str,
+        target: str,
+        condition: Condition,
+        edge_id: str | None = None,
     ) -> None:
         """
         Method: add_transition
@@ -66,7 +70,9 @@ class WorkflowBase:
             raise InvalidTransitionError(
                 f"Cannot add transition: '{source}' → '{target}'"
             )
-        self.transitions.append(Transition(source, target, condition))
+        self.transitions.append(
+            Transition(source, target, condition, edge_id=edge_id)
+        )
 
     def run(self, start: str, initial_input: Any) -> Dict[str, Any]:
         """

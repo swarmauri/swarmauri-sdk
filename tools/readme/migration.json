@@ -1,0 +1,2914 @@
+{
+  "policy": "package-guide-v1",
+  "checker": "readme-standards==0.1.1",
+  "scope": "Active PEP 621 Python projects; archived and retired projects excluded. No runtime releases.",
+  "package_count": 415,
+  "validation_limits": "Structure, managed fragments, source compilation and referenced files. External APIs and all provider workflows are not certified.",
+  "packages": [
+    {
+      "name": "swarmauri-demo-package-maintenance",
+      "manifest": "docs/examples/package-maintenance/pyproject.toml",
+      "before_sha256": "10e059ebc4752c7219bb771c308c9bd26cda6613f499a2cb36b95a2e87045385",
+      "after_sha256": "8c3d7b3c24ad277f65a362c28fda71f9c40d6ee63337a1d3751e16dbc0c62bf3",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_base",
+      "manifest": "pkgs/base/pyproject.toml",
+      "before_sha256": "8007b966a7ac3c896af7744ac40d5896349d57444a14173cdb29c1469c0bf9cb",
+      "after_sha256": "766d126a6bdf98463f9e349a6bc52d024b5a6d53826877a64e16bdc974c561af",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_adyen",
+      "manifest": "pkgs/community/swarmauri_billing_adyen/pyproject.toml",
+      "before_sha256": "5f485b5c90d3b7db610c6ead2fac5a6096038420e1eb3d73dba7cd6c1858ac3b",
+      "after_sha256": "a084952d5b14c5c51d8376dc8743e177bf4ff945068633053ea8141320dd278c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_authorize_net",
+      "manifest": "pkgs/community/swarmauri_billing_authorize_net/pyproject.toml",
+      "before_sha256": "fe0062baa23947a0c5d2c6e6788a58d675083a96c00b755c11e54b14932ee935",
+      "after_sha256": "6a214ffdb02a6befe700ffd3d27b7ce7ca1f3b740d59c0572ae897557952d8a9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_braintree",
+      "manifest": "pkgs/community/swarmauri_billing_braintree/pyproject.toml",
+      "before_sha256": "c25c9a4047f302cd9e6236d2e2301ae19d038a04b54bca4803add052dd25df28",
+      "after_sha256": "834117293963e2d6d0e22425af02b0f5a5753eb13c1c35fe1474cb32e353bd7f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_paypal",
+      "manifest": "pkgs/community/swarmauri_billing_paypal/pyproject.toml",
+      "before_sha256": "680a2c6e0b5b8223a924edab492d95974bb310c7222edbabd2c6cafd6f892006",
+      "after_sha256": "05bb667d3bf0088a5699e24410a08cb96eb5f03f35decf17b06101fd7c909df7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_paystack",
+      "manifest": "pkgs/community/swarmauri_billing_paystack/pyproject.toml",
+      "before_sha256": "a12b499591a2f503e1783e0cd1f4be3bf0050bd11f1dd833cccabbb3fad07a52",
+      "after_sha256": "ae962bd8e94e7fd032d8b8b5ae577392dc906a978f0a94611c4925a9e1a34276",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_razorpay",
+      "manifest": "pkgs/community/swarmauri_billing_razorpay/pyproject.toml",
+      "before_sha256": "0b0713a04a521333d16fb5ec99e7cf06803cd5d584bcd95e582ab92785ac06b2",
+      "after_sha256": "919dfe1657f56c768a9be75721dc857d12e3b8183fda4e9e312b89b1ec9e5f44",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_square",
+      "manifest": "pkgs/community/swarmauri_billing_square/pyproject.toml",
+      "before_sha256": "07fedab47118a1c2d7e8a2606bd336d9dcc91638f69358ba3e34901383ba7698",
+      "after_sha256": "91a252f8590a99d1075dc58517263a27e0c42eaff24884381d3830cb354e716a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_acme",
+      "manifest": "pkgs/community/swarmauri_certs_acme/pyproject.toml",
+      "before_sha256": "fab9a045e6e3a4a972f5e51abc3a7a4f32c1f0875f544eaae124c445636cc2d9",
+      "after_sha256": "913a8b26c2aaaeb1771b502330d77bd0dc015ad0311492c2934b1aac96c0d903",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_azure",
+      "manifest": "pkgs/community/swarmauri_certs_azure/pyproject.toml",
+      "before_sha256": "498cbac12bb295fa6e7985e17864a951a60c96d1a904d0c8832a60e61e593e57",
+      "after_sha256": "f3b992cd2b9c26bec3b6db82df08f213d00ff751fb1d58a71cf0be4bd4d13d8d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_cfssl",
+      "manifest": "pkgs/community/swarmauri_certs_cfssl/pyproject.toml",
+      "before_sha256": "3c09214e5db2e02d9ca7b2d5543cf39c59beef1d61b9b214e9a66229c02b1b71",
+      "after_sha256": "d96c1ef0bd19f79360677e83d6b5514b8aa2b8af814f8d82ec59d44488a13356",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_certs_crlverifyservice",
+      "manifest": "pkgs/community/swarmauri_certs_crlverifyservice/pyproject.toml",
+      "before_sha256": "a37b70bff93515403a6a894e6f140736e0c28737c0681616e9f1041d53cf4dd5",
+      "after_sha256": "6323d728603a9216f05b88639281e9cb3009f8e0c3d31982765687e7ccf80384",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_csronly",
+      "manifest": "pkgs/community/swarmauri_certs_csronly/pyproject.toml",
+      "before_sha256": "a9e43c6829c660efe6a8307dc7af9245e741b849df928755103f95359f0e4907",
+      "after_sha256": "0a4bf321fcde481903f428fddaac380b3e5a2e060bfeb42303a97819441724b7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_ocspverify",
+      "manifest": "pkgs/community/swarmauri_certs_ocspverify/pyproject.toml",
+      "before_sha256": "935a5e995a0e79e3d23201192249a8a3361d7aba410a28bda851c4d7acc5be8c",
+      "after_sha256": "49669a3867293d04f2cfac40aef4cb3892911be4bae089c00ccf5955d98d716a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certservice_aws_kms",
+      "manifest": "pkgs/community/swarmauri_certservice_aws_kms/pyproject.toml",
+      "before_sha256": "de27811684c54f90f1d0eaff4a8bacc40a441ae582a05ab70d2c790b5e6e2d3c",
+      "after_sha256": "e24009c69e950a003b4bd3d850d3d8ce366b0571ab77f14a436116115a69ca47",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certservice_gcpkms",
+      "manifest": "pkgs/community/swarmauri_certservice_gcpkms/pyproject.toml",
+      "before_sha256": "ec23df667673f37ce9c24dbcd5894548d15e161c23912728a81cfb7202a71253",
+      "after_sha256": "9ab3a1161f42bcea82f055559f21a51d0567bced921b68501ac0595a97e0b133",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certservice_ms_adcs",
+      "manifest": "pkgs/community/swarmauri_certservice_ms_adcs/pyproject.toml",
+      "before_sha256": "3f78c257fc89709153d114db68a9f1c4b4d9c35592ef9fb3bf22a238e9c3d66c",
+      "after_sha256": "62fbf2ef961f8d91c255f6e12cf53d77a74a1ca55434a9db99125af94fb258cd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certservice_scep",
+      "manifest": "pkgs/community/swarmauri_certservice_scep/pyproject.toml",
+      "before_sha256": "f0f9d989745927fd4262d3860015a7b8aa4be80614723f0c0c9a981b417a4590",
+      "after_sha256": "21bd96d45c7678022277fb5ae268151b89a00e359a69a5998eb6813d44277a81",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certservice_stepca",
+      "manifest": "pkgs/community/swarmauri_certservice_stepca/pyproject.toml",
+      "before_sha256": "06c270eb703c3dbc9d6fe1c9f87fbca2b6cf07dc67bc4738e25ddff9f53def41",
+      "after_sha256": "7e138cef1b987e4c3077d299552ed15573479f7580279c84cc134fbd990a41ba",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_embedding_mlm",
+      "manifest": "pkgs/community/swarmauri_embedding_mlm/pyproject.toml",
+      "before_sha256": "46ba4704a03e2e754c4a8449592820ddf78df15f4c25e8d9ddc6c0b7173d58a7",
+      "after_sha256": "49ec2c3228658412d2de376330715a5614dbdec3fddf204f37b5a79bd2594040",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_aws_kms",
+      "manifest": "pkgs/community/swarmauri_keyprovider_aws_kms/pyproject.toml",
+      "before_sha256": "a6d8021a3776f35d82f624e45976b2b07f6c02369c30d551021b0915497d063e",
+      "after_sha256": "1fb18170225d82b4d4812055b2f652f71968abebe0cb3e0121a15bd17cd5148b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_gcpkms",
+      "manifest": "pkgs/community/swarmauri_keyprovider_gcpkms/pyproject.toml",
+      "before_sha256": "b9d6f7ee5163efd24f72e342526c606e75d04bf952c16b8709d9180dc73f7b4f",
+      "after_sha256": "4b0cf76de174e78d269d2a714d2dec0fd325424f97cb85e99193ce3f0d09e408",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_vaulttransit",
+      "manifest": "pkgs/community/swarmauri_keyprovider_vaulttransit/pyproject.toml",
+      "before_sha256": "8413892a29f62764d316a5b772cf78383c6c2717845c8906892fdd78663910b2",
+      "after_sha256": "5bc4623e6b7128ea1195e69fdacc8b24db549cb7079f8cdcbb3ee16ca4e3197c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_live_model_amazon_nova",
+      "manifest": "pkgs/community/swarmauri_live_model_amazon_nova/pyproject.toml",
+      "before_sha256": "c2864a55a0a0bd05926a4039870001163ec293ed696f0fa3f6474a83b318c616",
+      "after_sha256": "692341fcb46b57e2b1c0899a6ae34aa76ffdaae494ae98e0624842d3b7ac219c",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_live_model_gemini",
+      "manifest": "pkgs/community/swarmauri_live_model_gemini/pyproject.toml",
+      "before_sha256": "4d7b1bdae393448ec3540b70f341f58ec8c37432028a72db004693cd68759057",
+      "after_sha256": "c11349f052998477b267b83123ea997e30009cd9461d6c61607b112b050be671",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_live_model_openai",
+      "manifest": "pkgs/community/swarmauri_live_model_openai/pyproject.toml",
+      "before_sha256": "bf5d3255e8e20c9c130096afe41db68cfe0e1e8953f5569b8f848ac2ba312af3",
+      "after_sha256": "6182a827491f45e8e578542dcdd0d0fd20e6516fd381c12835105ce927ef8849",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_live_model_qwen",
+      "manifest": "pkgs/community/swarmauri_live_model_qwen/pyproject.toml",
+      "before_sha256": "c74c04ba8b052f0a2b39bfb7ea6eebf9811dee1dcd8d8cccd85a405456753638",
+      "after_sha256": "bdf8afccd0daaeb1ca4844a8951ad5e806ea0b7515e5593d8aa2b28eaa70e6db",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_live_model_xai",
+      "manifest": "pkgs/community/swarmauri_live_model_xai/pyproject.toml",
+      "before_sha256": "5fd756fcf8bb9b4f2d157b262e74ef77b6f0a91e9760fa77f854f4a11fc3ab01",
+      "after_sha256": "c331ca9ebef92bedecc0396e50579d395c2aeac1831b8ff11bb94d6e73a634b6",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_llm_ai21",
+      "manifest": "pkgs/community/swarmauri_llm_ai21/pyproject.toml",
+      "before_sha256": "652635e09583cff5b949952be98fb32b0a20ce8241673d8212b9ad61aa7cd896",
+      "after_sha256": "7b616938b46e9cb831ed9516444bc49f9706ebef9f67335ca92a130637babea0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_anthropic",
+      "manifest": "pkgs/community/swarmauri_llm_anthropic/pyproject.toml",
+      "before_sha256": "15eab7360154f022d93b35ba20e17f1e0fcac5464e80098770fadfe16bc9130d",
+      "after_sha256": "b80da68f3a620c4ae1495d7981d46ea7e30cbd1ac31e3f30274fd4bd4b0ff71a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_azureopenai",
+      "manifest": "pkgs/community/swarmauri_llm_azureopenai/pyproject.toml",
+      "before_sha256": "cea81ff549896eaa5128b56ecc4ba002c55db025f15e5a42a854d0f59ab75234",
+      "after_sha256": "0b429783aa6a65df915819093919b13c7c0662c06109c8f3d4808f2150cd4e87",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_cerebras",
+      "manifest": "pkgs/community/swarmauri_llm_cerebras/pyproject.toml",
+      "before_sha256": "641277217e3ad1e1768ef081a3cdf048d3a6a6ff72c331407917c906721f225f",
+      "after_sha256": "c5c8d2719378e206a5c45959ac33afb531585a2114dd44bafc8221c6139bc2b4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_cloudflare",
+      "manifest": "pkgs/community/swarmauri_llm_cloudflare/pyproject.toml",
+      "before_sha256": "dd5bebba9e657434a3247a53680efc56d96a4f7ada54ca54b37d2b4136ca5456",
+      "after_sha256": "55ee1b6db27150a5277d615f1d723b3c3e669e6f7dd0e5e0cffd85fe7a26d560",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_cohere",
+      "manifest": "pkgs/community/swarmauri_llm_cohere/pyproject.toml",
+      "before_sha256": "95ab003fede22f3cb33bd33efa3b3685f5f1c1f04f18ebd6ce3ab1149e158281",
+      "after_sha256": "bc8c799c4085d2a3ec195c5a20f439d0e824617345a6108c7919ec177d2943f9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_deepinfra",
+      "manifest": "pkgs/community/swarmauri_llm_deepinfra/pyproject.toml",
+      "before_sha256": "d206f77024575850ec532c5095973140289a184cc7837411b666e9e88ce6599f",
+      "after_sha256": "dfe911ab8e8046b4361b5bfd6d5b8531571f9f0922a9981bfe32a79a4ce96fa6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_deepseek",
+      "manifest": "pkgs/community/swarmauri_llm_deepseek/pyproject.toml",
+      "before_sha256": "b033eace0e832eb3ad05997189df7d32b95bc39f9308e4eaef73d11b2ec25238",
+      "after_sha256": "fae36c48563bd5e1558f0b79c49645a112512b002a64452c5454bcdf5db92f86",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_falai",
+      "manifest": "pkgs/community/swarmauri_llm_falai/pyproject.toml",
+      "before_sha256": "a3de2550a93392dcc2761ae06232a016e56c9f99deb5c1560f64f73e135ea553",
+      "after_sha256": "348d447befc3e9601c752d23ee3145a764ac506be45ffb1c38a9174cbbe414b0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_gemini",
+      "manifest": "pkgs/community/swarmauri_llm_gemini/pyproject.toml",
+      "before_sha256": "677e318d7f012b153e1aad83ba375a7ec96c22edb21d6c762ea5504cd2a698f3",
+      "after_sha256": "f3574bde31719bdc619065e91533ac5fb41cb21eeb84b61552d137871f478ccf",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_groq",
+      "manifest": "pkgs/community/swarmauri_llm_groq/pyproject.toml",
+      "before_sha256": "a0f67b1b71732f027c19cf029ed47b9b8c3ed69a135b3f8855c8f9718ae3bb73",
+      "after_sha256": "e80b99efac461a73bbd0e0a49fde656b209bca0780d66d257cbb3fdb7380ba03",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_hyperbolic",
+      "manifest": "pkgs/community/swarmauri_llm_hyperbolic/pyproject.toml",
+      "before_sha256": "777fac35d7d23b6cb6b0ff120b0e2a20bca210324fb6d59f27b67f34f5c7cb22",
+      "after_sha256": "83fb8cc26abcf7b8953d47af75ee0f1afdc5430f76c7010f529732b57ff3570d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_leptonai",
+      "manifest": "pkgs/community/swarmauri_llm_leptonai/pyproject.toml",
+      "before_sha256": "c0b756d7f96cd7192f1759be47d9b1c9b703df91e94a996a6c5a9a670f5feb76",
+      "after_sha256": "ce86ed7e189d183878dba967f76111b9e8a2f19236c0f5e936f823e49bdd5dc4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_llamacpp",
+      "manifest": "pkgs/community/swarmauri_llm_llamacpp/pyproject.toml",
+      "before_sha256": "1f3dc6a36d73d2b0243be3218fc44f44fb41fcd96ba0a4a57029768076d5ae51",
+      "after_sha256": "2521232192d8a1de76228fed4e19b22290480248d2ab2f7ffe8ec79e12e3bb2a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_mistral",
+      "manifest": "pkgs/community/swarmauri_llm_mistral/pyproject.toml",
+      "before_sha256": "5559e70c0e934812124b60744c2bf1729da3e224491ca9cff434b161b27f1534",
+      "after_sha256": "0b5674d033e66675649491b5751e0f354531e9fd9f30b7f1a4b3bbd4cafe675e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_nvidia_nim",
+      "manifest": "pkgs/community/swarmauri_llm_nvidia_nim/pyproject.toml",
+      "before_sha256": "06605bcdf9dd8749199a190bb62092c2d5c0521abdce13f63db6c9ca168ac4ae",
+      "after_sha256": "48cd1db49e2e63125a96372fb07828bf569d89febd62d8cd3b2148e3ad6a5459",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_openai",
+      "manifest": "pkgs/community/swarmauri_llm_openai/pyproject.toml",
+      "before_sha256": "c33ee46c53e447621f2bad7b7e0b55fca29a687a9a9135fa9e05c4a68c0be4eb",
+      "after_sha256": "d141babc5df5a0aa1cd91e58a9c7e466d0a31b8c130a02f0c437b18d900169df",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_openrouter",
+      "manifest": "pkgs/community/swarmauri_llm_openrouter/pyproject.toml",
+      "before_sha256": "5905113acc4e91598ab5e285354327ab62fb51a583f89d64fea16c36e17b7eeb",
+      "after_sha256": "c5b1a994656c752e40fa9122eadaeb048a7e7745e1033cb57ae8ffdac5e41304",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_perplexity",
+      "manifest": "pkgs/community/swarmauri_llm_perplexity/pyproject.toml",
+      "before_sha256": "5fc4ad4939c08aa919d0104c289cd6dafaf163325669a65cc8ea13b913e46393",
+      "after_sha256": "7eab280c69fead60c158e3d4dc848a1282584fec06d48decdde582585ba50cb4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_whisper",
+      "manifest": "pkgs/community/swarmauri_llm_whisper/pyproject.toml",
+      "before_sha256": "b140f07cc098feeb37d398d9114a63ab9bb2dfe41e1b20b726475e3f30546dee",
+      "after_sha256": "1880e522bef5ca382b2a0bcf478d6fbe865879da88d755aae2867ef9c5af1ecd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_llm_xai",
+      "manifest": "pkgs/community/swarmauri_llm_xai/pyproject.toml",
+      "before_sha256": "307a1037652d4d16b96d537795f1f9a0fe86b5a84e9db847055c20bcd836d960",
+      "after_sha256": "f85f820b33d008ce984c8405328dfcae723db135390a03e88ecf0b18b67bc9ac",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_matrix_hamming74",
+      "manifest": "pkgs/community/swarmauri_matrix_hamming74/pyproject.toml",
+      "before_sha256": "5ae98d7418f5d422435b7de43a996cfe5dc8f138ca53bbd0e276afba8cfc0f7e",
+      "after_sha256": "cee71d07a1886efe713bce746706394eefa639454af6f67720fbd5a2aa9a4388",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_measurement_mutualinformation",
+      "manifest": "pkgs/community/swarmauri_measurement_mutualinformation/pyproject.toml",
+      "before_sha256": "341cbd721f3d78dc75337f04c7281277dae7ec48e5b8dcf84e82729657e1ec53",
+      "after_sha256": "032a89fbf911519165bcf28eb197c151ea5cf5b878532779376e6d91ccd4600d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_measurement_tokencountestimator",
+      "manifest": "pkgs/community/swarmauri_measurement_tokencountestimator/pyproject.toml",
+      "before_sha256": "d72953c609c8750e2780b563685f2a7c2a901c711ec5e96e3b2a070a5ae4776d",
+      "after_sha256": "4e9281cf09b41ef7d3fa586890018ad50dec7f310178250e560ba02d98bce5da",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_metric_hamming",
+      "manifest": "pkgs/community/swarmauri_metric_hamming/pyproject.toml",
+      "before_sha256": "b518b33f8d08c9b5f2f83a6f3fa9f4c190c051a6dff65346689c36c428a2a08a",
+      "after_sha256": "12b9fd9d2b11ab35e4a655cf1f92dd51966f2fd3511cd5baeec0cf7686298b2f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_circuitbreaker",
+      "manifest": "pkgs/community/swarmauri_middleware_circuitbreaker/pyproject.toml",
+      "before_sha256": "bd76faa7766464382256504a3a1f06afc03cd6728e5be8c53f4bc90f95c3902d",
+      "after_sha256": "e7f4385dbb41f92f721940bf99b28613a361df5e17be6859bfdd37b5653e19dd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_ratepolicy",
+      "manifest": "pkgs/community/swarmauri_middleware_ratepolicy/pyproject.toml",
+      "before_sha256": "f06274edb1872b5036d3f8e272e9d7ddf5f5d277c52ba585264a8e5b2565f966",
+      "after_sha256": "5212a37a8f0e04d5b87ddf9762a892e3229ad178644353274c48fa6815cc5cea",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_ocr_pytesseract",
+      "manifest": "pkgs/community/swarmauri_ocr_pytesseract/pyproject.toml",
+      "before_sha256": "43609cba23531cc2e77d14e47f9d16d36e09f40791ed84c3909fb390e196de0b",
+      "after_sha256": "318bca3a2f089bdfe3163b46496c9892131789a533baf666d5e8f32b6834ba11",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_bertembedding",
+      "manifest": "pkgs/community/swarmauri_parser_bertembedding/pyproject.toml",
+      "before_sha256": "a6b580aad81a6462bf93e38ea3899877d26f2994dbc75dbdb2b8c1ccfcaf9986",
+      "after_sha256": "16229609c9af1f59cddaa0a3dd3154055117553f7490f64d8d19421d213dfc18",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_entityrecognition",
+      "manifest": "pkgs/community/swarmauri_parser_entityrecognition/pyproject.toml",
+      "before_sha256": "759d031ee5b3f0441b906d33032c9a1fdaa729adf7fbb30440ec5257aa5cd8a7",
+      "after_sha256": "d3aa2f9767f035226229d269d10b8e52ff5ae84bb3eae7f41dc1be028d8fb775",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_fitzpdf",
+      "manifest": "pkgs/community/swarmauri_parser_fitzpdf/pyproject.toml",
+      "before_sha256": "8efe3534555ddbf5196ab6ca629517e6862624c47b36672743b23f02775636ac",
+      "after_sha256": "f99e168744d3a6511c87b3f44f82b01d96cbcbcc139364e261357a2c5b45653f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_pypdf2",
+      "manifest": "pkgs/community/swarmauri_parser_pypdf2/pyproject.toml",
+      "before_sha256": "e0c113fd5837a0df03015ae7e52dcc96f84bf136229e6f5fc13b6430e7acd2cd",
+      "after_sha256": "7517ab5ce9a33350bd3f03925b06afdc129905f9a4486f8aed7c6930d3045c91",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_pypdftk",
+      "manifest": "pkgs/community/swarmauri_parser_pypdftk/pyproject.toml",
+      "before_sha256": "bc121ea56ba28fec7235ee56221acd3cdd466d9aea6407c564eca6749288484b",
+      "after_sha256": "c939e64a155c45191b5516fd81310c1429027918a83a4470e754243deb80ae3c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_slate",
+      "manifest": "pkgs/community/swarmauri_parser_slate/pyproject.toml",
+      "before_sha256": "b2d8fc2f0fe4e39204ddafc0bc15c2461556fb2a2881eae7143d5b6783b690cc",
+      "after_sha256": "253a0fc62b448856ecd98ccbf43f8e033ec397bc3161717320747ecbe85bdc03",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_textblob",
+      "manifest": "pkgs/community/swarmauri_parser_textblob/pyproject.toml",
+      "before_sha256": "345aef27eb8f27d8c75f505e90bf35419b68deff55cfb43f920824b156d244cb",
+      "after_sha256": "f99fe74abfd6de9938014db26c4d7f546ba23798fa9137c553ff4134b6d7842a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_provider_amazon_nova",
+      "manifest": "pkgs/community/swarmauri_provider_amazon_nova/pyproject.toml",
+      "before_sha256": "8480fb78f0d4e3831c903cf4e28eb1d8893c99a40c6449f7964a99a9fe50500d",
+      "after_sha256": "ea22252cd9303fa8c97409e9454821493399d94a44a1d2da0cc384501383cc0a",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_provider_gemini",
+      "manifest": "pkgs/community/swarmauri_provider_gemini/pyproject.toml",
+      "before_sha256": "09ad7e9c84d58df266edae3aa0f9218e4d67abe0a5fd54b71258ae6dfaee987b",
+      "after_sha256": "90b72cfbf6167ecf3ae16996bebd5cab467dc37a22c3516d189381f0a3872484",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_provider_openai",
+      "manifest": "pkgs/community/swarmauri_provider_openai/pyproject.toml",
+      "before_sha256": "343afe2d85b9cbef342847e40c3b1c6ef913c3d2e5fdfc177f3ee1990ad07040",
+      "after_sha256": "59b8d58c6f49606900cb42684c3cb0efe6eaf26a23a7668bdc4064e19bf0b8f6",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_provider_openrouter",
+      "manifest": "pkgs/community/swarmauri_provider_openrouter/pyproject.toml",
+      "before_sha256": "9c6b279ef179a1ad7041547c28d5bfa79ffc1904aa5c9f07640aa6cf2eb6d55d",
+      "after_sha256": "f28a95fcfdf58792bedd4bf92e070886ba783913b8cb8e51cf7aee1fafdeda3e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_provider_qwen",
+      "manifest": "pkgs/community/swarmauri_provider_qwen/pyproject.toml",
+      "before_sha256": "ad4090a3a3761d1c7099ad0a16cb5baaa0eed108b3693eeb310608e38f4a2f63",
+      "after_sha256": "bf7716a8a07623a2fa4758d529f2b3c8b824a7bc2a502d1951cfafcf66ceb5cb",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_provider_xai",
+      "manifest": "pkgs/community/swarmauri_provider_xai/pyproject.toml",
+      "before_sha256": "e804e8f6c9b0e810c2d9d384405dbf8090daf07219113afebba4dbc1287b3852",
+      "after_sha256": "f6a8f880615c5449cf1efea5522316df7033c61e6853e4022f915e9594d76d14",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_dsse",
+      "manifest": "pkgs/community/swarmauri_signing_dsse/pyproject.toml",
+      "before_sha256": "e896ad725da6deb7708ccbdf048cf78fa01c2177a7a52b56f7a96ae18272e135",
+      "after_sha256": "fc58d5dd8fd9546e441c6f0c1720346c6ea45b93b362a03547dde37df968d9c3",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_state_clipboard",
+      "manifest": "pkgs/community/swarmauri_state_clipboard/pyproject.toml",
+      "before_sha256": "9aa18fe74d333c1acad1680b89fe4ca025e12dd38cdc7f0b338481796ea81e7f",
+      "after_sha256": "d9c345496364e2ea076d0f4284c96e1da752614088752dcc1769b139ccaf8722",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tests_griffe",
+      "manifest": "pkgs/community/swarmauri_tests_griffe/pyproject.toml",
+      "before_sha256": "5d1576b6e9a3b512a6dbf076cd8b984b7c6655ad88b15fb57050bf65234bc227",
+      "after_sha256": "43128187fe8c68e33217ed240a51ebe0c4ff2f0a1e836ed7615ea1b26383a46c",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "swarmauri_tool_addcontenttorag",
+      "manifest": "pkgs/community/swarmauri_tool_addcontenttorag/pyproject.toml",
+      "before_sha256": "5c3f63c5741ea48e1a235623b78ea16aab215d99a1574ea2c4fa8bcf85e14d8b",
+      "after_sha256": "77b1175a768a5f9c9b6caa89204f530d8929729f94795022af5db6f641292a8d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_captchagenerator",
+      "manifest": "pkgs/community/swarmauri_tool_captchagenerator/pyproject.toml",
+      "before_sha256": "ced74df4a76b18163e97bb111ccef0d91cf88fe72f0e1d4f02ac77340bbb8f46",
+      "after_sha256": "1374778ba86674d21e232f0376022155ee3a0fcde778a8ab6d9a8b8b48065938",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_createfile",
+      "manifest": "pkgs/community/swarmauri_tool_createfile/pyproject.toml",
+      "before_sha256": "b8099fd0318290a4a8154da32566d60e038dda57bf62e1c4d2cd8c3ef79d74af",
+      "after_sha256": "7b9fbb679492cd1559c2e1e7a5ce3a2d2aba494bf757ab7ab2e369ecfcfd9553",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_dalechallreadability",
+      "manifest": "pkgs/community/swarmauri_tool_dalechallreadability/pyproject.toml",
+      "before_sha256": "4d220b1889f7eee97e276e498ad55166751a37fe7bd7f638cfe3c1adc7d83c58",
+      "after_sha256": "8cb2965baa2362b1d90fd623838fadba056d8c4f18ebcba2229ca9893e186369",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_downloadpdf",
+      "manifest": "pkgs/community/swarmauri_tool_downloadpdf/pyproject.toml",
+      "before_sha256": "ddf2c48218248ed1e756e9447822fc8cc282c5d5db91c5eff2104748c2e8a3c0",
+      "after_sha256": "dfeb6e4fb1a6295cc4832d091238cc3e00ef72ed9ce39989092f23c41340eee6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_entityrecognition",
+      "manifest": "pkgs/community/swarmauri_tool_entityrecognition/pyproject.toml",
+      "before_sha256": "4eca33111eca8e9b5cdd22a025bc08ccae3b7cbecb882840ce995a38f66fbc16",
+      "after_sha256": "93994ff3aafb91a54a843778abb7dd4ee8725779541b29d9d86f9732589d2384",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_findfile",
+      "manifest": "pkgs/community/swarmauri_tool_findfile/pyproject.toml",
+      "before_sha256": "cba8af791089f0c6e589e31489e9ccd5b2ec0a7ddd2be4354616db5cb4ebc16a",
+      "after_sha256": "e2d5cd71ec1acffa16862bb0d093694bf52d7a68846e1853313e67e237a0ffb7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_folium",
+      "manifest": "pkgs/community/swarmauri_tool_folium/pyproject.toml",
+      "before_sha256": "e1ae1a51226eafb1c887e3fdde8a75e7ac4d035d84dfa1009acc98f4e7ee7a38",
+      "after_sha256": "05a9fba7dc744bba6318ebbcf5c6ea662829e3ba3ef030d26bcb9e78d164ffb1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_getmethodsignature",
+      "manifest": "pkgs/community/swarmauri_tool_getmethodsignature/pyproject.toml",
+      "before_sha256": "819b0f8af0c846be0d75fa874e17963301c9625b9add403fc8046fe616926dc3",
+      "after_sha256": "d42340a3f0c93a23205d11661568678f64b8d33e611b41f86e90014aa4819406",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_gmail",
+      "manifest": "pkgs/community/swarmauri_tool_gmail/pyproject.toml",
+      "before_sha256": "098f7c4f0fd7b680a41de07f2d3833cf24fc98863fdc0fe7077514c35ec39388",
+      "after_sha256": "dca8035fc786e86978bc0724ba67158483c1d722555f59bec11385f122f914ff",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tool_jupyterclearoutput",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterclearoutput/pyproject.toml",
+      "before_sha256": "59bea7daadc11b242820248864189632bdb873c30d412c74cb8751c8e7cd1866",
+      "after_sha256": "aff675ad55f2204c7b29b3d188ec24af9355e4bf893883f9cc2dceeb8911f360",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterdisplay",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterdisplay/pyproject.toml",
+      "before_sha256": "594b3dd8eba6fb755da483c77747478dc0cbb1cd030af79da975cd24c25f237c",
+      "after_sha256": "904d89ff97e4ba72b5c04f6ca1524de9148f184c7eba4c83013460214f2b75be",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterdisplayhtml",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterdisplayhtml/pyproject.toml",
+      "before_sha256": "517a083c3a3d409d632afefed4895139d5df9f34048257d65daf4f8cc0bcc4b5",
+      "after_sha256": "a0a37a460fec0b4d815230142a204a3ab133b31f5ffe9a26afab0a5b99584715",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexecuteandconvert",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexecuteandconvert/pyproject.toml",
+      "before_sha256": "8bc71817630c48d0e8d15f05ed79a7642b633299a94dcc0e8c19fbf6eb43a25b",
+      "after_sha256": "79ecc862999efdb1b93066bd194ececcd28d5ed81e10ee06dd92578290344311",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexecutecell",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexecutecell/pyproject.toml",
+      "before_sha256": "ca405b2182077566241641f166858c5d94fc25bdf3e87ee08c1a805685960404",
+      "after_sha256": "5e979b43233127320bdc660ab6425e1d2aca8220296f7442ae7adbd289e28434",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexecutenotebook",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexecutenotebook/pyproject.toml",
+      "before_sha256": "d0b72995cb3573b13048dd50dda85f5646fb9c58eb1c424b82ee336a9205a0e1",
+      "after_sha256": "5cbe7caa34d4a6e2afc5322e94c3c5dfda5ef37afedc0b0d56dc76476eeb36f5",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexecutenotebookwithparameters",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexecutenotebookwithparameters/pyproject.toml",
+      "before_sha256": "804159728323d53a386ece84581de04b923efdbc9b1fe3f081beb2617127268d",
+      "after_sha256": "a9b233d2ffed69c6748e3bb39136f5c62ccb5cc7a5cd986e27087a61ac3cae0a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexporthtml",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexporthtml/pyproject.toml",
+      "before_sha256": "39310cecfe1da96e6c29e409a2f2574ef14182b3f50bb3ad59878b6c42f88bc9",
+      "after_sha256": "820188e18db885b3bb7da3cf71fa821081783e2be751d1f10c5707ec1089f6be",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexportlatex",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexportlatex/pyproject.toml",
+      "before_sha256": "2e17d57c0089b3e60ffa1a7820ccbbef95b8b752ea6be4fe96f3cd5a0ae1ee8d",
+      "after_sha256": "ee4da9488222d3f4333ab768d367cb276eaf06898c2535b7fa8da5740a0e4631",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexportmarkdown",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexportmarkdown/pyproject.toml",
+      "before_sha256": "950fd202e3b7db30074359f38ac9868957568a641aef92f59b0b124e89746ae4",
+      "after_sha256": "0bb12738c4dcaf3f97f7d791785adb081d3c91e9ef076f53ce58a1abbfc21220",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterexportpython",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterexportpython/pyproject.toml",
+      "before_sha256": "8d1f2db5c1c830d5939fdfe20ea4ca01fe562b579f58968631fbb1f2bf7b8d01",
+      "after_sha256": "38af6243ac8c4076ba13bd1ba7ec3f478ff73e878928036c2bb77d51c050c82b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterfromdict",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterfromdict/pyproject.toml",
+      "before_sha256": "633002f82eb8c38b29134fe98916dce53525cd4b6b75dfb241f1c8c916493f87",
+      "after_sha256": "6ddd6f2df85e155ea1210d33fedd9207acb289766fd006fad525cc0557637e7b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupytergetiopubmessage",
+      "manifest": "pkgs/community/swarmauri_tool_jupytergetiopubmessage/pyproject.toml",
+      "before_sha256": "6600a3aca28d40b7c7e47102c2a722711a7cc0f10a0639ebb4b96907b380057f",
+      "after_sha256": "600ee11f057e2d6672f95544e3bd44a654016039ced2e7104b3db01374c9d903",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupytergetshellmessage",
+      "manifest": "pkgs/community/swarmauri_tool_jupytergetshellmessage/pyproject.toml",
+      "before_sha256": "ad8168887fd8211799286faa615755c3aaeeed24566a20cf0902461b9577f935",
+      "after_sha256": "c7bac440a03c117087d71c8578d26aa17e0a73822db73ce7ffec46c8d77e18b1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterreadnotebook",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterreadnotebook/pyproject.toml",
+      "before_sha256": "b56a2919fea0783fd341a03a5d129a024d83dee92b80f29b719d06b3c793ed81",
+      "after_sha256": "8948c722c73204b524d67a31c6c7752a8a6093d81a7f55a1d0f22fceee6f4076",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterruncell",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterruncell/pyproject.toml",
+      "before_sha256": "4507fe615d953384c5e97a83ee2419d5d1465db70bf42c9129d5f2a6aeed583b",
+      "after_sha256": "da4a868558354b54825cebe43e0740c92088f02aee61d3204f428cb485011a95",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupytershutdownkernel",
+      "manifest": "pkgs/community/swarmauri_tool_jupytershutdownkernel/pyproject.toml",
+      "before_sha256": "6663a0fb0613e71917568e5fd4ff8d5941c30b52f36665269abf7445e75da497",
+      "after_sha256": "37c8665542723194b5b2fb904b1ed5b7b2112211768fcf5c43086db4a63b3ca3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterstartkernel",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml",
+      "before_sha256": "3083e6e1aaaf30eb808af34346debafa736527d40ff41f1b996a8794386f3e99",
+      "after_sha256": "b7a80170a2afdf576143519db3b3120820fd10467eb670790d918137b9931e74",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupytervalidatenotebook",
+      "manifest": "pkgs/community/swarmauri_tool_jupytervalidatenotebook/pyproject.toml",
+      "before_sha256": "53db23352f8599cc2ca4fc5693d31383fc1033f764e34f056e2b6a9944cde3de",
+      "after_sha256": "48861ce92f0d744a18a8e28442bf01ab7d8bb9dabcb67cff6b0c2da0e9e75d3e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_jupyterwritenotebook",
+      "manifest": "pkgs/community/swarmauri_tool_jupyterwritenotebook/pyproject.toml",
+      "before_sha256": "f3adb399fc069eabee79958807df66c263ca8701c3c97fd9a4af59999e96d06a",
+      "after_sha256": "e03aca0c1379dd37444a3d1d23bab6419a81d86e908d614932a5410609aa0e21",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_lexicaldensity",
+      "manifest": "pkgs/community/swarmauri_tool_lexicaldensity/pyproject.toml",
+      "before_sha256": "abd75e6203619e8bfbc3053d4e7101ad8d6bab514870d27fd28d99b6c1dd539f",
+      "after_sha256": "a7a961795660301ce53dc16c844f8e253f6d619d3594580a74b157fa5f2f433a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_listfiles",
+      "manifest": "pkgs/community/swarmauri_tool_listfiles/pyproject.toml",
+      "before_sha256": "fc7493e527752314bfcbb12c11d2a4ccc7abcf51690607af79a3378bf25bbd3e",
+      "after_sha256": "2f7b881090f4d016d671016712ee04ebc6e058af7ee4853277921b3e93cdffd9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_psutil",
+      "manifest": "pkgs/community/swarmauri_tool_psutil/pyproject.toml",
+      "before_sha256": "b0466f640409dd8c58b69c069d4df0bca5309eee8147108b25ef38c1d03046c4",
+      "after_sha256": "8d6ca10376ab9a5d77b1d4f6e15aff13e7d4be7a38d6ea02f5a5c3f9594d8048",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_qrcodegenerator",
+      "manifest": "pkgs/community/swarmauri_tool_qrcodegenerator/pyproject.toml",
+      "before_sha256": "fe5e3d254bfc7552543df899ce8ca5a37612b62fdde3914a24ba56e664dd52b3",
+      "after_sha256": "f346e92ecdd341265e10823fe33b6a17927dd8877c0e44e111c2557a104faaa1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_queryimagevectorstore",
+      "manifest": "pkgs/community/swarmauri_tool_queryimagevectorstore/pyproject.toml",
+      "before_sha256": "25b98a7031119cd3ed4530c845357ca0ca8e7baae71175830ecc4919dc882511",
+      "after_sha256": "99785fe0202b9a763a6dca19cfea4044fe15bcde03ae89f25bc68b06889d63e1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_queryknowledgebase",
+      "manifest": "pkgs/community/swarmauri_tool_queryknowledgebase/pyproject.toml",
+      "before_sha256": "7040f64d98cb44ed040a3def273a160fc58f739ecccd90dc464db68821683c49",
+      "after_sha256": "cd44888e8e94a9750e16543d9d3b39a61a421e4ff43e852bcc68635898ce70dd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_scrollfile",
+      "manifest": "pkgs/community/swarmauri_tool_scrollfile/pyproject.toml",
+      "before_sha256": "3405f926da246f9e6ded37682fe5700ca977469f6bc833d7c33532573776f00e",
+      "after_sha256": "ee697159a03674dc4f4c777e67601217581f39c13c9347f0bd970e035cd7f16b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_searchword",
+      "manifest": "pkgs/community/swarmauri_tool_searchword/pyproject.toml",
+      "before_sha256": "5bbd1f26a075180087707171ccddd8ffcb9a097f905f3b161c69637dcb4a2a44",
+      "after_sha256": "33ff179040a853e31e0fe9a487814beee3f8093692230cd7c3bcb9ac299093e4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_sentencecomplexity",
+      "manifest": "pkgs/community/swarmauri_tool_sentencecomplexity/pyproject.toml",
+      "before_sha256": "4697ee2b8568b41eb3f79c95380e69205d39f5ac2aaa7426e193356227ced82e",
+      "after_sha256": "c3b4aaa5f76b6f830a2f7df6c5b411cf2b3fff32fe0455dae5026d67487076da",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_sentimentanalysis",
+      "manifest": "pkgs/community/swarmauri_tool_sentimentanalysis/pyproject.toml",
+      "before_sha256": "3622f6613c110844d69401cccbbfb40204eec8e10b544388685d6903a354aa3c",
+      "after_sha256": "0fc33bbba2ad0c0176f2a63246f76b767530829723ac0dedae7637f6dc75a47f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_smogindex",
+      "manifest": "pkgs/community/swarmauri_tool_smogindex/pyproject.toml",
+      "before_sha256": "0c975d1ae7b67a8ae1aed6e6891eac5fd2b92d862f0ac837afa5e05c8f387d35",
+      "after_sha256": "d0bd6975ad1ace1b5b8a40b85f30f3401690a7f40889ac2cc2e1bca628d5152c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_textlength",
+      "manifest": "pkgs/community/swarmauri_tool_textlength/pyproject.toml",
+      "before_sha256": "8c2fe7699db1ec3a0c835f1b84779a4a7592d5310dd42546d392712533708cf8",
+      "after_sha256": "c2f80b1f5dafd358912d7804a9047f0de15ac549ceec5bcb49d320c004591500",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_webscraping",
+      "manifest": "pkgs/community/swarmauri_tool_webscraping/pyproject.toml",
+      "before_sha256": "7669fb55f1ac549555f4434afdc7e3f8360c6f7aad72d6e70c125812faed963d",
+      "after_sha256": "150ac313423b280fd5691299d0580786454b756f0d9b63fa626ba625ae987b71",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_zapierhook",
+      "manifest": "pkgs/community/swarmauri_tool_zapierhook/pyproject.toml",
+      "before_sha256": "ad206af3f3ac40370aa9d01e0c0af7875e96bd3d5238b81b8d9c6d80a56ee0dc",
+      "after_sha256": "6afc38a148f2f6d82ecdabce107d902f2ce692506104c677aa69cdf772480091",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_toolkit_github",
+      "manifest": "pkgs/community/swarmauri_toolkit_github/pyproject.toml",
+      "before_sha256": "13dd5b3d49174e8b473b7ff3036cf430e3a275892988d7b25fd63e5d9a66607e",
+      "after_sha256": "f406a708885df196ef0ef2777af6813cb5e30850c1fffc60e89f68d52a0ed18c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_toolkit_jupytertoolkit",
+      "manifest": "pkgs/community/swarmauri_toolkit_jupytertoolkit/pyproject.toml",
+      "before_sha256": "144081ccb61b006c940fcf3d811e47a59de4e45a2a57c271a5fc4749223c6333",
+      "after_sha256": "2e068a206b2c5eace5192d9b7a65bedccace3827651a49e546aea9789c844226",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_annoy",
+      "manifest": "pkgs/community/swarmauri_vectorstore_annoy/pyproject.toml",
+      "before_sha256": "c92ec337f64f2784615891e387a6951b16b39f00162b43d1ea159c9add727ca4",
+      "after_sha256": "b6b880ff66f62c602cbe904ac4e3b11ef7f78b1eeb478c228240d6854a0c199a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_cloudweaviate",
+      "manifest": "pkgs/community/swarmauri_vectorstore_cloudweaviate/pyproject.toml",
+      "before_sha256": "77b3b8786bcf8ef438e8fd06830072db17ab5bc8d05d5b38e2527f3ca0c54e82",
+      "after_sha256": "c1ea35dba590c123dd63fe3d4093e5522bc83e9e1e60f521480400564117c9fe",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_duckdb",
+      "manifest": "pkgs/community/swarmauri_vectorstore_duckdb/pyproject.toml",
+      "before_sha256": "995a762a430f95aca947b3a1e7ac6d0e1b0fc5570686607aa6c9e69e52b151e8",
+      "after_sha256": "c4ae873a247f9670ad0d378954fbfc342083597eb666a6387e74f391a5baea7b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_fs",
+      "manifest": "pkgs/community/swarmauri_vectorstore_fs/pyproject.toml",
+      "before_sha256": "c91c13cc787077abb5749c4b1f6417c99bd523f68c602aa426463b4fed0bea22",
+      "after_sha256": "6297aaa266af6014fba624174eeffcbc2e8fca4aff5557b9570412ead2dc17fb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_git",
+      "manifest": "pkgs/community/swarmauri_vectorstore_git/pyproject.toml",
+      "before_sha256": "fbb377fe207e39cfe12881d600e1083c409864f19cdbaefccf11d4ef1292c026",
+      "after_sha256": "7b2d7c68b220dd828afdacc5a4bc1f1dce292e3992cd363fab11e2e413c0234c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_mlm",
+      "manifest": "pkgs/community/swarmauri_vectorstore_mlm/pyproject.toml",
+      "before_sha256": "9292606ad2bfebfe9ddca8c878088e6e41ad1cb135928e13afe4fdd60ae5516f",
+      "after_sha256": "f3730cc7e80edc3731f63848e98e3967195689f3bdbf88503c932cd9c406bf84",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_neo4j",
+      "manifest": "pkgs/community/swarmauri_vectorstore_neo4j/pyproject.toml",
+      "before_sha256": "123831112dd7afb3a7fb86aa2ac5f9872c942055168f721e84f58f54aa9cddec",
+      "after_sha256": "11af04a5c9ebcecf7384e9278caf5c214d32a8214295b038fde6cebfbc835cad",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_persistentchromadb",
+      "manifest": "pkgs/community/swarmauri_vectorstore_persistentchromadb/pyproject.toml",
+      "before_sha256": "82b300d8dd999ce16f012149a2be07cbdf25f02f4b1c191b51292e2762dd0a31",
+      "after_sha256": "ef5fd3437f7502495b4cdc9614a8f6208c67ca4033f33a5457c4fced39b6f477",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_pinecone",
+      "manifest": "pkgs/community/swarmauri_vectorstore_pinecone/pyproject.toml",
+      "before_sha256": "9ebaf45ff04b488f7b4db017e7b563aebebfc4a159260fb5c94045abd8275bf7",
+      "after_sha256": "98bdd98d5862ba85e58c40661192fc4c810003a1f54d4c042a9daea273cc7603",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_qdrant",
+      "manifest": "pkgs/community/swarmauri_vectorstore_qdrant/pyproject.toml",
+      "before_sha256": "584110a0f08cb1117a9dca58ba93efc9f58c9018bf5a5f024dbfe888e96fc6f4",
+      "after_sha256": "0b11f137e8a1c52b504c61816d3913a00b1e6fbd578e2ec10bb7a9d8ce3a2243",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_redis",
+      "manifest": "pkgs/community/swarmauri_vectorstore_redis/pyproject.toml",
+      "before_sha256": "32277c8f46818731bddbb8446b586d7d5b706415001135a97fb179265c0934a0",
+      "after_sha256": "d41ba6a5060b0d19d44857e6f680f642ec7d0bc804fd9bd6eccb01ca4bd106bf",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_video_lipsync_synclabs",
+      "manifest": "pkgs/community/swarmauri_video_lipsync_synclabs/pyproject.toml",
+      "before_sha256": "9c9906567803f628816bc020d3ca1c8e5acef0f21856b3b2fb93ea6badd15abf",
+      "after_sha256": "ee039e93cddea3e16e74d237c1c29b80e6d7691348c1974dcf22f1efa0276424",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swm_example_community_package",
+      "manifest": "pkgs/community/swm_example_community_package/pyproject.toml",
+      "before_sha256": "d69f8d5d3b26a30f9c98fe12080c1dda97fdd6137cbbc09d97810b2e371b8acb",
+      "after_sha256": "8b5634fd1a3a360ba3f4b419236084ac0736d8b467a78d4eb0e741171cc6c510",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_core",
+      "manifest": "pkgs/core/pyproject.toml",
+      "before_sha256": "25024213273f99fdb9e08728421d730771a33ccd904099c09fedbe7485f04baf",
+      "after_sha256": "5618b5b738599f7f1558e957b8c0cf7ebf3e36179847f84348980f7eeaaa0e11",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "6w",
+      "manifest": "pkgs/experimental/6w/pyproject.toml",
+      "before_sha256": "972ea07c50a289ab5ccdfbecdc85214ef5ce7a0f536a00ece8e0e3f38951b0c4",
+      "after_sha256": "523c30526ced046fbff407b6b06b18b93699308c807bde823ecbf61570ca72ac",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "6x",
+      "manifest": "pkgs/experimental/6x/pyproject.toml",
+      "before_sha256": "70e371cb94ddaa1134ccb6b644214aba70333f9824c1632b38fa60286618c95a",
+      "after_sha256": "7fedb5e83fb6c045724b48076b6994570f0f141caab7dd4b3cc06232cbd2a53b",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "6y",
+      "manifest": "pkgs/experimental/6y/pyproject.toml",
+      "before_sha256": "03c0bdde690b2fecb2ae93b378fca3e32f4cdd1855e306211cd5a65496b7fa28",
+      "after_sha256": "65e29338a420be3fbaa99410e9745f596985a272d008baa8d21fd1fcb9cbaa5f",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "6z",
+      "manifest": "pkgs/experimental/6z/pyproject.toml",
+      "before_sha256": "6e02d12e595a176cb80ea739dc0b6fb9108a8746e6859859d5aa93212416cd3c",
+      "after_sha256": "7062de747d3afaeb067c5ece6db9cc7ce6a639cc361415309f07883fbbfb10e1",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "77",
+      "manifest": "pkgs/experimental/77/pyproject.toml",
+      "before_sha256": "ebe59176f3323cfa93b61623b8d3eb26c18e4f948b7e22d16e4905df2cecaae4",
+      "after_sha256": "cc63e979b3ce408598b57995d0bb925fbcb76fe6271ba1391af51adb291c0d72",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "9x",
+      "manifest": "pkgs/experimental/9x/pyproject.toml",
+      "before_sha256": "937e7d133eb5248a88c7740b4871731cd765003da67d9f3d6d3a20861950ca9b",
+      "after_sha256": "9a9c677e686e69709cf8ea90ab4c1ad0dcf906af6919c6175ae044afd79b05a9",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "FastTokenizer",
+      "manifest": "pkgs/experimental/FastTokenizer/pyproject.toml",
+      "before_sha256": "1e34b7cb61b3367b3c9d3cf9cfd5dc11384ba49af89f579dc0011c05316190c1",
+      "after_sha256": "627821ecae5f3fc8f5e58a222bdae4c0d0acfc890dcdd2d64646eeff27a8e904",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "DistanceMetrics",
+      "manifest": "pkgs/experimental/RapidSimilarity/DistanceMetrics/pyproject.toml",
+      "before_sha256": "ae128caeee424f87c64cee5e4ad2de364ce6225bd580bd1ac9b805e577d7779b",
+      "after_sha256": "9d13e2cdaea177a1016738aeb9d154711fe79a40130eb3c6fd58c0931029a1eb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "IndexBuilder",
+      "manifest": "pkgs/experimental/RapidSimilarity/IndexBuilder/pyproject.toml",
+      "before_sha256": "9d260c89ef3c1d8928e0d805dfbfad316472000566ac542f2fe62a38cabb2123",
+      "after_sha256": "05314dcd7a1ade4d05ab78dbd8b6b52f46a26b48a6eadbfb65ec1bf85b168beb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "QueryEngine",
+      "manifest": "pkgs/experimental/RapidSimilarity/QueryEngine/pyproject.toml",
+      "before_sha256": "8f67f781731ea8d82c4827e90baf29a5ddfdcdb89695d6ec424e4c080eb25a0e",
+      "after_sha256": "43440f402362d30fb716155d7fdfbde86680a0b6121dc5124202b92e2a904f64",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "catoml",
+      "manifest": "pkgs/experimental/catoml/pyproject.toml",
+      "before_sha256": "6e11d355d381b024e9160df3f706f4de3c65f596d3ff428e3b70a20d7897c0d6",
+      "after_sha256": "30563a723641d8291e0220454657db511de2eb11c9950b90cd3e84b06ea3b3da",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "cayaml",
+      "manifest": "pkgs/experimental/cayaml/pyproject.toml",
+      "before_sha256": "52c4aefccd8184cd7e46b40fbc9879c4ce7eb48b85906d819b8589df51b7bb73",
+      "after_sha256": "dab2755690c81f53d810daa31c4c11f29817e651827459ce05975bc8305b7eec",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "g9",
+      "manifest": "pkgs/experimental/g9/pyproject.toml",
+      "before_sha256": "5883f903ad01191148f9e1ff40741884e0e98295eb8fb48e0c03255d9ffb1c4c",
+      "after_sha256": "e22676c765b13aa2f02335231d16aab03600e20f378405dac0fa94163d9c1053",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "jaml",
+      "manifest": "pkgs/experimental/jaml/pyproject.toml",
+      "before_sha256": "1f0e558e689a12bad28c50486d2ac48f35bdb535529511db33bf547b253877e3",
+      "after_sha256": "4ff4acca95eb55a1f3f0d29ae1447238b5b360cffb186d5f375710951f1e3a1f",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "jz",
+      "manifest": "pkgs/experimental/jz/pyproject.toml",
+      "before_sha256": "1ed66c2a2db3f43bf21d12ee32376023bc9c95e092f13655c0f08282c0a22268",
+      "after_sha256": "c779fdd49592c1cfc89c33c2956587c32acfd177231f363ed7894e39a50e4819",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "layout_engine",
+      "manifest": "pkgs/experimental/layout_engine/pyproject.toml",
+      "before_sha256": "3150e938909a1bb7b70798e2a2c6762cb3d5849940b6e5d010ad86d3e7ec9bf4",
+      "after_sha256": "a035b75b7329730a7070bbedef5ffa7c61545a1e209ac44e9ad519b840f48fc2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "layout_engine_atoms",
+      "manifest": "pkgs/experimental/layout_engine_atoms/pyproject.toml",
+      "before_sha256": "7a95ae4e7da2d79a6375bd714b53b0d63fba8ffcb58cd2f972ac2b0e41bd62ec",
+      "after_sha256": "9959799aaa121b10cd970883d64586be08057f9b73fd6e4058373490aca13245",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "monotone-ops",
+      "manifest": "pkgs/experimental/monotone_ops/pyproject.toml",
+      "before_sha256": "0f0bf3fb69c1aab891990c07e502e074cd734b4f0c76f552fd83476fcd58c142",
+      "after_sha256": "dcaf9a7266d75c69e76f667e92523b752accc0c7f9c95a1536d713f458707e80",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "mto",
+      "manifest": "pkgs/experimental/mto/pyproject.toml",
+      "before_sha256": "b45a473dd71c092b1b1e20fc5650d5361a124db15b249c421bfeecf012d1b228",
+      "after_sha256": "82cb38a0786765698ed3f164afd604bfe980f2ca6f232b7f6e1330eff8e2e2b3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "ptree_dag_extension_example",
+      "manifest": "pkgs/experimental/ptree_dag_extension_example/pyproject.toml",
+      "before_sha256": "5254b5649ca7e1adecc1dcbcf26c7c87ab4f630890510d376666b27df9eedac4",
+      "after_sha256": "be7725ad084474a08b3ac5f4824b019a5a1b5ed85063eb4e1bcb7a4e02b530cb",
+      "example_origin": "source checkout test/environment workflow"
+    },
+    {
+      "name": "s.f",
+      "manifest": "pkgs/experimental/s_f/pyproject.toml",
+      "before_sha256": "ff3277b3721a38cfd6e91cae0c83a497ef6fdfb73a844159e63f09a8757a48b0",
+      "after_sha256": "79c37e37d31700201cf56673978e5472a958a503f780572da85e1e24cbbd34b0",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "sfw",
+      "manifest": "pkgs/experimental/sfw/pyproject.toml",
+      "before_sha256": "e1629c2d8e5d38705c81a902c09cb5f9b315c2a1ec23d69b29d72d62c61db3bf",
+      "after_sha256": "aad98fdb69631f9532f0ac9ede5adf19bd901ac53b7c026058b5bfc6de18d930",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "snt",
+      "manifest": "pkgs/experimental/snt/pyproject.toml",
+      "before_sha256": "6bad8c761d96796e38ecb36eec2c3be80af4c4b86bc39b55132a992c112c7985",
+      "after_sha256": "f4ca0a55c5a196cb74f433df65722765864687b3ef69026b2f150fd7eeba70ce",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_canon_http",
+      "manifest": "pkgs/experimental/swarmauri_canon_http/pyproject.toml",
+      "before_sha256": "34e1c69aef9367b0c9812e6062ce437adfbe1012293d768b176fd780b9f4fdb9",
+      "after_sha256": "c6e092e637bb1ad836c2005ddad8d7f13f415ff005a4df6be406e883181200d4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_pkcs11",
+      "manifest": "pkgs/experimental/swarmauri_certs_pkcs11/pyproject.toml",
+      "before_sha256": "a5126f8ffc21ccc5a58cc8e78b8d2f93639a0443a648d0661ad93fe6e704a57a",
+      "after_sha256": "6cb544f32f0720bfd695149b6fac67e12d42b6fb1d3407912707d05cc765139f",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_crypto_sodium",
+      "manifest": "pkgs/experimental/swarmauri_crypto_sodium/pyproject.toml",
+      "before_sha256": "b31489f867d74d1ac24564f4508ae258494d61f74fc84e337c26a82ae5b0b960",
+      "after_sha256": "84baa97e25cc24a2e5bf23ac0e269e4403ac5040e818b73218f1b418c6e20421",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_keyprovider_pkcs11",
+      "manifest": "pkgs/experimental/swarmauri_keyprovider_pkcs11/pyproject.toml",
+      "before_sha256": "ec0977f18f2bce3c29550e8c2ac0ceb52beb29875f01363d6bb4f32177e7ae0a",
+      "after_sha256": "94ace59ea2f9573d56bdd2fde4e914fed1e1738ff061d4c25f011ffda8a10c5d",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_parser_asn1",
+      "manifest": "pkgs/experimental/swarmauri_parser_asn1/pyproject.toml",
+      "before_sha256": "ac2e89339c115dd36f36e070c02ffb266628dd270ae4bdfe5534784f72f4f2e8",
+      "after_sha256": "4f6dd7fc0fecca2583c449f91955929d98f702cbe3a4a6cb7aae2d55c9c64ec9",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tests_component",
+      "manifest": "pkgs/experimental/swarmauri_tests_component/pyproject.toml",
+      "before_sha256": "a0ce0b515140dab9cb6c1721360c7e8be4b2e623079b37c19acce1a2357d57fd",
+      "after_sha256": "d9efb4a310a02858f72fda02f4adf1d461f4c46eb10c6c93ea20004f642d3bbd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tests_loc_tersity",
+      "manifest": "pkgs/experimental/swarmauri_tests_loc_tersity/pyproject.toml",
+      "before_sha256": "666f23374c31cb9d4f5f6a8a5653cdb00fa97773faa8133d2d064fa0b1bc64a1",
+      "after_sha256": "fe73fca2c57beda2087a0dd8ffc070963c18f0073df23d9ccf6ed2ad7ebb0311",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "swarmauri_tests_pylicense",
+      "manifest": "pkgs/experimental/swarmauri_tests_pylicense/pyproject.toml",
+      "before_sha256": "97c864e29258d855d35fbb7c7e8da66ce805d672505afcb0316bb21b12768440",
+      "after_sha256": "567a54aff3030c96327d6532df6376f71f320d4369579b25ced2236f0a341eab",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "swarmauri_tests_readme_examples",
+      "manifest": "pkgs/experimental/swarmauri_tests_readme_examples/pyproject.toml",
+      "before_sha256": "bd1e575aec630e23aa3e33baf1232cd24f3c2de2d39b926a9cb3864706d83d7d",
+      "after_sha256": "d8ef320cdee597b75eca5ac87a4a381b0524005d1b60dad030e6159ec10b01a6",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "swarmauri_workflow_statedriven",
+      "manifest": "pkgs/experimental/swarmauri_workflow_statedriven/pyproject.toml",
+      "before_sha256": "a4cd39103f17cc8524a134f11a004ebee52b57c9f4491703f1c402ce00311eef",
+      "after_sha256": "1eb4505482c960fe4225acc2a3c2e4346f06a35c8c7d8acb01aaa03017ec9771",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "tigr",
+      "manifest": "pkgs/experimental/tigr/pyproject.toml",
+      "before_sha256": "46cef340a82c2ea05de6f39be5894abd31d4c1ca360f90d7b1ce86333677aeac",
+      "after_sha256": "7b6e008960d211b96a92f647bd50ce3debfda385cb2aa67f50a09ee1976ab597",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "ye",
+      "manifest": "pkgs/experimental/ye/pyproject.toml",
+      "before_sha256": "91e6bebe59600b926ee063f13c4a0351aa86ee2b9afb3ddc60ab4c52d1186b98",
+      "after_sha256": "bca72222742dc0397b696879bb8b75ce243ac2d92f295c2f8eb353d9eec5089a",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "ymls",
+      "manifest": "pkgs/experimental/ymls/pyproject.toml",
+      "before_sha256": "7e0e10cbdaebef507320cbdaed07e01b644884ae406a03bd67f0829285001c79",
+      "after_sha256": "87fabc5374cb58c7699513628ecf8e79c5b56664e89c544176202aaac8cc10cc",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "zr0",
+      "manifest": "pkgs/experimental/zr0/pyproject.toml",
+      "before_sha256": "c4b954a1f4b87baed574811b334503ce5769dcc9695f0522ca10ca360d8d4cfb",
+      "after_sha256": "078543e132b6734a40660dfcbd9919ba9dc04e9764a026b857fe6094fede3b11",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "EmbedXMP",
+      "manifest": "pkgs/plugins/EmbedXMP/pyproject.toml",
+      "before_sha256": "008d8bcec472ddef6bebef307721a64cfa05166cdb91056b134adba03611a5f5",
+      "after_sha256": "be17c414a6f8f87bf01bf649107d9deef00b9e3a9133883a90e1fe01b1acf22b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "EmbeddedSigner",
+      "manifest": "pkgs/plugins/embedded_signer/pyproject.toml",
+      "before_sha256": "fea049fb0b618f1b34869d2cfce05720afb751c06ba22cb7fbdcca261f2ff346",
+      "after_sha256": "a22910d2b8125ea8ef53acba0df5216f616677c77eb750ef6f81c620ae5a76b8",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swm_example_plugin",
+      "manifest": "pkgs/plugins/example_plugin/pyproject.toml",
+      "before_sha256": "8e5f43e38237a4507b39c7c07a190c8bf890966bcf533320a4ac92cd0eb91335",
+      "after_sha256": "b305609815ac3c30b30941c59585fd9045e125ad427168f3044260586341e339",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "MediaSigner",
+      "manifest": "pkgs/plugins/media_signer/pyproject.toml",
+      "before_sha256": "7f6ad47878ac83ae09cb79fd13a956229ce9f695cf87651eba0fc5bf8e1d41ca",
+      "after_sha256": "5deac5106a7f5b84cd26d9afb5c14dd1ea4e68dcb7250ba2bcf4e2d86e0b50de",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "zdx",
+      "manifest": "pkgs/plugins/zdx/pyproject.toml",
+      "before_sha256": "9b889a6c1c67cd6f6d371a900dacca47838e72f81f1e2a57c845eed32e082940",
+      "after_sha256": "74707c1fe350aa11dc02e4c607c844952bafe0b6dea9654721732bf9d0d0634b",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_monorepo",
+      "manifest": "pkgs/pyproject.toml",
+      "before_sha256": "635ad460a20a018cf619e7d8d29929204f8a42619d4b215554ee85fc17edd3f6",
+      "after_sha256": "326c8c323bf5f0051365d16f25dc2d11c3160f3a446c3b382514cada0a5392a8",
+      "example_origin": "existing README command workflow"
+    },
+    {
+      "name": "swamauri_metric_wasserstein",
+      "manifest": "pkgs/standards/swamauri_metric_wasserstein/pyproject.toml",
+      "before_sha256": "1beaac73c281046f31c61bf2c4fa327e8138890fbcc1c4ecc7fb1995b24b79a9",
+      "after_sha256": "ccc18dffd882a9f3b1ecb6a918b2a917c9f545d61e34d8cb04882809d56669be",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_agent_package_maintenance",
+      "manifest": "pkgs/standards/swarmauri_agent_package_maintenance/pyproject.toml",
+      "before_sha256": "e2393afe6fa13038f5a80cab1a6efe542ff575b9393197ed3550518807e64297",
+      "after_sha256": "1d182d16e13f8a02af0f2dd069eebabbfc515ae4e4e72bd2841d491d2eea6583",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_agent_realtime",
+      "manifest": "pkgs/standards/swarmauri_agent_realtime/pyproject.toml",
+      "before_sha256": "283870ab089f57e42975cb3c2f6b4e9324dd2dc74ecc4ff4825319fd3ca2107e",
+      "after_sha256": "56ff25f818ab7252e9ce35095c644e5fe374809ca77b7702575a9515637b8515",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_agent_runner",
+      "manifest": "pkgs/standards/swarmauri_agent_runner/pyproject.toml",
+      "before_sha256": "c987e2c585be2bb9997435f321738353dbb2ea110c26daf63a75cb2017a766c8",
+      "after_sha256": "2205904e2d9b19c64a55ad8132328e0bf3cdc41b2db38552dfd69733f4089b31",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_agent_skill",
+      "manifest": "pkgs/standards/swarmauri_agent_skill/pyproject.toml",
+      "before_sha256": "90f3027f8feb6ab44e00d34718f7a3abc2188daedb708dd081882181325e6318",
+      "after_sha256": "ba4919cff19561734114f6873e6e234e1798ecda9016fa0b0db3980b7911662b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_agent_texttospeech",
+      "manifest": "pkgs/standards/swarmauri_agent_texttospeech/pyproject.toml",
+      "before_sha256": "70e7b8e1decb382c7ddbef4184201e60a57b196a9cbed4f8a9b4fba90fd7b234",
+      "after_sha256": "15a9ff943ef1780b14d448c17c6711819cbe403a968e96c1e9fb13a670cf94d5",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_apple",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_apple/pyproject.toml",
+      "before_sha256": "98f702ae8c6ac60f0f21da33e48d4d94ad75f6291949d48d570c6be07c57e2f6",
+      "after_sha256": "29b920c2b2a63c3dd73f67f213e92e5ac2fec4294b13eb1eb3c18a26300431a6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_aws",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_aws/pyproject.toml",
+      "before_sha256": "deeabd335682b462998964b074e8819ef29c058f71b5ad40e4e382416af14a28",
+      "after_sha256": "93795891903198ae24f879b9e7a184e130093cee696b4c61f3306344ab77e7f9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_azure",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_azure/pyproject.toml",
+      "before_sha256": "f3740bc11ab97ef1ef79bd81a25e2da0338870d2054fdbb9f9bb41a2192ccd0a",
+      "after_sha256": "66876d764cdbfcc54bb180de8ecfb58b929da1dbee281478257ce3ab0b4b116d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_cognito",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_cognito/pyproject.toml",
+      "before_sha256": "393e003d6997bd40b21361aea7c76257bdcc1c4c4d1cde7bd677f69b4ac06600",
+      "after_sha256": "6003cf6d9388afbadcfb3bc9f66e0376b5146f4fd3f382451794dda8d139e201",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_facebook",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_facebook/pyproject.toml",
+      "before_sha256": "7cb455e3decbc2b7e055c6dd3c15df1e52e8f971b9efde22f52522ad51ec95e8",
+      "after_sha256": "8e858ad4f40fcf2dd554d22cf0865021fe95bfe9ba03625f2123476b54173db4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_gitea",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_gitea/pyproject.toml",
+      "before_sha256": "4b39e1d3e4990b291367bb7c65d978d0703cd0e84dda80276aa87229c7b998e9",
+      "after_sha256": "f2a3087cc8e054900e08468be89f04187e446e00e2a03654b2d40a64f9cbdf21",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_github",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_github/pyproject.toml",
+      "before_sha256": "437a7f5d7c677f0435e66e4eac32afb78dde55597590a06d8b87f3facb317729",
+      "after_sha256": "cabb956d0ada1ddc1ac2e86a1b9017e7531acd9c2f891bbe09d752647ed76a7a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_gitlab",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_gitlab/pyproject.toml",
+      "before_sha256": "2723a611006e3e88769e25f23f64fe6da27c9d8e82c63680e9e5f18ea8a18eb6",
+      "after_sha256": "ead5c5f0d7f4c19208bf8b03b030896b9409aa5f2d897fcbb0fffafb0bd04967",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_google",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_google/pyproject.toml",
+      "before_sha256": "1a5abfb8de27e01e067f5acf3a8d1de458db8780a9e782617d33748152bcd2d0",
+      "after_sha256": "04fe7695841af536e3c22fea90bf28e314e332a9751c487b93a9ade25ee6e72d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_keycloak",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_keycloak/pyproject.toml",
+      "before_sha256": "1587808860c846462f28059d0d2284d243f1e6a93b00924b520cf7d7302289c9",
+      "after_sha256": "f6d8bfea7e9470b82779d76c1941790057084f2ef12b539c55f58c7dc42846d3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_okta",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_okta/pyproject.toml",
+      "before_sha256": "34cf2407fef805e127ed7365f22af9911b448a9033a8fc42f07cdec7340f2562",
+      "after_sha256": "d4412353d2ba4cc98aeb747f23912ff88f3d931f5f5483761c6a23c8014bf125",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_auth_idp_salesforce",
+      "manifest": "pkgs/standards/swarmauri_auth_idp_salesforce/pyproject.toml",
+      "before_sha256": "89c77073192c6481ed2cda244de6e50ffff5be506ac0638b2b88ec5633a231e2",
+      "after_sha256": "e9313ce2da72894c46dc5a082a1e99b23e34a082cb8a0653e15f3b570d05bf3b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_mock",
+      "manifest": "pkgs/standards/swarmauri_billing_mock/pyproject.toml",
+      "before_sha256": "1051b24e15d795273842d7ca179f1a9568dca61f693d9ed16e17f42e07b8f1fa",
+      "after_sha256": "f30727345e2267ad1d2a20690a3ca9baabca3d567a1924525a8acf2082112a53",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_billing_stripe",
+      "manifest": "pkgs/standards/swarmauri_billing_stripe/pyproject.toml",
+      "before_sha256": "acb1c94eca2ea07d988cdb2b6c7be03f30346d792f54a7958d4069d4531d2381",
+      "after_sha256": "89e2ba12ae3208359ac5273ac8856fe86cb880c8bdc36f073258f9d4c623cf3a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_composite",
+      "manifest": "pkgs/standards/swarmauri_certs_composite/pyproject.toml",
+      "before_sha256": "99c624207413224d6dd3d4a0f529d46d2e4b59d33945f05273042db514c662f4",
+      "after_sha256": "5949d3080a6d92400202a0bfe9ac76e3801e561305cded0341933cb68228cc79",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_local_ca",
+      "manifest": "pkgs/standards/swarmauri_certs_local_ca/pyproject.toml",
+      "before_sha256": "4480a4d80a4485597e8c40258b007c5213ca379732bc210417e138a4eaec9701",
+      "after_sha256": "835eba21835b4a9cd551352400ec06db898ad8a355a62e5dbe221581358f2348",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_remote_ca",
+      "manifest": "pkgs/standards/swarmauri_certs_remote_ca/pyproject.toml",
+      "before_sha256": "5204d88d26bd479b56fd25367037a6b150e644ee58b08bdd55519c333645e64c",
+      "after_sha256": "d97b5297f7251e8e70a6972892947be8ecb09a421c949d060562fea8375f4280",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_self_signed",
+      "manifest": "pkgs/standards/swarmauri_certs_self_signed/pyproject.toml",
+      "before_sha256": "3d2b3481f5640506430cd6a6de7d9cf4223c2d2c172b1bc36e9ea2adb920c682",
+      "after_sha256": "fbd56c07ca7a3a16cea7687e4e1c6fd6404d142222a7c41d04ff5b048313d566",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_x509",
+      "manifest": "pkgs/standards/swarmauri_certs_x509/pyproject.toml",
+      "before_sha256": "c2ba3f1ab3a6f09d6a3e5ea8204cad56819be482cd307c8b7133b3771502c8b7",
+      "after_sha256": "99a6e6cba64c74a87f82e8bc6006ed5433fa8c43197512afc6259ad790f3f172",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_certs_x509verify",
+      "manifest": "pkgs/standards/swarmauri_certs_x509verify/pyproject.toml",
+      "before_sha256": "fde13c749f31ddbd2d4ac74f1153ac26d08a938ec094461e86c870f5e7db3da8",
+      "after_sha256": "cc70af4213a40e96944c8546f94ef4357bafa5c03a2b5968e3d8a9feea0962cc",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_cades",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_cades/pyproject.toml",
+      "before_sha256": "87b471e2395cfb036f750b433a3e94aec8190f08ec7e37ab3f7c490d30635eda",
+      "after_sha256": "ae699cfe184ca5a66af87a8980cc9a63840edd3bbefe515be2d942688d3b7527",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_cnsa20",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_cnsa20/pyproject.toml",
+      "before_sha256": "16c6b3d8329eedee75b5332be857d9bd251ef936320feab45f6f3fbcf5faca6a",
+      "after_sha256": "15c3c52e4ed61bdd839a7663e81c7a9aa090d325711f9188946b54568e9cf7c2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_cose",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_cose/pyproject.toml",
+      "before_sha256": "97f00ec5012be1633ad603373b754e9674e83a75109adfa56b950076811eb14e",
+      "after_sha256": "b8b86956f5b0f061caf98b41aae15d14da9cfcd8c1e48c5d018b1fe70170f46a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_fips1403",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_fips1403/pyproject.toml",
+      "before_sha256": "6433208452a197b7e5c1bb65add711b87b3fb357bb98bf150147173d51e609fc",
+      "after_sha256": "4a26c6431ce05cc307a7ef135d1016aa90f4aed3986b7c86ec7e2539ebaa480b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_fips203",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_fips203/pyproject.toml",
+      "before_sha256": "269c1a8cee854589d184cc8636dae8ad0fe46e02a240ea735303674bf0ab67d5",
+      "after_sha256": "e6f411d63d5a0045dc97ce4ee845265048f0c80f31635807287005608acc233f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_fips204",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_fips204/pyproject.toml",
+      "before_sha256": "48e65e6f328dd9850aed8a81405707963de61fa9ec3cb4157d024098e7aa2d30",
+      "after_sha256": "a89226065001c6d8fdf3ab50094db4f568948e4c82aad6cfdadcaa8e96e7ab8a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_fips205",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_fips205/pyproject.toml",
+      "before_sha256": "ef070f5c57951e136a333978ec7a51d6f858065493c5cbaf5c30314cc7fb00e6",
+      "after_sha256": "f048d4681df4e304176c3aa91157674aa15421adb754a002a5ff54e024e00f2f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_ipsec",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_ipsec/pyproject.toml",
+      "before_sha256": "707b21a74e01d0a94e6b36067ee9293cc63ddc71ef725145e283faf5d5b0f0ca",
+      "after_sha256": "d0cf3b8576536501f2ef11818fff47a7bf46870b0c85df4a21b1a05dac83d701",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_jwa",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_jwa/pyproject.toml",
+      "before_sha256": "31a53b3c7614ae92e1cdaa82a10a950fbf7163b84973a33cbc574d2bf965354c",
+      "after_sha256": "acf3166fad3e206c0bfdf247e6f2a3b3e4626939b9820532e9e1c3b3317d3832",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_pades",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_pades/pyproject.toml",
+      "before_sha256": "de4311cd41fee7ab320970dbc43e93b942f3467e915eee6958ab4678b251b9ee",
+      "after_sha256": "5b6ce3a3de880577f7366b3a776022aa6c4c4712b908d940122c2bd10519b69e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_pep458",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_pep458/pyproject.toml",
+      "before_sha256": "74efd336b49d83aaab7fe50764764ae6058765693cb2bdf69c8c241bfba2004f",
+      "after_sha256": "1f5e73cb043a063285f06e4ffbb6d9c560a766d4b60f24bcbff59cee907959d3",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_cipher_suite_sigstore",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_sigstore/pyproject.toml",
+      "before_sha256": "4967b81e5d0b9ae5e3a139b3b2157da747ea25b379562e02b860c2dba727b947",
+      "after_sha256": "a77d8e972ce5fa9e388c528728a6a67ebbd83e729ccc27361b37150d7f5468dd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_ssh",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_ssh/pyproject.toml",
+      "before_sha256": "d554d5f93909957f1829b912319570b622373eb15131e27a57f8e7087b24caab",
+      "after_sha256": "6600f91bdb672bec17ccb721729c8c1a370862ba30b3ea881e42933d85b0976e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_tls13",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_tls13/pyproject.toml",
+      "before_sha256": "768426729dd3ada43f6b6ea3f86864ebe847809c26e13883ab31c90e4a5ec483",
+      "after_sha256": "8c21b0d45a17a02b35a0ef970363ab24c98708b2e07481e28b40e822675be5a0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_webauthn",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_webauthn/pyproject.toml",
+      "before_sha256": "bda1802bd9ce811ada5fd55e8c162e33b96e7721d38c6f6805b54093049290b7",
+      "after_sha256": "92a5abdfcfa537a7d21eae1c41bfbd5b4129a4806886f7230417637ac9d9e643",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_xades",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_xades/pyproject.toml",
+      "before_sha256": "2bc2e631acad68502d9175480d721cf89fa43ea38cae825a4d2c3f1899c35588",
+      "after_sha256": "7b276612db5f6ac364c97251ccb6bbd7c80b15e9d4bfa8eeb61f4bf588ad7fe9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_yubikey",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_yubikey/pyproject.toml",
+      "before_sha256": "ed96e997488d53be194da43d21ac68b184f7fd744cad31c877e15d35a689436a",
+      "after_sha256": "fe9cae023f418c3c892c10bf24b33ca7e39dc326c2697ea851737605e47d4450",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_cipher_suite_yubikey_fips",
+      "manifest": "pkgs/standards/swarmauri_cipher_suite_yubikey_fips/pyproject.toml",
+      "before_sha256": "47d7c3f13d43ffd5e9c816a458274438e8de47aa74c82c31bf53d5166ef45b6f",
+      "after_sha256": "9b7dfd2f1a5dcc2e90d7cb2456d50ff6db7c6f70a4a497cbc100d0d015da9916",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_conversation_compacting",
+      "manifest": "pkgs/standards/swarmauri_conversation_compacting/pyproject.toml",
+      "before_sha256": "d01f00dc2196f3a2b3cdca350bf70c0dd58d853da970126ad47a95a792e412b8",
+      "after_sha256": "dcdb575e5b22e2254bbf4d92da79e341e1c92eaa75fbcd2b874621f0db106c35",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_composite",
+      "manifest": "pkgs/standards/swarmauri_crypto_composite/pyproject.toml",
+      "before_sha256": "af39598b2a0bab7486652e8087c2d15573cb80189aa89bbed55e3d8bd9c35731",
+      "after_sha256": "751e15713be6b96b4ce9ce89068c88595b893a2ee6d75fef5890057511c8adc0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_ecdh_es_a128kw",
+      "manifest": "pkgs/standards/swarmauri_crypto_ecdh_es_a128kw/pyproject.toml",
+      "before_sha256": "f096eaed8bd01f10dc25c5e18a3227d16a18dad273c8bbf0785f7427bf784731",
+      "after_sha256": "befccdd97d5c2c353e9bfbc3acb756e4d768caba88a714d4d9eb608033f31c70",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_jwe",
+      "manifest": "pkgs/standards/swarmauri_crypto_jwe/pyproject.toml",
+      "before_sha256": "5a5069d79451e7b0a007652cf4a044f079f36874c682836d3088be1201ed4f81",
+      "after_sha256": "97f85e8e098dcffa994d1559a4822f108131e20b3615bf83d4e810ccf1b6b447",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_nacl_pkcs11",
+      "manifest": "pkgs/standards/swarmauri_crypto_nacl_pkcs11/pyproject.toml",
+      "before_sha256": "222c01db517afa3166637a40489ad99dd5b9f1d1bba22479d9786a4c8c3f5d17",
+      "after_sha256": "3d04fb529e4dc7d90a954ed11b706fe68e367e598a5d0772d7a528e4d1a7878e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_paramiko",
+      "manifest": "pkgs/standards/swarmauri_crypto_paramiko/pyproject.toml",
+      "before_sha256": "5a3f2029bfc8e48062f540e1db18c7664057cf1abd835bc120193b72c8c1ae62",
+      "after_sha256": "3da490cbc846aa8eb8690c807a0ec07d6812e6ca3e281070bb674af08e866c4e",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_crypto_pgp",
+      "manifest": "pkgs/standards/swarmauri_crypto_pgp/pyproject.toml",
+      "before_sha256": "510176ff3d49992cb5ff00971904320b07a188a2b57382ab4014db0f37a572de",
+      "after_sha256": "550124a5e10019d7af9f4ed65263b336ccd83e9431a48b597b61b8df12b2088b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_crypto_rust",
+      "manifest": "pkgs/standards/swarmauri_crypto_rust/pyproject.toml",
+      "before_sha256": "db37555b894997fe5abcb160fe121a9d885d186e2cf4f3204b74ecaf5cd053da",
+      "after_sha256": "92ef8a1fbf5e739913a62c4a914d89d477c98eb5c0652f9d1ef45bb65ca88746",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_delegation_attenuating",
+      "manifest": "pkgs/standards/swarmauri_delegation_attenuating/pyproject.toml",
+      "before_sha256": "9f66b43443df0a593642bca9e736290a6e28d407ffec26100d6b5157e0329f1f",
+      "after_sha256": "611519fe6f67eb6d3ef02ea2864b4bf0162ccf802aa87620bd29cf883304c9e6",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_canberra",
+      "manifest": "pkgs/standards/swarmauri_distance_canberra/pyproject.toml",
+      "before_sha256": "fb12c65934a13efde02ae817344ff7f73f35ce82797a550d62cee8bb67aabe47",
+      "after_sha256": "885f1511cb9291bc6cddc8cf5233dafa8a408c4a0afaba2274a6c8922938e421",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_chebyshev",
+      "manifest": "pkgs/standards/swarmauri_distance_chebyshev/pyproject.toml",
+      "before_sha256": "c2a1e8a043c5d699e99282d094e7d9c3c4d1fff5a246db41fe68f1dced3a059d",
+      "after_sha256": "8beec14ab831354df65c410b210f0fa21fae8f8eca3382bea8b8a51382b4a344",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_chi_squared",
+      "manifest": "pkgs/standards/swarmauri_distance_chi_squared/pyproject.toml",
+      "before_sha256": "e8cda35826b823956d4db19ae3ea054ecceeed8da0cfb093098ad52ac002a13f",
+      "after_sha256": "ef2ede15d2ee3aa5cfd23f6030ca020609ac3bfbfec3de588ccf06d3b284af93",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_cosine",
+      "manifest": "pkgs/standards/swarmauri_distance_cosine/pyproject.toml",
+      "before_sha256": "3f2fad527e8a54284d7250c43bfed24d26df5d08ca02213534855343affc417e",
+      "after_sha256": "077fa07402228c73bf69dc2bb22403acd980e77a8cd6ef2e4b5479991028b4fd",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_euclidean",
+      "manifest": "pkgs/standards/swarmauri_distance_euclidean/pyproject.toml",
+      "before_sha256": "048eb8f92d0f52a245525eafd8b9e16e85adf7be1984ffbf60baf6b497d626f8",
+      "after_sha256": "c361d0be50214d68ed40a35b0dfaf08dab853278c17da3dc5dae7542f7ec8a76",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_haversine",
+      "manifest": "pkgs/standards/swarmauri_distance_haversine/pyproject.toml",
+      "before_sha256": "6575e667ca3cd574bfc29589a9a85ff096a8ede92f4dbcb7fe85e13efbfee4f0",
+      "after_sha256": "fbac68a783d3896e3a188e3b587f7f36882fb2c8e4eec4d0425d9f91c3978419",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_jaccard_index",
+      "manifest": "pkgs/standards/swarmauri_distance_jaccard_index/pyproject.toml",
+      "before_sha256": "c1daa66a11ab9ed76ed598a7d95f1909adaa12221edbeefaf1546e197f2a73e3",
+      "after_sha256": "1c0ca44660643a8a6abca53f02137c11808e15f13398c57db87c9062c2fd7897",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_levenshtein",
+      "manifest": "pkgs/standards/swarmauri_distance_levenshtein/pyproject.toml",
+      "before_sha256": "c320ac605b2c0a7cdb0297564449051f735a23a9c920abc99206c8f790980706",
+      "after_sha256": "eef426260792a23465ce35f249312ca024cbf55c545aafc37df8a7e7dad4c712",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_manhattan",
+      "manifest": "pkgs/standards/swarmauri_distance_manhattan/pyproject.toml",
+      "before_sha256": "d90d6e7aef071b69bfd217db0002f68c1ffe2a9eae1b2ac070e8f9ad28f79a46",
+      "after_sha256": "53ac8837e148449e31c52a0b81c3dc478ce4f645630869e8883ebaad8c5b04af",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_minkowski",
+      "manifest": "pkgs/standards/swarmauri_distance_minkowski/pyproject.toml",
+      "before_sha256": "a6b2e6262f70d89aecc7efe4f71ccb2895a212d64592e8117b26d71769da6fbe",
+      "after_sha256": "9b39606bbeb2e4583c8e65dcad7cba72497434646c26383120cfb34cc0f64200",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_sorensen_dice",
+      "manifest": "pkgs/standards/swarmauri_distance_sorensen_dice/pyproject.toml",
+      "before_sha256": "cb88ca0b2fd2671dddc5f5014773a691d3262a8f25fe9ff2fc3a5c643bc13a07",
+      "after_sha256": "6cf223f4d10b74e289787362d0d2068fd6bab13c4cfa5a466d57ecc98b579b9e",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_distance_squared_euclidean",
+      "manifest": "pkgs/standards/swarmauri_distance_squared_euclidean/pyproject.toml",
+      "before_sha256": "fa696b0db882055a20faf6b8adb0132be8eef4b6cd7a54d36af90a3d9dc25c89",
+      "after_sha256": "e009e1785e47f72316342d0a8334942c8dc8df4e54175e0d53d89db003b4d84d",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_embedding_doc2vec",
+      "manifest": "pkgs/standards/swarmauri_embedding_doc2vec/pyproject.toml",
+      "before_sha256": "c3438f47d670a7c07c807d942f1f0cd7577b6f8b4754b4c54c8a48715f28a966",
+      "after_sha256": "490863924eeb174401bcd716cae6f1f6797527ea2348c8cf94641f5a15d5ec26",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_embedding_nmf",
+      "manifest": "pkgs/standards/swarmauri_embedding_nmf/pyproject.toml",
+      "before_sha256": "98700fb393366f62fa3e2b29ac289a208a05b4d5ffa2aa10dab0ab856c9f086c",
+      "after_sha256": "bbdfeb56e97526813219f95b145e27df708636b88da38a40192970cc2069329d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_evaluator_abstractmethods",
+      "manifest": "pkgs/standards/swarmauri_evaluator_abstractmethods/pyproject.toml",
+      "before_sha256": "67ae716e563772a5c560442db4c075ca576d65342127132795d4cae4b638ee39",
+      "after_sha256": "3688370332d3a713397e423d0dcc9c0401f24553c55d37d25923cdc900e54a8c",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_evaluator_anyusage",
+      "manifest": "pkgs/standards/swarmauri_evaluator_anyusage/pyproject.toml",
+      "before_sha256": "368a80f1e957f97d3a4be524c54275fb1cc69c189d55b3c5cbb278d61c3f31e6",
+      "after_sha256": "0309dcbeb1c313f9888a521e4883734b804dcd24cd2aa61ec36c7fa9dbf87756",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_evaluator_constanttime",
+      "manifest": "pkgs/standards/swarmauri_evaluator_constanttime/pyproject.toml",
+      "before_sha256": "ee99910de4414f8dddf20754d3d909b7d748cac77c9b7f4bf6cff510d6fc698e",
+      "after_sha256": "39e7a13caeea46fdf906432f459c77a9cb22876e655e3114c779006495124217",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_evaluator_externalimports",
+      "manifest": "pkgs/standards/swarmauri_evaluator_externalimports/pyproject.toml",
+      "before_sha256": "cbff72ddcebae6f465fc4c47c18db638ca3e90e4b5feabd4bdfeb63feaa9767a",
+      "after_sha256": "b8b06038734b9a1ba2959169b74c25471dee94fcbde3bad56b67a5d19497b6eb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_evaluator_subprocess",
+      "manifest": "pkgs/standards/swarmauri_evaluator_subprocess/pyproject.toml",
+      "before_sha256": "7aa34f81da94df1833c73544c16725ef07de7c037d8c059a9b687e0fdca0f24d",
+      "after_sha256": "a6373ab5062e8a44136fa35ac01330cf7d0c7aeb39f8adf67b2b222a50521456",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_evaluatorpool_accessibility",
+      "manifest": "pkgs/standards/swarmauri_evaluatorpool_accessibility/pyproject.toml",
+      "before_sha256": "5b6fb8edfaefa3dd2679a9180883bca1eb1bc79e34c376e90993f047e64a046a",
+      "after_sha256": "c7091e366e91981f1551e4c8f654d1c5ee8bdda43cea8e8ff1a52b8649cef209",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_execution_default",
+      "manifest": "pkgs/standards/swarmauri_execution_default/pyproject.toml",
+      "before_sha256": "f45d232bd918a16f2c44c896da12cfdcb04aa96428764a47a2cdc31f216eacf8",
+      "after_sha256": "5496af10faa2502a3d122c04172260a2990eb757b837ccd9cc6126452176e635",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_gitfilter_file",
+      "manifest": "pkgs/standards/swarmauri_gitfilter_file/pyproject.toml",
+      "before_sha256": "ccb657ac95dc60346b55865022e67bc21eb1e41c578abbd7a1c24fcc5b7ad18d",
+      "after_sha256": "bf46261c8cea4e9215b92dbd80b6db19de179624432d60b394a240971bcaf1f6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_gitfilter_gh_release",
+      "manifest": "pkgs/standards/swarmauri_gitfilter_gh_release/pyproject.toml",
+      "before_sha256": "6f5e26bb7606867cc9842ddee7726613f3c1d1106d670099208c9cba0b38c0a6",
+      "after_sha256": "ecdc8dfee423e3c6d713906f56d29c5ac8906ccb11d1734cbbfb50cb2f718efd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_gitfilter_minio",
+      "manifest": "pkgs/standards/swarmauri_gitfilter_minio/pyproject.toml",
+      "before_sha256": "d1759d341f6e65af94326054f29174e0d148a306cf28eedde3890dfcccd76299",
+      "after_sha256": "7417d84a0f87875e806dd193949eb0847152e0cc9431266c3e6db610a5078dfe",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_gitfilter_s3fs",
+      "manifest": "pkgs/standards/swarmauri_gitfilter_s3fs/pyproject.toml",
+      "before_sha256": "af26132e431fe3b5b1321be0f94fbe4fa638862d62635c4e736c586bed89beec",
+      "after_sha256": "ae99a1a989da536d476234b26ec96ed86c4dba75d917cf4b931d29e4d189b035",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_grantstore_sqlite",
+      "manifest": "pkgs/standards/swarmauri_grantstore_sqlite/pyproject.toml",
+      "before_sha256": "30df2b5e3c21e2272e1683ef8b3181d8c1e6717bc02cefb9084adef2d828935a",
+      "after_sha256": "d8aed16ff1777e65ef6b5b1a52df6a78f7ddc0d4f64ab1c6a42ef03f53c8a485",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_invoker_default",
+      "manifest": "pkgs/standards/swarmauri_invoker_default/pyproject.toml",
+      "before_sha256": "107a8f116d76ef747f38855dcaa2ede68268edb2a841ca3ebcc5eedfb1c39a8a",
+      "after_sha256": "48b11aced36a84622f1ce339d4f7a0d54d691388d37a043fae02f9fc495ad028",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_keyprovider_file",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_file/pyproject.toml",
+      "before_sha256": "097d7a96c2171b63e0bd85b585f9ca6dd843f4965f0249627eb1b158fbb1bfd2",
+      "after_sha256": "98e33aa8c2db4d2722fa69936f2c51ae794c6cf56d7b4a03ee9f51b5e3419e65",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_hierarchical",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_hierarchical/pyproject.toml",
+      "before_sha256": "4a4f75c0ab5e9bcc0aca48584e68d97fe730b8f8d0745023fbe9e9c915f011c4",
+      "after_sha256": "9ce5b92fb0f0c4d011f75ba5abddc096c339b8df66ac7af5f9cd490401898b94",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_inmemory",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_inmemory/pyproject.toml",
+      "before_sha256": "a1d37a412ff47530971fc516878b198631b31c52e77b986587f6dbc51ccd7ec4",
+      "after_sha256": "45702337419b9065df3ed92665f3f3ad3f57fe4ae6c7f8a329c0d680e92a0faa",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_local",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_local/pyproject.toml",
+      "before_sha256": "e91857b48a5a719c891f843d4f7722b3174454e5309fd753684628bd7a736e2f",
+      "after_sha256": "6b559cc9afd796b3ed693ec7c5c41d99eecdaf5a18410e669212265ea9addf6c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_remote_jwks",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_remote_jwks/pyproject.toml",
+      "before_sha256": "b7e7baca96f9dfcae2929560d0d18f2c705dfca99a315ea263a6598ca3b62462",
+      "after_sha256": "ce88e9046c95a8bb1829651344e02407469374e6ac07ddc09e71cefaf02c8c34",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyprovider_ssh",
+      "manifest": "pkgs/standards/swarmauri_keyprovider_ssh/pyproject.toml",
+      "before_sha256": "5f60cda365a21fc7657dfabe49fedaa37df21e2ce4dc5cce3f9347b6d25f7048",
+      "after_sha256": "9ce0da40f4703575923a4cccb65bf14a8d69900d39ccfd108d66eba87184a420",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_keyproviders_mirrored",
+      "manifest": "pkgs/standards/swarmauri_keyproviders_mirrored/pyproject.toml",
+      "before_sha256": "444636c20bf040c40bb9c06a9e05d05ea266271a577472ce3f12663624b715b7",
+      "after_sha256": "972d74dac3da3f9e51ee4cf109e058af86fb9058e721223c55c771aa2de25b38",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_bulkhead",
+      "manifest": "pkgs/standards/swarmauri_middleware_bulkhead/pyproject.toml",
+      "before_sha256": "b40bd8e67964c6076cec0b281f812aeeac6aa2a4a929698a6df91ecac1116250",
+      "after_sha256": "730fb1649a19bf6ceba5841cad45cb016bb064c8907aa6dbcefabc177db1262c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_cachecontrol",
+      "manifest": "pkgs/standards/swarmauri_middleware_cachecontrol/pyproject.toml",
+      "before_sha256": "63ec5f55638c2cb492cfd6e949e36b0de528baa9c512d2bb72a04cbf2945c2f2",
+      "after_sha256": "8f2a77295f4dc79d8efa1fc3425d296d987832d5475c3669316081ee691d709d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_cors",
+      "manifest": "pkgs/standards/swarmauri_middleware_cors/pyproject.toml",
+      "before_sha256": "a26486dc0831f89f67520116ba300854cd3a13a200ff24c2db6ac78b09e98abb",
+      "after_sha256": "5a06a9b1719913eeed4be36738955434c85c521be144ea8dc2c96bbe337e5410",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_exceptionhandling",
+      "manifest": "pkgs/standards/swarmauri_middleware_exceptionhandling/pyproject.toml",
+      "before_sha256": "501c63bd850a325b0699dc8d03eb155f6dc02f732d3ac3c577a429dc1f5353e2",
+      "after_sha256": "a661e773feb8f67615e6137e46503e6bbb3c14c0d74735740d9be981bc4cecbf",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_gzipcompression",
+      "manifest": "pkgs/standards/swarmauri_middleware_gzipcompression/pyproject.toml",
+      "before_sha256": "96cae252f31b32907d4aabaaa2e42511c20da122f84ea8706f9696f6aceb759a",
+      "after_sha256": "dbb4e227a070c48e9f0cc6c6bf179e5582296ddb1cb49736927bea0d448eb4e1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_httpsig",
+      "manifest": "pkgs/standards/swarmauri_middleware_httpsig/pyproject.toml",
+      "before_sha256": "383782341f6db5935750f2b9d5d7054bfd7d97aab3b3511d208c19425f76c7d7",
+      "after_sha256": "4a6bf50bcde1d3234422b4fa134bcd3d1ae5fdbe3855effcba36f69594b3007e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_jsonrpc",
+      "manifest": "pkgs/standards/swarmauri_middleware_jsonrpc/pyproject.toml",
+      "before_sha256": "5ed47d2e529fef8a5bd1307ac7adf72d19ffe6f7863ee2f549ad6ed5956b41e9",
+      "after_sha256": "4138a0afa3aa549947d8862ad1c22b0f02fb4a2d8652f156c3e495544105992a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_jwksverifier",
+      "manifest": "pkgs/standards/swarmauri_middleware_jwksverifier/pyproject.toml",
+      "before_sha256": "3314658702ad0a10c2ed04f2779ce2527476feff7eb9dcb5d1d990f428452cf0",
+      "after_sha256": "8453d2a99b37e8c91f109f1ca5c0080e64282b22144205d7f9b98ee74f0c89bc",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_jwt",
+      "manifest": "pkgs/standards/swarmauri_middleware_jwt/pyproject.toml",
+      "before_sha256": "65d9f40f92b77b9e5df9b7784a2c19dab8c9436956dc7fdad6c3ec6cb407e4b7",
+      "after_sha256": "96e329f873717fac3caf2d7eb834919df07cbfaf41e16da01f82e8d3360bfdc7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_llamaguard",
+      "manifest": "pkgs/standards/swarmauri_middleware_llamaguard/pyproject.toml",
+      "before_sha256": "2b6328ea0f9f23a492e3c67a9dc630e8389a13407fabc22c8a08b27a3c2bd22c",
+      "after_sha256": "db7716ef8395a338fbd0bc16f86f92ed9da396e3c09036f893881523d8ad6a3e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_logging",
+      "manifest": "pkgs/standards/swarmauri_middleware_logging/pyproject.toml",
+      "before_sha256": "b64f05a76a7836db0bf2499f3e1dccd6baea27eef522ee8d8c38705b16b8f1e1",
+      "after_sha256": "914450916e666101e94fe047abc997cb6f2e72af97e5d8e7cd168fb572bc4679",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_ratelimit",
+      "manifest": "pkgs/standards/swarmauri_middleware_ratelimit/pyproject.toml",
+      "before_sha256": "2b32f590c0c45296d76ad58b63705b2da4ab05114ae454de33a3c111d8ac24e2",
+      "after_sha256": "3bcebb1801b168307552aeb785b0ce36274df2a168e5195241269c9d3211f96f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_securityheaders",
+      "manifest": "pkgs/standards/swarmauri_middleware_securityheaders/pyproject.toml",
+      "before_sha256": "6e6c9f640264cb67fae2fff46175d031208a55b190fc757c5708f7cbf8a2fec8",
+      "after_sha256": "089a7972904cd84f1430cb152fec0cf2e8ae84c92cabecb49185060f0676f6fe",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_session",
+      "manifest": "pkgs/standards/swarmauri_middleware_session/pyproject.toml",
+      "before_sha256": "73f2b08b9306b1294d2aa3aa5be78c319d09e6115a91e125648ff98cb46b4064",
+      "after_sha256": "3c7875b1516d7c62aa0ba078fc3ced8a70155f5a090ee8e2a525be90c5d59324",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_stdio",
+      "manifest": "pkgs/standards/swarmauri_middleware_stdio/pyproject.toml",
+      "before_sha256": "7ffeb445cb3ff2318385aa6e5321a1c9aeed28f1c3fd1ea1315599bdb95b93cb",
+      "after_sha256": "d6af13e65dd6e760aa92f6ff59c49181bd13e8a7319ade85673753fac1fbc6b5",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_middleware_time",
+      "manifest": "pkgs/standards/swarmauri_middleware_time/pyproject.toml",
+      "before_sha256": "899bd5a5acddb59dc0e9a240493c10373e72dcc57fce5bef7f129fc0fda0e20b",
+      "after_sha256": "8d894162be9448271217dc3520e0e97dcd4b8214623cdcd35a45914abd5f08eb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_mre_crypto_age",
+      "manifest": "pkgs/standards/swarmauri_mre_crypto_age/pyproject.toml",
+      "before_sha256": "07ead14a8c289f4ecd27a404d9e00cbbefe79659a65ce1856ef728d7346d4b3f",
+      "after_sha256": "e7202680309edd2e95f3b9a24b3717f37b3d2ae215777267654be6610ff74657",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_mre_crypto_ecdh_es_kw",
+      "manifest": "pkgs/standards/swarmauri_mre_crypto_ecdh_es_kw/pyproject.toml",
+      "before_sha256": "baeed8ea1b31677b036793d6ea395460b6cf80a6ffdddc289b4a63882be1bfe1",
+      "after_sha256": "dd155f62275e06b8f00e13a3416e2d836fda3e337792f8f80e8846713e566c1f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_mre_crypto_keyring",
+      "manifest": "pkgs/standards/swarmauri_mre_crypto_keyring/pyproject.toml",
+      "before_sha256": "92847b8250bbaad3f40b76d72679ae05df2e6e50394dfb34b3c61d302896ca40",
+      "after_sha256": "3304f7ebb64846dfbc05c6a6467f6c5072b41846de65ec377c364b8db032e235",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_mre_crypto_pgp",
+      "manifest": "pkgs/standards/swarmauri_mre_crypto_pgp/pyproject.toml",
+      "before_sha256": "ebccef1b24c3e2184032a00b05c32d9342283f7dc2beb2c08c9df8cf8b0c911b",
+      "after_sha256": "4c9bf06156ec3eff898d2fe64649c53a7f071bebaf261cfb22ca8957e6a07f0f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_mre_crypto_shamir",
+      "manifest": "pkgs/standards/swarmauri_mre_crypto_shamir/pyproject.toml",
+      "before_sha256": "8e37e86dea0edf6592d24f849a9b97243168c2778ce2d1df03fe9d9be97b4469",
+      "after_sha256": "7d0f5b418f03fd0bab3d00c8a023f0f1d799eff16a120ac9ed496d1bf4adb874",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_beautifulsoupelement",
+      "manifest": "pkgs/standards/swarmauri_parser_beautifulsoupelement/pyproject.toml",
+      "before_sha256": "04d597e860af221002e8f62796e8362858443fde8fe34f8bd4b2ac2fb58ad4c6",
+      "after_sha256": "7dd07bbd43075440bf0d12bd68fffb1a3b07f93125d51d9f2e79c2bc06b5ed16",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_parser_keywordextractor",
+      "manifest": "pkgs/standards/swarmauri_parser_keywordextractor/pyproject.toml",
+      "before_sha256": "144bb340f0e74c6a2e8a5c41aa5dcfa08c219e5f0e9200f3d294a8cc62b5b2c2",
+      "after_sha256": "59a670c0cd4f64391c9d7e0e5415b93ef7acd4094d2b9b58cb75cc34555615d3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_permission_explicit",
+      "manifest": "pkgs/standards/swarmauri_permission_explicit/pyproject.toml",
+      "before_sha256": "e7fa071cd0a3573ddbca742454009c77a722f45df94a07afab833b0c42e8df42",
+      "after_sha256": "6973cfc7188d9d4325ad2556e38c8cbddceff473d244af17eac7c3b324138cbb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_pop_cwt",
+      "manifest": "pkgs/standards/swarmauri_pop_cwt/pyproject.toml",
+      "before_sha256": "511e3525b8432061c67cafd912e535e3c8779781a7bf90ecc14c98564a5331c5",
+      "after_sha256": "ed84262cbe01aedb42ab213fecc462234fcdf5b6dc54abef9514728b39350526",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_pop_dpop",
+      "manifest": "pkgs/standards/swarmauri_pop_dpop/pyproject.toml",
+      "before_sha256": "d17374955dc8759df81869d2eb0b364f9d3e3a66c4a85ad56df98b2e84b0bdf7",
+      "after_sha256": "4f5e12fc29bce863e3976aa688323b07267879cccc20a6f1d7ed1985aed74b60",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_pop_x509",
+      "manifest": "pkgs/standards/swarmauri_pop_x509/pyproject.toml",
+      "before_sha256": "df4c2df43bdd15059a73d96ed4ec45a097543246509c750aa8cbc62659361500",
+      "after_sha256": "357a06264189cc4a745ff04cea62c2fb50abfe0f671f9981da8cfe97e619ad7e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_process_docker",
+      "manifest": "pkgs/standards/swarmauri_process_docker/pyproject.toml",
+      "before_sha256": "4dd862661c0a0ce0786b57f8e7879cfb9547fdd5dd4f01fd38c5827371613ee7",
+      "after_sha256": "919bc1e1f1aef804cadd2a6ec0ba05d43a6042bbf13506fce14f72c22dcc5243",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_process_kubernetes",
+      "manifest": "pkgs/standards/swarmauri_process_kubernetes/pyproject.toml",
+      "before_sha256": "c5927966e46ed99bba0f377e9e6e236065ceea77df41cc1c5dd36e21221cbe9f",
+      "after_sha256": "c1a001905d5b0f490c2de952db6871fe1a50fb9f600ea6dd99e191c940ba67de",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_process_subprocess",
+      "manifest": "pkgs/standards/swarmauri_process_subprocess/pyproject.toml",
+      "before_sha256": "ae12de646322435204b56dc6cf598eb7b126ef81ef7a0e449df43793f180abc4",
+      "after_sha256": "b0ad86eba001ade487d392af12beb7b536e9675663fe4f24880897309136767a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_prompt_j2prompttemplate",
+      "manifest": "pkgs/standards/swarmauri_prompt_j2prompttemplate/pyproject.toml",
+      "before_sha256": "b45118bdc84566ac95547d17ebd62db2e08115ec624172ee6c9fe89da06f9606",
+      "after_sha256": "373c325dce2da8e164a5959fc4d86a72218f69ed9789542ea3ab620087547cc4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_publisher_rabbitmq",
+      "manifest": "pkgs/standards/swarmauri_publisher_rabbitmq/pyproject.toml",
+      "before_sha256": "0c470493c840b23f3ccd41471f1f000384d898b121a5b251f50c681846abe2be",
+      "after_sha256": "5bd1ef79ac770d9e3c92463a1b88f8e3a3ba79bf2d6c4743a6274ba7420b1d6b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_publisher_redis",
+      "manifest": "pkgs/standards/swarmauri_publisher_redis/pyproject.toml",
+      "before_sha256": "7bbf781ecff72e0ccc6b748b0939d2a35eb50d8df326bb51010ae4e9d9c7a4cb",
+      "after_sha256": "c77594e3f62f51235500d3806b6aacabe246e965b9c005486d1d89dc3f4898f3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_publisher_webhook",
+      "manifest": "pkgs/standards/swarmauri_publisher_webhook/pyproject.toml",
+      "before_sha256": "79ad06d404ff5bf803012d6a6fd3da2cf6d98a41c705df56c224801fc1df3e01",
+      "after_sha256": "88e4845a380fc1b4e1b28a6064d205cedb8c683273c691928237a3af9005125b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_runstore_sqlite",
+      "manifest": "pkgs/standards/swarmauri_runstore_sqlite/pyproject.toml",
+      "before_sha256": "8c9689dcd53ee6f717e8a78f3f58103bc17f116fd4644815c47c52eb207a6fdb",
+      "after_sha256": "a2ed817b828a88c4cb7db83a570b09518bc411d35df4719cbf6dee6fe42355d8",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_ca",
+      "manifest": "pkgs/standards/swarmauri_signing_ca/pyproject.toml",
+      "before_sha256": "dba4a41a1082aff11bac90b8fc1973dccfddf4407abdd6b36cef6892b3b7efb0",
+      "after_sha256": "4439dcfdd739d56833e8e81d88230d301253b885d5cb8a67844b0f50c15d414c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_cms",
+      "manifest": "pkgs/standards/swarmauri_signing_cms/pyproject.toml",
+      "before_sha256": "288a972907765cdae43e9a718ea28986f2290f60f5296a46d5a5abe881de2028",
+      "after_sha256": "7a694fb64ba8ddc835e0f30895f026f547864c0150de9fbb12ef36aed6bf2340",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_dpop",
+      "manifest": "pkgs/standards/swarmauri_signing_dpop/pyproject.toml",
+      "before_sha256": "3006d6031ab52003901f9a4b387421bf9b84f7ffe7453a8f8334ce0c334ab8cc",
+      "after_sha256": "9ddc808759d285e29abb010b350a8b417f7a6e41b0bd4d06d1f46f928c8f0dd2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_ecdsa",
+      "manifest": "pkgs/standards/swarmauri_signing_ecdsa/pyproject.toml",
+      "before_sha256": "7052bc8ad7acdfaaf059e38ab4afc8b7c0329fb839775761baa4d15809cd9bc3",
+      "after_sha256": "892a28c35521b15b1e099f55761f05d743034952097baff218d98e263fe469b3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_ed25519",
+      "manifest": "pkgs/standards/swarmauri_signing_ed25519/pyproject.toml",
+      "before_sha256": "278e414f48dada121df2498031ba6b790efc76c54249a61fee86f7a73cdb26bd",
+      "after_sha256": "efcae37a0dfd4de283191acd37d94d099603b95d286e7d875e6be7bcb2e575f0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_hmac",
+      "manifest": "pkgs/standards/swarmauri_signing_hmac/pyproject.toml",
+      "before_sha256": "42811867b5513b51a5fb76c3a63a106c316b580df21d18d03b7568c45d12b35f",
+      "after_sha256": "2dea07db84bbf8ec3feccdc9bce58e094423406147236bde3e4953279ac71530",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_jws",
+      "manifest": "pkgs/standards/swarmauri_signing_jws/pyproject.toml",
+      "before_sha256": "d2b9afd729a7c2d158ca2e189412226e873b914a49f3d23ada08e80cf89fee27",
+      "after_sha256": "4f3dcbe0d5efc78c759a5ca8d47d8d0995475440bca2fc67dc848852ccb9994c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_openpgp",
+      "manifest": "pkgs/standards/swarmauri_signing_openpgp/pyproject.toml",
+      "before_sha256": "f583f4638249f7c280cf6dbc928a390b5c9e44ebd6d60e35f20a47df6539bdbf",
+      "after_sha256": "d9421ac9f4be53ab82fac8406b7580d8e7dd6d019ef597dabd3637b1d2b68827",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_pdf",
+      "manifest": "pkgs/standards/swarmauri_signing_pdf/pyproject.toml",
+      "before_sha256": "d5516267773538558ae05c59f72557f340af80b2e63f3bcc2f5417647bc06e5a",
+      "after_sha256": "70d51faa0b2757a94dbf495f30eaee0b514ad8acbb110d581818599d42b5ebb9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_pep458",
+      "manifest": "pkgs/standards/swarmauri_signing_pep458/pyproject.toml",
+      "before_sha256": "8efa050dfdc7b56f30bea29245ad873d60e80bf0a27e49e38933415408920161",
+      "after_sha256": "b6a7fc8358ddbdf4455abcdbc5d4560d56d56df8a58269610eabb04c92da2eb3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_pgp",
+      "manifest": "pkgs/standards/swarmauri_signing_pgp/pyproject.toml",
+      "before_sha256": "66659f52ba3f51e3fab7501c044069292d6a4b2a9c8dba3901b12e583416ff18",
+      "after_sha256": "9eda0d6a0d7b49d91c7a56b6f662afa8460847402709c9a7790efb66294fcad1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_rsa",
+      "manifest": "pkgs/standards/swarmauri_signing_rsa/pyproject.toml",
+      "before_sha256": "cc22aa4d4233ce96699644bc75cdb2d22d80dded156841d05fd3ed96ac6defbb",
+      "after_sha256": "3e8bfac9a1bd7c9e02a4b0876d3e4b18dc700f263eaa9c2252f86a6ab376e862",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_secp256k1",
+      "manifest": "pkgs/standards/swarmauri_signing_secp256k1/pyproject.toml",
+      "before_sha256": "731871867224c1c74e12492bbffb1499bbd27815424552743641010a461ba646",
+      "after_sha256": "02c4b7fe601f9b5d9ccbedd72da3ef9d98208a47d67d7f213112eb48c4e87e45",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_sigv4",
+      "manifest": "pkgs/standards/swarmauri_signing_sigv4/pyproject.toml",
+      "before_sha256": "6c0acdb65d5bafd645b87db69b19df46ead8a87b70b70a0427514cf87ef75b07",
+      "after_sha256": "d9fc7d9a6422bdf63130741f66be83ea2180af70ab94706a8475887ce58b9641",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_ssh",
+      "manifest": "pkgs/standards/swarmauri_signing_ssh/pyproject.toml",
+      "before_sha256": "753c9321cc0beb0ecb9fe54d197fb669acc0439dc8ca0c6b0e8291e5f9cb4cd0",
+      "after_sha256": "3cbfd6341335c5d90e45488ecabbabc905f341eb61c8ee9fafe0d6725a78c465",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_signing_xmld",
+      "manifest": "pkgs/standards/swarmauri_signing_xmld/pyproject.toml",
+      "before_sha256": "ee28b268c5d777003fd992beed869c25bd62878e94294a87b8232bc5fd7c27ac",
+      "after_sha256": "7dad48876b5fdbd6737827f63d0c1dd9fd34fe4f070b5dc58bf2c04a2bb10073",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_similarity_gzip",
+      "manifest": "pkgs/standards/swarmauri_similarity_gzip/pyproject.toml",
+      "before_sha256": "33b93b391eed2a0a9603296767925204abf52ed03c94ad28aa5f302549e4a714",
+      "after_sha256": "87426794db992941bb41534f3a89519ba266e264e80fe56268a8838e1ffefc4e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_skill_dummy_filesystem",
+      "manifest": "pkgs/standards/swarmauri_skill_dummy_filesystem/pyproject.toml",
+      "before_sha256": "36b69c50651f1c453f8931a9a6b1f5bde6d2e46989d3058592a73c214a17fa0c",
+      "after_sha256": "3d9f4e302ae864c870a1f730e91e292eaac02a359007eb09e860344aa7a6f3cb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_skill_dummy_local",
+      "manifest": "pkgs/standards/swarmauri_skill_dummy_local/pyproject.toml",
+      "before_sha256": "525b341741c54d4a020e2017b8aafcf438855451122276bfd4f69b160308daa4",
+      "after_sha256": "055b9032379079b87b1fb5c55e7cc57e931e1d62fba7028db97df65ae1f6f4c5",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_skill_filesystem",
+      "manifest": "pkgs/standards/swarmauri_skill_filesystem/pyproject.toml",
+      "before_sha256": "1bc5103af567a35844333a5b2376b201cd03ee1b04fcc9643d6110b39c20ab19",
+      "after_sha256": "59a73b0e72526c8d0a13b3badf390d934f14756f2515be9dce67bfe57f7c7f91",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_skill_local",
+      "manifest": "pkgs/standards/swarmauri_skill_local/pyproject.toml",
+      "before_sha256": "f4768030e988136a152533bcf277d51bad017c198f5e2cdd8b3b69df96aecfca",
+      "after_sha256": "a4eef071d202de8174ae300d6ebe152348043582328fbb8ac8e8868502c6cabf",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_file",
+      "manifest": "pkgs/standards/swarmauri_storage_file/pyproject.toml",
+      "before_sha256": "50790ed3bc3f3be0b40f3ad4b656a35f7a51008371d76b7d29286bdc31d6f9c5",
+      "after_sha256": "cc0d6f98c3965db6fabaab3a46a28a175dc72897e9819fc02e70fca996bc4bb6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_github",
+      "manifest": "pkgs/standards/swarmauri_storage_github/pyproject.toml",
+      "before_sha256": "b0806acfa3a7193885969661574d91fcacb4da33ffd200dd4e1163fb7ccfa048",
+      "after_sha256": "8012861f8708c21499cd9a02050302fbcb08a07e9f530fdae296e0d82f70fc98",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_github_release",
+      "manifest": "pkgs/standards/swarmauri_storage_github_release/pyproject.toml",
+      "before_sha256": "cc0c33e963b3b57b55ea6b010fd42ec5c5dad686b06f6787f1fc9d13a8f7a273",
+      "after_sha256": "74e120eb9c1b564a53a03a0af33a05f8e525d88f329662eb4ba964f805ff157c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_memory",
+      "manifest": "pkgs/standards/swarmauri_storage_memory/pyproject.toml",
+      "before_sha256": "5f246f1c4e30d8d44102e0d3535ec25625245b61efb7005017beccc36fb83dd0",
+      "after_sha256": "742e35472bfebd9c0b505af7cae47100a607c84f68bbac35d3a6a779d18837ad",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_minio",
+      "manifest": "pkgs/standards/swarmauri_storage_minio/pyproject.toml",
+      "before_sha256": "da5b0ded7649705c717c56a0d1492e1d4ef0d6c50e77cb708dac72dbac0ce4c7",
+      "after_sha256": "5f62f1da367f600fea0a690bbe4207df1e172670106d989d29b09f8e001013fe",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_s3",
+      "manifest": "pkgs/standards/swarmauri_storage_s3/pyproject.toml",
+      "before_sha256": "784dc29fe5ff58defb2d31925185843f8326a2d46158a585a6b2eb2add258708",
+      "after_sha256": "3a43f5cb8f85698ffa68c8f32136f947f1a579ee5b54f689ae4bdc33bd0b8cd4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_s3_over_sftp",
+      "manifest": "pkgs/standards/swarmauri_storage_s3_over_sftp/pyproject.toml",
+      "before_sha256": "4bb363e344894391d3fc6abdf4185cc3671f75c0272e668780cd40bec39857df",
+      "after_sha256": "c937baab8b1347bdbb6d1e161556744ee4dc3b0dfd30ad83c921110f52d1a278",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_s3fs",
+      "manifest": "pkgs/standards/swarmauri_storage_s3fs/pyproject.toml",
+      "before_sha256": "4a461716e3810ff817f73b71532013a803a5fd2386e4ab9ee43b84c0260887b9",
+      "after_sha256": "7c7696fec87d23f77ca8cd1aacf65f119779be11bd209d86185f348f2eafc4da",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_storage_webdav",
+      "manifest": "pkgs/standards/swarmauri_storage_webdav/pyproject.toml",
+      "before_sha256": "873e77b57a971bd8a7e62c2bd7fcd1ae5ea267f8a85df5b910c69ebb57d25266",
+      "after_sha256": "fd5f6eb0fc106a4363fdf83a81a35c2c57f105de3d67cdcee972e1b642b8f21d",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_taskmanager_default",
+      "manifest": "pkgs/standards/swarmauri_taskmanager_default/pyproject.toml",
+      "before_sha256": "3dc5c565f08d2fb899498226170c2a924743fb47e7da597518f665cd7ae918ca",
+      "after_sha256": "da17c8860c2c0a426874b403fe0140bd8ba1281bb1268e72d25c112b9d7b77cc",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_taskstore_sqlite",
+      "manifest": "pkgs/standards/swarmauri_taskstore_sqlite/pyproject.toml",
+      "before_sha256": "32d12ef4ada67396683b8e2510325804b66456b424f3e0519ddd9c2743559b24",
+      "after_sha256": "ee1d2b63539ae6ca6543dee1c955ccc1c7c862399729be444cfb240ab463c9a8",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_composite",
+      "manifest": "pkgs/standards/swarmauri_tokens_composite/pyproject.toml",
+      "before_sha256": "b624db7600b8511ae17b376591f898f3e44bf09102291ad2234b1b2bbf61d740",
+      "after_sha256": "cc0b92c1a53296250776b88196bcfeebc6091050d1605191e8686fedf4286c54",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_dpopboundjwt",
+      "manifest": "pkgs/standards/swarmauri_tokens_dpopboundjwt/pyproject.toml",
+      "before_sha256": "5b656de19f9bb52414f1709481adfb33b60b96167f371ed50423b538001b6356",
+      "after_sha256": "80053436ecfd5a9b25066d067fc54e30659e79ea3b233a2c59a0084d003c7d09",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_introspection",
+      "manifest": "pkgs/standards/swarmauri_tokens_introspection/pyproject.toml",
+      "before_sha256": "3de774d4d775fc09e050646b0f0261f2a7e73583ebeb6ea6cecee40eba866a1d",
+      "after_sha256": "48da86e05798b78fd3402dc0f2b70312eae7249ba3b0ba8ef581a5658a9a08d3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_jwt",
+      "manifest": "pkgs/standards/swarmauri_tokens_jwt/pyproject.toml",
+      "before_sha256": "e7366f7528435e3eef3465c7f5aee242401bf2c3ae63e76e4d69156d8df8d047",
+      "after_sha256": "41a0e6bf88afd96bd5d343fdc4898facdfbdb42a92729855173716ad3f60b30c",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_paseto_v4",
+      "manifest": "pkgs/standards/swarmauri_tokens_paseto_v4/pyproject.toml",
+      "before_sha256": "82ffcc89880149509b1f34979224de155f4e0ab6afb2a480bfbc54ba7cb08058",
+      "after_sha256": "2aa7c029e1029f114a2a401d4480d2d25e2fa24c5c6f5422744107d0715a1f7f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_remoteoidc",
+      "manifest": "pkgs/standards/swarmauri_tokens_remoteoidc/pyproject.toml",
+      "before_sha256": "2ec64ebda4da66b87d937bfd4daf53e1b734261460a55b6d93b142698eebb4e4",
+      "after_sha256": "bdda332109fadf1c2c4be08da23096e9bc2d6f09cd7d6c422f41b31acff3244e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_rotatingjwt",
+      "manifest": "pkgs/standards/swarmauri_tokens_rotatingjwt/pyproject.toml",
+      "before_sha256": "476915bfcb6098a6f94feaf083ab60aa90d5d00af47adc10f73ef9a450045dce",
+      "after_sha256": "7798a259dc8d8bcef1a3b6c2328b33d80967f56ea5f6db88fe76f2e022b2ab6f",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tokens_sshcert",
+      "manifest": "pkgs/standards/swarmauri_tokens_sshcert/pyproject.toml",
+      "before_sha256": "c6f9c11c0fdaf6aa2bdb3bb4e532dd63e7be1b82d9f5e29c333337d571394de2",
+      "after_sha256": "f3203c5bf42bee74569da7114bdef1f54c07e790d80d38d09af07c8113879594",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tokens_sshsig",
+      "manifest": "pkgs/standards/swarmauri_tokens_sshsig/pyproject.toml",
+      "before_sha256": "1f71950540302e9629541f7828b2eb74127690a5d9f07eacd4cb938669d867c7",
+      "after_sha256": "b0613ff6ed3cfcad888991f66a18dc46b5fca2dbdb4d9e2237f679ba2973e8ba",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tokens_tlsboundjwt",
+      "manifest": "pkgs/standards/swarmauri_tokens_tlsboundjwt/pyproject.toml",
+      "before_sha256": "e3f80808d2799ee261ea5176633dc78a2a918321c90037f461ab58d2784678c5",
+      "after_sha256": "942f447e360cd4219919c736817ed19d6433d93186d06382d00306966de9ad71",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tool_activateskill",
+      "manifest": "pkgs/standards/swarmauri_tool_activateskill/pyproject.toml",
+      "before_sha256": "7f0b9f81299409e2140e4dca378de0418ef192a63dba726858a99026b838503e",
+      "after_sha256": "25a845047fee9cc77fe97e38bcc8c05d804d06ec06fa49196ab1e41b8d089b6f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_askuser",
+      "manifest": "pkgs/standards/swarmauri_tool_askuser/pyproject.toml",
+      "before_sha256": "fd49db7d9110ae75080adfb4ddd2cfb3328b40f79eaa45d744d34f9ad3ece69b",
+      "after_sha256": "7b2c07ba5887b5902dcb8ef4cc8733bb2ee7c7c3db7bd7732add4f408efe5f80",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_cancelprocess",
+      "manifest": "pkgs/standards/swarmauri_tool_cancelprocess/pyproject.toml",
+      "before_sha256": "42e3628ac356dd56fa49db4acdcc8751e57876558c753ae8719b457253df6656",
+      "after_sha256": "d1f7e182a7a94f73221258e0d847caa5cc977dd16fac18e256280018cec71534",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_containerfeedchars",
+      "manifest": "pkgs/standards/swarmauri_tool_containerfeedchars/pyproject.toml",
+      "before_sha256": "dc82166f81cc792219962927ebd41706f1c39674a3b2060bd5abd735bd05150f",
+      "after_sha256": "336d5529f55da3656f78a4c7c92276c87dc14e60f3d67dbf072ede3d6eb23196",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_containermakepr",
+      "manifest": "pkgs/standards/swarmauri_tool_containermakepr/pyproject.toml",
+      "before_sha256": "a834af2c5773ac8af185a863b64cc1b3e0c11e53539e6cca334a37dfd2328902",
+      "after_sha256": "386edff5a4d669b5a6736b43a0ba67a49d81cd79ff48a287071daf3e877e5e07",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_containernewsession",
+      "manifest": "pkgs/standards/swarmauri_tool_containernewsession/pyproject.toml",
+      "before_sha256": "8c830573df7ebde427adcd6a6cefc831839af11a1122451c59a3ca542742aef5",
+      "after_sha256": "472d46c9044f27055afe3b7c06c26fbad1cc896b34e0145a47179c4c99a78ff9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_githubloader",
+      "manifest": "pkgs/standards/swarmauri_tool_githubloader/pyproject.toml",
+      "before_sha256": "fbc85b06ad1955427ac45f187398bb2875648f181cfd762934c7bc125cce7169",
+      "after_sha256": "b4f6b4360bfc8f0f305d1b24f44a17273d18eff8dc6e5af4eb74b4b60c26c339",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_httploaded",
+      "manifest": "pkgs/standards/swarmauri_tool_httploaded/pyproject.toml",
+      "before_sha256": "ab45f513efda9dc21f28c775ec657f2d011bbbbf9509f91afa8b62b3191a8bca",
+      "after_sha256": "e5664499e636e2162a4e310203b7220fe373286f93da5727aa1c77ed418944a8",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_tool_inspectruntimetool",
+      "manifest": "pkgs/standards/swarmauri_tool_inspectruntimetool/pyproject.toml",
+      "before_sha256": "309e6b4a2d1410f224baf21e9b1e7af5f1ba6e984b1698ced32d46db432e9568",
+      "after_sha256": "e7cab0b7fcea8e139c8d5b44e05ea79db1338dc0a1377181edb82304c9e06425",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_inspectskill",
+      "manifest": "pkgs/standards/swarmauri_tool_inspectskill/pyproject.toml",
+      "before_sha256": "9b2f510cd43f38ed93bfd56a6c9d14343445663d1f15e0ee1f695e787188f8c4",
+      "after_sha256": "93fdab42dc4b59827ccd00a15682eb805dec65073555ddee28f4b59192d56282",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_listruntimetools",
+      "manifest": "pkgs/standards/swarmauri_tool_listruntimetools/pyproject.toml",
+      "before_sha256": "4a3b2f55a9335acef64f7a782d05f39426283bbbbe7009d0e585401b19a39a66",
+      "after_sha256": "65a24a0b6c5e112f07d83bc68c4a274849adf733bb1eda75cb645ee490b91660",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_listskills",
+      "manifest": "pkgs/standards/swarmauri_tool_listskills/pyproject.toml",
+      "before_sha256": "62ab80b23449188b7aae47b74a997c0190b3a410fc627572b83481c8c1346b61",
+      "after_sha256": "5a2f1d53e0387609fee1df6bc2068ac67add4018a693e0579e1888f466a755e0",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_matplotlib",
+      "manifest": "pkgs/standards/swarmauri_tool_matplotlib/pyproject.toml",
+      "before_sha256": "a3414d1736e0ce33ef484c5358885eb232187cacd04811d94fbae7808b16bb44",
+      "after_sha256": "da881cc7ea57349aa945c262ffe9d98039b69d46ee8a397747f152b2f1740742",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_readprocessoutput",
+      "manifest": "pkgs/standards/swarmauri_tool_readprocessoutput/pyproject.toml",
+      "before_sha256": "053abdee6cb125a96b19c9fea33b18431f9379fb272ca5de1e808a69c3c516b1",
+      "after_sha256": "4850b5f1303f70c5e73325f3839d4e64f1d3e3fe5938614d933e0da08388b91e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_readskillresource",
+      "manifest": "pkgs/standards/swarmauri_tool_readskillresource/pyproject.toml",
+      "before_sha256": "e9183bdca431fa6f188631b271f86025720ce4f9cf7c22b6c13ed2459618f37a",
+      "after_sha256": "86b63349bc298f80dda40bc258ad1a0c8bbd773a143640e133f173cab7e0a149",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_registerruntimetool",
+      "manifest": "pkgs/standards/swarmauri_tool_registerruntimetool/pyproject.toml",
+      "before_sha256": "8e30d76880f29dca1a2c885f6518023bfb91039c9c9bb11f798bc2ecbd8d4bb8",
+      "after_sha256": "9e374640f1bc95ae8580f338689f9a60f6bee7c6358ad34ddcc2564549e65edf",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_replaceruntimetool",
+      "manifest": "pkgs/standards/swarmauri_tool_replaceruntimetool/pyproject.toml",
+      "before_sha256": "86ce9ac46bd2f719d1edb791c69aff4d01279e3b241c24f8cd4322e78c5da9df",
+      "after_sha256": "fb57619ffedb7ded7440043199ba4c6aaa7e850e6ed30dcead01b318955fe8bb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_runbashscript",
+      "manifest": "pkgs/standards/swarmauri_tool_runbashscript/pyproject.toml",
+      "before_sha256": "be4f6e773350b777a0817f86207ac976447c4cc535de4e80405fffe26eb1dd82",
+      "after_sha256": "8b668b9971d3dbb4dd171ad5c4b8d90e937a63a82c43b18a6b35d48d7ad54010",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_runcommand",
+      "manifest": "pkgs/standards/swarmauri_tool_runcommand/pyproject.toml",
+      "before_sha256": "b43fadbfea8dfb6750a96b71571d0d8abd2874a0fe4b119ad45cc989ac6135d0",
+      "after_sha256": "2b14f269510819a1d3e0c70fb771a4ce417b78c7772517818a445cab5d5da8f1",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_runpackagechecks",
+      "manifest": "pkgs/standards/swarmauri_tool_runpackagechecks/pyproject.toml",
+      "before_sha256": "f59514792f1ecd4ecb22d3792ab68921c47b4226bcac709bc22376264443aaf5",
+      "after_sha256": "3fc6c5c312f8e8e96a3661a9ed8a6254aeee76acb92851a9999fca8f1c997fe8",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_skill_execution",
+      "manifest": "pkgs/standards/swarmauri_tool_skill_execution/pyproject.toml",
+      "before_sha256": "1b14515b28d95a58ee2b514ac120117c45461061fb171f7c6e2c31c20c4f56c1",
+      "after_sha256": "6d99fd4eb080d3a224c7d1058051b5005d5f794cafe80fba924ba4b6c1a65bdb",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_subprocess",
+      "manifest": "pkgs/standards/swarmauri_tool_subprocess/pyproject.toml",
+      "before_sha256": "05de9b0842d290c42657f685b8face4a1e2a344aa936b6ce0278418284df29e8",
+      "after_sha256": "c7df41c986edcd6e89e6a1b37287e4072cd1f46cf91067076cc05e4f6d12cfd2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_unregisterruntimetool",
+      "manifest": "pkgs/standards/swarmauri_tool_unregisterruntimetool/pyproject.toml",
+      "before_sha256": "13bd8f3646280111c0cf735bb4323d414a54cf2c56140857785739412052e145",
+      "after_sha256": "067f0b47e8a6523b16ec596b7c0a24f1d12acec819aa87bc55125044e854d7f9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tool_writestdin",
+      "manifest": "pkgs/standards/swarmauri_tool_writestdin/pyproject.toml",
+      "before_sha256": "6d590459920da8b3f517b9b70b58d6ef765f9f8f86212f89626ae4b53e820fc1",
+      "after_sha256": "5b4535c5b7b6592a4b773c6d8ba7912077244e23fe19c9fdadc0e62b707ed945",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_toolkit_containertoolkit",
+      "manifest": "pkgs/standards/swarmauri_toolkit_containertoolkit/pyproject.toml",
+      "before_sha256": "7f1ae9499eaaed3d93637702a9b3024fc7a1eba7383e48fb760302efdff7ac57",
+      "after_sha256": "90591f51c2ec5d22ef87b05adf7561589ebe0d098c7eed0ee3630984f8559748",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_toolkit_runtime",
+      "manifest": "pkgs/standards/swarmauri_toolkit_runtime/pyproject.toml",
+      "before_sha256": "8b881130f2fa270f1d06b40e7adfa206170ca9752bbeb2b321ed87ce1dfa5cc1",
+      "after_sha256": "46f1b819f8c5d3ba4b9a480057865f9e569c163c5a594e780a0ee916781ef855",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_toolkit_skillset",
+      "manifest": "pkgs/standards/swarmauri_toolkit_skillset/pyproject.toml",
+      "before_sha256": "b7deda89116d295c927deaf34da0cfeb9b886f7b1b9efb5c08f98e553608f557",
+      "after_sha256": "fcae08e250a8122b3b5301321ace16b210f98ef7e49043bede3879bf7aeb85bd",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_asgi",
+      "manifest": "pkgs/standards/swarmauri_transport_asgi/pyproject.toml",
+      "before_sha256": "b8ca014738971dc919562690f126826b4b86f5cbb6eec633dee180dcf76b5197",
+      "after_sha256": "b4de43e408c87184a35c8ca3788cf25a4bfea71e72f58d8caa2312b9d1d68c3a",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_aws_eventstream",
+      "manifest": "pkgs/standards/swarmauri_transport_aws_eventstream/pyproject.toml",
+      "before_sha256": "13190f0b94af14747ba1eff9f83a61bd595ff729264a3cab0a53c83554cc2770",
+      "after_sha256": "4fa405f690e3a4555f037dfb68b65c213d67fcc978334e3ac6c6a0363101b236",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_transport_h2",
+      "manifest": "pkgs/standards/swarmauri_transport_h2/pyproject.toml",
+      "before_sha256": "9c4659246fb50fa33f584c546fd237a10e73f53d171a4aebd58a4d6082bff702",
+      "after_sha256": "87b5e3a4fa29b166ab8fbd689d0a96df16ca0b0b11bd6e26514de383d69e6195",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_h2mux",
+      "manifest": "pkgs/standards/swarmauri_transport_h2mux/pyproject.toml",
+      "before_sha256": "a9d66df3e9102478f8ce7ba613ca658b4dea5755c09bd4a29c1ed3bef3fb13ee",
+      "after_sha256": "0020bd2bda83d396b8856fa36c448e5e4801ebdec765e0ec0cda4bf9dcfb7ae2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_https_unicast",
+      "manifest": "pkgs/standards/swarmauri_transport_https_unicast/pyproject.toml",
+      "before_sha256": "e51bca1430ecdee7e5bc10f249fef3141e0d631f4a6817185d5b71cd2f4eb006",
+      "after_sha256": "a17cfdc523063a92f7a6a7c3fed554262b0edc816d3385838adad3f14b7780e7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_httpx",
+      "manifest": "pkgs/standards/swarmauri_transport_httpx/pyproject.toml",
+      "before_sha256": "71ef5013e4a5ba6617e798f7ac4dd44ccc82d82fd860581208fe5f123822a94d",
+      "after_sha256": "3bc1766009a67907e8be20ad50574a8e5c4a8c9f42756f5a52f94c2d2403223b",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_meshsidecarhttp2",
+      "manifest": "pkgs/standards/swarmauri_transport_meshsidecarhttp2/pyproject.toml",
+      "before_sha256": "03559c5e1d3a64f4f3cb3a695670e942c059884edcb8054e9999bef83f58555b",
+      "after_sha256": "d698f97bc723f423024ee5c372708ce2602e36c23a5529ce5d6acfe2c228fd0e",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_mtlsunicast",
+      "manifest": "pkgs/standards/swarmauri_transport_mtlsunicast/pyproject.toml",
+      "before_sha256": "289d1ebf1aac55eafa45d3c8e86c1fb4b55ca040a704d8583a3649aaaf0eeb7f",
+      "after_sha256": "66dc570d8f9e456fefce38439356104c90c7b0893e2f73b708cda8944afd55b6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_quic",
+      "manifest": "pkgs/standards/swarmauri_transport_quic/pyproject.toml",
+      "before_sha256": "fd85f36e74a3da57b5888a420d8346565ce78ff7ff41f9cffb95af2771fc894c",
+      "after_sha256": "603fe5c1219f275dfd828a4f7c17aa23a7d934006db106f6bbd0281139da98ed",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_retry",
+      "manifest": "pkgs/standards/swarmauri_transport_retry/pyproject.toml",
+      "before_sha256": "a310df2cce4b6f517b283277b8b9caa6396b0c7ddd4855d16db38fe8620dda96",
+      "after_sha256": "bcdd56959d0df8e88fd52233d7604b7420415ee520c8422ee2784e9ca2290488",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_sseoutbound",
+      "manifest": "pkgs/standards/swarmauri_transport_sseoutbound/pyproject.toml",
+      "before_sha256": "3604e9bccd2185ff310564d85d9220903c82390d8d3ad4b904ec6c6b182f8f4e",
+      "after_sha256": "4a99db611808099970295384395b845df730f43f06d39312cfd2ce57da2cb351",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_sshtunnel",
+      "manifest": "pkgs/standards/swarmauri_transport_sshtunnel/pyproject.toml",
+      "before_sha256": "735e7fc4595a50e1a112bb39fb190fbcab0b31f0f01a30232ff6184592c02cb1",
+      "after_sha256": "1f77e2033c17d489fe1da8adc6e9cce0214fe97be6924df8062f7414b87aaf36",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_stdio",
+      "manifest": "pkgs/standards/swarmauri_transport_stdio/pyproject.toml",
+      "before_sha256": "2c81432fa4adab86448c99828fef75f6bebc2fe63c763d81acf3abcdd7198fbc",
+      "after_sha256": "b99123cc089b6a81e754de9df45463c8c4ad01fbed32bb42ea491b8594fbcc16",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_tcpunicast",
+      "manifest": "pkgs/standards/swarmauri_transport_tcpunicast/pyproject.toml",
+      "before_sha256": "515b5c7e27498f7382f58dc1f9f1bde6fb8a3757f878b98cb4e7d9f3ef116767",
+      "after_sha256": "cb057d18823cbe3b0889a9d6cd28aa2495b491796f311ef151c13be9f2c843d4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_tls_unicast",
+      "manifest": "pkgs/standards/swarmauri_transport_tls_unicast/pyproject.toml",
+      "before_sha256": "79e4eba88f43e2a4198d81d6ea927d4139c16ff24186de67033c4c49072fca65",
+      "after_sha256": "bfb078e42d428e0d508ad11d11abbcdaf3470e465555c51399a777735cc17c19",
+      "example_origin": "source-backed TLS capability and stream workflows"
+    },
+    {
+      "name": "swarmauri_transport_udp",
+      "manifest": "pkgs/standards/swarmauri_transport_udp/pyproject.toml",
+      "before_sha256": "7eb83ec29dcf8a1f9e3c145eaac9b81870bae522a025300d9eaa754bd25afaac",
+      "after_sha256": "c50f3bbd6ef1979a77a862d6687741e9ad33ff5251b0907285f87fa329798565",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_uds_unicast",
+      "manifest": "pkgs/standards/swarmauri_transport_uds_unicast/pyproject.toml",
+      "before_sha256": "62d2649940fe00e42d9ad1406cdd5358ae6ff91b4cdaf69cab514707d9a973ec",
+      "after_sha256": "97659509295c149cac6ff21787dc81d22928cd2fc8ef33cded8cf65e68ff61aa",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_transport_websocket",
+      "manifest": "pkgs/standards/swarmauri_transport_websocket/pyproject.toml",
+      "before_sha256": "59be13fe1f1b2a47e31ff485c6313496f781ebaf17739bdda1cda258e0688a06",
+      "after_sha256": "ffc522332850b5842abd9e3fb80d15e49b021170c9e1089c2417ad61bc986529",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_transport_wsjsonrpcmux",
+      "manifest": "pkgs/standards/swarmauri_transport_wsjsonrpcmux/pyproject.toml",
+      "before_sha256": "6844de8e27c249b3cdbf468699abcb0513669f4f08c32124abafb3fcc53dcd53",
+      "after_sha256": "05596525f78ad215376b701637d15156784366b51a85fbc15d4352ab55952e76",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_azure",
+      "manifest": "pkgs/standards/swarmauri_tts_azure/pyproject.toml",
+      "before_sha256": "df57db8382fc3ed33714247fa99d4680b39cf6cfaec08deceabf2f115d37335a",
+      "after_sha256": "2b8a66c037fa701bd197ce572b222c49f94812e26f92883961e064349a7a43df",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_cartesia",
+      "manifest": "pkgs/standards/swarmauri_tts_cartesia/pyproject.toml",
+      "before_sha256": "0744038859eaf73d7316489198fdba978babf657e9b7a4dfa24796eb1458da94",
+      "after_sha256": "d69ac9827ab4dbf6cf5ab5363464a30d9b544a08359fef6d432668e0801a7307",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_deepgram",
+      "manifest": "pkgs/standards/swarmauri_tts_deepgram/pyproject.toml",
+      "before_sha256": "210520d9e9609ef32704fb3a38d4567b3a0c7d2d773cee4f8f5e8aeac68440ff",
+      "after_sha256": "813bf66f39229ad6d655a4853f119d889690c8caf462c3649961d2e38fb53bc6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra",
+      "manifest": "pkgs/standards/swarmauri_tts_deepinfra/pyproject.toml",
+      "before_sha256": "516690a170e8438a5ae9bd0346ad1a4fc4b86a42fe06ebffa919945f164a82c9",
+      "after_sha256": "7585b0b7e2a6dc2729fc316760e28fa8d294dade850c222da92c4fef2c2b1c64",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra_kokoro",
+      "manifest": "pkgs/standards/swarmauri_tts_deepinfra_kokoro/pyproject.toml",
+      "before_sha256": "9cce9c3d378557e1d3f373c7633de3270f4742ded201357c4d34ae3e1025549b",
+      "after_sha256": "08afcc5880f4c76a50fca7f9d60d01ae5d3de46e2bb294a42615ab678f736ce8",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra_qwen3",
+      "manifest": "pkgs/standards/swarmauri_tts_deepinfra_qwen3/pyproject.toml",
+      "before_sha256": "acc1f9a6c49a40fb02b54044c251352839afd1f223c36df84f11a81bd14f28f6",
+      "after_sha256": "114055a707e178a59cf07a16539af4644ecfff2eaaa134adee2aaabe7e368405",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra_qwen3_voicedesign",
+      "manifest": "pkgs/standards/swarmauri_tts_deepinfra_qwen3_voicedesign/pyproject.toml",
+      "before_sha256": "b5076ad527ec878e8704ba320cfaf2cb97749d8534972d858ab31a67791d6849",
+      "after_sha256": "60294aa3ad504a08843a7b34d0ca5cd5e58d3d6549835782eb18f459bd56566f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_elevenlabs",
+      "manifest": "pkgs/standards/swarmauri_tts_elevenlabs/pyproject.toml",
+      "before_sha256": "107051dac9fcd4658a4285f06eb4771206622752170f8b32939abbb2b725a2ea",
+      "after_sha256": "d977a3841fabb1aac27e8777cf68ef4ceccf71ac27ed7fc666c4da6d9e691100",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_elevenlabs_dialogue",
+      "manifest": "pkgs/standards/swarmauri_tts_elevenlabs_dialogue/pyproject.toml",
+      "before_sha256": "ef0daf43678f1a354bf810a8c4e6adf6f2b8ce7c8dd9697d00b0781d583b8b3d",
+      "after_sha256": "7b683a134f835a7f05ced95770379c8a7d88659d9d1dedae96b19614c7fe9ef6",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_gemini",
+      "manifest": "pkgs/standards/swarmauri_tts_gemini/pyproject.toml",
+      "before_sha256": "18685bf80dfdfe96b6afe1908bcc3e6728c303bb7bae1656e70dec28298243e7",
+      "after_sha256": "7dc90e30b552e82165c1d4d3fb4db13a309c2cf8d9a4ebc0f20c384fe58a8091",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_gemini_dialogue",
+      "manifest": "pkgs/standards/swarmauri_tts_gemini_dialogue/pyproject.toml",
+      "before_sha256": "2b0191ce509afee788c64dd9668c6d0b03162661a2668971bb0671aa371fae47",
+      "after_sha256": "5d6dfcf4f8ac10dd4ff10ba648bdbcca00639e7bda9923b7ed712eae0262f5e9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_openai",
+      "manifest": "pkgs/standards/swarmauri_tts_openai/pyproject.toml",
+      "before_sha256": "6bf8860e09babaaf762dd698d113a31bc796c1dbb82789a103c0110cadb4befa",
+      "after_sha256": "26949ba602e85a62836900552781f25612c2909ba64b1a86e0f85c8d0ddee7c4",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_polly",
+      "manifest": "pkgs/standards/swarmauri_tts_polly/pyproject.toml",
+      "before_sha256": "a05c2fc8384b7ae4abc783fc08144a1a3177476b0ef1e4a6d54c637a6a53b003",
+      "after_sha256": "3cf5d9218b7719b962089f6a60d1e431c2bf680f7598276b81af5a9d0d61d829",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_tts_together",
+      "manifest": "pkgs/standards/swarmauri_tts_together/pyproject.toml",
+      "before_sha256": "5654bb25555b00dc7f795c07c1deec619574704c46e55e915fed2ca9f3b96c57",
+      "after_sha256": "8f64c9cbbe7061666736f920da20e3626eba080c91130aa1ab96bc71690d53b9",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_vectorstore_doc2vec",
+      "manifest": "pkgs/standards/swarmauri_vectorstore_doc2vec/pyproject.toml",
+      "before_sha256": "980b30d8cced8ba729e279bc4eb13651ba22fd7b0acdcafbd976de7c0b6562b3",
+      "after_sha256": "c4430c07642ca7d9c26e68d40dc1568454665b137b6c38f16e6e8f30762eaf48",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_workflow_delegatedresearch",
+      "manifest": "pkgs/standards/swarmauri_workflow_delegatedresearch/pyproject.toml",
+      "before_sha256": "37c193b30da5848dfaac2738206013695c6783aad7fccbde2a955a04151d8720",
+      "after_sha256": "dc0724cbd802b6fc1c530bf1fa258470d7d5ca186c97f07cb68e0ae5bc56efad",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_workflow_documentassistant",
+      "manifest": "pkgs/standards/swarmauri_workflow_documentassistant/pyproject.toml",
+      "before_sha256": "f684d9c8caec4c16ab486e620088ec6c4f38ffcd3f6d54671e931d2b6f9bf833",
+      "after_sha256": "ffe60d9da3073626e1c489f2c1cc9e1f2c766413c3d0ad1b2949522c56f7aa58",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri_xmp_gif",
+      "manifest": "pkgs/standards/swarmauri_xmp_gif/pyproject.toml",
+      "before_sha256": "73a0dd892f6a3a84f81beb15d83300593238d82f6149cb9256a888de33c8d389",
+      "after_sha256": "6ceeca10dcfbd2f6286e6f52c8611c8d311c10e25a432586658c70634ca91298",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_jpeg",
+      "manifest": "pkgs/standards/swarmauri_xmp_jpeg/pyproject.toml",
+      "before_sha256": "c40d9196dbaed4a1c262cc56b8646836c138d184514273587d4dad47d1c43d24",
+      "after_sha256": "c3f78832e79c67f10679473f2106e11567deaf8880a178c8c59c325716981683",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_mp4",
+      "manifest": "pkgs/standards/swarmauri_xmp_mp4/pyproject.toml",
+      "before_sha256": "cd91ab78a67e811c8d8c022aaa80ab5fe2a9789bb8ec7702ae46184bdcdd56d4",
+      "after_sha256": "bad671fc6764efdf04f45ff2cf4cfeea8edef099cb02be7ed33a9760a77c86b3",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_pdf",
+      "manifest": "pkgs/standards/swarmauri_xmp_pdf/pyproject.toml",
+      "before_sha256": "64ed08f4246e946e4205c65a5908eb4013a0c88d14ea962576837230a5070226",
+      "after_sha256": "fa22cde24c0368364b37ed1acdcf109fda8a6d26c1600303cf40ce4e96d404df",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_png",
+      "manifest": "pkgs/standards/swarmauri_xmp_png/pyproject.toml",
+      "before_sha256": "0e48cc43136f5b8ecf99bdc1c87f34c73215e403fa68a2ad939706ef012dfb39",
+      "after_sha256": "5b627bf65244794abb4c8681c12a72df72dc0ec3330280387af21705fbde1088",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_svg",
+      "manifest": "pkgs/standards/swarmauri_xmp_svg/pyproject.toml",
+      "before_sha256": "0ba7c11a89fe927cf9275b893e5fd9e0a8e1e3979a60877844b7958d516e1089",
+      "after_sha256": "242b0a4528764e6c99cbd8ca402b4c45bf6bb6b2cb18284d70c377adaf41cf46",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_tiff",
+      "manifest": "pkgs/standards/swarmauri_xmp_tiff/pyproject.toml",
+      "before_sha256": "17a4ad526eff61be959cac8b7901088f3789ed6f0f581e42417543149a34d7fb",
+      "after_sha256": "88b5c70ed3b36ad1ed90a8b2da4c61f9623cc8fd400f254c8bf06b13dca7bef2",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_xmp_webp",
+      "manifest": "pkgs/standards/swarmauri_xmp_webp/pyproject.toml",
+      "before_sha256": "442a096f359a91b5363156b4753140c4964b7adbd01c79356880cec42a02028d",
+      "after_sha256": "ef14e22a82d2bd7ad9269fb01e8bb0a28ca8e90636804a7b5800d1f04bd3c92f",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swm_example_package",
+      "manifest": "pkgs/standards/swm_example_package/pyproject.toml",
+      "before_sha256": "20c5ef79f9b73b9abb5f3142144aa664cc811c1c0cad63e3b972ff135fcb9865",
+      "after_sha256": "5b6029c5d6adfb9799a3afc707b79f8022041846472dbf7aeecd9062726193c3",
+      "example_origin": "public-module import smoke check; no application behavior is certified"
+    },
+    {
+      "name": "swarmauri",
+      "manifest": "pkgs/swarmauri/pyproject.toml",
+      "before_sha256": "da254b9421e1da017fde6506f7ec74aade225ebe628d039cfe0b0fd0ded64290",
+      "after_sha256": "c1bf0917dcd6e7f0bdfd183923063cafbf7d26be73029df4705e79e014097216",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_standard",
+      "manifest": "pkgs/swarmauri_standard/pyproject.toml",
+      "before_sha256": "58315964b244c56c9b42596ca4c582b6c58fe02831f3d600d05ea3f55f1396b8",
+      "after_sha256": "c28959b237c30d67c43d9cdd59ef5b36f1769274c11e23d3ff842809224b6cd7",
+      "example_origin": "existing README Python example"
+    },
+    {
+      "name": "swarmauri_typing",
+      "manifest": "pkgs/typing/pyproject.toml",
+      "before_sha256": "19fcb7501fbe8e7ab3b7ee53bd8dddcfffc7005ccd858f47fa00c1a2e0de4d69",
+      "after_sha256": "25519130328d1d18f280072b4978ef0ec335dff02b88d9cbd4eecea17bbba495",
+      "example_origin": "existing README Python example"
+    }
+  ]
+}

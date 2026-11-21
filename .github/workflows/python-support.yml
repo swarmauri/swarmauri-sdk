@@ -1,0 +1,45 @@
+name: Python support
+
+on:
+  pull_request:
+    paths:
+      - "pkgs/**"
+      - "scripts/verify_python_support.py"
+      - "scripts/verify_composable_compatibility.py"
+      - ".github/workflows/python-support.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  declarations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install packaging
+      - run: python scripts/verify_python_support.py
+
+  composable-runtime:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@v6
+      - name: Install TOML support for Python 3.10
+        run: uv pip install --system tomli
+      - name: Test candidate wheels in separate package environments
+        run: python scripts/verify_composable_compatibility.py

@@ -1,0 +1,292 @@
+{
+  "model": "Qwen/Qwen3-TTS",
+  "retrieved": "2026-11-18",
+  "source": "https://api.deepinfra.com/models/Qwen/Qwen3-TTS",
+  "version": "COMBINED_SMALL",
+  "input": {
+    "definitions": {
+      "Qwen3TtsLanguage": {
+        "default": "Auto",
+        "description": "Select the desired language for the speech output. Use Auto for auto-detection.",
+        "enum": [
+          "Auto",
+          "Chinese",
+          "English",
+          "Japanese",
+          "Korean",
+          "German",
+          "French",
+          "Russian",
+          "Portuguese",
+          "Spanish",
+          "Italian"
+        ],
+        "examples": [
+          "Auto",
+          "Chinese"
+        ],
+        "title": "Qwen3TtsLanguage",
+        "type": "string"
+      },
+      "Qwen3TtsVoice": {
+        "default": "Vivian",
+        "description": "Select the desired voice for the speech output.",
+        "enum": [
+          "Vivian",
+          "Serena",
+          "Uncle_Fu",
+          "Dylan",
+          "Eric",
+          "Ryan",
+          "Aiden",
+          "Ono_Anna",
+          "Sohee"
+        ],
+        "examples": [
+          "Vivian",
+          "Serena"
+        ],
+        "title": "Qwen3TtsVoice",
+        "type": "string"
+      },
+      "ServiceTier": {
+        "enum": [
+          "default",
+          "priority",
+          "flex"
+        ],
+        "title": "ServiceTier",
+        "type": "string"
+      },
+      "TtsResponseFormat": {
+        "default": "wav",
+        "description": "Select the desired format for the speech output. Supported formats include mp3, opus, flac, wav, and pcm.",
+        "enum": [
+          "mp3",
+          "opus",
+          "flac",
+          "wav",
+          "pcm"
+        ],
+        "examples": [
+          "mp3",
+          "opus",
+          "flac",
+          "wav",
+          "pcm"
+        ],
+        "title": "TtsResponseFormat",
+        "type": "string"
+      }
+    },
+    "required": [
+      "input"
+    ],
+    "title": "Qwen3TtsTextToSpeechIn",
+    "type": "object",
+    "properties": {
+      "service_tier": {
+        "$ref": "#/definitions/ServiceTier",
+        "description": "The service tier used for processing the request. 'priority' processes the request with higher priority (premium rate); 'flex' processes it at lower priority for a discount, served only when spare capacity exists and may be retried/timed out under load. Both apply only to models that support the respective tier. For compatibility, 'auto' is treated as 'priority' and 'standard_only' as 'default'.",
+        "type": "string",
+        "title": "ServiceTier"
+      },
+      "fail_fast": {
+        "default": false,
+        "description": "If true, the request is rejected immediately with HTTP 429 when the model has no spare capacity, instead of waiting in the queue. Opt-in; the default (false) keeps standard queueing behavior.",
+        "title": "Fail Fast",
+        "type": "boolean"
+      },
+      "input": {
+        "description": "Text to convert to speech",
+        "maxLength": 4000,
+        "minLength": 1,
+        "title": "Input text",
+        "type": "string",
+        "example": "The quick brown fox jumps over the lazy dog"
+      },
+      "voice": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/Qwen3TtsVoice"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "default": "Vivian",
+        "description": "Preset voice name (Vivian, Serena, etc.) or a voice_id from /v1/voices/add for voice cloning.",
+        "title": "Voice"
+      },
+      "language": {
+        "$ref": "#/definitions/Qwen3TtsLanguage",
+        "description": "Language of the speech. Use Auto for auto-detection.",
+        "title": "Language",
+        "default": "Auto",
+        "type": "string"
+      },
+      "instruct": {
+        "description": "Natural language instruction for tone/emotion control (e.g. \"angry tone\", \"whispering\", \"speak slowly\")",
+        "title": "Instruct",
+        "type": "string"
+      },
+      "response_format": {
+        "$ref": "#/definitions/TtsResponseFormat",
+        "description": "Output format for the speech",
+        "title": "Output format",
+        "default": "wav",
+        "type": "string"
+      },
+      "webhook": {
+        "description": "The webhook to call when inference is done, by default you will get the output in the response of your inference request",
+        "format": "uri",
+        "is_base_field": true,
+        "maxLength": 2083,
+        "minLength": 1,
+        "title": "Webhook",
+        "type": "string"
+      }
+    }
+  },
+  "output": {
+    "definitions": {
+      "InferenceReplyStatus": {
+        "properties": {
+          "status": {
+            "choices": [
+              "unknown",
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "default": "succeeded",
+            "description": "Inference status",
+            "title": "Status",
+            "type": "string"
+          },
+          "runtime_ms": {
+            "default": 0,
+            "description": "runtime in milliseconds",
+            "title": "Runtime Ms",
+            "type": "integer"
+          },
+          "cost": {
+            "description": "estimated cost billed for the request in USD",
+            "title": "Cost",
+            "type": "number"
+          },
+          "tokens_generated": {
+            "description": "number of tokens generated",
+            "title": "Tokens Generated",
+            "type": "integer"
+          },
+          "tokens_input": {
+            "description": "number of input tokens",
+            "title": "Tokens Input",
+            "type": "integer"
+          },
+          "output_length": {
+            "description": "length of the output in seconds",
+            "title": "Output Length",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cost"
+        ],
+        "title": "InferenceReplyStatus",
+        "type": "object"
+      },
+      "Word": {
+        "properties": {
+          "id": {
+            "description": "woord id",
+            "title": "Id",
+            "type": "integer"
+          },
+          "start": {
+            "description": "the word start time in seconds",
+            "title": "Start",
+            "type": "number"
+          },
+          "end": {
+            "description": "the word end time in seconds",
+            "title": "End",
+            "type": "number"
+          },
+          "text": {
+            "description": "a word text",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "start",
+          "end",
+          "text"
+        ],
+        "title": "Word",
+        "type": "object"
+      }
+    },
+    "required": [
+      "audio"
+    ],
+    "title": "TextToSpeechOut",
+    "type": "object",
+    "properties": {
+      "audio": {
+        "description": "audio data",
+        "format": "binary",
+        "is_audio": true,
+        "title": "Audio",
+        "type": "string"
+      },
+      "input_character_length": {
+        "default": 0,
+        "title": "Input Character Length",
+        "type": "integer"
+      },
+      "output_format": {
+        "default": "",
+        "title": "Output Format",
+        "type": "string"
+      },
+      "words": {
+        "description": "a list of timestamped words in an audio",
+        "items": {
+          "$ref": "#/definitions/Word"
+        },
+        "title": "Words",
+        "type": "array",
+        "example": [
+          {
+            "end": 1,
+            "start": 0,
+            "text": "Hello"
+          },
+          {
+            "end": 5,
+            "start": 4,
+            "text": "World"
+          }
+        ]
+      },
+      "request_id": {
+        "description": "The request id",
+        "is_base_field": true,
+        "title": "Request Id",
+        "type": "string"
+      },
+      "inference_status": {
+        "$ref": "#/definitions/InferenceReplyStatus",
+        "description": "Object containing the status of the inference request",
+        "is_base_field": true,
+        "type": "object",
+        "title": "InferenceReplyStatus"
+      }
+    }
+  }
+}
