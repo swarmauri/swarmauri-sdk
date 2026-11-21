@@ -72,6 +72,32 @@ async def test_rfc8037_appendix_a7_x448_and_direct_jwe() -> None:
 
 
 @pytest.mark.asyncio
+async def test_x448_compact_jwe_round_trip() -> None:
+    recipient = X448PrivateKey.generate()
+    recipient_jwk = {
+        "kty": "OKP",
+        "crv": "X448",
+        "x": _b64u(recipient.public_key().public_bytes_raw()),
+    }
+    plaintext = b"X448 round trip\x00\xff"
+    issuer = JweCrypto(enable_x448=True)
+    token = await issuer.encrypt_compact(
+        payload=plaintext,
+        alg=JWAAlg.ECDH_ES,
+        enc=JWAAlg.A256GCM,
+        key=recipient_jwk,
+    )
+
+    reader = JweCrypto(enable_x448=True)
+    result = await reader.decrypt_compact(token, ecdh_private_key=recipient)
+
+    assert result.plaintext == plaintext
+    assert result.header["alg"] == "ECDH-ES"
+    assert result.header["enc"] == "A256GCM"
+    assert result.header["epk"]["crv"] == "X448"
+
+
+@pytest.mark.asyncio
 async def test_x448_issuance_requires_explicit_opt_in_and_a256gcm() -> None:
     with pytest.raises(ValueError, match="enable_x448"):
         await JweCrypto().encrypt_compact(
