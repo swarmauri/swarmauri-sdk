@@ -31,7 +31,9 @@ def import_map_script(
     scopes: dict[str, dict[str, str]] | None = None,
     indent: int | None = None,
 ) -> str:
-    imap = build_import_map(registry, extra_imports=extra_imports, scopes=scopes)
+    imap = build_import_map(
+        registry, extra_imports=extra_imports, scopes=scopes
+    )
     return script_tag(imap, indent=indent)
 
 
@@ -41,7 +43,9 @@ def modulepreload_links(
     extra_imports: dict[str, str] | None = None,
     scopes: dict[str, dict[str, str]] | None = None,
 ) -> str:
-    imap = build_import_map(registry, extra_imports=extra_imports, scopes=scopes)
+    imap = build_import_map(
+        registry, extra_imports=extra_imports, scopes=scopes
+    )
     return modulepreload_html(imap)
 
 

@@ -221,6 +221,8 @@ def _license_from_dist(dist) -> str:
     license_str = meta.get("License-Expression", "").strip()
     if not license_str:
         license_str = meta.get("License", "").strip()
+    if license_str.lower() == "apache 2":
+        license_str = "Apache-2.0"
     if license_str and ("\n" in license_str or len(license_str) > 100):
         for pattern in LICENSE_PATTERNS:
             if pattern.lower() in license_str.lower():

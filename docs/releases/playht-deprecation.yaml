@@ -1,0 +1,72 @@
+contract_version: 1.0.0
+artifact_type: release
+id: playht-deprecation-2026-11-17
+version: 1.0.0
+owner: swarmauri-sdk maintainers
+status: verified
+review_date: '2026-11-17'
+sources:
+- https://github.com/swarmauri/swarmauri-sdk/pull/6267
+- https://docs.audiostack.ai/changelog/30th-july-2025-playht-deprecation-notice
+- https://pypi.org/project/swarmauri-tts-playht/0.11.0/
+- https://pypi.org/project/swarmauri-llm-playht/0.11.0/
+- https://github.com/swarmauri/swarmauri-sdk/actions/runs/44240639951
+- https://github.com/swarmauri/swarmauri-sdk/actions/runs/44240852977
+facts:
+- Both Play.ht distributions move to pkgs/deprecated without changing import names.
+- Stable 0.11.0 releases carry Development Status 7 - Inactive.
+- Import emits FutureWarning; construction fails locally with migration guidance.
+assumptions:
+- Existing repository PyPI publishing credentials remain available to the release workflow.
+inferences:
+- Stable releases are needed so PyPI default project metadata displays inactive status.
+dependencies:
+- swarmauri_tts_playht==0.11.0 must publish before swarmauri_llm_playht==0.11.0.
+risks:
+- Already installed older releases cannot be changed remotely.
+- Publication is irreversible; source rollback does not revoke distributed wheels.
+metrics:
+- Both PyPI project JSON responses must report version 0.11.0 and the inactive classifier.
+acceptance_criteria:
+- Clean wheel installation, visible import warning and no-network construction checks pass.
+- Workspace and package index point to deprecated paths.
+- Published wheel hashes match the release workflow artifacts.
+release_version:
+- swarmauri_tts_playht==0.11.0
+- swarmauri_llm_playht==0.11.0
+scope:
+- pkgs/deprecated/swarmauri_tts_playht
+- pkgs/deprecated/swarmauri_llm_playht
+gates:
+- Package tests, Ruff, wheel metadata inspection and clean-install verification.
+- Repository PyPI authentication and environment policies apply.
+artifacts:
+- package: swarmauri_tts_playht
+  filename: swarmauri_tts_playht-0.11.0-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/88/2c/19211c84943eb932ae2750fe526fc5e7c5b0da0f2e52ab982ff9ed78d9b4/swarmauri_tts_playht-0.11.0-py3-none-any.whl
+  sha256: e1c448b2fdf5b7de11b3a4c88cbb7f6dcf22be4bbc40f85f3f6ee7375ba6f7be
+- package: swarmauri_tts_playht
+  filename: swarmauri_tts_playht-0.11.0.tar.gz
+  url: https://files.pythonhosted.org/packages/a7/10/28870bc198f64419b9684d1b41fd225c77356c5e2ce92dafedc5fad989ff/swarmauri_tts_playht-0.11.0.tar.gz
+  sha256: 8a2ba1eae827d74aef853b036210302eff21d69e008e370e17192bd7538b15d4
+- package: swarmauri_llm_playht
+  filename: swarmauri_llm_playht-0.11.0-py3-none-any.whl
+  url: https://files.pythonhosted.org/packages/c1/5d/a8098975440df3ab13d406f69f8a14ee2527da9f198d23b9118852ede811/swarmauri_llm_playht-0.11.0-py3-none-any.whl
+  sha256: 1d1660fd6ed750c4ef0a3b1d7efb6d575cbdf67516332a99bea7d6efdf901f9b
+- package: swarmauri_llm_playht
+  filename: swarmauri_llm_playht-0.11.0.tar.gz
+  url: https://files.pythonhosted.org/packages/de/06/a4a6568d7e967fcd613adf2b7dd70916f9b6ccde7646befae8b5c0915eb9/swarmauri_llm_playht-0.11.0.tar.gz
+  sha256: 3a9387867170c631d6c3f7a7fe071520923cd3b975d1c1421a2f690f9f73b27d
+rollout:
+- Publish the standalone TTS package, verify PyPI metadata, then publish the LLM-named alias.
+- Update catalog source paths and migration guidance after the move.
+rollback:
+- Correct an erroneous release with a new version; do not silently restore the discontinued service.
+- Yank a defective artifact only if necessary and separately authorized.
+publication_evidence:
+  source_commit: acf9d7172
+  standalone_workflow: PyPI upload and hash verification succeeded; GitHub asset step failed and
+    was recovered with gh release upload/edit.
+  compatibility_workflow: success
+  verification: Fresh installation from PyPI confirmed inactive classifiers, visible FutureWarning,
+    alias identity and immediate RuntimeError without credentials.

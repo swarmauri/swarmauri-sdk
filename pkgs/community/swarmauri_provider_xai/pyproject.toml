@@ -1,24 +1,81 @@
 [project]
 name = "swarmauri_provider_xai"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 description = "Aggregated xAI provider resources for Swarmauri models."
 readme = "README.md"
-requires-python = ">=3.10,<3.16"
+requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
-license = { file = "LICENSE" }
-dependencies = ["swarmauri_core>=0.11.0.dev5", "swarmauri_base>=0.11.0.dev5"]
-classifiers = ["Development Status :: 1 - Planning", "License :: OSI Approved :: Apache Software License", "Programming Language :: Python :: 3.10", "Programming Language :: Python :: 3.11", "Programming Language :: Python :: 3.12", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3.14", "Programming Language :: Python :: 3.15"]
+license = "Apache-2.0"
+dependencies = ["swarmauri_core<0.12,>=0.11.0.dev8", "swarmauri_base<0.12,>=0.11.0.dev13"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 keywords = ["swarmauri", "provider", "xai", "grok", "realtime"]
+license-files = ["LICENSE", "NOTICE"]
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/community/swarmauri_provider_xai"
+layer = "community"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_provider_xai"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_provider_xai/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_provider_xai/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [project.entry-points."swarmauri.model_providers"]
 XAIProvider = "swarmauri_provider_xai:XAIProvider"
 [build-system]
 requires = ["poetry-core>=1.8.0"]
 build-backend = "poetry.core.masonry.api"
 [dependency-groups]
-dev = ["pytest>=8.0", "ruff>=0.9.9", "swarmauri_tests_component"]
+dev = ["pytest>=8.0", "ruff>=0.9.9", "swarmauri_tests_component", "readme-standards==0.1.1; python_version >= \"3.11\""]
 
 [tool.ruff]
 extend = "../../pyproject.toml"

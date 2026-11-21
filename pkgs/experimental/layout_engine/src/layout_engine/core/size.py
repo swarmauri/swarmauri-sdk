@@ -36,12 +36,16 @@ class Size:
     max_px: Optional[int] = None
 
 
-def tokens_to_fr_sizes(tokens: Iterable[SizeToken], *, min_px: int = 200) -> list[Size]:
+def tokens_to_fr_sizes(
+    tokens: Iterable[SizeToken], *, min_px: int = 200
+) -> list[Size]:
     """Convert size tokens to FR-based Size descriptors."""
     sizes: list[Size] = []
     for token in tokens:
         tok = SizeToken(token)
-        sizes.append(Size(value=DEFAULT_TOKEN_WEIGHTS[tok], unit="fr", min_px=min_px))
+        sizes.append(
+            Size(value=DEFAULT_TOKEN_WEIGHTS[tok], unit="fr", min_px=min_px)
+        )
     return sizes
 
 
@@ -115,7 +119,11 @@ def parse_size(value: Any) -> Size:
             value=float(value.get("value", 0)),
             unit=str(value.get("unit", "px")),
             min_px=int(value.get("min_px", 0)),
-            max_px=(int(value["max_px"]) if value.get("max_px") is not None else None),
+            max_px=(
+                int(value["max_px"])
+                if value.get("max_px") is not None
+                else None
+            ),
         )
     if isinstance(value, (tuple, list)) and len(value) >= 2:
         val, unit = value[0], value[1]

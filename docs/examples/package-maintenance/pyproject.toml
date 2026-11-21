@@ -1,0 +1,78 @@
+[project]
+name = "swarmauri-demo-package-maintenance"
+version = "0.1.1"
+description = "A runnable Swarmauri demo for streaming Docker checks and resuming approvals."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "swarmauri_agent_package_maintenance==0.1.1",
+    "swarmauri_runstore_sqlite==0.1.0",
+    "swarmauri_agent_runner==0.1.1",
+    "swarmauri_base==0.11.0.dev7",
+    "swarmauri_standard==0.11.0.dev9",
+    "swarmauri_toolkit_containertoolkit==0.11.0.dev4",
+]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/swarmauri_package_maintenance_demo"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/README.md", "/pyproject.toml"]
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "docs/examples/package-maintenance"
+layer = "workspace"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri-demo-package-maintenance"
+published = false
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[dependency-groups]
+dev = ["readme-standards==0.1.1; python_version >= \"3.11\""]

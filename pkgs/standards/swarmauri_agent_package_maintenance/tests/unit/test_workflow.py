@@ -2,7 +2,6 @@ import json
 
 import pytest
 from swarmauri_agent_package_maintenance import PackageMaintenanceAgent
-from swarmauri_agent_runner import SqliteRunStore
 from swarmauri_base.skills.SkillBase import SkillBase
 from swarmauri_base.skills.SkillCatalog import SkillCatalog
 from swarmauri_core.processes import (
@@ -11,6 +10,7 @@ from swarmauri_core.processes import (
     ProcessHandle,
     ProcessOutput,
 )
+from swarmauri_runstore_sqlite import SqliteRunStore
 from swarmauri_standard.messages.AnswerMessage import AnswerMessage
 from swarmauri_standard.tool_llms.OpenAIToolModel import OpenAIToolModel
 from swarmauri_toolkit_containertoolkit import ContainerToolkit
@@ -100,7 +100,7 @@ def test_ask_activate_and_create_a_recipe(tmp_path, monkeypatch):
     backend = FixtureBackend()
     agent = PackageMaintenanceAgent(
         llm=OpenAIToolModel(api_key="test"),
-        store=SqliteRunStore(tmp_path / "run.db"),
+        store=SqliteRunStore(path=tmp_path / "run.db"),
         skills=SkillCatalog(
             [
                 SkillBase(

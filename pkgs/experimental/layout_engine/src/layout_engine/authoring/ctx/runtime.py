@@ -62,7 +62,9 @@ def _coerce_spec(role: str, atom: Any) -> AtomSpec:
             version=str(atom.get("version", "1.0.0")),
             defaults=dict(atom.get("defaults", {})),
         )
-    raise TypeError(f"Unsupported atom preset entry for role {role!r}: {atom!r}")
+    raise TypeError(
+        f"Unsupported atom preset entry for role {role!r}: {atom!r}"
+    )
 
 
 def compile_table(
@@ -85,7 +87,8 @@ def compile_table(
                     raise TypeError(f"Unsupported item in column: {w!r}")
                 roles.append(w.role)
                 specs_by_id.setdefault(
-                    w.id, _tile_spec(id=w.id, role=w.role, min_w=160, min_h=120)
+                    w.id,
+                    _tile_spec(id=w.id, role=w.role, min_w=160, min_h=120),
                 )
                 d_blocks.append(d_block(w.id))
             d_cols.append(d_col(*d_blocks, size=token))
@@ -151,14 +154,16 @@ def serve_table(
     def app(environ, start_response):
         path = environ.get("PATH_INFO", "/")
         if path == "/":
-            start_response("200 OK", [("Content-Type", "text/html; charset=utf-8")])
+            start_response(
+                "200 OK", [("Content-Type", "text/html; charset=utf-8")]
+            )
             return [html.encode("utf-8")]
         if path == "/manifest.json":
             start_response("200 OK", [("Content-Type", "application/json")])
             return [
-                json.dumps(m.to_dict(), separators=(",", ":"), sort_keys=True).encode(
-                    "utf-8"
-                )
+                json.dumps(
+                    m.to_dict(), separators=(",", ":"), sort_keys=True
+                ).encode("utf-8")
             ]
         start_response("404 Not Found", [("Content-Type", "text/plain")])
         return [b"not found"]

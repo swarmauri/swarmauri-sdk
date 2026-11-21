@@ -79,7 +79,9 @@ def _coerce_spec(role: str, atom: Any) -> AtomSpec:
             version=str(atom.get("version", "1.0.0")),
             defaults=dict(atom.get("defaults", {})),
         )
-    raise TypeError(f"Unsupported atom preset entry for role {role!r}: {atom!r}")
+    raise TypeError(
+        f"Unsupported atom preset entry for role {role!r}: {atom!r}"
+    )
 
 
 def render(
@@ -104,7 +106,9 @@ def render(
                 roles.append(widget.role)
                 specs_by_id.setdefault(
                     widget.id,
-                    _tile_spec(id=widget.id, role=widget.role, min_w=160, min_h=120),
+                    _tile_spec(
+                        id=widget.id, role=widget.role, min_w=160, min_h=120
+                    ),
                 )
                 d_blocks.append(d_block(widget.id))
             d_cols.append(d_col(*d_blocks, size=token))
@@ -114,7 +118,9 @@ def render(
     viewport = Viewport(width, height)
 
     compiler = LayoutCompiler()
-    grid_spec, placements, frames_map = compiler.frames_from_structure(tbl, viewport)
+    grid_spec, placements, frames_map = compiler.frames_from_structure(
+        tbl, viewport
+    )
     registry = _build_registry(roles, presets=presets)
     view_model = compiler.view_model(
         grid_spec,

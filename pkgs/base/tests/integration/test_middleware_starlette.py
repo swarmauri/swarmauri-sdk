@@ -10,7 +10,7 @@ from swarmauri_base.middlewares.MiddlewareBase import MiddlewareBase
 
 
 class TrackingMiddleware(MiddlewareBase):
-    """Middleware that records hook order when executed in a Starlette stack."""
+    """Record middleware hook order in a Starlette stack."""
 
     def __init__(self, app: ASGIApp, tracker: list[str]):
         super().__init__(app=app)

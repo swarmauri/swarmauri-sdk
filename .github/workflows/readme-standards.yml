@@ -1,0 +1,51 @@
+name: README standards
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readme-standards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - name: Enforce every active Python package README
+        run: >-
+          uv run --no-project --with readme-standards==0.1.1 pytest
+          --readme-standards --readme-all --readme-root .
+          -c tools/readme/pytest.ini --confcutdir tools/readme tools/readme
+          --junitxml=readme-standards-results.xml
+      - name: Reject undefined inputs in maintained Python examples
+        run: >-
+          uv run --no-project --with ruff==0.15.21 ruff check --isolated
+          --select F821 --config 'include = ["**/docs/readme/*.py"]' .
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: readme-standards-results
+          path: readme-standards-results.xml
+
+  tls-readme-workflow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.12'
+      - name: Verify documented TLS capability and certificate-verified peer exchange
+        run: >-
+          uv run --no-project --with "pydantic>=2.10,<3" --with "pyyaml>=6.0.2"
+          --with "httpx>=0.27,<0.29" --with "numpy>=1.26.4" --with starlette
+          --with "toml>=0.10.2" --with "cryptography>=45" --with pytest
+          python tools/readme/verify_tls_examples.py --junitxml=tls-readme-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tls-readme-results
+          path: tls-readme-results.xml

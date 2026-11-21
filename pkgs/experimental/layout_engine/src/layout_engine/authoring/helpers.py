@@ -30,7 +30,9 @@ def register_swarma_atoms(
 
     builder = getattr(catalog_module, "build_catalog", None)
     if builder is None:
-        raise RuntimeError("layout_engine_atoms.catalog missing build_catalog()")
+        raise RuntimeError(
+            "layout_engine_atoms.catalog missing build_catalog()"
+        )
 
     cat = builder(catalog)
     for preset in cat.presets():

@@ -46,8 +46,12 @@ def from_dict(obj: Mapping[str, Any]) -> Table:
                 )
                 for b in c.get("blocks", [])
             ]
-            cols.append(Column(size=SizeToken(str(c["size"])), blocks=tuple(blocks)))
-        rows.append(Row(columns=tuple(cols), height_rows=int(r.get("height_rows", 1))))
+            cols.append(
+                Column(size=SizeToken(str(c["size"])), blocks=tuple(blocks))
+            )
+        rows.append(
+            Row(columns=tuple(cols), height_rows=int(r.get("height_rows", 1)))
+        )
     return Table(
         rows=tuple(rows),
         gap_x=int(obj.get("gap_x", 12)),

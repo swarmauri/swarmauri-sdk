@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_base"
-version = "0.11.0.dev6"
+version = "0.11.0.dev13"
 description = "Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure."
 keywords = [
     "swarmauri",
@@ -28,7 +28,6 @@ repository = "http://github.com/swarmauri/swarmauri-sdk"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -38,33 +37,82 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
-    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing :: Markup",
 ]
-requires-python = ">=3.10,<3.16"
+requires-python = ">=3.10,<3.15"
 dependencies = [
 "pyyaml>=6.0.2",
+"httpx>=0.27,<0.29",
 "numpy>=1.26.4",
 "pydantic>=2.0",
 "starlette",
-"swarmauri_core>=0.11.0.dev6,<0.12",
+"swarmauri_core>=0.11.0.dev8,<0.12",
 "swarmauri_typing",
 "toml>=0.10.2",
 "tomli>=2.0; python_version < '3.11'"
 ]
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
 swarmauri_typing = { workspace = true }
 swarmauri_tests_pylicense = { workspace = true }
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/base"
+layer = "base"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_base"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/base/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/base/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [dependency-groups]
 dev = [
     "toml>=0.10.2",
-    "httpx>=0.27.0",
+    "httpx>=0.27,<0.29",
     "pytest>=8.0.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
@@ -76,6 +124,7 @@ dev = [
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
     "swarmauri_tests_pylicense",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
 
 [tool.pytest.ini_options]

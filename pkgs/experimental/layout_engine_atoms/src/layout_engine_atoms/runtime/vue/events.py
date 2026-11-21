@@ -44,7 +44,9 @@ class UiEventResult:
     def http_body(self) -> dict[str, Any]:
         """Return a JSON-serializable body for the HTTP response."""
 
-        content = _normalize_payload(self.body) if self.body is not None else {}
+        content = (
+            _normalize_payload(self.body) if self.body is not None else {}
+        )
         if self.channel:
             content.setdefault("channel", self.channel)
         if self.payload is not None:

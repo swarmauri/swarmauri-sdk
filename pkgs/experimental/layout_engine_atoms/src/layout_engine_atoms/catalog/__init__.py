@@ -53,7 +53,9 @@ def load_catalog(name: str = "vue") -> AtomPresetCatalog:
 def build_registry(
     name: str = "vue",
     *,
-    extra_presets: Iterable[AtomPreset] | Mapping[str, AtomPreset] | None = None,
+    extra_presets: Iterable[AtomPreset]
+    | Mapping[str, AtomPreset]
+    | None = None,
     overrides: Mapping[str, Mapping[str, object]] | None = None,
 ) -> AtomRegistry:
     presets = dict(get_default_presets(name))

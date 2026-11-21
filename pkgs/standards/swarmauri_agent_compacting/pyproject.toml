@@ -1,0 +1,47 @@
+[project]
+name = "swarmauri_agent_compacting"
+version = "0.1.0.dev0"
+description = "Swarmauri text agent with manual and token-triggered conversation compaction."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+dependencies = [
+    "swarmauri_base>=0.11.0.dev5",
+    "swarmauri_conversation_compacting>=0.1.0.dev0",
+    "swarmauri_core>=0.11.0.dev5",
+    "swarmauri_standard",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["swarmauri", "agent", "conversation", "summarization", "compaction"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.agents"]
+CompactingAgent = "swarmauri_agent_compacting:CompactingAgent"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_conversation_compacting = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+include = [{ path = "NOTICE", format = ["sdist", "wheel"] }]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.24", "ruff>=0.9.9"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"

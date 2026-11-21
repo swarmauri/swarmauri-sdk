@@ -22,7 +22,9 @@ def from_dict(obj: Mapping[str, Any]) -> TileSpec:
         min_h=int(obj.get("min_h", 120)),
         max_w=(int(obj["max_w"]) if obj.get("max_w") is not None else None),
         max_h=(int(obj["max_h"]) if obj.get("max_h") is not None else None),
-        aspect=(float(obj["aspect"]) if obj.get("aspect") is not None else None),
+        aspect=(
+            float(obj["aspect"]) if obj.get("aspect") is not None else None
+        ),
         props=dict(obj.get("props", {})),
         meta=dict(obj.get("meta", {})),
     )

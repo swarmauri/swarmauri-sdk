@@ -1,0 +1,40 @@
+name: Publish package maintenance demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-package-maintenance-demo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi-new-package-approval
+      url: https://pypi.org/project/swarmauri-demo-package-maintenance/
+    defaults:
+      run:
+        working-directory: docs/examples/package-maintenance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.13.6"
+          enable-cache: false
+
+      - name: Build wheel and source distribution
+        run: uv build --python 3.12
+
+      - name: Publish to PyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.DANGER_MASTER_PYPI_API_TOKEN }}
+        run: uv publish --check-url https://pypi.org/simple/ dist/swarmauri_demo_package_maintenance-*

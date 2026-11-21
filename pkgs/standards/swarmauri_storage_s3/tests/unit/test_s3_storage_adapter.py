@@ -4,7 +4,7 @@ from pathlib import Path
 
 try:
     import tomllib
-except ImportError:  # Python 3.10
+except ModuleNotFoundError:
     import tomli as tomllib
 
 import pytest
@@ -219,9 +219,7 @@ def test_from_uri(monkeypatch):
 
 
 def test_storage_entry_points_declared():
-    data = tomllib.loads(
-        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text()
-    )
+    data = tomllib.loads(Path("pyproject.toml").read_text())
 
     assert (
         data["project"]["entry-points"]["swarmauri.storage_adapters"][

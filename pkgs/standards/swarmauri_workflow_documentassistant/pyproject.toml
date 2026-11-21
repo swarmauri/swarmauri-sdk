@@ -1,0 +1,105 @@
+[project]
+name = "swarmauri_workflow_documentassistant"
+version = "0.1.1"
+description = "Compose an authenticated document assistant."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.15"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "workflows", "composition", "execution", "authorization"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = ["swarmauri_core>=0.11.0.dev8,<0.12", "swarmauri_base>=0.11.0.dev13,<0.12", "swarmauri_standard>=0.11.0.dev13,<0.12", "swarmauri_execution_default>=0.1.1,<0.2", "swarmauri_taskmanager_default>=0.1.1,<0.2", "swarmauri_taskstore_sqlite>=0.1.1,<0.2", "swarmauri_permission_explicit>=0.1.1,<0.2", "swarmauri_delegation_attenuating>=0.1.1,<0.2", "swarmauri_grantstore_sqlite>=0.1.1,<0.2", "swarmauri_invoker_default>=0.1.1,<0.2", "swarmauri_agent_runner>=0.1.2,<0.2", "swarmauri_runstore_sqlite>=0.1.0,<0.2", "swarmauri_tokens_jwt>=0.11.0.dev3,<0.12", "swarmauri_keyprovider_local>=0.11.0.dev1,<0.12", "swarmauri_transport_httpx>=0.1.0.dev6,<0.2"]
+license-files = ["LICENSE", "NOTICE"]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.workflows"]
+DocumentAssistantWorkflow = "swarmauri_workflow_documentassistant:DocumentAssistantWorkflow"
+
+[project.scripts]
+swarmauri-workflow-documentassistant = "swarmauri_workflow_documentassistant.cli:main"
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_execution_default = { workspace = true }
+swarmauri_taskmanager_default = { workspace = true }
+swarmauri_taskstore_sqlite = { workspace = true }
+swarmauri_permission_explicit = { workspace = true }
+swarmauri_delegation_attenuating = { workspace = true }
+swarmauri_grantstore_sqlite = { workspace = true }
+swarmauri_invoker_default = { workspace = true }
+swarmauri_agent_runner = { workspace = true }
+swarmauri_runstore_sqlite = { workspace = true }
+swarmauri_tokens_jwt = { workspace = true }
+swarmauri_keyprovider_local = { workspace = true }
+swarmauri_transport_httpx = { workspace = true }
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/standards/swarmauri_workflow_documentassistant"
+layer = "standards"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_workflow_documentassistant"
+published = false
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_workflow_documentassistant/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_workflow_documentassistant/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio", "ruff==0.15.21", "readme-standards==0.1.1; python_version >= \"3.11\""]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["unit: Unit tests", "i9n: Integration tests"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

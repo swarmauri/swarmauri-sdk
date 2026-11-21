@@ -9,7 +9,12 @@ DEFAULT_BASELINE_MULTIPLIER = 8
 
 def _clone_sizes(sizes: Sequence[Size]) -> list[Size]:
     return [
-        Size(value=size.value, unit=size.unit, min_px=size.min_px, max_px=size.max_px)
+        Size(
+            value=size.value,
+            unit=size.unit,
+            min_px=size.min_px,
+            max_px=size.max_px,
+        )
         for size in sizes
     ]
 

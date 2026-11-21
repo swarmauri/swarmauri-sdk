@@ -1,49 +1,55 @@
-![Swarmauri Logo](https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri_sdk_brand.png)
+# swarmauri_tool_jupyterstartkernel
 
+<!-- readme-standards:begin branding -->
+<p align="center"><a href="https://github.com/swarmauri/swarmauri-sdk"><img src="https://raw.githubusercontent.com/swarmauri/swarmauri-sdk/master/assets/swarmauri.brand.theme.svg" alt="Swarmauri SDK" width="300"></a></p>
+<p align="center"><strong>swarmauri_tool_jupyterstartkernel</strong></p>
+<p align="center">Swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client.</p>
 <p align="center">
-    <a href="https://pepy.tech/project/swarmauri_tool_jupyterstartkernel/">
-        <img src="https://static.pepy.tech/badge/swarmauri_tool_jupyterstartkernel/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterstartkernel/">
-        <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/community/swarmauri_tool_jupyterstartkernel.svg"/></a>
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
-        <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
-        <img src="https://img.shields.io/pypi/l/swarmauri_tool_jupyterstartkernel" alt="PyPI - License"/></a>
-    <a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/">
-        <img src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterstartkernel?label=swarmauri_tool_jupyterstartkernel&color=green" alt="PyPI - swarmauri_tool_jupyterstartkernel"/></a>
-    <a href="https://discord.gg/N4UpBuQv8T">
-        <img src="https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white" alt="Discord"/></a></p>
+<a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/"><img alt="pypi: swarmauri_tool_jupyterstartkernel" src="https://img.shields.io/pypi/v/swarmauri_tool_jupyterstartkernel"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml"><img alt="Source version: 0.11.0.dev1" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0.dev1&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml"><img alt="Layer: community" src="https://img.shields.io/static/v1?label=Layer&amp;message=community&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md#lifecycle-and-migration"><img alt="Lifecycle: active" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=active&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/static/v1?label=License&amp;message=Apache-2.0&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;color=525252"></a>
+</p>
+<p align="center">
+<a href="https://pypi.org/project/swarmauri_tool_jupyterstartkernel/"><img alt="Monthly PyPI downloads: swarmauri_tool_jupyterstartkernel" src="https://img.shields.io/pypi/dm/swarmauri_tool_jupyterstartkernel"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md"><img alt="README hits: swarmauri_tool_jupyterstartkernel" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md.svg?label=README%20hits"></a>
+</p>
+<p align="center">
+<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="README standards: CI gate" src="https://img.shields.io/static/v1?label=README%20standards&amp;message=CI%20gate&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/tests/unit/test_readme_sources.py"><img alt="Tests: example source" src="https://img.shields.io/static/v1?label=Tests&amp;message=example%20source&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/README.md#certification-status"><img alt="Certification: not certified" src="https://img.shields.io/static/v1?label=Certification&amp;message=not%20certified&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"><img alt="Governance: repository policy" src="https://img.shields.io/static/v1?label=Governance&amp;message=repository%20policy&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="Evidence: source and CI" src="https://img.shields.io/static/v1?label=Evidence&amp;message=source%20and%20CI&amp;color=525252"></a>
+</p>
+<p align="center"><a href="#overview">Overview</a> · <a href="#installation">Installation</a> · <a href="#quick-start">Quick Start</a> · <a href="#usage">Usage</a> · <a href="#public-api-and-import-surfaces">API</a> · <a href="#contributing">Contributing</a> · <a href="#governance">Governance</a> · <a href="#license">License</a></p>
+<!-- readme-standards:end branding -->
 
-# Swarmauri Tool Jupyter Start Kernel
+---
+
+## Overview
+
+### Summary
 
 `swarmauri_tool_jupyterstartkernel` is a Swarmauri notebook-orchestration tool
 for starting a Jupyter kernel programmatically through `jupyter_client`. It is
 useful for notebook automation, code-execution workflows, agent-controlled
 kernel sessions, and CI flows that need a fresh kernel before running cells.
 
-## Why Use Swarmauri Tool Jupyter Start Kernel
+### Why This Package
 
 - Start isolated Jupyter kernels inside Swarmauri workflows.
 - Acquire a kernel ID programmatically for downstream notebook tooling.
 - Prepare execution environments for cell-running and notebook-conversion tools.
 - Keep kernel lifecycle control behind a reusable Swarmauri tool interface.
 
-## FAQ
+### When to Use
 
-> **What inputs does the tool accept?**  
-> `kernel_name` and an optional `kernel_spec` dictionary.
+Choose `swarmauri_tool_jupyterstartkernel` when your integration needs swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client. Match the imports below to your application boundary and install its declared dependencies before using the example.
 
-> **What does the tool return on success?**  
-> A dictionary containing `kernel_name` and `kernel_id`.
-
-> **Does the tool expose the running `KernelManager`?**  
-> Yes. The instance stores the active manager and exposes it through
-> `get_kernel_manager()`.
-
-> **How are startup failures reported?**  
-> The tool returns `{"error": ...}` if the kernel cannot be started.
-
-## Features
+### Features
 
 - Swarmauri `ToolBase` implementation registered as `JupyterStartKernelTool`.
 - Starts Jupyter kernels by kernel name, defaulting to `python3`.
@@ -51,7 +57,19 @@ kernel sessions, and CI flows that need a fresh kernel before running cells.
 - Returns simple, orchestration-friendly kernel identity metadata.
 - Supports Python 3.10, 3.11, 3.12, 3.13, and 3.14.
 
-## Installation
+### Non-Goals
+
+`swarmauri_tool_jupyterstartkernel` owns swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client. Its imports do not by themselves configure credentials, deploy a service, or certify the behavior of its consumers. Dependencies and neighboring packages retain their own documented responsibilities.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Python `>=3.10,<3.15` is required. The [manifest](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml) declares runtime dependencies including `jupyter-client`, `ipykernel`, `swarmauri-core`, `swarmauri-base`, `swarmauri-standard`. Read the example’s inputs and service requirements before execution.
+
+### Installation
 
 ```bash
 uv add swarmauri_tool_jupyterstartkernel
@@ -61,7 +79,36 @@ uv add swarmauri_tool_jupyterstartkernel
 pip install swarmauri_tool_jupyterstartkernel
 ```
 
-## Usage
+#### uv
+
+<!-- readme-standards:begin installation.uv -->
+```bash
+uv add swarmauri_tool_jupyterstartkernel
+```
+<!-- readme-standards:end installation.uv -->
+
+#### pip
+
+<!-- readme-standards:begin installation.pip -->
+```bash
+python -m pip install swarmauri_tool_jupyterstartkernel
+```
+<!-- readme-standards:end installation.pip -->
+
+#### Poetry
+
+<!-- readme-standards:begin installation.poetry -->
+```bash
+poetry add swarmauri_tool_jupyterstartkernel
+```
+<!-- readme-standards:end installation.poetry -->
+
+### Quick Start
+
+#### Example
+
+<!-- readme-standards:begin example.quick-start -->
+Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/docs/readme/quick_start.py).
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
@@ -71,10 +118,32 @@ result = tool(kernel_name="python3")
 
 print(result)
 ```
+<!-- readme-standards:end example.quick-start -->
 
-## Examples
+#### Expected Result
 
-### Start a default Python kernel
+The example demonstrates the documented `swarmauri_tool_jupyterstartkernel` source boundary or workflow. Complete its required configuration first. README CI checks the maintained source’s syntax and declarations; it does not claim that external services or the application workflow were exercised.
+
+---
+
+## Usage
+
+### Common Workflows
+
+<!-- readme-standards:begin example.usage -->
+Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/docs/readme/usage.py).
+
+```python
+from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
+
+tool = JupyterStartKernelTool()
+result = tool(kernel_name="python3")
+
+print(result)
+```
+<!-- readme-standards:end example.usage -->
+
+**Start a default Python kernel**
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
@@ -85,7 +154,7 @@ result = tool()
 print(result["kernel_id"])
 ```
 
-### Start a kernel and keep the manager reference
+**Start a kernel and keep the manager reference**
 
 ```python
 from swarmauri_tool_jupyterstartkernel import JupyterStartKernelTool
@@ -97,7 +166,7 @@ manager = tool.get_kernel_manager()
 print(result, manager)
 ```
 
-### Register the tool in a Swarmauri collection
+**Register the tool in a Swarmauri collection**
 
 ```python
 from swarmauri_standard.tools.ToolCollection import ToolCollection
@@ -107,27 +176,15 @@ tools = ToolCollection(tools=[JupyterStartKernelTool()])
 print(tools)
 ```
 
-## Related Packages
+### Configuration
 
-- [swarmauri_tool_jupytershutdownkernel](https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/)
-- [swarmauri_tool_jupyterexecutecell](https://pypi.org/project/swarmauri_tool_jupyterexecutecell/)
-- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
-- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+Configure `swarmauri_tool_jupyterstartkernel` through the APIs in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py); its [manifest](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml) describes installation requirements, not an implicit service configuration. No additional package-global configuration contract is inferred from dependencies.
 
-## Swarmauri Foundations
+### Error Handling
 
-- [swarmauri](https://pypi.org/project/swarmauri/)
-- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
-- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
-- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+The inspected `swarmauri_tool_jupyterstartkernel` source does not establish a package-wide exception hierarchy. Preserve errors from its declared dependencies and validate inputs using the specific public contract in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py).
 
-## More Documentation
-
-- [jupyter_client documentation](https://jupyter-client.readthedocs.io/)
-- [IPython kernel documentation](https://ipython.readthedocs.io/)
-- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
-
-## Best Practices
+### Best Practices
 
 - Ensure the requested kernelspec exists before starting automation flows.
 - Shut down kernels explicitly after use to avoid orphaned processes.
@@ -135,6 +192,184 @@ print(tools)
 - Store the returned kernel ID if other tools need to interact with the same
   session later.
 
-## License
+---
+
+## Package Boundary
+
+### What It Owns
+
+`swarmauri_tool_jupyterstartkernel` is located in `community` and owns swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client. Source-declared APIs include `JupyterStartKernelTool`. The [manifest](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml) records its direct dependency boundary.
+
+### Public API and Import Surfaces
+
+Import namespace: `swarmauri_tool_jupyterstartkernel`.
+
+Source-declared exports or types: `JupyterStartKernelTool`.
+
+Inspect [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py) for exact signatures; this inventory does not designate every internal module as stable.
+
+### Entry Points
+
+<!-- readme-standards:begin entry-points -->
+- `swarmauri.tools` → `JupyterStartKernelTool` → `swarmauri_tool_jupyterstartkernel:JupyterStartKernelTool`
+<!-- readme-standards:end entry-points -->
+
+### Injected Dependencies
+
+The direct installation dependencies of `swarmauri_tool_jupyterstartkernel` are `jupyter-client`, `ipykernel`, `swarmauri-core`, `swarmauri-base`, `swarmauri-standard`. These declarations do not imply automatic provider selection. Pass collaborators through the explicit constructors or call signatures in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py).
+
+### Protocol Consumers
+
+Direct consumers in this checkout’s package manifests include `swarmauri_toolkit_jupytertoolkit`. These edges describe declared dependencies, not protocol-conformance evidence.
+
+### Extensions
+
+For `swarmauri_tool_jupyterstartkernel`, use the source-declared public interfaces (`JupyterStartKernelTool`) when composing or extending behavior. Its entry-point section below is authoritative for registered plugins; no additional extension loader is inferred from the package name.
+
+---
+
+## Operations and Readiness
+
+### Operational Requirements
+
+Operate `swarmauri_tool_jupyterstartkernel` according to its actual entry points and collaborators. The dependency and Python requirements in the [manifest](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml) are prerequisites; deployment topology, credentials, and readiness remain the responsibility of the consuming application unless explicitly documented above.
+
+### Health and Observability
+
+This README does not establish a standalone health endpoint for `swarmauri_tool_jupyterstartkernel`. Observe the concrete caller’s results, exceptions, and existing test reports. An application that embeds this package must define its own health and telemetry contract.
+
+### Security and Resource Limits
+
+Apply the input, credential, and resource constraints implemented in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py). The `swarmauri_tool_jupyterstartkernel` README gate is a documentation check, not a security review or a substitute for the implementation’s limits and caller authorization.
+
+### Compatibility
+
+This source version of `swarmauri_tool_jupyterstartkernel` declares Python `>=3.10,<3.15`. Consult its dependency constraints before upgrading. Source-version and registry-version badges have separate meanings; this migration makes no additional platform or interoperability certification claim.
+
+---
+
+## Verification
+
+### Tests
+
+Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_tool_jupyterstartkernel` package directory for the maintained example source checks (Python compilation and non-Python file presence). Existing package tests include:
+
+- [tests/unit/test_JupyterStartKernelTool.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/tests/unit/test_JupyterStartKernelTool.py)
+- [tests/unit/test_JupyterStartKernelTool__init__.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/tests/unit/test_JupyterStartKernelTool__init__.py)
+
+The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
+
+### Certification Status
+
+No external certification is asserted for `swarmauri_tool_jupyterstartkernel` by this documentation migration. README conformance, example syntax, runtime tests, and protocol or security certification are distinct evidence scopes.
+
+### Evidence
+
+The [README standards CI](https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml) records mechanical documentation results for its tested commit. The [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py) and example sources support the package-boundary description; external runtime behavior requires its own test evidence.
+
+---
+
+## FAQ
+
+> **What inputs does the tool accept?**
+> `kernel_name` and an optional `kernel_spec` dictionary.
+
+> **What does the tool return on success?**
+> A dictionary containing `kernel_name` and `kernel_id`.
+
+> **Does the tool expose the running `KernelManager`?**
+> Yes. The instance stores the active manager and exposes it through
+> `get_kernel_manager()`.
+
+> **How are startup failures reported?**
+> The tool returns `{"error": ...}` if the kernel cannot be started.
+
+### Why
+
+**Why select this package?** `swarmauri_tool_jupyterstartkernel` provides swarmauri notebook-orchestration tool for starting Jupyter kernels programmatically with jupyter_client; use its own API boundary rather than assuming neighboring packages are bundled or configured automatically.
+
+### How
+
+**How do I start?** Install or synchronize the environment under Getting Started, follow the maintained example for `swarmauri_tool_jupyterstartkernel`, and consult [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/swarmauri_tool_jupyterstartkernel/JupyterStartKernelTool.py) for the exact types and signatures involved.
+
+### When
+
+**When should I validate an upgrade?** Recheck `swarmauri_tool_jupyterstartkernel` whenever its source version, declared collaborators, configuration, or caller changes. Run relevant behavioral tests in addition to the README gate before promotion.
+
+---
+
+## Documentation and Related Packages
+
+### More Documentation
+
+- [jupyter_client documentation](https://jupyter-client.readthedocs.io/)
+- [IPython kernel documentation](https://ipython.readthedocs.io/)
+- [Swarmauri SDK repository](https://github.com/swarmauri/swarmauri-sdk)
+
+### Related Packages
+
+- [swarmauri_tool_jupytershutdownkernel](https://pypi.org/project/swarmauri_tool_jupytershutdownkernel/)
+- [swarmauri_tool_jupyterexecutecell](https://pypi.org/project/swarmauri_tool_jupyterexecutecell/)
+- [swarmauri_tool_jupyterruncell](https://pypi.org/project/swarmauri_tool_jupyterruncell/)
+- [swarmauri_tool_jupyterclearoutput](https://pypi.org/project/swarmauri_tool_jupyterclearoutput/)
+
+### Project Links
+
+<!-- readme-standards:begin project-links -->
+- [pypi: swarmauri_tool_jupyterstartkernel](https://pypi.org/project/swarmauri_tool_jupyterstartkernel/)
+<!-- readme-standards:end project-links -->
+
+---
+
+## Contributing
+
+### How to Contribute
+
+Follow the [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/master/CONTRIBUTING.md) and include a focused example or regression for changes to `swarmauri_tool_jupyterstartkernel`. Keep package behavior, its documented boundary, and its tests aligned.
+
+### Development Setup
+
+Work from the `pkgs/community/swarmauri_tool_jupyterstartkernel` checkout. Synchronize its declared development environment with uv, then run the relevant package tests and `python -m pytest tests/unit/test_readme_sources.py`. The repository’s dedicated README job installs `readme-standards==0.1.1` without resolving unrelated runtime packages.
+
+### Notes for Maintainers
+
+**Swarmauri Foundations**
+
+- [swarmauri](https://pypi.org/project/swarmauri/)
+- [swarmauri_core](https://pypi.org/project/swarmauri_core/)
+- [swarmauri_base](https://pypi.org/project/swarmauri_base/)
+- [swarmauri_standard](https://pypi.org/project/swarmauri_standard/)
+
+---
+
+## Governance
+
+### Ownership and Decision Making
+
+Changes to `swarmauri_tool_jupyterstartkernel` follow the maintainer review process of [swarmauri/swarmauri-sdk](https://github.com/swarmauri/swarmauri-sdk) and its contribution guide. Author attribution remains in the [manifest](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/pyproject.toml); this README does not assign new publishing or administrative authority.
+
+### Standards and Policies
+
+`swarmauri_tool_jupyterstartkernel` follows the versioned [package-guide-v1 outline](https://github.com/groupsum/readme-standards/blob/master/docs/outline.md). All fixed headings, hierarchy, order, separators, and package-specific branding are checked by CI; reviewers assess the accuracy and usefulness of authored claims.
+
+### Lifecycle and Migration
+
+The `swarmauri_tool_jupyterstartkernel` source version is `0.11.0.dev1`. This change standardizes documentation and adds a development-only gate; it does not publish a new runtime version or declare a previously unpublished package released. Preserve explicit deprecation and replacement instructions where present.
+
+---
+
+## License and Attribution
+
+### License
+
+<!-- readme-standards:begin license -->
+Licensed under `Apache-2.0`. See [LICENSE](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/LICENSE).
+<!-- readme-standards:end license -->
 
 This project is licensed under the Apache-2.0 License.
+
+### Notices
+
+<!-- readme-standards:begin notices -->
+See [NOTICE](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tool_jupyterstartkernel/NOTICE) for attribution.
+<!-- readme-standards:end notices -->

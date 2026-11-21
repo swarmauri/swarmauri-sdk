@@ -7,9 +7,15 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializeAsAny,
+    field_validator,
+)
 
-from swarmauri_base.ComponentBase import ComponentBase, SubclassUnion
+from swarmauri_base.ComponentBase import ComponentBase
 from swarmauri_base.agents.AgentBase import AgentBase
 from swarmauri_base.tts.TTSBase import TTSBase
 from swarmauri_core.messages.IMessage import IMessage
@@ -21,27 +27,32 @@ class TextToSpeechAgent(AgentBase):
 
     llm: None = Field(default=None, exclude=True)
     llm_kwargs: None = Field(default=None, exclude=True)
-    tts: SubclassUnion[TTSBase]
+    tts: SerializeAsAny[TTSBase]
     output_path: str = "output.mp3"
     tts_kwargs: Dict[str, Any] = Field(default_factory=dict)
     model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
     type: Literal["TextToSpeechAgent"] = "TextToSpeechAgent"
 
-    def model_post_init(self, __context: Any) -> None:
-        """Rehydrate a serialized TTS component through its base registry."""
-        if not isinstance(self.tts, dict):
-            return
-        type_name = self.tts.get("type")
+    @field_validator("tts", mode="before")
+    @classmethod
+    def _restore_tts(cls, value):
+        """Resolve serialized providers at validation time, after discovery."""
+        if not isinstance(value, dict):
+            return value
+        type_name = value.get("type")
         registry = TTSBase._registry.get("TTSBase", {})
         tts_class = registry.get("subtypes", {}).get(type_name)
         if tts_class is None and type_name == "TTSBase":
             tts_class = registry.get("model_cls", TTSBase)
-        if tts_class is not None:
-            self.tts = tts_class.model_validate(self.tts)
+        if tts_class is None:
+            raise ValueError(
+                "Import the serialized TTS provider before loading it."
+            )
+        return tts_class.model_validate(value)
 
     def exec(
         self,
-        input_str: Optional[Union[str, IMessage]] = "",
+        input_str: Optional[Union[str, IMessage, tuple[BaseModel, ...]]] = "",
         llm_kwargs: Optional[Dict] = None,
         *,
         audio_path: Optional[str] = None,
@@ -58,7 +69,7 @@ class TextToSpeechAgent(AgentBase):
 
     async def aexec(
         self,
-        input_str: Optional[Union[str, IMessage]] = "",
+        input_str: Optional[Union[str, IMessage, tuple[BaseModel, ...]]] = "",
         llm_kwargs: Optional[Dict] = None,
         *,
         audio_path: Optional[str] = None,
@@ -75,7 +86,7 @@ class TextToSpeechAgent(AgentBase):
 
     def batch(
         self,
-        inputs: List[Union[str, IMessage]],
+        inputs: List[Union[str, IMessage, tuple[BaseModel, ...]]],
         llm_kwargs: Optional[Dict] = None,
         *,
         audio_paths: Optional[Sequence[str]] = None,
@@ -95,35 +106,57 @@ class TextToSpeechAgent(AgentBase):
 
     async def abatch(
         self,
-        inputs: List[Union[str, IMessage]],
+        inputs: List[Union[str, IMessage, tuple[BaseModel, ...]]],
         llm_kwargs: Optional[Dict] = None,
         *,
         audio_paths: Optional[Sequence[str]] = None,
         tts_kwargs: Optional[Dict[str, Any]] = None,
+        max_concurrent: int = 5,
     ) -> List[str]:
-        """Concurrently synthesize independent inputs."""
+        """Synthesize independent inputs with bounded concurrency."""
+        if (
+            isinstance(max_concurrent, bool)
+            or not isinstance(max_concurrent, int)
+            or max_concurrent < 1
+        ):
+            raise ValueError("max_concurrent must be a positive integer.")
         paths = self._resolve_batch_paths(len(inputs), audio_paths)
-        return await asyncio.gather(
-            *[
-                self.aexec(
+        semaphore = asyncio.Semaphore(max_concurrent)
+
+        async def generate(input_data, path):
+            async with semaphore:
+                return await self.aexec(
                     input_data,
                     llm_kwargs=llm_kwargs,
                     audio_path=path,
                     tts_kwargs=tts_kwargs,
                 )
+
+        return await asyncio.gather(
+            *(
+                generate(input_data, path)
                 for input_data, path in zip(inputs, paths)
-            ]
+            )
         )
 
     @staticmethod
-    def _input_text(input_data: Optional[Union[str, IMessage]]) -> str:
+    def _input_text(
+        input_data: Optional[Union[str, IMessage, tuple[BaseModel, ...]]],
+    ) -> Union[str, tuple[BaseModel, ...]]:
+        if (
+            isinstance(input_data, tuple)
+            and input_data
+            and all(isinstance(turn, BaseModel) for turn in input_data)
+        ):
+            return input_data
         if isinstance(input_data, str):
             text = input_data
         elif isinstance(input_data, IMessage):
             text = input_data.content
         else:
             raise TypeError(
-                "Input must be text or an IMessage with text content."
+                "Input must be text, an IMessage, "
+                "or a nonempty tuple of typed dialogue turns."
             )
 
         if not isinstance(text, str):

@@ -267,7 +267,9 @@ def _viewport_from(
         return Viewport(width=width, height=height)
     rows = 1
     if placements:
-        rows = max(placement.row + placement.row_span for placement in placements)
+        rows = max(
+            placement.row + placement.row_span for placement in placements
+        )
     width = max(columns * 640, 640)
     height = max(rows * row_height, row_height)
     return Viewport(width=width, height=height)
@@ -283,7 +285,11 @@ def _ensure_viewport(viewport: Viewport | tuple[int, int] | None) -> Viewport:
 
 
 def _enrich_atom_metadata(manifest, registry) -> None:
-    tiles = manifest.tiles if isinstance(manifest.tiles, list) else list(manifest.tiles)
+    tiles = (
+        manifest.tiles
+        if isinstance(manifest.tiles, list)
+        else list(manifest.tiles)
+    )
     for tile in tiles:
         if not isinstance(tile, dict):
             continue

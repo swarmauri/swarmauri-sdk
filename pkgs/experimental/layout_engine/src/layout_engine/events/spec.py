@@ -48,4 +48,6 @@ class ErrorAck(BaseModel):
 
 
 def make_error(request_id: str, code: str, message: str) -> ErrorAck:
-    return ErrorAck(ok=False, request_id=request_id, code=code, message=message)
+    return ErrorAck(
+        ok=False, request_id=request_id, code=code, message=message
+    )

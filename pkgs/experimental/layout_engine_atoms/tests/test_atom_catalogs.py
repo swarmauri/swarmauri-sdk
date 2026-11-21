@@ -32,7 +32,11 @@ def make_preset(
 
 
 def make_spec(
-    role: str, *, module: str = "pkg", export: str = "Component", version: str = "1.0.0"
+    role: str,
+    *,
+    module: str = "pkg",
+    export: str = "Component",
+    version: str = "1.0.0",
 ) -> AtomSpec:
     return AtomSpec(
         role=role,
@@ -108,7 +112,9 @@ def test_swarma_atom_catalog_with_overrides_returns_new_instance() -> None:
     preset = make_preset("swarmakit:vue:badge", defaults={"tone": "info"})
     catalog = SwarmaAtomCatalog([preset], props_schema=ButtonProps)
 
-    updated = catalog.with_overrides("swarmakit:vue:badge", defaults={"tone": "warn"})
+    updated = catalog.with_overrides(
+        "swarmakit:vue:badge", defaults={"tone": "warn"}
+    )
 
     assert updated is not catalog
     assert updated.merge_props("swarmakit:vue:badge")["tone"] == "warn"

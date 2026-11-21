@@ -45,7 +45,9 @@ def use_atom(registry: AtomRegistry, role: str) -> Atom:
 
 
 def apply_atom_defaults(
-    registry: AtomRegistry, role: str, overrides: Mapping[str, Any] | None = None
+    registry: AtomRegistry,
+    role: str,
+    overrides: Mapping[str, Any] | None = None,
 ) -> dict:
     """Resolve atom props by merging defaults with optional overrides."""
     atom = use_atom(registry, role)

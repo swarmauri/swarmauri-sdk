@@ -1,4 +1,5 @@
 import json
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from pydantic import SecretBytes, SecretStr
@@ -60,3 +61,24 @@ async def test_auth_url_contains_salesforce(
 async def test_exchange_invalid_state(login: SalesforceOAuth20Login) -> None:
     with pytest.raises(ValueError):
         await login.exchange_and_identity("code", "invalid-state")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_auth_url_encodes_special_characters(
+    login: SalesforceOAuth20Login,
+) -> None:
+
+    login.client_id = "client&admin=true+test"
+    login.redirect_uri = "https://example.com/callback?next=/home&a=1+2"
+    login.scope = "refresh_token profile+email=café"
+
+    payload = await login.auth_url()
+    params = parse_qs(urlsplit(payload["url"]).query)
+
+    assert params["client_id"] == [login.client_id]
+    assert params["redirect_uri"] == [login.redirect_uri]
+    assert params["scope"] == [login.scope]
+    assert "admin" not in params
+    assert params["code_challenge_method"] == ["S256"]
+    assert params["state"] == [payload["state"]]

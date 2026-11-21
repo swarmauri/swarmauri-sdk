@@ -21,12 +21,13 @@ from swarmauri_standard.messages.FunctionMessage import FunctionMessage
 from swarmauri_standard.schema_converters.OpenAISchemaConverter import (
     OpenAISchemaConverter,
 )
+from swarmauri_standard.tool_llms._openai_tool_step import OpenAIToolStepMixin
 from swarmauri_standard.toolkits.Toolkit import Toolkit
 from swarmauri_standard.utils.retry_decorator import retry_on_status_codes
 
 
 @ComponentBase.register_type(ToolLLMBase, "OpenAIToolModel")
-class OpenAIToolModel(ToolLLMBase):
+class OpenAIToolModel(OpenAIToolStepMixin, ToolLLMBase):
     """
     OpenAIToolModel provides an interface to interact with OpenAI's models for
     tool usage.
@@ -125,27 +126,6 @@ class OpenAIToolModel(ToolLLMBase):
         """
         converter = self.get_schema_converter()()
         return [converter.convert(tools[tool]) for tool in tools]
-
-    def propose_tool_step(self, messages, tools):
-        """Return one model turn without executing any proposed tools."""
-        response = httpx.post(
-            self.BASE_URL,
-            headers=self._headers,
-            json={
-                "model": self.name,
-                "messages": messages,
-                "tools": self._schema_convert_tools(tools),
-                "parallel_tool_calls": False,
-            },
-            timeout=60,
-        )
-        response.raise_for_status()
-        message = response.json()["choices"][0]["message"]
-        return {
-            key: message[key]
-            for key in ("role", "content", "tool_calls")
-            if key in message
-        }
 
     def _format_messages(
         self, messages: List[Type[MessageBase]]
