@@ -13,7 +13,9 @@ def test_custom_headers_parity_with_httpx(monkeypatch):
     headers = {"Accept": "application/json", "X-Trace-Id": "trace-123"}
     client.get("/headers", headers=headers)
 
-    expected = build_httpx_request("GET", "http://example.com/headers", headers=headers)
+    expected = build_httpx_request(
+        "GET", "http://example.com/headers", headers=headers
+    )
     sent = RecordingConnection.last_request
 
     assert sent["headers"]["Accept"] == expected.headers["Accept"]
@@ -27,7 +29,9 @@ def test_json_content_type_header_matches_httpx(monkeypatch):
     payload = {"name": "swarmauri", "kind": "canon-http"}
     client.post("/json", json_data=payload)
 
-    expected = build_httpx_request("POST", "http://example.com/json", json=payload)
+    expected = build_httpx_request(
+        "POST", "http://example.com/json", json=payload
+    )
     sent = RecordingConnection.last_request
 
     assert sent["headers"]["Content-Type"] == expected.headers["Content-Type"]

@@ -11,7 +11,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Sequence
 
-import tomllib
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 import yaml
 
 from zdx.scripts.gen_api import (

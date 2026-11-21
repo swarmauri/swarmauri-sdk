@@ -25,7 +25,7 @@ fail validation because they make composition order ambiguous.
 | `40-standards` | 237 | 237 | first-party split standard packages |
 | `50-community` | 130 | 130 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
-| `70-experimental` | 37 | 13 | incubating and planning-stage packages |
+| `70-experimental` | 45 | 13 | incubating and planning-stage packages |
 | `80-facades` | 1 | 1 | aggregate user-facing facade packages |
 | `90-deprecated` | 6 | 3 | deprecated compatibility packages |
 
@@ -458,8 +458,10 @@ fail validation because they make composition order ambiguous.
 | `70.0` | [swarmauri_certs_pkcs11](experimental/swarmauri_certs_pkcs11/) | `experimental/swarmauri_certs_pkcs11` | `certs` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [swarmauri_crypto_sodium](experimental/swarmauri_crypto_sodium/) | `experimental/swarmauri_crypto_sodium` | `crypto` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [DistanceMetrics](experimental/RapidSimilarity/DistanceMetrics/) | `experimental/RapidSimilarity/DistanceMetrics` | `distancemetrics` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [do](experimental/do/) | `experimental/do` | `do` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [FastTokenizer](experimental/FastTokenizer/) | `experimental/FastTokenizer` | `fasttokenizer` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [g9](experimental/g9/) | `experimental/g9` | `g9` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [gk](experimental/gk/) | `experimental/gk` | `gk` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [IndexBuilder](experimental/RapidSimilarity/IndexBuilder/) | `experimental/RapidSimilarity/IndexBuilder` | `indexbuilder` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [jaml](experimental/jaml/) | `experimental/jaml` | `jaml` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [jz](experimental/jz/) | `experimental/jz` | `jz` | `experimental-atomic` | `experimental` | no |
@@ -468,6 +470,7 @@ fail validation because they make composition order ambiguous.
 | `70.0` | [monotone-ops](experimental/monotone_ops/) | `experimental/monotone_ops` | `monotone` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [mto](experimental/mto/) | `experimental/mto` | `mto` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [swarmauri_parser_asn1](experimental/swarmauri_parser_asn1/) | `experimental/swarmauri_parser_asn1` | `parser` | `experimental-atomic` | `experimental` | yes |
+| `70.0` | [pj](experimental/pj/) | `experimental/pj` | `pj` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [ptree_dag_extension_example](experimental/ptree_dag_extension_example/) | `experimental/ptree_dag_extension_example` | `ptree` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [QueryEngine](experimental/RapidSimilarity/QueryEngine/) | `experimental/RapidSimilarity/QueryEngine` | `queryengine` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [s.f](experimental/s_f/) | `experimental/s_f` | `s.f` | `experimental-atomic` | `experimental` | no |
@@ -478,6 +481,11 @@ fail validation because they make composition order ambiguous.
 | `70.0` | [swarmauri_tests_pylicense](experimental/swarmauri_tests_pylicense/) | `experimental/swarmauri_tests_pylicense` | `tests` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [swarmauri_tests_readme_examples](experimental/swarmauri_tests_readme_examples/) | `experimental/swarmauri_tests_readme_examples` | `tests` | `experimental-atomic` | `experimental` | yes |
 | `70.0` | [tigr](experimental/tigr/) | `experimental/tigr` | `tigr` | `experimental-atomic` | `experimental` | yes |
+| `70.0` | [uu](experimental/uu/) | `experimental/uu` | `uu` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [vb](experimental/vb/) | `experimental/vb` | `vb` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [xj](experimental/xj/) | `experimental/xj` | `xj` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [xk](experimental/xk/) | `experimental/xk` | `xk` | `experimental-atomic` | `experimental` | no |
+| `70.0` | [xz](experimental/xz/) | `experimental/xz` | `xz` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [ye](experimental/ye/) | `experimental/ye` | `ye` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [ymls](experimental/ymls/) | `experimental/ymls` | `ymls` | `experimental-atomic` | `experimental` | no |
 | `70.0` | [zr0](experimental/zr0/) | `experimental/zr0` | `zr0` | `experimental-atomic` | `experimental` | no |
@@ -960,8 +968,10 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_certs_pkcs11](experimental/swarmauri_certs_pkcs11/) | `certs` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_sodium](experimental/swarmauri_crypto_sodium/) | `crypto` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [DistanceMetrics](experimental/RapidSimilarity/DistanceMetrics/) | `distancemetrics` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [do](experimental/do/) | `do` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [FastTokenizer](experimental/FastTokenizer/) | `fasttokenizer` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [g9](experimental/g9/) | `g9` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [gk](experimental/gk/) | `gk` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [IndexBuilder](experimental/RapidSimilarity/IndexBuilder/) | `indexbuilder` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [jaml](experimental/jaml/) | `jaml` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [jz](experimental/jz/) | `jz` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
@@ -970,6 +980,7 @@ fail validation because they make composition order ambiguous.
 | [monotone-ops](experimental/monotone_ops/) | `monotone` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [mto](experimental/mto/) | `mto` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_parser_asn1](experimental/swarmauri_parser_asn1/) | `parser` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [pj](experimental/pj/) | `pj` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [ptree_dag_extension_example](experimental/ptree_dag_extension_example/) | `ptree` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [QueryEngine](experimental/RapidSimilarity/QueryEngine/) | `queryengine` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [s.f](experimental/s_f/) | `s.f` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
@@ -980,6 +991,11 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_tests_pylicense](experimental/swarmauri_tests_pylicense/) | `tests` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tests_readme_examples](experimental/swarmauri_tests_readme_examples/) | `tests` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [tigr](experimental/tigr/) | `tigr` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [uu](experimental/uu/) | `uu` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [vb](experimental/vb/) | `vb` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [xj](experimental/xj/) | `xj` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [xk](experimental/xk/) | `xk` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
+| [xz](experimental/xz/) | `xz` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [ye](experimental/ye/) | `ye` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [ymls](experimental/ymls/) | `ymls` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
 | [zr0](experimental/zr0/) | `zr0` | `experimental-atomic` | `inferred` | 0 | single-capability package by default |
@@ -1221,6 +1237,12 @@ fail validation because they make composition order ambiguous.
 |---|---|---|---|---|---|---|
 | `70.0` | [DistanceMetrics](experimental/RapidSimilarity/DistanceMetrics/) | `70-experimental` | `experimental/RapidSimilarity/DistanceMetrics` | `experimental-atomic` | `experimental` | no |
 
+### `do`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [do](experimental/do/) | `70-experimental` | `experimental/do` | `experimental-atomic` | `experimental` | no |
+
 ### `documentstore`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1310,6 +1332,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_gitfilter_minio](standards/swarmauri_gitfilter_minio/) | `40-standards` | `standards/swarmauri_gitfilter_minio` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_gitfilter_s3fs](standards/swarmauri_gitfilter_s3fs/) | `40-standards` | `standards/swarmauri_gitfilter_s3fs` | `atomic-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_gitfilter_file](standards/swarmauri_gitfilter_file/) | `40-standards` | `standards/swarmauri_gitfilter_file` | `composite-concrete` | `standard` | yes |
+
+### `gk`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [gk](experimental/gk/) | `70-experimental` | `experimental/gk` | `experimental-atomic` | `experimental` | no |
 
 ### `grantstore`
 
@@ -1509,6 +1537,12 @@ fail validation because they make composition order ambiguous.
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
 | `40.0` | [swarmauri_permission_explicit](standards/swarmauri_permission_explicit/) | `40-standards` | `standards/swarmauri_permission_explicit` | `atomic-concrete` | `standard` | yes |
+
+### `pj`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [pj](experimental/pj/) | `70-experimental` | `experimental/pj` | `experimental-atomic` | `experimental` | no |
 
 ### `pop`
 
@@ -1826,6 +1860,18 @@ fail validation because they make composition order ambiguous.
 |---|---|---|---|---|---|---|
 | `00.0` | [swarmauri_typing](typing/) | `00-typing` | `typing` | `atomic-foundation` | `foundation` | yes |
 
+### `uu`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [uu](experimental/uu/) | `70-experimental` | `experimental/uu` | `experimental-atomic` | `experimental` | no |
+
+### `vb`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [vb](experimental/vb/) | `70-experimental` | `experimental/vb` | `experimental-atomic` | `experimental` | no |
+
 ### `vectorstore`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1858,6 +1904,18 @@ fail validation because they make composition order ambiguous.
 | `40.2` | [swarmauri_workflow_documentassistant](standards/swarmauri_workflow_documentassistant/) | `40-standards` | `standards/swarmauri_workflow_documentassistant` | `orchestrator` | `standard` | yes |
 | `70.2` | [swarmauri_workflow_statedriven](experimental/swarmauri_workflow_statedriven/) | `70-experimental` | `experimental/swarmauri_workflow_statedriven` | `experimental-orchestrator` | `experimental` | yes |
 
+### `xj`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [xj](experimental/xj/) | `70-experimental` | `experimental/xj` | `experimental-atomic` | `experimental` | no |
+
+### `xk`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [xk](experimental/xk/) | `70-experimental` | `experimental/xk` | `experimental-atomic` | `experimental` | no |
+
 ### `xmp`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1870,6 +1928,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_xmp_svg](standards/swarmauri_xmp_svg/) | `40-standards` | `standards/swarmauri_xmp_svg` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_tiff](standards/swarmauri_xmp_tiff/) | `40-standards` | `standards/swarmauri_xmp_tiff` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_webp](standards/swarmauri_xmp_webp/) | `40-standards` | `standards/swarmauri_xmp_webp` | `atomic-concrete` | `standard` | yes |
+
+### `xz`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `70.0` | [xz](experimental/xz/) | `70-experimental` | `experimental/xz` | `experimental-atomic` | `experimental` | no |
 
 ### `ye`
 

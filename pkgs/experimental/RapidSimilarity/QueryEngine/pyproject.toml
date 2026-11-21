@@ -26,7 +26,7 @@ classifiers = [
 
 dependencies = [
     "numpy",
-    "pybind11",
+    "pybind11>=3.0.2", "numpy>=1.26",
     "uv>=0.13.6"
 ]
 license-files = ["LICENSE", "NOTICE"]

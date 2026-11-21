@@ -64,6 +64,9 @@ if __name__ == "__main__":
     print("to_str:", to_str(sample_bytes))
 
     default_headers = {"Content-Type": "application/json"}
-    extra_headers = {"Authorization": "Bearer token", "Content-Type": "text/plain"}
+    extra_headers = {
+        "Authorization": "Bearer token",
+        "Content-Type": "text/plain",
+    }
     merged = merge_headers(default_headers, extra_headers)
     print("Merged Headers:", merged)

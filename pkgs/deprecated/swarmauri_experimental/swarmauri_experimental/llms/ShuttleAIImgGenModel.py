@@ -3,7 +3,7 @@ import asyncio
 import httpx
 from typing import List, Literal, Dict
 from pydantic import Field, ConfigDict
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri_base.llms.LLMBase import LLMBase
 
 
 class ShuttleAIImgGenModel(LLMBase):

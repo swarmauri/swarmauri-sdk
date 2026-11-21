@@ -75,6 +75,7 @@ def test_serialization():
 def test_call(
     X, n_neighbors, n_components, n_iterations, expected_shape, should_raise
 ):
+    pytest.importorskip("pacmap", reason="Requires optional manifold extra")
     tool = Tool()
     kwargs = {
         "X": X,

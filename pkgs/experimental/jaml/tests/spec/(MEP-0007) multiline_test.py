@@ -9,7 +9,8 @@ from jaml import (
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Multiline string preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Multiline string preservation not fully
+# implemented yet.")
 def test_multiline_string_preserves_format():
     """
     MEP-007 Section 3.1:
@@ -35,7 +36,8 @@ description = """
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Multiline array preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="Multiline array preservation not fully implemented
+# yet.")
 def test_multiline_array_preserves_format():
     """
     MEP-007 Section 3.2:
@@ -59,7 +61,8 @@ colors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Multiline inline table formatting not fully implemented yet.")
+# @pytest.mark.xfail(reason="Multiline inline table formatting not fully
+# implemented yet.")
 def test_multiline_inline_table_preserves_format():
     """
     MEP-007 Section 3.3:
@@ -81,7 +84,8 @@ profile = {
 
     # Check that the inline table remains multiline
     assert (
-        '[user.profile]\nname = "Alice"\nemail = "alice@example.com"\n' in reserialized
+        '[user.profile]\nname = "Alice"\nemail = "alice@example.com"\n'
+        in reserialized
     )
     assert "alice@example.com" in reserialized
     # Ensure the multiline string is still triple-quoted
@@ -90,7 +94,8 @@ profile = {
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Conversion of inline table to table is not yet supported.")
+# @pytest.mark.xfail(reason="Conversion of inline table to table is not yet
+# supported.")
 def test_conversion_of_inline_table_to_section():
     """
     MEP-007 Section 3.3:
@@ -116,7 +121,8 @@ profile = {
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="List of inline tables preservation not fully implemented yet.")
+# @pytest.mark.xfail(reason="List of inline tables preservation not fully
+# implemented yet.")
 def test_list_of_inline_tables_preserves_structure():
     """
     MEP-007 Section 3.4:
@@ -140,7 +146,8 @@ authors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Whitespace handling in multiline strings not finalized.")
+# @pytest.mark.xfail(reason="Whitespace handling in multiline strings not
+# finalized.")
 def test_whitespace_handling_in_multiline_strings():
     """
     MEP-007 Open Issue:
@@ -163,7 +170,8 @@ notes = """
 
 @pytest.mark.spec
 @pytest.mark.mep0007
-# @pytest.mark.xfail(reason="Indentation rules for nested inline tables not fully enforced yet.")
+# @pytest.mark.xfail(reason="Indentation rules for nested inline tables not
+# fully enforced yet.")
 def test_indentation_in_multiline_inline_tables():
     """
     MEP-007 Open Issue:
@@ -184,5 +192,6 @@ nested = {
     # We expect to preserve indentation, though the exact approach
     # is not fully implemented yet. This test is xfail.
     assert (
-        "[deep.nested]\ndebug = true\n\n[deep.nested.meta]\nlevel = 2" in reserialized
+        "[deep.nested]\ndebug = true\n\n[deep.nested.meta]\nlevel = 2"
+        in reserialized
     )

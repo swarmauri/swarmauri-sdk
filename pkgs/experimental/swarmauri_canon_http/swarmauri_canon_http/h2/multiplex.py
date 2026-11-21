@@ -1,7 +1,8 @@
 """
 h2/multiplex.py
 
-Provides a simple HTTP/2 multiplexer that manages concurrent streams over a single connection.
+Provides a simple HTTP/2 multiplexer that manages concurrent streams over a
+single connection.
 """
 
 import asyncio
@@ -18,7 +19,8 @@ class HTTP2Multiplexer:
 
     def __init__(self, reader, writer):
         """
-        Initialize the multiplexer with an existing asyncio StreamReader and StreamWriter.
+        Initialize the multiplexer with an existing asyncio StreamReader and
+        StreamWriter.
 
         :param reader: asyncio.StreamReader for the connection.
         :param writer: asyncio.StreamWriter for the connection.
@@ -26,7 +28,8 @@ class HTTP2Multiplexer:
         self.reader = reader
         self.writer = writer
         self.next_stream_id = 1  # Client-initiated streams use odd numbers.
-        self.streams = {}  # Mapping of stream_id to asyncio.Queue for incoming frames.
+        # Mapping of stream_id to asyncio.Queue for incoming frames.
+        self.streams = {}
         self._receive_task = None
 
     async def start_receiving(self):
@@ -48,7 +51,8 @@ class HTTP2Multiplexer:
 
     async def _receive_frames(self):
         """
-        Continuously receive frames from the connection and dispatch them to the appropriate stream queues.
+        Continuously receive frames from the connection and dispatch them to
+        the appropriate stream queues.
         """
         buffer = b""
         while not self.reader.at_eof():
@@ -67,7 +71,8 @@ class HTTP2Multiplexer:
                 if frame.stream_id in self.streams:
                     await self.streams[frame.stream_id].put(frame)
                 else:
-                    # Handle connection-level frames (e.g., SETTINGS, PING, etc.).
+                    # Handle connection-level frames (e.g., SETTINGS, PING,
+                    # etc.).
                     self.handle_connection_frame(frame)
 
     def handle_connection_frame(self, frame):
@@ -105,7 +110,8 @@ class HTTP2Multiplexer:
         """
         Send a simple HTTP/2 request:
           - Create a new stream.
-          - Send a HEADERS frame (optionally followed by a DATA frame if data is provided).
+          - Send a HEADERS frame (optionally followed by a DATA frame if data
+            is provided).
 
         :param headers: Dictionary of header fields.
         :param data: Optional bytes payload.
@@ -114,7 +120,8 @@ class HTTP2Multiplexer:
         # Create a new stream.
         stream_id = self.create_stream()
 
-        # Convert headers to a header block using HPACK (or a stub implementation).
+        # Convert headers to a header block using HPACK (or a stub
+        # implementation).
         # Here you might call: header_block = hpack_encode(headers)
         # For simplicity, we'll assume headers are already a bytes object.
         header_block = b"".join(
@@ -123,7 +130,10 @@ class HTTP2Multiplexer:
 
         # Create and send a HEADERS frame.
         headers_frame = HTTP2Frame(
-            frame_type=0x1, flags=0x4, stream_id=stream_id, payload=header_block
+            frame_type=0x1,
+            flags=0x4,
+            stream_id=stream_id,
+            payload=header_block,
         )
         await self.send_frame(headers_frame)
 
@@ -146,4 +156,6 @@ class HTTP2Multiplexer:
         """
         if stream_id not in self.streams:
             raise ValueError(f"Stream {stream_id} does not exist")
-        return await asyncio.wait_for(self.streams[stream_id].get(), timeout=timeout)
+        return await asyncio.wait_for(
+            self.streams[stream_id].get(), timeout=timeout
+        )

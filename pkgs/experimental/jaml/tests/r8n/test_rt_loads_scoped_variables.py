@@ -12,11 +12,13 @@ def test_rt_global_scope_variable_load_only():
 [logic]
 greeting: str = ~( "Hello, " + @user.name )
     """.strip()
-    # We don't provide any context, because we're only testing load, not evaluation.
+    # We don't provide any context, because we're only testing load, not
+    # evaluation.
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
     data = loads(dumped_str)  # No context provided
-    # Instead of checking for "Hello, Alice", we confirm the expression is stored as is.
+    # Instead of checking for "Hello, Alice", we confirm the expression is
+    # stored as is.
     greeting_val = data["logic"]["greeting"]
     # We expect the raw expression string, e.g. '~( "Hello, " + @user.name )'
     assert greeting_val == '~( "Hello, " + @user.name )'
@@ -32,7 +34,8 @@ first_value: int = ~( @values[0] + 10 )
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
     data = loads(dumped_str)
-    # We only confirm that "first_value" is the raw expression, not the numeric result 15
+    # We only confirm that "first_value" is the raw expression, not the numeric
+    # result 15
     assert data["logic"]["first_value"] == "~( @values[0] + 10 )"
 
 
@@ -62,7 +65,8 @@ greeting: str = ~( "Hello, " + @name )
     ast = round_trip_loads(jml)
     dumped_str = round_trip_dumps(ast)
     data = loads(dumped_str)
-    # We only confirm that 'greeting' has the raw expression, not any resolution.
+    # We only confirm that 'greeting' has the raw expression, not any
+    # resolution.
     assert data["test"]["greeting"] == '~( "Hello, " + @name )'
 
 

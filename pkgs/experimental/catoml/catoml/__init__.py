@@ -6,7 +6,8 @@ This module supports a subset of TOML:
   - Top-level key/value pairs
   - Tables (using [table] headers, including nested tables via dot notation)
   - Arrays of tables (using [[table]] headers) per the TOML spec.
-  - Inline tables (using the { ... } notation) are preserved via the InlineTable class.
+  - Inline tables (using the { ... } notation) are preserved via the
+  InlineTable class.
   - Arrays of simple values
 
 Note: This is a simple implementation and does not cover the full TOML spec.
@@ -56,7 +57,8 @@ def quote_key(key: str) -> str:
 def reformat_prefix(prefix_list: list) -> str:
     """
     Given a list of keys (each a str or QuotedKey), join them with a dot.
-    Each key is passed through quote_key so that keys that need quoting are quoted.
+    Each key is passed through quote_key so that keys that need quoting are
+    quoted.
     """
     return ".".join(quote_key(k) for k in prefix_list)
 
@@ -219,7 +221,8 @@ def parse_value(s: str):
 
 def parse_inline_table(s: str) -> InlineTable:
     """
-    Parse an inline table (e.g. { key = 42, name = "foo" }) and return an InlineTable.
+    Parse an inline table (e.g. { key = 42, name = "foo" }) and return an
+    InlineTable.
     """
     inner = s.strip()[1:-1].strip()
     table = InlineTable()
@@ -239,7 +242,8 @@ def parse_inline_table(s: str) -> InlineTable:
 def parse_array(s: str) -> list:
     """
     Parse a TOML array (e.g. [ 1, 2, 3 ]) into a Python list.
-    (This implementation does not support nested arrays with commas inside values.)
+    (This implementation does not support nested arrays with commas inside
+    values.)
     """
     inner = s.strip()[1:-1].strip()
     if not inner:
@@ -280,7 +284,9 @@ def loads(toml_string: str) -> dict:
             if last_key not in current_table:
                 current_table[last_key] = []
             elif not isinstance(current_table[last_key], list):
-                raise ValueError(f"Conflicting table definition for key: {last_key}")
+                raise ValueError(
+                    f"Conflicting table definition for key: {last_key}"
+                )
             new_table = {}
             current_table[last_key].append(new_table)
             current_table = new_table
@@ -309,7 +315,8 @@ def loads(toml_string: str) -> dict:
 
 def load(fp) -> dict:
     """
-    Read a TOML document from a file-like object or filename and return the parsed dict.
+    Read a TOML document from a file-like object or filename and return the
+    parsed dict.
     """
     if isinstance(fp, str):
         with open(fp, "r", encoding="utf-8") as f:
@@ -344,7 +351,10 @@ def dumps_value(value, multiline_arrays=True, indent=0) -> str:
     elif isinstance(value, list):
         if multiline_arrays:
             inner_indent = " " * (indent + 4)
-            items = [dumps_value(item, multiline_arrays, indent + 4) for item in value]
+            items = [
+                dumps_value(item, multiline_arrays, indent + 4)
+                for item in value
+            ]
             return (
                 "[\n"
                 + ",\n".join(inner_indent + item for item in items)
@@ -353,7 +363,9 @@ def dumps_value(value, multiline_arrays=True, indent=0) -> str:
                 + "]"
             )
         else:
-            items = [dumps_value(item, multiline_arrays, indent) for item in value]
+            items = [
+                dumps_value(item, multiline_arrays, indent) for item in value
+            ]
             return "[ " + ", ".join(items) + " ]"
     else:
         return str(value)
@@ -361,7 +373,8 @@ def dumps_value(value, multiline_arrays=True, indent=0) -> str:
 
 def is_array_of_tables(value) -> bool:
     """
-    Returns True if the value is a non-empty list of dictionaries (and not InlineTable instances),
+    Returns True if the value is a non-empty list of dictionaries (and not
+    InlineTable instances),
     indicating an array-of-tables.
     """
     if isinstance(value, list) and value:
@@ -374,8 +387,10 @@ def is_array_of_tables(value) -> bool:
 
 def has_direct_values(table: dict) -> bool:
     """
-    Returns True if the table has any direct key/value pairs (i.e. values that are not dicts
-    or arrays-of-tables). This is used to decide whether to emit a header for an intermediate container.
+    Returns True if the table has any direct key/value pairs (i.e. values that
+    are not dicts
+    or arrays-of-tables). This is used to decide whether to emit a header for
+    an intermediate container.
     """
     for v in table.values():
         if not (
@@ -392,7 +407,8 @@ def _dumps_section(
     """
     Recursively dump key/value pairs for a table.
     prefix_list is a list of keys representing the current header.
-    Direct key/value pairs are output first, then nested tables and arrays-of-tables.
+    Direct key/value pairs are output first, then nested tables and
+    arrays-of-tables.
     Intermediate containers with no direct values are flattened.
     """
     lines = []
@@ -408,27 +424,36 @@ def _dumps_section(
             if has_direct_values(v):
                 lines.append("")
                 lines.append(f"[{reformat_prefix(new_prefix)}]")
-                lines.extend(_dumps_section(new_prefix, v, multiline_arrays, indent))
+                lines.extend(
+                    _dumps_section(new_prefix, v, multiline_arrays, indent)
+                )
             else:
-                lines.extend(_dumps_section(new_prefix, v, multiline_arrays, indent))
+                lines.extend(
+                    _dumps_section(new_prefix, v, multiline_arrays, indent)
+                )
         elif isinstance(v, list) and is_array_of_tables(v):
             new_prefix = prefix_list + [k]
             for item in v:
                 lines.append("")
                 lines.append(f"[[{reformat_prefix(new_prefix)}]]")
-                lines.extend(_dumps_section(new_prefix, item, multiline_arrays, indent))
+                lines.extend(
+                    _dumps_section(new_prefix, item, multiline_arrays, indent)
+                )
     return lines
 
 
 def dumps(data: dict, multiline_arrays=True) -> str:
     """
-    Convert a Python dictionary (as returned by loads) into a TOML-formatted string.
-    Top-level non-dictionary values and InlineTable instances are dumped inline.
+    Convert a Python dictionary (as returned by loads) into a TOML-formatted
+    string.
+    Top-level non-dictionary values and InlineTable instances are dumped
+    inline.
     Top-level dictionaries are dumped as tables.
     Arrays of tables are output using double-bracket headers.
     Intermediate containers with no direct values are flattened.
 
-    If multiline_arrays is True, arrays (e.g. classifiers) are dumped with one element per line.
+    If multiline_arrays is True, arrays (e.g. classifiers) are dumped with one
+    element per line.
     """
     lines = []
     for key, value in data.items():
@@ -436,7 +461,9 @@ def dumps(data: dict, multiline_arrays=True) -> str:
             (isinstance(value, dict) and not isinstance(value, InlineTable))
             or (isinstance(value, list) and is_array_of_tables(value))
         ):
-            lines.append(f"{key} = {dumps_value(value, multiline_arrays, indent=0)}")
+            lines.append(
+                f"{key} = {dumps_value(value, multiline_arrays, indent=0)}"
+            )
     for key, value in data.items():
         if isinstance(value, dict) and not isinstance(value, InlineTable):
             prefix_list = [key]
@@ -444,11 +471,15 @@ def dumps(data: dict, multiline_arrays=True) -> str:
                 lines.append("")
                 lines.append(f"[{reformat_prefix(prefix_list)}]")
                 lines.extend(
-                    _dumps_section(prefix_list, value, multiline_arrays, indent=0)
+                    _dumps_section(
+                        prefix_list, value, multiline_arrays, indent=0
+                    )
                 )
             else:
                 lines.extend(
-                    _dumps_section(prefix_list, value, multiline_arrays, indent=0)
+                    _dumps_section(
+                        prefix_list, value, multiline_arrays, indent=0
+                    )
                 )
         elif isinstance(value, list) and is_array_of_tables(value):
             prefix_list = [key]
@@ -456,14 +487,17 @@ def dumps(data: dict, multiline_arrays=True) -> str:
                 lines.append("")
                 lines.append(f"[[{reformat_prefix(prefix_list)}]]")
                 lines.extend(
-                    _dumps_section(prefix_list, item, multiline_arrays, indent=0)
+                    _dumps_section(
+                        prefix_list, item, multiline_arrays, indent=0
+                    )
                 )
     return "\n".join(lines)
 
 
 def dump(data: dict, fp):
     """
-    Write the TOML representation of the given dict to a file-like object or filename.
+    Write the TOML representation of the given dict to a file-like object or
+    filename.
     """
     toml_str = dumps(data)
     if isinstance(fp, str):

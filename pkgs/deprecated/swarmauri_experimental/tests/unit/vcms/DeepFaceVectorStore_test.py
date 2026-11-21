@@ -1,5 +1,7 @@
 import pytest
-from swarmauri.vcms.concrete.DeepFaceVectorStore import DeepFaceVectorStore
+from swarmauri_experimental.vcms.concrete.DeepFaceVectorStore import (
+    DeepFaceVectorStore,
+)
 
 
 @pytest.mark.unit

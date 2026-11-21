@@ -5,7 +5,6 @@ import pytest
 
 from swarmauri_canon_http import HttpClient
 from swarmauri_canon_http.exceptions import HttpClientError
-from tests.parity.httpx.helpers import build_httpx_request
 
 
 def test_httpx_client_exposes_http1_and_http2_toggles():
@@ -27,9 +26,14 @@ def test_canon_client_rejects_unsupported_http3_version():
         client.sync_request("GET", "/")
 
 
-def test_httpx_does_not_handle_websocket_schemes():
-    with pytest.raises(httpx.UnsupportedProtocol):
-        build_httpx_request("GET", "ws://example.com/socket")
+def test_httpx_does_not_initiate_websocket_handshake():
+    def handle(request):
+        assert "upgrade" not in request.headers
+        assert "sec-websocket-key" not in request.headers
+        return httpx.Response(200)
+
+    with httpx.Client(transport=httpx.MockTransport(handle)) as client:
+        assert client.get("ws://example.com/socket").status_code == 200
 
 
 @pytest.mark.asyncio

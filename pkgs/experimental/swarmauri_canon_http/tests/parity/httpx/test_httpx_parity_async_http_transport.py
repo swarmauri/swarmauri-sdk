@@ -22,4 +22,6 @@ async def test_httpx_async_client_accepts_custom_async_transport():
 
 def test_canon_client_has_no_async_http_transport_injection():
     with pytest.raises(TypeError):
-        HttpClient(base_url="http://example.com", transport=httpx.AsyncHTTPTransport())
+        HttpClient(
+            base_url="http://example.com", transport=httpx.AsyncHTTPTransport()
+        )

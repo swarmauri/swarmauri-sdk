@@ -8,6 +8,7 @@ kernel,
 handles timeouts, and manages exceptions.
 """
 
+from importlib import import_module
 import pytest
 from unittest.mock import patch, MagicMock
 from swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool import (
@@ -41,12 +42,18 @@ def test_call_method_no_messages(timeout_value: float) -> None:
     mock_client.shell_channel.msg_ready.return_value = False
 
     with (
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "find_connection_file",
             return_value="fake_connection_file",
         ),
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "BlockingKernelClient",
             return_value=mock_client,
         ),
     ):
@@ -64,12 +71,18 @@ def test_call_method_with_messages() -> None:
     from itertools import chain, repeat
 
     with (
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "find_connection_file",
             return_value="fake_connection_file",
         ),
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient"
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "BlockingKernelClient",
         ) as MockClient,
     ):
         mock_client_instance = MockClient.return_value
@@ -99,12 +112,18 @@ def test_call_method_exception_handling() -> None:
     """
     # Here we force find_connection_file to raise an exception.
     with (
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.find_connection_file",
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "find_connection_file",
             return_value="fake_connection_file",
         ),
-        patch(
-            "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool.BlockingKernelClient",
+        patch.object(
+            import_module(
+                "swarmauri_tool_jupytergetshellmessage.JupyterGetShellMessageTool"
+            ),
+            "BlockingKernelClient",
             side_effect=RuntimeError("Test Error"),
         ),
     ):

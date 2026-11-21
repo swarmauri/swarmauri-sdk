@@ -1,6 +1,10 @@
 import os
 
 import pytest
+import matplotlib
+
+matplotlib.use("Agg")
+
 from swarmauri_tool_matplotlib.MatplotlibTool import MatplotlibTool as Tool
 
 
@@ -65,8 +69,17 @@ def test_serialization(tool):
 )
 @pytest.mark.unit
 def test_call(
-    plot_type, x_data, y_data, title, x_label, y_label, save_path, tool
+    plot_type,
+    x_data,
+    y_data,
+    title,
+    x_label,
+    y_label,
+    save_path,
+    tool,
+    tmp_path,
 ):
+    save_path = str(tmp_path / save_path)
     expected_keys = {"img_path", "img_base64", "data"}
 
     result = tool(

@@ -41,7 +41,9 @@ endpoint = ${base_url}
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Same-table attribute referencing not fully implemented")
+@pytest.mark.xfail(
+    reason="Same-table attribute referencing not fully implemented"
+)
 def test_basic_same_table_reference():
     # Test using the same-table referencing operator @{}
     jml = """

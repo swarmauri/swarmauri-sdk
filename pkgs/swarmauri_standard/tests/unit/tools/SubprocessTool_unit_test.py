@@ -1,6 +1,8 @@
 """Regression proofs for the original case-sensitive import and results."""
 
 import importlib
+import shlex
+import subprocess
 import sys
 from unittest.mock import patch
 
@@ -10,6 +12,13 @@ import pytest
 def _legacy_tool():
     module = importlib.import_module("swarmauri_standard.tools.SubprocessTool")
     return module.SubprocessTool()
+
+
+def _echo_command():
+    args = [sys.executable, "-c", "print(123)"]
+    if sys.platform == "win32":
+        return subprocess.list2cmdline(args)
+    return shlex.join(args)
 
 
 @pytest.mark.unit
@@ -27,7 +36,7 @@ def test_module_import_is_lazy() -> None:
 @pytest.mark.unit
 def test_original_import_and_string_exit_status() -> None:
     tool = _legacy_tool()
-    result = tool("echo 123", shell=True)
+    result = tool(_echo_command(), shell=True)
     assert result == {"stdout": "123\n", "stderr": "", "exit_code": "0"}
     assert set(result) == {"stdout", "stderr", "exit_code"}
 
@@ -94,4 +103,4 @@ def test_legacy_schema_and_execution_with_only_the_kernel() -> None:
             "timeout",
             "shell",
         ]
-        assert tool("echo 123", shell=True)["exit_code"] == "0"
+        assert tool(_echo_command(), shell=True)["exit_code"] == "0"

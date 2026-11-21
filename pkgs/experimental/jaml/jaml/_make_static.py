@@ -6,7 +6,9 @@ if TYPE_CHECKING:
     from ._ast_nodes import TableArraySectionNode, SectionNode
 
 
-def make_static_table_array(header_str: str, scope: Dict) -> "TableArraySectionNode":
+def make_static_table_array(
+    header_str: str, scope: Dict
+) -> "TableArraySectionNode":
     from ._ast_nodes import TableArraySectionNode, TableArrayHeaderNode
 
     ta = TableArraySectionNode()

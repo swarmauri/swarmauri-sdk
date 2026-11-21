@@ -94,16 +94,17 @@ poetry add swarmauri_distance_minkowski
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_distance_minkowski/docs/readme/quick_start.py).
 
 ```python
-import importlib
+from swarmauri_standard.metrics.LpMetric import LpMetric
 
-package = importlib.import_module("swarmauri_distance_minkowski")
-assert package.__name__ == "swarmauri_distance_minkowski"
+metric = LpMetric(p=2)
+distance = metric.distance([1.0, 2.0], [1.0, 2.0])
+similarity = 1.0 if distance == 0.0 else 1.0 / (1.0 + distance)
 ```
 <!-- readme-standards:end example.quick-start -->
 
 #### Expected Result
 
-This quick start is explicitly an import smoke check for `swarmauri_distance_minkowski`. It confirms that the documented namespace loads; it does not demonstrate or certify a complete application workflow. The detailed source and retained usage guidance below describe the integration boundary.
+Identical vectors produce a distance of 0.0 and similarity of 1.0.
 
 ---
 
@@ -188,7 +189,7 @@ Apply the input, credential, and resource constraints implemented in [package so
 
 - Re-exports the deprecated `MinkowskiDistance` compatibility shim.
 - Emits a `DeprecationWarning` on import.
-- Remains compatible only with Swarmauri packages earlier than `0.10.0`.
+- Supports the current Swarmauri `0.11` development release; dependencies remain capped below `0.12`, when these deprecated wrappers are scheduled for removal.
 
 ---
 

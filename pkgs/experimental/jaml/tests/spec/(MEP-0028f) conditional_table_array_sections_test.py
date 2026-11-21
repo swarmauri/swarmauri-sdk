@@ -8,7 +8,8 @@ from jaml import round_trip_loads
 @pytest.mark.mep0028f
 def test_section_headers_with_clauses():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
 
     # The input JML content (as a multi-line string)

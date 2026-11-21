@@ -8,9 +8,9 @@ from ampligraph.utils import save_model, restore_model
 from swarmauri_core.documents.IDocument import IDocument
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.retrievers.IRetriever import IRetriever
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_standard.documents.Document import Document
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
-from swarmauri.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri_standard.vectors.SimpleVector import SimpleVector
 from swarmauri.vectorizers.concrete.AmpligraphVectorizer import (
     AmpligraphVectorizer,
 )

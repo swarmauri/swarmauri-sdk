@@ -13,7 +13,8 @@ from jaml import loads, round_trip_loads
 # @pytest.mark.xfail(reason="Namespace merging not yet implemented")
 def test_simple_namespace_merging():
     """
-    Verifies that separate sections with a shared dotted prefix are merged under the same namespace.
+    Verifies that separate sections with a shared dotted prefix are merged
+    under the same namespace.
     """
     source = """
     [app.settings]
@@ -32,15 +33,17 @@ def test_simple_namespace_merging():
     assert "settings" in result["app"]
     assert result["app"]["settings"]["debug"] is True
     assert "paths" in result["app"]
-    assert result["app"]["paths"]["log"] == '"/var/log/app.log"'
+    assert result["app"]["paths"]["log"] == "/var/log/app.log"
 
 
 @pytest.mark.spec
 @pytest.mark.mep0005
-# @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet implemented")
+# @pytest.mark.xfail(reason="Conflict resolution (last key wins) not yet
+# implemented")
 def test_conflicting_keys_last_key_wins():
     """
-    Tests that when two tables in the same namespace define the same key, the last one overwrites the first.
+    Tests that when two tables in the same namespace define the same key, the
+    last one overwrites the first.
     """
     source = """
     [server]
@@ -54,7 +57,7 @@ def test_conflicting_keys_last_key_wins():
     # Expect "host" to be "localhost", as the last definition wins
     # and "port" = 8080.
     assert "server" in result
-    assert result["server"]["host"] == '"localhost"'
+    assert result["server"]["host"] == "localhost"
     assert result["server"]["port"] == 8080
 
 
@@ -82,19 +85,22 @@ def test_nested_namespace():
     # } }
     assert "project" in result
     assert "metadata" in result["project"]
-    assert result["project"]["metadata"]["name"] == '"MyApp"'
-    assert result["project"]["metadata"]["version"] == '"1.0.0"'
+    assert result["project"]["metadata"]["name"] == "MyApp"
+    assert result["project"]["metadata"]["version"] == "1.0.0"
     assert "author" in result["project"]
-    assert result["project"]["author"]["name"] == '"John Doe"'
-    assert result["project"]["author"]["email"] == '"john@example.com"'
+    assert result["project"]["author"]["name"] == "John Doe"
+    assert result["project"]["author"]["email"] == "john@example.com"
 
 
 @pytest.mark.spec
 @pytest.mark.mep0005
-@pytest.mark.xfail(reason="Loading multiple files simultaneously is not supported.")
+@pytest.mark.xfail(
+    reason="Loading multiple files simultaneously is not supported."
+)
 def test_merge_across_multiple_sources():
     """
-    If the parser merges multiple file sources, ensure that dotted namespaces combine them.
+    If the parser merges multiple file sources, ensure that dotted namespaces
+    combine them.
     """
     # For demonstration, assume loads can handle multiple inputs
     source1 = """
@@ -117,9 +123,9 @@ def test_merge_across_multiple_sources():
     assert "database" in result
     assert "connection" in result["database"]
     assert "credentials" in result["database"]
-    assert result["database"]["connection"]["host"] == '"localhost"'
+    assert result["database"]["connection"]["host"] == "localhost"
     assert result["database"]["connection"]["port"] == 5432
-    assert result["database"]["credentials"]["user"] == '"admin"'
+    assert result["database"]["credentials"]["user"] == "admin"
 
 
 @pytest.mark.spec
@@ -137,8 +143,10 @@ def test_conflicting_key_warning():
     [logging]
     level = "debug"
     """
-    # We might expect either a warning or a log message that "level" was overwritten.
-    # This test example is conceptual; adjust to your actual code or log checking method.
+    # We might expect either a warning or a log message that "level" was
+    # overwritten.
+    # This test example is conceptual; adjust to your actual code or log
+    # checking method.
     # For instance, if loads returns a warnings list:
     result, warnings = loads(source, enable_conflict_warnings=True)
     # Check that at least one warning about overwritten "level" is present.
@@ -164,8 +172,8 @@ def test_quoted_namespaces():
     level = "info"
     """
     result = loads(source)
-    assert result["logging.app"]["url"] == '"/"'
-    assert result["logging.config"]["level"] == '"info"'
+    assert result["logging.app"]["url"] == "/"
+    assert result["logging.config"]["level"] == "info"
 
 
 # @pytest.mark.xfail(reason="Table preservation is not yet implemented")

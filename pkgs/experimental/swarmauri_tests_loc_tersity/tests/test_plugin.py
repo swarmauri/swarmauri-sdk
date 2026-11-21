@@ -1,3 +1,5 @@
+import pytest
+
 pytest_plugins = ["pytester"]
 
 
@@ -33,3 +35,9 @@ def test_aggregate_mode(pytester):
     )
     result.assert_outcomes(failed=1)
     assert "bad.py has" in result.stdout.str()
+
+
+@pytest.fixture(autouse=True)
+def isolate_nested_pytest_license_check(monkeypatch, pytester):
+    """Nested pytester projects exercise this plugin without SDK metadata."""
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-p no:swarmauri_tests_pylicense")

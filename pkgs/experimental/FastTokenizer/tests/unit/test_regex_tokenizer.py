@@ -1,6 +1,6 @@
 import logging
 import pytest
-from FastTokenizer.regex_tokenizer import RegexTokenizer
+from fasttokenizer import RegexTokenizer
 
 # Set up logging configuration
 logging.basicConfig(level=logging.INFO)
@@ -34,13 +34,15 @@ class TestRegexTokenizer:
             ("This is another test.", ["This", "is", "another", "test"]),
         ],
     )
-    def test_tokenize_multiple(self, regex_tokenizer, input_string, expected_tokens):
-        """Test that the tokenize method returns the expected tokens for multiple inputs."""
+    def test_tokenize_multiple(
+        self, regex_tokenizer, input_string, expected_tokens
+    ):
+        """Verify expected tokens for multiple inputs."""
         tokens = regex_tokenizer.tokenize(input_string)
         assert tokens == expected_tokens
 
     def test_get_pattern(self, regex_tokenizer):
-        """Test that the get_pattern method returns the expected regex pattern."""
+        """Verify the configured regex pattern."""
         assert regex_tokenizer.get_pattern() == r"\w+"
 
     def test_invalid_pattern(self):
@@ -49,6 +51,6 @@ class TestRegexTokenizer:
             RegexTokenizer(pattern="[Invalid pattern")
 
     def test_none_pattern(self):
-        """Test that a None regex pattern raises a ValueError."""
-        with pytest.raises(ValueError):
+        """Test that a None regex pattern is rejected as a non-string."""
+        with pytest.raises(TypeError):
             RegexTokenizer(pattern=None)

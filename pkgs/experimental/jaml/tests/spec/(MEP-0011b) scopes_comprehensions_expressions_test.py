@@ -21,14 +21,15 @@ test_conf = { testFramework = "pytest", tests = %{module.name} }
 @pytest.mark.mep0011b
 def test_context_scoped_var_resolve():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")
     print(data, "\n\n")
     assert data["test"]["module"]["name"] == "example"
 
-    resolved_config = data.resolve(data)
+    resolved_config = data.resolve()
     assert resolved_config["test"]["name"] == "example.py"
 
     rendered_data = data.render(context={})

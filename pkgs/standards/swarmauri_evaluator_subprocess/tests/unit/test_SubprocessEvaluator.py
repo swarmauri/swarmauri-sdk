@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 from unittest.mock import ANY, MagicMock, patch
 
@@ -242,6 +243,9 @@ def test_calculate_score_output_match(evaluator):
 
 @pytest.mark.unit
 @patch("subprocess.Popen")
+@pytest.mark.skipif(
+    os.name == "nt", reason="Execution requires POSIX resource limits"
+)
 def test_execute_subprocess_success(mock_popen, evaluator):
     """Test successful subprocess execution."""
     mock_process = MagicMock()
@@ -262,6 +266,9 @@ def test_execute_subprocess_success(mock_popen, evaluator):
 
 @pytest.mark.unit
 @patch("subprocess.Popen")
+@pytest.mark.skipif(
+    os.name == "nt", reason="Execution requires POSIX resource limits"
+)
 def test_execute_subprocess_timeout(mock_popen, evaluator):
     """Test subprocess execution with timeout."""
     mock_process = MagicMock()
@@ -280,6 +287,9 @@ def test_execute_subprocess_timeout(mock_popen, evaluator):
 
 @pytest.mark.unit
 @patch("subprocess.Popen")
+@pytest.mark.skipif(
+    os.name == "nt", reason="Execution requires POSIX resource limits"
+)
 def test_execute_subprocess_error(mock_popen, evaluator):
     """Test subprocess execution with error."""
     mock_popen.side_effect = Exception("Test error")

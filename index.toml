@@ -2906,7 +2906,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "transport"
 role = "atomic-concrete"
@@ -4773,7 +4772,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "tool"
 role = "atomic-concrete"
@@ -5800,6 +5798,20 @@ maturity = "experimental"
 workspace = false
 
 [[packages]]
+id = "do"
+name = "do"
+path = "pkgs/experimental/do"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "do"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
 id = "fasttokenizer"
 name = "FastTokenizer"
 path = "pkgs/experimental/FastTokenizer"
@@ -5823,6 +5835,20 @@ order = 0
 order_reason = "single-capability package by default"
 [packages.metadata.swarmauri]
 family = "g9"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
+id = "gk"
+name = "gk"
+path = "pkgs/experimental/gk"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "gk"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = false
@@ -5939,6 +5965,20 @@ family = "parser"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = true
+
+[[packages]]
+id = "pj"
+name = "pj"
+path = "pkgs/experimental/pj"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "pj"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
 
 [[packages]]
 id = "ptree-dag-extension-example"
@@ -6080,6 +6120,76 @@ family = "tigr"
 role = "experimental-atomic"
 maturity = "experimental"
 workspace = true
+
+[[packages]]
+id = "uu"
+name = "uu"
+path = "pkgs/experimental/uu"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "uu"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
+id = "vb"
+name = "vb"
+path = "pkgs/experimental/vb"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "vb"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
+id = "xj"
+name = "xj"
+path = "pkgs/experimental/xj"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "xj"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
+id = "xk"
+name = "xk"
+path = "pkgs/experimental/xk"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "xk"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
+
+[[packages]]
+id = "xz"
+name = "xz"
+path = "pkgs/experimental/xz"
+ecosystem = "pypi"
+layer = "70-experimental"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "xz"
+role = "experimental-atomic"
+maturity = "experimental"
+workspace = false
 
 [[packages]]
 id = "ye"

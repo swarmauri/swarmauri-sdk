@@ -6,7 +6,10 @@ from jaml import round_trip_loads, round_trip_dumps, render
 
 @pytest.mark.spec
 @pytest.mark.xfail(
-    reason="Partial evaluation of mixed static/dynamic references not fully implemented."
+    reason=(
+        "Partial evaluation of mixed static/dynamic references not fully "
+        "implemented."
+    )
 )
 def test_mixed_static_and_dynamic_fold():
     """
@@ -21,7 +24,8 @@ host = "prodserver"
 port = 8080
 
 [api]
-endpoint = {^ "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} ^}
+endpoint = {^ "http://" + @{server.host} + ":" + @{server.port} +\
+ "/api?token=" + ${auth_token} ^}
 """
     # 1) Load (round_trip_loads) partially evaluates the folded expression.
     ast = round_trip_loads(toml_str)
@@ -40,7 +44,9 @@ endpoint = {^ "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
 
 @pytest.mark.spec
 @pytest.mark.xfail(
-    reason="Conditional folding may not fully simplify to context references yet."
+    reason=(
+        "Conditional folding may not fully simplify to context references yet."
+    )
 )
 def test_conditional_reduces_to_context():
     """
@@ -54,7 +60,8 @@ def test_conditional_reduces_to_context():
 is_production = false
 
 [settings]
-strategy = {^ "ProductionStrategy" if @{logic.is_production} else ${dynamic_strategy} ^}
+strategy = {^ "ProductionStrategy" if @{logic.is_production} else\
+ ${dynamic_strategy} ^}
 """
     ast = round_trip_loads(toml_str)
     reserialized = round_trip_dumps(ast)
@@ -94,7 +101,9 @@ result = {^ true and ${flag} ^}
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Load-time error for undefined globals not fully enforced.")
+@pytest.mark.xfail(
+    reason="Load-time error for undefined globals not fully enforced."
+)
 def test_undefined_global_causes_error_in_fold():
     """
     MEP-0025:
@@ -126,7 +135,9 @@ endpoint = {^ "http://" + @{host} + "/service?key=" + ${secret_key} ^}
 host = "example.com"
 """
     ast = round_trip_loads(toml_str)
-    with pytest.raises(Exception, match="missing context variable 'secret_key'"):
+    with pytest.raises(
+        Exception, match="missing context variable 'secret_key'"
+    ):
         render(round_trip_dumps(ast), context={})  # no secret_key
 
 
@@ -137,7 +148,8 @@ host = "example.com"
 def test_nested_expressions_combine_static_and_dynamic():
     """
     MEP-0025:
-      Expressions can nest further computations, e.g. {^ @{base} + ( {^ another expr ^} ) ^}
+      Expressions can nest further computations, e.g. {^ @{base} + ( {^ another
+      expr ^} ) ^}
       verifying partial folds inside partial folds.
     """
     toml_str = """
@@ -158,7 +170,9 @@ nested = {^ @{base} + {^ ${context_val} + ".cfg" ^} ^}
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Complex multi-operator precedence not fully supported yet")
+@pytest.mark.xfail(
+    reason="Complex multi-operator precedence not fully supported yet"
+)
 def test_operator_precedence_in_folded_expressions():
     """
     MEP-0025:
@@ -181,7 +195,9 @@ n = 10
 
 @pytest.mark.spec
 @pytest.mark.xfail(
-    reason="Flattening nested booleans (e.g. 'false or ${flag}') not implemented."
+    reason=(
+        "Flattening nested booleans (e.g. 'false or ${flag}') not implemented."
+    )
 )
 def test_nested_boolean_simplification():
     """

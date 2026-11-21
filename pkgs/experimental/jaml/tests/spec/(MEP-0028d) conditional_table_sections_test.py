@@ -71,13 +71,18 @@ name = "example.py"
 
 
 @pytest.mark.xfail(
-    reason="This case is invalid. The expression output is an array. Should we allow conditional table headers to be used in table headers or only table array headers?"
+    reason=(
+        "This case is invalid. The expression output is an array. Should we "
+        "allow conditional table headers to be used in table headers or only"
+        " table array headers?"
+    )
 )
 @pytest.mark.spec
 @pytest.mark.mep0028d
 def test_section_headers_with_clauses():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")

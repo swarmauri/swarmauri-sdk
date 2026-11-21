@@ -1,7 +1,11 @@
 from pathlib import Path
 
 import swm_example_plugin
-import tomllib
+
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 
 def test_version_matches_pyproject() -> None:

@@ -6,11 +6,14 @@ from jaml import round_trip_loads
 
 @pytest.mark.spec
 @pytest.mark.mep0012
-@pytest.mark.xfail(reason="Global scope variable resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Global scope variable resolution not fully implemented yet."
+)
 def test_global_scope_variable_resolved():
     """
     MEP-012:
-      @-scope should resolve variables defined globally (in [globals]) at load time.
+      @-scope should resolve variables defined globally (in [globals]) at load
+      time.
     """
     toml_str = """
 [globals]
@@ -40,7 +43,8 @@ config = f"@{globals.base}/config.toml"
 def test_self_scope_overrides_global():
     """
     MEP-012:
-      %{...} referencing a table-local variable should override any global with the same name.
+      %{...} referencing a table-local variable should override any global with
+      the same name.
     """
     toml_str = """
 [globals]
@@ -60,7 +64,9 @@ greeting = f"Hello, %{name}!"
 
 @pytest.mark.spec
 @pytest.mark.mep0012
-@pytest.mark.xfail(reason="Context scope resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Context scope resolution not fully implemented yet."
+)
 def test_context_scope_render_time():
     """
     MEP-012:
@@ -88,7 +94,8 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 def test_f_string_dynamic_style():
     """
     MEP-012:
-      Using f-string style (f"") with placeholders should produce the correct resolved string.
+      Using f-string style (f"") with placeholders should produce the correct
+      resolved string.
     """
     toml_str = """
 [paths]
@@ -104,11 +111,14 @@ config_path = f"@{paths.base}/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0012
-@pytest.mark.xfail(reason="Concatenation style resolution not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Concatenation style resolution not fully implemented yet."
+)
 def test_concatenation_style():
     """
     MEP-012:
-      Using concatenation style (variable + literal) should produce the same result
+      Using concatenation style (variable + literal) should produce the same
+      result
       as the f-string approach.
     """
     toml_str = """
@@ -125,7 +135,9 @@ config_path = @{paths.base} + "/myapp/config.toml"
 @pytest.mark.spec
 @pytest.mark.mep0012
 @pytest.mark.xfail(
-    reason="Partial expression evaluation for mixed styles not implemented yet."
+    reason=(
+        "Partial expression evaluation for mixed styles not implemented yet."
+    )
 )
 def test_mixed_styles_incomplete_implementation():
     """
@@ -149,7 +161,8 @@ config_path = f"${base}" + "/dynamic/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0012
-# @pytest.mark.xfail(reason="Global and context scope overshadow handling not fully implemented yet.")
+# @pytest.mark.xfail(reason="Global and context scope overshadow handling not
+# fully implemented yet.")
 def test_global_and_context_scope_same_name():
     """
     MEP-012:
@@ -173,7 +186,9 @@ file = f"${path}/config.toml"
 
 @pytest.mark.spec
 @pytest.mark.mep0012
-@pytest.mark.xfail(reason="Support for inline comments not fully implemented yet.")
+@pytest.mark.xfail(
+    reason="Support for inline comments not fully implemented yet."
+)
 def test_global_and_context_scope_same_name_and_inline_cmt():
     """
     MEP-012:

@@ -65,7 +65,8 @@ user: table = { name = "Azzy", details = { age = 9, role = "admin" } }
 
 @pytest.mark.unit
 def test_loads_multiline_table():
-    # Test a standard multiline table (a section with multiple key-value pairs).
+    # Test a standard multiline table (a section with multiple key-value
+    # pairs).
     jml = """
 [address]
 city = "New York"

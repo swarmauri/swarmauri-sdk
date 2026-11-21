@@ -28,4 +28,6 @@ def test_httpx_client_accepts_base_transport_subclass():
 
 def test_canon_client_rejects_base_transport_keyword():
     with pytest.raises(TypeError):
-        HttpClient(base_url="http://example.com", transport=httpx.BaseTransport())
+        HttpClient(
+            base_url="http://example.com", transport=httpx.BaseTransport()
+        )

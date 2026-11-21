@@ -3,9 +3,9 @@ import numpy as np
 from gensim.models import Word2Vec
 from swarmauri_core.document_stores.IDocumentStore import IDocumentStore
 from swarmauri_core.retrievers.IRetriever import IRetriever
-from swarmauri.documents.concrete.EmbeddedDocument import EmbeddedDocument
+from swarmauri_standard.documents.EmbeddedDocument import EmbeddedDocument
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
-from swarmauri.vectors.concrete.SimpleVector import SimpleVector
+from swarmauri_standard.vectors.SimpleVector import SimpleVector
 
 
 class Word2VecDocumentStore(IDocumentStore, IRetriever):

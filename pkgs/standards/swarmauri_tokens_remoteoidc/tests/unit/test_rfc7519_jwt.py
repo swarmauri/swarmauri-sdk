@@ -18,7 +18,7 @@ def _create_service(tmp_path):
     jwks_path = tmp_path / "jwks.json"
     jwks_path.write_text(json.dumps({"keys": [jwk]}))
     service = RemoteOIDCTokenService(
-        "https://example.com", jwks_url=f"file://{jwks_path}"
+        "https://example.com", jwks_url=jwks_path.as_uri()
     )
     token = jwt.encode(
         {

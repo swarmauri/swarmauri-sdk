@@ -105,7 +105,8 @@ greeting = f"Hello, %{name}!"
 # Test 4: Context Scope Deferred Evaluation
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="Context scope deferred evaluation not implemented")
+# @pytest.mark.xfail(reason="Context scope deferred evaluation not
+# implemented")
 def test_context_scope_deferred():
     sample = """
 [logic]
@@ -113,14 +114,17 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 """
     # Without context, placeholders remain unresolved.
     data = round_trip_loads(sample)
-    assert data["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+    assert (
+        data["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+    )
     # With a render context provided:
 
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
     assert (
-        resolved_config["logic"]["summary"] == 'f"User: ${user.name}, Age: ${user.age}"'
+        resolved_config["logic"]["summary"]
+        == 'f"User: ${user.name}, Age: ${user.age}"'
     )
 
     data.dumps()
@@ -131,7 +135,8 @@ summary = f"User: ${user.name}, Age: ${user.age}"
 # Test 5: F-String Interpolation
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="F-string interpolation evaluation not fully implemented.")
+# @pytest.mark.xfail(reason="F-string interpolation evaluation not fully
+# implemented.")
 def test_context_f_string():
     sample = """
 [message]
@@ -167,27 +172,30 @@ port = "8080"
 devhost = "devserver"
 
 [api]
-endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} +\
+ "/api?token=" + ${auth_token} )>
 """
     # Provide context for the deferred part.
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert (
-        data["api"]["endpoint"]
-        == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    assert data["api"]["endpoint"] == (
+        '<( "http://" + @{server.host} + ":" + @{server.port} + '
+        '"/api?token=" + ${auth_token} )>'
     )
 
     data.resolve()
     print("[DEBUG]:")
     print(data)
     assert (
-        data["api"]["endpoint"] == 'f"http://prodserver:8080/api?token=${auth_token}"'
+        data["api"]["endpoint"]
+        == 'f"http://prodserver:8080/api?token=${auth_token}"'
     )
 
     print("[DEBUG SETTER]: START")
     data["api"]["endpoint"] = (
-        '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+        '<( "http://" + @{server.devhost} + ":" + @{server.port} + '
+        '"/api?token=" + ${auth_token} )>'
     )
     data.resolve()
     print("[DEBUG SETTER]:")
@@ -197,7 +205,10 @@ endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" 
     rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
-    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+    assert (
+        rendered_data["api"]["endpoint"]
+        == "http://devserver:8080/api?token=ABC123"
+    )
 
 
 # Test 8: List Comprehension Evaluation
@@ -221,13 +232,21 @@ list_config = [f"item_{x}" for x in [1, 2, 3]]
     resolved_config = data.resolve()
     print("[DEBUG]:")
     print(resolved_config)
-    assert resolved_config["items"]["list_config"] == ["item_5", "item_10", "item_15"]
+    assert resolved_config["items"]["list_config"] == [
+        "item_5",
+        "item_10",
+        "item_15",
+    ]
 
     data.dumps()
     rendered_data = data.render()
     print("[DEBUG]:")
     print(rendered_data)
-    assert rendered_data["items"]["list_config"] == ["item_5", "item_10", "item_15"]
+    assert rendered_data["items"]["list_config"] == [
+        "item_5",
+        "item_10",
+        "item_15",
+    ]
 
 
 # Test 9: Dict Comprehension Evaluation
@@ -245,7 +264,9 @@ dict_config = {f"key_{x}" : x * 2 for x in [1, 2, 3]}
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert data["items"]["dict_config"] == '{f"key_{x}" : x*2 for x in [1, 2, 3]}'
+    assert (
+        data["items"]["dict_config"] == '{f"key_{x}" : x*2 for x in [1, 2, 3]}'
+    )
 
     data["items"]["dict_config"] = '{f"item_{x}": x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")
@@ -283,7 +304,9 @@ def test_dict_assignment_comprehension():
 dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
 """
     data = round_trip_loads(sample)
-    assert data["items"]["dict_config"] == '{f"key_{x}" = x*2 for x in [1, 2, 3]}'
+    assert (
+        data["items"]["dict_config"] == '{f"key_{x}" = x*2 for x in [1, 2, 3]}'
+    )
 
     data["items"]["dict_config"] = '{f"item_{x}" = x * 3 for x in [5, 10, 15]}'
     print("[DEBUG]:")
@@ -309,7 +332,8 @@ dict_config = {f"key_{x}" = x * 2 for x in [1, 2, 3]}
 
 @pytest.mark.spec
 @pytest.mark.mep0011
-# @pytest.mark.xfail(reason="Arithmetic operations in expressions not implemented")
+# @pytest.mark.xfail(reason="Arithmetic operations in expressions not
+# implemented")
 def test_folded_arithmetic_operations():
     sample = """
 [calc]
@@ -348,7 +372,8 @@ port = "8080"
 devhost = "devserver"
 
 [api]
-endpoint = <( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>
+endpoint = <( "http://" + @{server.host} + ":" + @{server.port} +\
+ "/api?token=" + ${auth_token} )>
 
 [calc]
 result = <( 3 + 4 )>
@@ -357,14 +382,15 @@ result = <( 3 + 4 )>
     data = round_trip_loads(sample)
     print("[DEBUG]:")
     print(data)
-    assert (
-        data["api"]["endpoint"]
-        == '<( "http://" + @{server.host} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+    assert data["api"]["endpoint"] == (
+        '<( "http://" + @{server.host} + ":" + @{server.port} + '
+        '"/api?token=" + ${auth_token} )>'
     )
     assert data["calc"]["result"] == "<( 3 + 4 )>"
 
     data["api"]["endpoint"] = (
-        '<( "http://" + @{server.devhost} + ":" + @{server.port} + "/api?token=" + ${auth_token} )>'
+        '<( "http://" + @{server.devhost} + ":" + @{server.port} + '
+        '"/api?token=" + ${auth_token} )>'
     )
     data["calc"]["result"] = "<( 7 + 4 )>"
     print("[DEBUG]:")
@@ -383,7 +409,10 @@ result = <( 3 + 4 )>
     rendered_data = data.render(context={"auth_token": "ABC123"})
     print("[DEBUG]:")
     print(rendered_data)
-    assert rendered_data["api"]["endpoint"] == "http://devserver:8080/api?token=ABC123"
+    assert (
+        rendered_data["api"]["endpoint"]
+        == "http://devserver:8080/api?token=ABC123"
+    )
     assert rendered_data["calc"]["result"] == 11
 
 
@@ -450,7 +479,8 @@ status = <('Yes' if true else 'No')>"""
 # @pytest.mark.xfail(reason="Inference in expressions not fully implemented")
 def test_infer_expressions():
     """
-    Ensures expressions (wrapped with <{ ... )>) are type-inferred from their result.
+    Ensures expressions (wrapped with <{ ... )>) are type-inferred from their
+    result.
     """
     source = """
     [exprs]

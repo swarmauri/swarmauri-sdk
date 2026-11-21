@@ -47,7 +47,7 @@ def _extract_version_tuple(pyproject_text: str) -> tuple[int, int, int]:
 
 
 @pytest.mark.unit
-def test_distance_packages_are_marked_inactive_and_capped():
+def test_distance_packages_are_marked_inactive_and_capped_to_current_release():
     root = _repo_root()
     for package_name in DISTANCE_PACKAGES:
         if package_name == "swamauri_metric_wasserstein":
@@ -60,7 +60,7 @@ def test_distance_packages_are_marked_inactive_and_capped():
             )
         text = pyproject.read_text(encoding="utf-8")
         assert "Development Status :: 7 - Inactive" in text
-        assert "<0.10.0" in text
+        assert ">=0.11.0.dev5,<0.12" in text
 
 
 @pytest.mark.unit

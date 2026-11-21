@@ -42,8 +42,10 @@ EXPECTED_DATA = {
 
 def test_round_trip_loads():
     """
-    Test that round_trip_loads() correctly parses a robust JML string into an AST,
-    and that re-dumping the AST produces a JML string which can be reloaded into the expected data.
+    Test that round_trip_loads() correctly parses a robust JML string into an
+    AST,
+    and that re-dumping the AST produces a JML string which can be reloaded
+    into the expected data.
     """
     ast = round_trip_loads(ROBUST_JML)
     dumped_str = round_trip_dumps(ast)
@@ -55,7 +57,8 @@ def test_round_trip_loads():
 def test_round_trip_load(tmp_path):
     """
     Test that round_trip_load() correctly reads a robust JML file into an AST,
-    and that its round-trip dump produces a JML string that re-parses to the expected data.
+    and that its round-trip dump produces a JML string that re-parses to the
+    expected data.
     """
     file_path = tmp_path / "config.jml"
     file_path.write_text(ROBUST_JML)
@@ -68,7 +71,8 @@ def test_round_trip_load(tmp_path):
 
 def test_round_trip_dumps():
     """
-    Test that round_trip_dumps() serializes a DocumentNode AST into a JML string,
+    Test that round_trip_dumps() serializes a DocumentNode AST into a JML
+    string,
     and that this string re-parsed produces the expected plain dictionary.
     """
     ast = round_trip_loads(ROBUST_JML)
@@ -80,8 +84,10 @@ def test_round_trip_dumps():
 
 def test_round_trip_dump(tmp_path):
     """
-    Test that round_trip_dump() writes the DocumentNode AST to a file in JML format,
-    and that reading this file returns data equivalent to the expected plain dictionary.
+    Test that round_trip_dump() writes the DocumentNode AST to a file in JML
+    format,
+    and that reading this file returns data equivalent to the expected plain
+    dictionary.
     """
     file_path = tmp_path / "output.jml"
     ast = round_trip_loads(ROBUST_JML)

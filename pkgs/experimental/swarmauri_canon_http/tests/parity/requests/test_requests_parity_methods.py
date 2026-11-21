@@ -1,7 +1,10 @@
 import pytest
 
 from swarmauri_canon_http import HttpClient
-from tests.parity.httpx.helpers import RecordingConnection, patch_http_connections
+from tests.parity.httpx.helpers import (
+    RecordingConnection,
+    patch_http_connections,
+)
 from tests.parity.requests.helpers import build_prepared_request
 
 
@@ -30,7 +33,9 @@ def test_sync_method_parity_with_requests_prepared_request(
         )
     else:
         getattr(client, method_name)("/resource")
-        expected = build_prepared_request(http_method, "http://example.com/resource")
+        expected = build_prepared_request(
+            http_method, "http://example.com/resource"
+        )
 
     sent = RecordingConnection.last_request
     assert sent["method"] == expected.method
