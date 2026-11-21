@@ -13,8 +13,8 @@ login = GitHubOAuth21Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Send the browser to the authorization URL and capture code and state.
+    # In the callback, pass code and state to exchange_and_identity.
 
 
 asyncio.run(run_flow())
