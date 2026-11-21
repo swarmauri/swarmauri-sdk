@@ -31,6 +31,8 @@ _JWA_TO_COSE = {
 class JwaCipherSuite(CipherSuiteBase):
     """JSON Web Algorithm policy surface (RFC 7518)."""
 
+    enable_x448: bool = False
+
     def suite_id(self) -> str:
         return "jwa"
 
@@ -58,15 +60,21 @@ class JwaCipherSuite(CipherSuiteBase):
             "decrypt": ("A128GCM", "A192GCM", "A256GCM"),
             "wrap": ("RSA-OAEP", "RSA-OAEP-256", "A256KW"),
             "unwrap": ("RSA-OAEP", "RSA-OAEP-256", "A256KW"),
+            **({"key_agreement": ("ECDH-ES",)} if self.enable_x448 else {}),
         }
 
     def default_alg(
         self, op: CipherOp, *, for_key: Optional[KeyRef] = None
     ) -> Alg:
+        if op == "key_agreement" and not self.enable_x448:
+            raise ValueError(
+                "key_agreement is not supported without X448 opt-in."
+            )
         defaults = {
             "sign": "EdDSA",
             "encrypt": "A256GCM",
             "wrap": "RSA-OAEP-256",
+            "key_agreement": "ECDH-ES",
         }
         return defaults.get(op, "A256GCM")
 
@@ -89,7 +97,20 @@ class JwaCipherSuite(CipherSuiteBase):
                 for op, values in allowed.items()
                 if values
             },
-            "constraints": {"aead": {"tagBits": 128, "nonceLen": 12}},
+            "constraints": {
+                "aead": {"tagBits": 128, "nonceLen": 12},
+                **(
+                    {
+                        "key_agreement": {
+                            "kty": "OKP",
+                            "crv": "X448",
+                            "enc": "A256GCM",
+                        }
+                    }
+                    if self.enable_x448
+                    else {}
+                ),
+            },
             "compliance": {"fips": False},
         }
 
@@ -108,6 +129,13 @@ class JwaCipherSuite(CipherSuiteBase):
             raise ValueError(f"{chosen=} not supported for {op=}")
 
         resolved = dict(params or {})
+        if chosen == "ECDH-ES":
+            if not key or (key.get("kty"), key.get("crv")) != ("OKP", "X448"):
+                raise ValueError("ECDH-ES policy requires an OKP/X448 key.")
+            if resolved.setdefault("enc", "A256GCM") != "A256GCM":
+                raise ValueError("X448 requires A256GCM.")
+            if resolved.setdefault("crv", "X448") != "X448":
+                raise ValueError("ECDH-ES policy requires X448.")
         if chosen.endswith("GCM"):
             resolved.setdefault("tagBits", 128)
             resolved.setdefault("nonceLen", 12)

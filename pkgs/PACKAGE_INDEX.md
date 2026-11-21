@@ -22,12 +22,12 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 212 | 212 | first-party split standard packages |
-| `50-community` | 131 | 131 | community and provider-specific packages |
+| `40-standards` | 237 | 237 | first-party split standard packages |
+| `50-community` | 130 | 130 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 37 | 13 | incubating and planning-stage packages |
 | `80-facades` | 1 | 1 | aggregate user-facing facade packages |
-| `90-deprecated` | 4 | 1 | deprecated compatibility packages |
+| `90-deprecated` | 6 | 3 | deprecated compatibility packages |
 
 ## By Layer
 
@@ -59,6 +59,7 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Path | Family | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_agent_compacting](standards/swarmauri_agent_compacting/) | `standards/swarmauri_agent_compacting` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_package_maintenance](standards/swarmauri_agent_package_maintenance/) | `standards/swarmauri_agent_package_maintenance` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_realtime](standards/swarmauri_agent_realtime/) | `standards/swarmauri_agent_realtime` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `standards/swarmauri_agent_runner` | `agent` | `atomic-concrete` | `standard` | yes |
@@ -100,12 +101,14 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_cipher_suite_xades](standards/swarmauri_cipher_suite_xades/) | `standards/swarmauri_cipher_suite_xades` | `cipher_suite` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_cipher_suite_yubikey](standards/swarmauri_cipher_suite_yubikey/) | `standards/swarmauri_cipher_suite_yubikey` | `cipher_suite` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_cipher_suite_yubikey_fips](standards/swarmauri_cipher_suite_yubikey_fips/) | `standards/swarmauri_cipher_suite_yubikey_fips` | `cipher_suite` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_conversation_compacting](standards/swarmauri_conversation_compacting/) | `standards/swarmauri_conversation_compacting` | `conversation` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_ecdh_es_a128kw](standards/swarmauri_crypto_ecdh_es_a128kw/) | `standards/swarmauri_crypto_ecdh_es_a128kw` | `crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_jwe](standards/swarmauri_crypto_jwe/) | `standards/swarmauri_crypto_jwe` | `crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_nacl_pkcs11](standards/swarmauri_crypto_nacl_pkcs11/) | `standards/swarmauri_crypto_nacl_pkcs11` | `crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_paramiko](standards/swarmauri_crypto_paramiko/) | `standards/swarmauri_crypto_paramiko` | `crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_pgp](standards/swarmauri_crypto_pgp/) | `standards/swarmauri_crypto_pgp` | `crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_crypto_rust](standards/swarmauri_crypto_rust/) | `standards/swarmauri_crypto_rust` | `crypto` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_delegation_attenuating](standards/swarmauri_delegation_attenuating/) | `standards/swarmauri_delegation_attenuating` | `delegation` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_distance_canberra](standards/swarmauri_distance_canberra/) | `standards/swarmauri_distance_canberra` | `distance` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_distance_chebyshev](standards/swarmauri_distance_chebyshev/) | `standards/swarmauri_distance_chebyshev` | `distance` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_distance_chi_squared](standards/swarmauri_distance_chi_squared/) | `standards/swarmauri_distance_chi_squared` | `distance` | `atomic-concrete` | `standard` | yes |
@@ -127,9 +130,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_evaluator_subprocess](standards/swarmauri_evaluator_subprocess/) | `standards/swarmauri_evaluator_subprocess` | `evaluator` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_evaluatorpool_accessibility](standards/swarmauri_evaluatorpool_accessibility/) | `standards/swarmauri_evaluatorpool_accessibility` | `evaluatorpool` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swm_example_package](standards/swm_example_package/) | `standards/swm_example_package` | `example` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_execution_default](standards/swarmauri_execution_default/) | `standards/swarmauri_execution_default` | `execution` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_gitfilter_gh_release](standards/swarmauri_gitfilter_gh_release/) | `standards/swarmauri_gitfilter_gh_release` | `gitfilter` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_gitfilter_minio](standards/swarmauri_gitfilter_minio/) | `standards/swarmauri_gitfilter_minio` | `gitfilter` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_gitfilter_s3fs](standards/swarmauri_gitfilter_s3fs/) | `standards/swarmauri_gitfilter_s3fs` | `gitfilter` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_grantstore_sqlite](standards/swarmauri_grantstore_sqlite/) | `standards/swarmauri_grantstore_sqlite` | `grantstore` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_invoker_default](standards/swarmauri_invoker_default/) | `standards/swarmauri_invoker_default` | `invoker` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_keyprovider_file](standards/swarmauri_keyprovider_file/) | `standards/swarmauri_keyprovider_file` | `keyprovider` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_keyprovider_inmemory](standards/swarmauri_keyprovider_inmemory/) | `standards/swarmauri_keyprovider_inmemory` | `keyprovider` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_keyprovider_local](standards/swarmauri_keyprovider_local/) | `standards/swarmauri_keyprovider_local` | `keyprovider` | `atomic-concrete` | `standard` | yes |
@@ -157,6 +163,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_mre_crypto_shamir](standards/swarmauri_mre_crypto_shamir/) | `standards/swarmauri_mre_crypto_shamir` | `mre_crypto` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_parser_beautifulsoupelement](standards/swarmauri_parser_beautifulsoupelement/) | `standards/swarmauri_parser_beautifulsoupelement` | `parser` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_parser_keywordextractor](standards/swarmauri_parser_keywordextractor/) | `standards/swarmauri_parser_keywordextractor` | `parser` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_permission_explicit](standards/swarmauri_permission_explicit/) | `standards/swarmauri_permission_explicit` | `permission` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_pop_cwt](standards/swarmauri_pop_cwt/) | `standards/swarmauri_pop_cwt` | `pop` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_pop_dpop](standards/swarmauri_pop_dpop/) | `standards/swarmauri_pop_dpop` | `pop` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_pop_x509](standards/swarmauri_pop_x509/) | `standards/swarmauri_pop_x509` | `pop` | `atomic-concrete` | `standard` | yes |
@@ -167,6 +174,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_publisher_rabbitmq](standards/swarmauri_publisher_rabbitmq/) | `standards/swarmauri_publisher_rabbitmq` | `publisher` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_publisher_redis](standards/swarmauri_publisher_redis/) | `standards/swarmauri_publisher_redis` | `publisher` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_publisher_webhook](standards/swarmauri_publisher_webhook/) | `standards/swarmauri_publisher_webhook` | `publisher` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_runstore_sqlite](standards/swarmauri_runstore_sqlite/) | `standards/swarmauri_runstore_sqlite` | `runstore` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_signing_ca](standards/swarmauri_signing_ca/) | `standards/swarmauri_signing_ca` | `signing` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_signing_cms](standards/swarmauri_signing_cms/) | `standards/swarmauri_signing_cms` | `signing` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_signing_ecdsa](standards/swarmauri_signing_ecdsa/) | `standards/swarmauri_signing_ecdsa` | `signing` | `atomic-concrete` | `standard` | yes |
@@ -194,8 +202,11 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_storage_s3_over_sftp](standards/swarmauri_storage_s3_over_sftp/) | `standards/swarmauri_storage_s3_over_sftp` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `standards/swarmauri_storage_s3fs` | `storage` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_webdav](standards/swarmauri_storage_webdav/) | `standards/swarmauri_storage_webdav` | `storage` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_taskmanager_default](standards/swarmauri_taskmanager_default/) | `standards/swarmauri_taskmanager_default` | `taskmanager` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_taskstore_sqlite](standards/swarmauri_taskstore_sqlite/) | `standards/swarmauri_taskstore_sqlite` | `taskstore` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_dpopboundjwt](standards/swarmauri_tokens_dpopboundjwt/) | `standards/swarmauri_tokens_dpopboundjwt` | `tokens` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_introspection](standards/swarmauri_tokens_introspection/) | `standards/swarmauri_tokens_introspection` | `tokens` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `standards/swarmauri_tokens_jwt` | `tokens` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_paseto_v4](standards/swarmauri_tokens_paseto_v4/) | `standards/swarmauri_tokens_paseto_v4` | `tokens` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_remoteoidc](standards/swarmauri_tokens_remoteoidc/) | `standards/swarmauri_tokens_remoteoidc` | `tokens` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_rotatingjwt](standards/swarmauri_tokens_rotatingjwt/) | `standards/swarmauri_tokens_rotatingjwt` | `tokens` | `atomic-concrete` | `standard` | yes |
@@ -243,6 +254,20 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `standards/swarmauri_transport_uds_unicast` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_websocket](standards/swarmauri_transport_websocket/) | `standards/swarmauri_transport_websocket` | `transport` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `standards/swarmauri_transport_wsjsonrpcmux` | `transport` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_azure](standards/swarmauri_tts_azure/) | `standards/swarmauri_tts_azure` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `standards/swarmauri_tts_cartesia` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `standards/swarmauri_tts_deepgram` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `standards/swarmauri_tts_deepinfra` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `standards/swarmauri_tts_deepinfra_kokoro` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `standards/swarmauri_tts_deepinfra_qwen3` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `standards/swarmauri_tts_deepinfra_qwen3_voicedesign` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `standards/swarmauri_tts_elevenlabs` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `standards/swarmauri_tts_elevenlabs_dialogue` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `standards/swarmauri_tts_gemini` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `standards/swarmauri_tts_gemini_dialogue` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `standards/swarmauri_tts_openai` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `standards/swarmauri_tts_polly` | `tts` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `standards/swarmauri_tts_together` | `tts` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `standards/swarmauri_xmp_gif` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `standards/swarmauri_xmp_jpeg` | `xmp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `standards/swarmauri_xmp_mp4` | `xmp` | `atomic-concrete` | `standard` | yes |
@@ -262,15 +287,15 @@ fail validation because they make composition order ambiguous.
 | `40.1` | [swarmauri_signing_pdf](standards/swarmauri_signing_pdf/) | `standards/swarmauri_signing_pdf` | `signing` | `composite-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_tokens_composite](standards/swarmauri_tokens_composite/) | `standards/swarmauri_tokens_composite` | `tokens` | `composite-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_transport_h2](standards/swarmauri_transport_h2/) | `standards/swarmauri_transport_h2` | `transport` | `composite-concrete` | `standard` | yes |
-| `40.1` | [swarmauri_tts_playht](standards/swarmauri_tts_playht/) | `standards/swarmauri_tts_playht` | `tts` | `composite-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_vectorstore_doc2vec](standards/swarmauri_vectorstore_doc2vec/) | `standards/swarmauri_vectorstore_doc2vec` | `vectorstore` | `composite-concrete` | `standard` | yes |
+| `40.2` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `standards/swarmauri_middleware_jwt` | `middleware` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_signing_dpop](standards/swarmauri_signing_dpop/) | `standards/swarmauri_signing_dpop` | `signing` | `orchestrator` | `standard` | yes |
-| `40.2` | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `standards/swarmauri_tokens_jwt` | `tokens` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_toolkit_containertoolkit](standards/swarmauri_toolkit_containertoolkit/) | `standards/swarmauri_toolkit_containertoolkit` | `toolkit` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_toolkit_runtime](standards/swarmauri_toolkit_runtime/) | `standards/swarmauri_toolkit_runtime` | `toolkit` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_toolkit_skillset](standards/swarmauri_toolkit_skillset/) | `standards/swarmauri_toolkit_skillset` | `toolkit` | `orchestrator` | `standard` | yes |
 | `40.2` | [swarmauri_transport_https_unicast](standards/swarmauri_transport_https_unicast/) | `standards/swarmauri_transport_https_unicast` | `transport` | `orchestrator` | `standard` | yes |
-| `40.3` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `standards/swarmauri_middleware_jwt` | `middleware` | `orchestrator` | `standard` | yes |
+| `40.2` | [swarmauri_workflow_delegatedresearch](standards/swarmauri_workflow_delegatedresearch/) | `standards/swarmauri_workflow_delegatedresearch` | `workflow` | `orchestrator` | `standard` | yes |
+| `40.2` | [swarmauri_workflow_documentassistant](standards/swarmauri_workflow_documentassistant/) | `standards/swarmauri_workflow_documentassistant` | `workflow` | `orchestrator` | `standard` | yes |
 
 ### `50-community`
 
@@ -299,9 +324,16 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_keyprovider_aws_kms](community/swarmauri_keyprovider_aws_kms/) | `community/swarmauri_keyprovider_aws_kms` | `keyprovider` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_keyprovider_gcpkms](community/swarmauri_keyprovider_gcpkms/) | `community/swarmauri_keyprovider_gcpkms` | `keyprovider` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_keyprovider_vaulttransit](community/swarmauri_keyprovider_vaulttransit/) | `community/swarmauri_keyprovider_vaulttransit` | `keyprovider` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `community/swarmauri_live_model_amazon_nova` | `live` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `community/swarmauri_live_model_gemini` | `live` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `community/swarmauri_live_model_openai` | `live` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `community/swarmauri_live_model_qwen` | `live` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `community/swarmauri_live_model_xai` | `live` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `community/swarmauri_llm_ai21` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `community/swarmauri_llm_anthropic` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `community/swarmauri_llm_azureopenai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `community/swarmauri_llm_cerebras` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `community/swarmauri_llm_cloudflare` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `community/swarmauri_llm_cohere` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_deepinfra](community/swarmauri_llm_deepinfra/) | `community/swarmauri_llm_deepinfra` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_deepseek](community/swarmauri_llm_deepseek/) | `community/swarmauri_llm_deepseek` | `llm` | `atomic-concrete` | `community` | yes |
@@ -312,10 +344,11 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_llm_leptonai](community/swarmauri_llm_leptonai/) | `community/swarmauri_llm_leptonai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_llamacpp](community/swarmauri_llm_llamacpp/) | `community/swarmauri_llm_llamacpp` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_mistral](community/swarmauri_llm_mistral/) | `community/swarmauri_llm_mistral` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `community/swarmauri_llm_nvidia_nim` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_openai](community/swarmauri_llm_openai/) | `community/swarmauri_llm_openai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `community/swarmauri_llm_perplexity` | `llm` | `atomic-concrete` | `community` | yes |
-| `50.0` | [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `community/swarmauri_llm_playht` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `community/swarmauri_llm_whisper` | `llm` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `community/swarmauri_llm_xai` | `llm` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_measurement_mutualinformation](community/swarmauri_measurement_mutualinformation/) | `community/swarmauri_measurement_mutualinformation` | `measurement` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_measurement_tokencountestimator](community/swarmauri_measurement_tokencountestimator/) | `community/swarmauri_measurement_tokencountestimator` | `measurement` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_metric_hamming](community/swarmauri_metric_hamming/) | `community/swarmauri_metric_hamming` | `metric` | `atomic-concrete` | `community` | yes |
@@ -393,16 +426,7 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_vectorstore_qdrant](community/swarmauri_vectorstore_qdrant/) | `community/swarmauri_vectorstore_qdrant` | `vectorstore` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_vectorstore_redis](community/swarmauri_vectorstore_redis/) | `community/swarmauri_vectorstore_redis` | `vectorstore` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_video_lipsync_synclabs](community/swarmauri_video_lipsync_synclabs/) | `community/swarmauri_video_lipsync_synclabs` | `video` | `atomic-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `community/swarmauri_live_model_amazon_nova` | `live` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `community/swarmauri_live_model_gemini` | `live` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `community/swarmauri_live_model_openai` | `live` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `community/swarmauri_live_model_qwen` | `live` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `community/swarmauri_live_model_xai` | `live` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `community/swarmauri_llm_azureopenai` | `llm` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `community/swarmauri_llm_cloudflare` | `llm` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `community/swarmauri_llm_nvidia_nim` | `llm` | `composite-concrete` | `community` | yes |
 | `50.1` | [swarmauri_llm_openrouter](community/swarmauri_llm_openrouter/) | `community/swarmauri_llm_openrouter` | `llm` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `community/swarmauri_llm_xai` | `llm` | `composite-concrete` | `community` | yes |
 | `50.1` | [swarmauri_matrix_hamming74](community/swarmauri_matrix_hamming74/) | `community/swarmauri_matrix_hamming74` | `matrix` | `composite-concrete` | `community` | yes |
 | `50.1` | [swarmauri_vectorstore_mlm](community/swarmauri_vectorstore_mlm/) | `community/swarmauri_vectorstore_mlm` | `vectorstore` | `composite-concrete` | `community` | yes |
 | `50.2` | [swarmauri_toolkit_github](community/swarmauri_toolkit_github/) | `community/swarmauri_toolkit_github` | `toolkit` | `orchestrator` | `community` | yes |
@@ -473,6 +497,8 @@ fail validation because they make composition order ambiguous.
 | `90.0` | [swarmauri_documentstore_redis](deprecated/swarmauri_documentstore_redis/) | `deprecated/swarmauri_documentstore_redis` | `documentstore` | `compat` | `deprecated` | no |
 | `90.0` | [swarmauri_embedding_tfidf](deprecated/swarmauri_embedding_tfidf/) | `deprecated/swarmauri_embedding_tfidf` | `embedding` | `compat` | `deprecated` | no |
 | `90.0` | [swarmauri_experimental](deprecated/swarmauri_experimental/) | `deprecated/swarmauri_experimental` | `experimental` | `compat` | `deprecated` | yes |
+| `90.0` | [swarmauri_llm_playht](deprecated/swarmauri_llm_playht/) | `deprecated/swarmauri_llm_playht` | `llm` | `compat` | `deprecated` | yes |
+| `90.0` | [swarmauri_tts_playht](deprecated/swarmauri_tts_playht/) | `deprecated/swarmauri_tts_playht` | `tts` | `compat` | `deprecated` | yes |
 | `90.1` | [swarmauri_vectorstore_tfidf](deprecated/swarmauri_vectorstore_tfidf/) | `deprecated/swarmauri_vectorstore_tfidf` | `vectorstore` | `compat-composite` | `deprecated` | no |
 
 ## By Layer And Order
@@ -505,6 +531,7 @@ fail validation because they make composition order ambiguous.
 
 | Package | Family | Role | Source | Composes | Order reason |
 |---|---|---|---|---:|---|
+| [swarmauri_agent_compacting](standards/swarmauri_agent_compacting/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_agent_package_maintenance](standards/swarmauri_agent_package_maintenance/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_agent_realtime](standards/swarmauri_agent_realtime/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -546,12 +573,14 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_cipher_suite_xades](standards/swarmauri_cipher_suite_xades/) | `cipher_suite` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_cipher_suite_yubikey](standards/swarmauri_cipher_suite_yubikey/) | `cipher_suite` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_cipher_suite_yubikey_fips](standards/swarmauri_cipher_suite_yubikey_fips/) | `cipher_suite` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_conversation_compacting](standards/swarmauri_conversation_compacting/) | `conversation` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_ecdh_es_a128kw](standards/swarmauri_crypto_ecdh_es_a128kw/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_jwe](standards/swarmauri_crypto_jwe/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_nacl_pkcs11](standards/swarmauri_crypto_nacl_pkcs11/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_paramiko](standards/swarmauri_crypto_paramiko/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_pgp](standards/swarmauri_crypto_pgp/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_crypto_rust](standards/swarmauri_crypto_rust/) | `crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_delegation_attenuating](standards/swarmauri_delegation_attenuating/) | `delegation` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_distance_canberra](standards/swarmauri_distance_canberra/) | `distance` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_distance_chebyshev](standards/swarmauri_distance_chebyshev/) | `distance` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_distance_chi_squared](standards/swarmauri_distance_chi_squared/) | `distance` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -573,9 +602,12 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_evaluator_subprocess](standards/swarmauri_evaluator_subprocess/) | `evaluator` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_evaluatorpool_accessibility](standards/swarmauri_evaluatorpool_accessibility/) | `evaluatorpool` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swm_example_package](standards/swm_example_package/) | `example` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_execution_default](standards/swarmauri_execution_default/) | `execution` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_gitfilter_gh_release](standards/swarmauri_gitfilter_gh_release/) | `gitfilter` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_gitfilter_minio](standards/swarmauri_gitfilter_minio/) | `gitfilter` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_gitfilter_s3fs](standards/swarmauri_gitfilter_s3fs/) | `gitfilter` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_grantstore_sqlite](standards/swarmauri_grantstore_sqlite/) | `grantstore` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_invoker_default](standards/swarmauri_invoker_default/) | `invoker` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_keyprovider_file](standards/swarmauri_keyprovider_file/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_keyprovider_inmemory](standards/swarmauri_keyprovider_inmemory/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_keyprovider_local](standards/swarmauri_keyprovider_local/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -603,6 +635,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_mre_crypto_shamir](standards/swarmauri_mre_crypto_shamir/) | `mre_crypto` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_parser_beautifulsoupelement](standards/swarmauri_parser_beautifulsoupelement/) | `parser` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_parser_keywordextractor](standards/swarmauri_parser_keywordextractor/) | `parser` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_permission_explicit](standards/swarmauri_permission_explicit/) | `permission` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_pop_cwt](standards/swarmauri_pop_cwt/) | `pop` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_pop_dpop](standards/swarmauri_pop_dpop/) | `pop` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_pop_x509](standards/swarmauri_pop_x509/) | `pop` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -613,6 +646,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_publisher_rabbitmq](standards/swarmauri_publisher_rabbitmq/) | `publisher` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_publisher_redis](standards/swarmauri_publisher_redis/) | `publisher` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_publisher_webhook](standards/swarmauri_publisher_webhook/) | `publisher` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_runstore_sqlite](standards/swarmauri_runstore_sqlite/) | `runstore` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_signing_ca](standards/swarmauri_signing_ca/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_signing_cms](standards/swarmauri_signing_cms/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_signing_ecdsa](standards/swarmauri_signing_ecdsa/) | `signing` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -640,8 +674,11 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_storage_s3_over_sftp](standards/swarmauri_storage_s3_over_sftp/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_storage_webdav](standards/swarmauri_storage_webdav/) | `storage` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_taskmanager_default](standards/swarmauri_taskmanager_default/) | `taskmanager` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_taskstore_sqlite](standards/swarmauri_taskstore_sqlite/) | `taskstore` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_dpopboundjwt](standards/swarmauri_tokens_dpopboundjwt/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_introspection](standards/swarmauri_tokens_introspection/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_paseto_v4](standards/swarmauri_tokens_paseto_v4/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_remoteoidc](standards/swarmauri_tokens_remoteoidc/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_tokens_rotatingjwt](standards/swarmauri_tokens_rotatingjwt/) | `tokens` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -689,6 +726,20 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_transport_uds_unicast](standards/swarmauri_transport_uds_unicast/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_websocket](standards/swarmauri_transport_websocket/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_transport_wsjsonrpcmux](standards/swarmauri_transport_wsjsonrpcmux/) | `transport` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_azure](standards/swarmauri_tts_azure/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_together](standards/swarmauri_tts_together/) | `tts` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_gif](standards/swarmauri_xmp_gif/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_jpeg](standards/swarmauri_xmp_jpeg/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_xmp_mp4](standards/swarmauri_xmp_mp4/) | `xmp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -713,25 +764,20 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_signing_pdf](standards/swarmauri_signing_pdf/) | `signing` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_signing_cms at 40.0 |
 | [swarmauri_tokens_composite](standards/swarmauri_tokens_composite/) | `tokens` | `composite-concrete` | `inferred` | 0 | composite signal from metadata for swarmauri_tokens_composite |
 | [swarmauri_transport_h2](standards/swarmauri_transport_h2/) | `transport` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_transport_h2mux at 40.0 |
-| [swarmauri_tts_playht](standards/swarmauri_tts_playht/) | `tts` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_agent_texttospeech at 40.0 |
 | [swarmauri_vectorstore_doc2vec](standards/swarmauri_vectorstore_doc2vec/) | `vectorstore` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_embedding_doc2vec at 40.0 |
 
 ### `40.2`
 
 | Package | Family | Role | Source | Composes | Order reason |
 |---|---|---|---|---:|---|
+| [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `middleware` | `orchestrator` | `inferred` | 2 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
 | [swarmauri_signing_dpop](standards/swarmauri_signing_dpop/) | `signing` | `orchestrator` | `inferred` | 1 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
-| [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `tokens` | `orchestrator` | `inferred` | 1 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
 | [swarmauri_toolkit_containertoolkit](standards/swarmauri_toolkit_containertoolkit/) | `toolkit` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_toolkit_containertoolkit |
 | [swarmauri_toolkit_runtime](standards/swarmauri_toolkit_runtime/) | `toolkit` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_toolkit_runtime |
 | [swarmauri_toolkit_skillset](standards/swarmauri_toolkit_skillset/) | `toolkit` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_toolkit_skillset |
 | [swarmauri_transport_https_unicast](standards/swarmauri_transport_https_unicast/) | `transport` | `orchestrator` | `inferred` | 4 | raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1 |
-
-### `40.3`
-
-| Package | Family | Role | Source | Composes | Order reason |
-|---|---|---|---|---:|---|
-| [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `middleware` | `orchestrator` | `inferred` | 2 | raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2 |
+| [swarmauri_workflow_delegatedresearch](standards/swarmauri_workflow_delegatedresearch/) | `workflow` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_workflow_delegatedresearch |
+| [swarmauri_workflow_documentassistant](standards/swarmauri_workflow_documentassistant/) | `workflow` | `orchestrator` | `inferred` | 0 | orchestrator signal from metadata for swarmauri_workflow_documentassistant |
 
 ### `50.0`
 
@@ -760,9 +806,16 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_keyprovider_aws_kms](community/swarmauri_keyprovider_aws_kms/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_keyprovider_gcpkms](community/swarmauri_keyprovider_gcpkms/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_keyprovider_vaulttransit](community/swarmauri_keyprovider_vaulttransit/) | `keyprovider` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `live` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `live` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `live` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `live` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `live` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_deepinfra](community/swarmauri_llm_deepinfra/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_deepseek](community/swarmauri_llm_deepseek/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -773,10 +826,11 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_llm_leptonai](community/swarmauri_llm_leptonai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_llamacpp](community/swarmauri_llm_llamacpp/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_mistral](community/swarmauri_llm_mistral/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_openai](community/swarmauri_llm_openai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
-| [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `llm` | `atomic-concrete` | `inferred` | 1 | single-capability package by default |
 | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `llm` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_measurement_mutualinformation](community/swarmauri_measurement_mutualinformation/) | `measurement` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_measurement_tokencountestimator](community/swarmauri_measurement_tokencountestimator/) | `measurement` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_metric_hamming](community/swarmauri_metric_hamming/) | `metric` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -859,16 +913,7 @@ fail validation because they make composition order ambiguous.
 
 | Package | Family | Role | Source | Composes | Order reason |
 |---|---|---|---|---:|---|
-| [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `live` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `live` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `live` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `live` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `live` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
-| [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `llm` | `composite-concrete` | `inferred` | 2 | depends on 2 internal concrete packages |
 | [swarmauri_llm_openrouter](community/swarmauri_llm_openrouter/) | `llm` | `composite-concrete` | `explicit` | 3 | OpenRouter models compose provider configuration with shared HTTP and retry transports |
-| [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `llm` | `composite-concrete` | `inferred` | 3 | depends on 3 internal concrete packages |
 | [swarmauri_matrix_hamming74](community/swarmauri_matrix_hamming74/) | `matrix` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_metric_hamming at 50.0 |
 | [swarmauri_vectorstore_mlm](community/swarmauri_vectorstore_mlm/) | `vectorstore` | `composite-concrete` | `inferred` | 1 | raised to order 1 because it depends on same-layer package swarmauri_embedding_mlm at 50.0 |
 
@@ -964,6 +1009,8 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_documentstore_redis](deprecated/swarmauri_documentstore_redis/) | `documentstore` | `compat` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_embedding_tfidf](deprecated/swarmauri_embedding_tfidf/) | `embedding` | `compat` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_experimental](deprecated/swarmauri_experimental/) | `experimental` | `compat` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_llm_playht](deprecated/swarmauri_llm_playht/) | `llm` | `compat` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_tts_playht](deprecated/swarmauri_tts_playht/) | `tts` | `compat` | `inferred` | 0 | single-capability package by default |
 
 ### `90.1`
 
@@ -1013,6 +1060,7 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_agent_compacting](standards/swarmauri_agent_compacting/) | `40-standards` | `standards/swarmauri_agent_compacting` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_package_maintenance](standards/swarmauri_agent_package_maintenance/) | `40-standards` | `standards/swarmauri_agent_package_maintenance` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_realtime](standards/swarmauri_agent_realtime/) | `40-standards` | `standards/swarmauri_agent_realtime` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `40-standards` | `standards/swarmauri_agent_runner` | `atomic-concrete` | `standard` | yes |
@@ -1125,6 +1173,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_cipher_suite_yubikey](standards/swarmauri_cipher_suite_yubikey/) | `40-standards` | `standards/swarmauri_cipher_suite_yubikey` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_cipher_suite_yubikey_fips](standards/swarmauri_cipher_suite_yubikey_fips/) | `40-standards` | `standards/swarmauri_cipher_suite_yubikey_fips` | `atomic-concrete` | `standard` | yes |
 
+### `conversation`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_conversation_compacting](standards/swarmauri_conversation_compacting/) | `40-standards` | `standards/swarmauri_conversation_compacting` | `atomic-concrete` | `standard` | yes |
+
 ### `crypto`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1137,6 +1191,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_crypto_rust](standards/swarmauri_crypto_rust/) | `40-standards` | `standards/swarmauri_crypto_rust` | `atomic-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_crypto_composite](standards/swarmauri_crypto_composite/) | `40-standards` | `standards/swarmauri_crypto_composite` | `composite-concrete` | `standard` | yes |
 | `70.0` | [swarmauri_crypto_sodium](experimental/swarmauri_crypto_sodium/) | `70-experimental` | `experimental/swarmauri_crypto_sodium` | `experimental-atomic` | `experimental` | yes |
+
+### `delegation`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_delegation_attenuating](standards/swarmauri_delegation_attenuating/) | `40-standards` | `standards/swarmauri_delegation_attenuating` | `atomic-concrete` | `standard` | yes |
 
 ### `distance`
 
@@ -1212,6 +1272,12 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swm_example_community_package](community/swm_example_community_package/) | `50-community` | `community/swm_example_community_package` | `atomic-concrete` | `community` | yes |
 | `60.0` | [swm_example_plugin](plugins/example_plugin/) | `60-plugins` | `plugins/example_plugin` | `plugin` | `plugin` | yes |
 
+### `execution`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_execution_default](standards/swarmauri_execution_default/) | `40-standards` | `standards/swarmauri_execution_default` | `atomic-concrete` | `standard` | yes |
+
 ### `experimental`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1245,6 +1311,12 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_gitfilter_s3fs](standards/swarmauri_gitfilter_s3fs/) | `40-standards` | `standards/swarmauri_gitfilter_s3fs` | `atomic-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_gitfilter_file](standards/swarmauri_gitfilter_file/) | `40-standards` | `standards/swarmauri_gitfilter_file` | `composite-concrete` | `standard` | yes |
 
+### `grantstore`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_grantstore_sqlite](standards/swarmauri_grantstore_sqlite/) | `40-standards` | `standards/swarmauri_grantstore_sqlite` | `atomic-concrete` | `standard` | yes |
+
 ### `indexbuilder`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1256,6 +1328,12 @@ fail validation because they make composition order ambiguous.
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
 | `10.0` | [swarmauri_core](core/) | `10-interfaces` | `core` | `interface-contract` | `foundation` | yes |
+
+### `invoker`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_invoker_default](standards/swarmauri_invoker_default/) | `40-standards` | `standards/swarmauri_invoker_default` | `atomic-concrete` | `standard` | yes |
 
 ### `jaml`
 
@@ -1301,11 +1379,11 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
-| `50.1` | [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `50-community` | `community/swarmauri_live_model_amazon_nova` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `50-community` | `community/swarmauri_live_model_gemini` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `50-community` | `community/swarmauri_live_model_openai` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `50-community` | `community/swarmauri_live_model_qwen` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `50-community` | `community/swarmauri_live_model_xai` | `composite-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_amazon_nova](community/swarmauri_live_model_amazon_nova/) | `50-community` | `community/swarmauri_live_model_amazon_nova` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_gemini](community/swarmauri_live_model_gemini/) | `50-community` | `community/swarmauri_live_model_gemini` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_openai](community/swarmauri_live_model_openai/) | `50-community` | `community/swarmauri_live_model_openai` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_qwen](community/swarmauri_live_model_qwen/) | `50-community` | `community/swarmauri_live_model_qwen` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_live_model_xai](community/swarmauri_live_model_xai/) | `50-community` | `community/swarmauri_live_model_xai` | `atomic-concrete` | `community` | yes |
 
 ### `llm`
 
@@ -1313,7 +1391,9 @@ fail validation because they make composition order ambiguous.
 |---|---|---|---|---|---|---|
 | `50.0` | [swarmauri_llm_ai21](community/swarmauri_llm_ai21/) | `50-community` | `community/swarmauri_llm_ai21` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_anthropic](community/swarmauri_llm_anthropic/) | `50-community` | `community/swarmauri_llm_anthropic` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `50-community` | `community/swarmauri_llm_azureopenai` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cerebras](community/swarmauri_llm_cerebras/) | `50-community` | `community/swarmauri_llm_cerebras` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `50-community` | `community/swarmauri_llm_cloudflare` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_cohere](community/swarmauri_llm_cohere/) | `50-community` | `community/swarmauri_llm_cohere` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_deepinfra](community/swarmauri_llm_deepinfra/) | `50-community` | `community/swarmauri_llm_deepinfra` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_deepseek](community/swarmauri_llm_deepseek/) | `50-community` | `community/swarmauri_llm_deepseek` | `atomic-concrete` | `community` | yes |
@@ -1324,15 +1404,13 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_llm_leptonai](community/swarmauri_llm_leptonai/) | `50-community` | `community/swarmauri_llm_leptonai` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_llamacpp](community/swarmauri_llm_llamacpp/) | `50-community` | `community/swarmauri_llm_llamacpp` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_mistral](community/swarmauri_llm_mistral/) | `50-community` | `community/swarmauri_llm_mistral` | `atomic-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `50-community` | `community/swarmauri_llm_nvidia_nim` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_openai](community/swarmauri_llm_openai/) | `50-community` | `community/swarmauri_llm_openai` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_perplexity](community/swarmauri_llm_perplexity/) | `50-community` | `community/swarmauri_llm_perplexity` | `atomic-concrete` | `community` | yes |
-| `50.0` | [swarmauri_llm_playht](community/swarmauri_llm_playht/) | `50-community` | `community/swarmauri_llm_playht` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_llm_whisper](community/swarmauri_llm_whisper/) | `50-community` | `community/swarmauri_llm_whisper` | `atomic-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_azureopenai](community/swarmauri_llm_azureopenai/) | `50-community` | `community/swarmauri_llm_azureopenai` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_cloudflare](community/swarmauri_llm_cloudflare/) | `50-community` | `community/swarmauri_llm_cloudflare` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_nvidia_nim](community/swarmauri_llm_nvidia_nim/) | `50-community` | `community/swarmauri_llm_nvidia_nim` | `composite-concrete` | `community` | yes |
+| `50.0` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `50-community` | `community/swarmauri_llm_xai` | `atomic-concrete` | `community` | yes |
 | `50.1` | [swarmauri_llm_openrouter](community/swarmauri_llm_openrouter/) | `50-community` | `community/swarmauri_llm_openrouter` | `composite-concrete` | `community` | yes |
-| `50.1` | [swarmauri_llm_xai](community/swarmauri_llm_xai/) | `50-community` | `community/swarmauri_llm_xai` | `composite-concrete` | `community` | yes |
+| `90.0` | [swarmauri_llm_playht](deprecated/swarmauri_llm_playht/) | `90-deprecated` | `deprecated/swarmauri_llm_playht` | `compat` | `deprecated` | yes |
 
 ### `matrix`
 
@@ -1379,7 +1457,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_middleware_session](standards/swarmauri_middleware_session/) | `40-standards` | `standards/swarmauri_middleware_session` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_stdio](standards/swarmauri_middleware_stdio/) | `40-standards` | `standards/swarmauri_middleware_stdio` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_middleware_time](standards/swarmauri_middleware_time/) | `40-standards` | `standards/swarmauri_middleware_time` | `atomic-concrete` | `standard` | yes |
-| `40.3` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `40-standards` | `standards/swarmauri_middleware_jwt` | `orchestrator` | `standard` | yes |
+| `40.2` | [swarmauri_middleware_jwt](standards/swarmauri_middleware_jwt/) | `40-standards` | `standards/swarmauri_middleware_jwt` | `orchestrator` | `standard` | yes |
 | `50.0` | [swarmauri_middleware_circuitbreaker](community/swarmauri_middleware_circuitbreaker/) | `50-community` | `community/swarmauri_middleware_circuitbreaker` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_middleware_ratepolicy](community/swarmauri_middleware_ratepolicy/) | `50-community` | `community/swarmauri_middleware_ratepolicy` | `atomic-concrete` | `community` | yes |
 
@@ -1425,6 +1503,12 @@ fail validation because they make composition order ambiguous.
 | `50.0` | [swarmauri_parser_slate](community/swarmauri_parser_slate/) | `50-community` | `community/swarmauri_parser_slate` | `atomic-concrete` | `community` | yes |
 | `50.0` | [swarmauri_parser_textblob](community/swarmauri_parser_textblob/) | `50-community` | `community/swarmauri_parser_textblob` | `atomic-concrete` | `community` | yes |
 | `70.0` | [swarmauri_parser_asn1](experimental/swarmauri_parser_asn1/) | `70-experimental` | `experimental/swarmauri_parser_asn1` | `experimental-atomic` | `experimental` | yes |
+
+### `permission`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_permission_explicit](standards/swarmauri_permission_explicit/) | `40-standards` | `standards/swarmauri_permission_explicit` | `atomic-concrete` | `standard` | yes |
 
 ### `pop`
 
@@ -1478,6 +1562,12 @@ fail validation because they make composition order ambiguous.
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
 | `70.0` | [QueryEngine](experimental/RapidSimilarity/QueryEngine/) | `70-experimental` | `experimental/RapidSimilarity/QueryEngine` | `experimental-atomic` | `experimental` | no |
+
+### `runstore`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_runstore_sqlite](standards/swarmauri_runstore_sqlite/) | `40-standards` | `standards/swarmauri_runstore_sqlite` | `atomic-concrete` | `standard` | yes |
 
 ### `s.f`
 
@@ -1560,6 +1650,18 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_storage_s3fs](standards/swarmauri_storage_s3fs/) | `40-standards` | `standards/swarmauri_storage_s3fs` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_storage_webdav](standards/swarmauri_storage_webdav/) | `40-standards` | `standards/swarmauri_storage_webdav` | `atomic-concrete` | `standard` | yes |
 
+### `taskmanager`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_taskmanager_default](standards/swarmauri_taskmanager_default/) | `40-standards` | `standards/swarmauri_taskmanager_default` | `atomic-concrete` | `standard` | yes |
+
+### `taskstore`
+
+| Index | Package | Layer | Path | Role | Maturity | Workspace |
+|---|---|---|---|---|---|---|
+| `40.0` | [swarmauri_taskstore_sqlite](standards/swarmauri_taskstore_sqlite/) | `40-standards` | `standards/swarmauri_taskstore_sqlite` | `atomic-concrete` | `standard` | yes |
+
 ### `tests`
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
@@ -1582,6 +1684,7 @@ fail validation because they make composition order ambiguous.
 |---|---|---|---|---|---|---|
 | `40.0` | [swarmauri_tokens_dpopboundjwt](standards/swarmauri_tokens_dpopboundjwt/) | `40-standards` | `standards/swarmauri_tokens_dpopboundjwt` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_introspection](standards/swarmauri_tokens_introspection/) | `40-standards` | `standards/swarmauri_tokens_introspection` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `40-standards` | `standards/swarmauri_tokens_jwt` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_paseto_v4](standards/swarmauri_tokens_paseto_v4/) | `40-standards` | `standards/swarmauri_tokens_paseto_v4` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_remoteoidc](standards/swarmauri_tokens_remoteoidc/) | `40-standards` | `standards/swarmauri_tokens_remoteoidc` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_rotatingjwt](standards/swarmauri_tokens_rotatingjwt/) | `40-standards` | `standards/swarmauri_tokens_rotatingjwt` | `atomic-concrete` | `standard` | yes |
@@ -1589,7 +1692,6 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_tokens_sshsig](standards/swarmauri_tokens_sshsig/) | `40-standards` | `standards/swarmauri_tokens_sshsig` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_tokens_tlsboundjwt](standards/swarmauri_tokens_tlsboundjwt/) | `40-standards` | `standards/swarmauri_tokens_tlsboundjwt` | `atomic-concrete` | `standard` | yes |
 | `40.1` | [swarmauri_tokens_composite](standards/swarmauri_tokens_composite/) | `40-standards` | `standards/swarmauri_tokens_composite` | `composite-concrete` | `standard` | yes |
-| `40.2` | [swarmauri_tokens_jwt](standards/swarmauri_tokens_jwt/) | `40-standards` | `standards/swarmauri_tokens_jwt` | `orchestrator` | `standard` | yes |
 
 ### `tool`
 
@@ -1702,7 +1804,21 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
-| `40.1` | [swarmauri_tts_playht](standards/swarmauri_tts_playht/) | `40-standards` | `standards/swarmauri_tts_playht` | `composite-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_azure](standards/swarmauri_tts_azure/) | `40-standards` | `standards/swarmauri_tts_azure` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_cartesia](standards/swarmauri_tts_cartesia/) | `40-standards` | `standards/swarmauri_tts_cartesia` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepgram](standards/swarmauri_tts_deepgram/) | `40-standards` | `standards/swarmauri_tts_deepgram` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra](standards/swarmauri_tts_deepinfra/) | `40-standards` | `standards/swarmauri_tts_deepinfra` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_kokoro](standards/swarmauri_tts_deepinfra_kokoro/) | `40-standards` | `standards/swarmauri_tts_deepinfra_kokoro` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3](standards/swarmauri_tts_deepinfra_qwen3/) | `40-standards` | `standards/swarmauri_tts_deepinfra_qwen3` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_deepinfra_qwen3_voicedesign](standards/swarmauri_tts_deepinfra_qwen3_voicedesign/) | `40-standards` | `standards/swarmauri_tts_deepinfra_qwen3_voicedesign` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs](standards/swarmauri_tts_elevenlabs/) | `40-standards` | `standards/swarmauri_tts_elevenlabs` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_elevenlabs_dialogue](standards/swarmauri_tts_elevenlabs_dialogue/) | `40-standards` | `standards/swarmauri_tts_elevenlabs_dialogue` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini](standards/swarmauri_tts_gemini/) | `40-standards` | `standards/swarmauri_tts_gemini` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_gemini_dialogue](standards/swarmauri_tts_gemini_dialogue/) | `40-standards` | `standards/swarmauri_tts_gemini_dialogue` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_openai](standards/swarmauri_tts_openai/) | `40-standards` | `standards/swarmauri_tts_openai` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_polly](standards/swarmauri_tts_polly/) | `40-standards` | `standards/swarmauri_tts_polly` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_tts_together](standards/swarmauri_tts_together/) | `40-standards` | `standards/swarmauri_tts_together` | `atomic-concrete` | `standard` | yes |
+| `90.0` | [swarmauri_tts_playht](deprecated/swarmauri_tts_playht/) | `90-deprecated` | `deprecated/swarmauri_tts_playht` | `compat` | `deprecated` | yes |
 
 ### `typing`
 
@@ -1738,6 +1854,8 @@ fail validation because they make composition order ambiguous.
 
 | Index | Package | Layer | Path | Role | Maturity | Workspace |
 |---|---|---|---|---|---|---|
+| `40.2` | [swarmauri_workflow_delegatedresearch](standards/swarmauri_workflow_delegatedresearch/) | `40-standards` | `standards/swarmauri_workflow_delegatedresearch` | `orchestrator` | `standard` | yes |
+| `40.2` | [swarmauri_workflow_documentassistant](standards/swarmauri_workflow_documentassistant/) | `40-standards` | `standards/swarmauri_workflow_documentassistant` | `orchestrator` | `standard` | yes |
 | `70.2` | [swarmauri_workflow_statedriven](experimental/swarmauri_workflow_statedriven/) | `70-experimental` | `experimental/swarmauri_workflow_statedriven` | `experimental-orchestrator` | `experimental` | yes |
 
 ### `xmp`

@@ -54,6 +54,26 @@ def test_add_duplicate_entry_noop():
 
 
 @pytest.mark.unit
+def test_compacting_agent_is_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.agents.CompactingAgent"
+        ]
+        == "swarmauri_agent_compacting.CompactingAgent"
+    )
+
+
+@pytest.mark.unit
+def test_compacting_conversation_is_first_class():
+    assert (
+        PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+            "swarmauri.conversations.CompactingConversation"
+        ]
+        == "swarmauri_conversation_compacting.CompactingConversation"
+    )
+
+
+@pytest.mark.unit
 def test_s3_over_sftp_storage_adapter_is_first_class():
     assert (
         PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
@@ -124,3 +144,11 @@ def test_query_tools_are_second_class():
         ]
         == "swarmauri_tool_queryknowledgebase.QueryKnowledgeBaseTool"
     )
+
+
+def test_sqlite_run_store_has_first_class_citizenship():
+    from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
+
+    assert PluginCitizenshipRegistry.FIRST_CLASS_REGISTRY[
+        "swarmauri.run_stores.SqliteRunStore"
+    ] == ("swarmauri_runstore_sqlite.SqliteRunStore")

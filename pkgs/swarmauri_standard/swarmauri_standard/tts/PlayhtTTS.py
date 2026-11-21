@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import warnings
 from typing import Dict, List, Literal
 
 import httpx
@@ -62,6 +63,17 @@ class PlayhtTTS(TTSBase):
         """
         Initialize the PlayhtTTS with API credentials and voice settings.
         """
+        message = (
+            "Play.ht has discontinued its TTS service. This provider is"
+            " deprecated; use a standalone alpha TTS provider from "
+            "docs/migrations/playht.md. For the legacy OpenAI Speech "
+            "API, import OpenaiTTS from swarmauri_tts_openai; its "
+            "models have a scheduled shutdown on 2027-01-06. Play.ht "
+            "credentials and voice IDs cannot be reused."
+        )
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        raise RuntimeError(message)
+
         super().__init__(**data)
         self._headers = {
             "accept": "audio/mpeg",

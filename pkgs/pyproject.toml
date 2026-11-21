@@ -17,6 +17,8 @@ classifiers = [
 ]
 
 package = false
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 
 [dependency-groups]
 dev = [
@@ -31,6 +33,7 @@ dev = [
     "jsonschema>=4.18.5",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
 
 [tool.uv]
@@ -91,7 +94,7 @@ members = [
     "community/swarmauri_llm_openai",
     "community/swarmauri_llm_openrouter",
     "community/swarmauri_llm_perplexity",
-    "community/swarmauri_llm_playht",
+    "deprecated/swarmauri_llm_playht",
     "community/swarmauri_llm_whisper",
     "community/swarmauri_llm_xai",
     "community/swarmauri_matrix_hamming74",
@@ -214,10 +217,13 @@ members = [
     "plugins/example_plugin",
     "plugins/media_signer",
     "plugins/zdx",
+    "standards/swarmauri_agent_compacting",
     "standards/swarmauri_agent_package_maintenance",
     "standards/swarmauri_agent_runner",
+    "standards/swarmauri_runstore_sqlite",
     "standards/swarmauri_agent_skill",
     "standards/swarmauri_agent_realtime",
+    "standards/swarmauri_conversation_compacting",
     "standards/swarmauri_process_docker",
     "standards/swarmauri_process_kubernetes",
     "standards/swarmauri_process_subprocess",
@@ -288,6 +294,7 @@ members = [
     "standards/swarmauri_crypto_paramiko",
     "standards/swarmauri_crypto_pgp",
     "standards/swarmauri_crypto_rust",
+    "standards/swarmauri_delegation_attenuating",
     "standards/swarmauri_distance_minkowski",
     "standards/swarmauri_distance_canberra",
     "standards/swarmauri_distance_chebyshev",
@@ -309,10 +316,13 @@ members = [
     "standards/swarmauri_evaluator_externalimports",
     "standards/swarmauri_evaluator_subprocess",
     "standards/swarmauri_evaluatorpool_accessibility",
+    "standards/swarmauri_execution_default",
     "standards/swarmauri_gitfilter_file",
     "standards/swarmauri_gitfilter_gh_release",
     "standards/swarmauri_gitfilter_minio",
     "standards/swarmauri_gitfilter_s3fs",
+    "standards/swarmauri_grantstore_sqlite",
+    "standards/swarmauri_invoker_default",
     "standards/swarmauri_keyprovider_file",
     "standards/swarmauri_keyprovider_hierarchical",
     "standards/swarmauri_keyprovider_inmemory",
@@ -343,6 +353,7 @@ members = [
     "standards/swarmauri_mre_crypto_shamir",
     "standards/swarmauri_parser_beautifulsoupelement",
     "standards/swarmauri_parser_keywordextractor",
+    "standards/swarmauri_permission_explicit",
     "standards/swarmauri_pop_cwt",
     "standards/swarmauri_pop_dpop",
     "standards/swarmauri_pop_x509",
@@ -380,6 +391,8 @@ members = [
     "standards/swarmauri_storage_s3_over_sftp",
     "standards/swarmauri_storage_s3fs",
     "standards/swarmauri_storage_webdav",
+    "standards/swarmauri_taskmanager_default",
+    "standards/swarmauri_taskstore_sqlite",
     "standards/swarmauri_tokens_composite",
     "standards/swarmauri_tokens_dpopboundjwt",
     "standards/swarmauri_tokens_introspection",
@@ -415,8 +428,24 @@ members = [
     "standards/swarmauri_transport_udp",
     "standards/swarmauri_transport_uds_unicast",
     "standards/swarmauri_transport_wsjsonrpcmux",
-    "standards/swarmauri_tts_playht",
+    "deprecated/swarmauri_tts_playht",
+    "standards/swarmauri_tts_azure",
+    "standards/swarmauri_tts_cartesia",
+    "standards/swarmauri_tts_deepgram",
+    "standards/swarmauri_tts_deepinfra",
+    "standards/swarmauri_tts_deepinfra_kokoro",
+    "standards/swarmauri_tts_deepinfra_qwen3",
+    "standards/swarmauri_tts_deepinfra_qwen3_voicedesign",
+    "standards/swarmauri_tts_elevenlabs",
+    "standards/swarmauri_tts_elevenlabs_dialogue",
+    "standards/swarmauri_tts_gemini",
+    "standards/swarmauri_tts_gemini_dialogue",
+    "standards/swarmauri_tts_openai",
+    "standards/swarmauri_tts_polly",
+    "standards/swarmauri_tts_together",
     "standards/swarmauri_vectorstore_doc2vec",
+    "standards/swarmauri_workflow_delegatedresearch",
+    "standards/swarmauri_workflow_documentassistant",
     "standards/swarmauri_xmp_gif",
     "standards/swarmauri_xmp_jpeg",
     "standards/swarmauri_xmp_mp4",
@@ -432,6 +461,15 @@ members = [
 ]
 
 [tool.uv.sources]
+swarmauri_delegation_attenuating = { workspace = true }
+swarmauri_execution_default = { workspace = true }
+swarmauri_grantstore_sqlite = { workspace = true }
+swarmauri_invoker_default = { workspace = true }
+swarmauri_permission_explicit = { workspace = true }
+swarmauri_taskmanager_default = { workspace = true }
+swarmauri_taskstore_sqlite = { workspace = true }
+swarmauri_workflow_delegatedresearch = { workspace = true }
+swarmauri_workflow_documentassistant = { workspace = true }
 # 6w = { workspace = true }
 # 6x = { workspace = true }
 # 6y = { workspace = true }
@@ -491,6 +529,20 @@ swarmauri_transport_httpx = { workspace = true }
 swarmauri_transport_retry = { workspace = true }
 swarmauri_transport_websocket = { workspace = true }
 swarmauri_agent_texttospeech = { workspace = true }
+swarmauri_tts_polly = { workspace = true }
+swarmauri_tts_elevenlabs_dialogue = { workspace = true }
+swarmauri_tts_deepinfra_kokoro = { workspace = true }
+swarmauri_tts_deepinfra_qwen3 = { workspace = true }
+swarmauri_tts_deepinfra_qwen3_voicedesign = { workspace = true }
+swarmauri_tts_azure = { workspace = true }
+swarmauri_tts_cartesia = { workspace = true }
+swarmauri_tts_elevenlabs = { workspace = true }
+swarmauri_tts_deepgram = { workspace = true }
+swarmauri_tts_gemini_dialogue = { workspace = true }
+swarmauri_tts_gemini = { workspace = true }
+swarmauri_tts_openai = { workspace = true }
+swarmauri_tts_deepinfra = { workspace = true }
+swarmauri_tts_together = { workspace = true }
 swarmauri_auth_idp_apple = { workspace = true }
 swarmauri_auth_idp_aws = { workspace = true }
 swarmauri_auth_idp_azure = { workspace = true }
@@ -855,6 +907,54 @@ exclude = ["experimental", ".config", "**/*.bak.py", "standards/peagen/test_proj
 [tool.ruff.lint]
 extend-select = ["E501"]
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs"
+layer = "workspace"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_monorepo"
+published = false
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

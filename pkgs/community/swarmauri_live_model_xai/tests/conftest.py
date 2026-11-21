@@ -37,8 +37,9 @@ def _connect(model):
 async def _aconnect(model):
     model.provider = XAIProvider(api_key="test-key")
     model.transport = _Transport()
-    with patch(
-        "swarmauri_live_model_xai.XAIRealtimeModel.XAIRealtimeSession.create",
+    with patch.object(
+        XAIRealtimeSession,
+        "create",
         new=AsyncMock(return_value="session"),
     ):
         assert await model.aconnect(LiveConfigBase()) == "session"

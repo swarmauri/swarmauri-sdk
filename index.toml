@@ -121,6 +121,21 @@ maturity = "standard-kernel"
 workspace = true
 
 [[packages]]
+id = "swarmauri-agent-compacting"
+name = "swarmauri_agent_compacting"
+path = "pkgs/standards/swarmauri_agent_compacting"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+dependencies = ["swarmauri-standard"]
+[packages.metadata.swarmauri]
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
 id = "swarmauri-agent-package-maintenance"
 name = "swarmauri_agent_package_maintenance"
 path = "pkgs/standards/swarmauri_agent_package_maintenance"
@@ -142,7 +157,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "agent"
 role = "atomic-concrete"
@@ -185,7 +199,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "agent"
 role = "atomic-concrete"
@@ -733,6 +746,21 @@ maturity = "standard"
 workspace = true
 
 [[packages]]
+id = "swarmauri-conversation-compacting"
+name = "swarmauri_conversation_compacting"
+path = "pkgs/standards/swarmauri_conversation_compacting"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+dependencies = ["swarmauri-standard"]
+[packages.metadata.swarmauri]
+family = "conversation"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
 id = "swarmauri-crypto-ecdh-es-a128kw"
 name = "swarmauri_crypto_ecdh_es_a128kw"
 path = "pkgs/standards/swarmauri_crypto_ecdh_es_a128kw"
@@ -818,6 +846,20 @@ order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "crypto"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-delegation-attenuating"
+name = "swarmauri_delegation_attenuating"
+path = "pkgs/standards/swarmauri_delegation_attenuating"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "delegation"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1126,6 +1168,20 @@ maturity = "standard"
 workspace = true
 
 [[packages]]
+id = "swarmauri-execution-default"
+name = "swarmauri_execution_default"
+path = "pkgs/standards/swarmauri_execution_default"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "execution"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
 id = "swarmauri-gitfilter-gh-release"
 name = "swarmauri_gitfilter_gh_release"
 path = "pkgs/standards/swarmauri_gitfilter_gh_release"
@@ -1166,6 +1222,34 @@ order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "gitfilter"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-grantstore-sqlite"
+name = "swarmauri_grantstore_sqlite"
+path = "pkgs/standards/swarmauri_grantstore_sqlite"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "grantstore"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-invoker-default"
+name = "swarmauri_invoker_default"
+path = "pkgs/standards/swarmauri_invoker_default"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "invoker"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1575,6 +1659,20 @@ maturity = "standard"
 workspace = true
 
 [[packages]]
+id = "swarmauri-permission-explicit"
+name = "swarmauri_permission_explicit"
+path = "pkgs/standards/swarmauri_permission_explicit"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "permission"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
 id = "swarmauri-pop-cwt"
 name = "swarmauri_pop_cwt"
 path = "pkgs/standards/swarmauri_pop_cwt"
@@ -1717,6 +1815,20 @@ order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "publisher"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-runstore-sqlite"
+name = "swarmauri_runstore_sqlite"
+path = "pkgs/standards/swarmauri_runstore_sqlite"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "runstore"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -1924,7 +2036,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "similarity"
 role = "atomic-concrete"
@@ -2074,7 +2185,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "storage"
 role = "atomic-concrete"
@@ -2089,7 +2199,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "storage"
 role = "atomic-concrete"
@@ -2104,7 +2213,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "storage"
 role = "atomic-concrete"
@@ -2119,9 +2227,36 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "storage"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-taskmanager-default"
+name = "swarmauri_taskmanager_default"
+path = "pkgs/standards/swarmauri_taskmanager_default"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "taskmanager"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-taskstore-sqlite"
+name = "swarmauri_taskstore_sqlite"
+path = "pkgs/standards/swarmauri_taskstore_sqlite"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "taskstore"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -2150,6 +2285,20 @@ layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core"]
+[packages.metadata.swarmauri]
+family = "tokens"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tokens-jwt"
+name = "swarmauri_tokens_jwt"
+path = "pkgs/standards/swarmauri_tokens_jwt"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
 [packages.metadata.swarmauri]
 family = "tokens"
 role = "atomic-concrete"
@@ -2608,7 +2757,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "transport"
 role = "atomic-concrete"
@@ -2699,7 +2847,6 @@ layer = "40-standards"
 order = 0
 order_reason = "concrete retry policy and execution for HTTP client contracts"
 order_source = "explicit"
-dependencies = ["swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "transport"
 role = "atomic-concrete"
@@ -2819,7 +2966,6 @@ ecosystem = "pypi"
 layer = "40-standards"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "transport"
 role = "atomic-concrete"
@@ -2837,6 +2983,202 @@ order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "transport"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-azure"
+name = "swarmauri_tts_azure"
+path = "pkgs/standards/swarmauri_tts_azure"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-cartesia"
+name = "swarmauri_tts_cartesia"
+path = "pkgs/standards/swarmauri_tts_cartesia"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-deepgram"
+name = "swarmauri_tts_deepgram"
+path = "pkgs/standards/swarmauri_tts_deepgram"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-deepinfra"
+name = "swarmauri_tts_deepinfra"
+path = "pkgs/standards/swarmauri_tts_deepinfra"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-deepinfra-kokoro"
+name = "swarmauri_tts_deepinfra_kokoro"
+path = "pkgs/standards/swarmauri_tts_deepinfra_kokoro"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-deepinfra-qwen3"
+name = "swarmauri_tts_deepinfra_qwen3"
+path = "pkgs/standards/swarmauri_tts_deepinfra_qwen3"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-deepinfra-qwen3-voicedesign"
+name = "swarmauri_tts_deepinfra_qwen3_voicedesign"
+path = "pkgs/standards/swarmauri_tts_deepinfra_qwen3_voicedesign"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-elevenlabs"
+name = "swarmauri_tts_elevenlabs"
+path = "pkgs/standards/swarmauri_tts_elevenlabs"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-elevenlabs-dialogue"
+name = "swarmauri_tts_elevenlabs_dialogue"
+path = "pkgs/standards/swarmauri_tts_elevenlabs_dialogue"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-gemini"
+name = "swarmauri_tts_gemini"
+path = "pkgs/standards/swarmauri_tts_gemini"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-gemini-dialogue"
+name = "swarmauri_tts_gemini_dialogue"
+path = "pkgs/standards/swarmauri_tts_gemini_dialogue"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-openai"
+name = "swarmauri_tts_openai"
+path = "pkgs/standards/swarmauri_tts_openai"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-polly"
+name = "swarmauri_tts_polly"
+path = "pkgs/standards/swarmauri_tts_polly"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-together"
+name = "swarmauri_tts_together"
+path = "pkgs/standards/swarmauri_tts_together"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
 role = "atomic-concrete"
 maturity = "standard"
 workspace = true
@@ -3135,22 +3477,6 @@ workspace = true
 composes = ["swarmauri_transport_h2mux"]
 
 [[packages]]
-id = "swarmauri-tts-playht"
-name = "swarmauri_tts_playht"
-path = "pkgs/standards/swarmauri_tts_playht"
-ecosystem = "pypi"
-layer = "40-standards"
-order = 1
-order_reason = "raised to order 1 because it depends on same-layer package swarmauri_agent_texttospeech at 40.0"
-dependencies = ["swarmauri-agent-texttospeech", "swarmauri-base", "swarmauri-core"]
-[packages.metadata.swarmauri]
-family = "tts"
-role = "composite-concrete"
-maturity = "standard"
-workspace = true
-composes = ["swarmauri_agent_texttospeech"]
-
-[[packages]]
 id = "swarmauri-vectorstore-doc2vec"
 name = "swarmauri_vectorstore_doc2vec"
 path = "pkgs/standards/swarmauri_vectorstore_doc2vec"
@@ -3167,6 +3493,22 @@ workspace = true
 composes = ["swarmauri_embedding_doc2vec"]
 
 [[packages]]
+id = "swarmauri-middleware-jwt"
+name = "swarmauri_middleware_jwt"
+path = "pkgs/standards/swarmauri_middleware_jwt"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 2
+order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
+dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-signing-jws", "swarmauri-tokens-jwt"]
+[packages.metadata.swarmauri]
+family = "middleware"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
+composes = ["swarmauri_signing_jws", "swarmauri_tokens_jwt"]
+
+[[packages]]
 id = "swarmauri-signing-dpop"
 name = "swarmauri_signing_dpop"
 path = "pkgs/standards/swarmauri_signing_dpop"
@@ -3177,22 +3519,6 @@ order_reason = "raised to order 2 because it depends on same-layer package swarm
 dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-signing-jws"]
 [packages.metadata.swarmauri]
 family = "signing"
-role = "orchestrator"
-maturity = "standard"
-workspace = true
-composes = ["swarmauri_signing_jws"]
-
-[[packages]]
-id = "swarmauri-tokens-jwt"
-name = "swarmauri_tokens_jwt"
-path = "pkgs/standards/swarmauri_tokens_jwt"
-ecosystem = "pypi"
-layer = "40-standards"
-order = 2
-order_reason = "raised to order 2 because it depends on same-layer package swarmauri_signing_jws at 40.1"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-signing-jws"]
-[packages.metadata.swarmauri]
-family = "tokens"
 role = "orchestrator"
 maturity = "standard"
 workspace = true
@@ -3257,20 +3583,32 @@ workspace = true
 composes = ["swarmauri_certs_x509verify", "swarmauri_cipher_suite_tls13", "swarmauri_middleware_httpsig", "swarmauri_signing_jws"]
 
 [[packages]]
-id = "swarmauri-middleware-jwt"
-name = "swarmauri_middleware_jwt"
-path = "pkgs/standards/swarmauri_middleware_jwt"
+id = "swarmauri-workflow-delegatedresearch"
+name = "swarmauri_workflow_delegatedresearch"
+path = "pkgs/standards/swarmauri_workflow_delegatedresearch"
 ecosystem = "pypi"
 layer = "40-standards"
-order = 3
-order_reason = "raised to order 3 because it depends on same-layer package swarmauri_tokens_jwt at 40.2"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-signing-jws", "swarmauri-tokens-jwt"]
+order = 2
+order_reason = "orchestrator signal from metadata for swarmauri_workflow_delegatedresearch"
 [packages.metadata.swarmauri]
-family = "middleware"
+family = "workflow"
 role = "orchestrator"
 maturity = "standard"
 workspace = true
-composes = ["swarmauri_signing_jws", "swarmauri_tokens_jwt"]
+
+[[packages]]
+id = "swarmauri-workflow-documentassistant"
+name = "swarmauri_workflow_documentassistant"
+path = "pkgs/standards/swarmauri_workflow_documentassistant"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 2
+order_reason = "orchestrator signal from metadata for swarmauri_workflow_documentassistant"
+[packages.metadata.swarmauri]
+family = "workflow"
+role = "orchestrator"
+maturity = "standard"
+workspace = true
 
 [[packages]]
 id = "swarmauri-billing-adyen"
@@ -3618,6 +3956,76 @@ maturity = "community"
 workspace = true
 
 [[packages]]
+id = "swarmauri-live-model-amazon-nova"
+name = "swarmauri_live_model_amazon_nova"
+path = "pkgs/community/swarmauri_live_model_amazon_nova"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-live-model-gemini"
+name = "swarmauri_live_model_gemini"
+path = "pkgs/community/swarmauri_live_model_gemini"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-live-model-openai"
+name = "swarmauri_live_model_openai"
+path = "pkgs/community/swarmauri_live_model_openai"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-live-model-qwen"
+name = "swarmauri_live_model_qwen"
+path = "pkgs/community/swarmauri_live_model_qwen"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-live-model-xai"
+name = "swarmauri_live_model_xai"
+path = "pkgs/community/swarmauri_live_model_xai"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "live"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
 id = "swarmauri-llm-ai21"
 name = "swarmauri_llm_ai21"
 path = "pkgs/community/swarmauri_llm_ai21"
@@ -3648,6 +4056,20 @@ maturity = "community"
 workspace = true
 
 [[packages]]
+id = "swarmauri-llm-azureopenai"
+name = "swarmauri_llm_azureopenai"
+path = "pkgs/community/swarmauri_llm_azureopenai"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
 id = "swarmauri-llm-cerebras"
 name = "swarmauri_llm_cerebras"
 path = "pkgs/community/swarmauri_llm_cerebras"
@@ -3656,6 +4078,20 @@ layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
+[packages.metadata.swarmauri]
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-llm-cloudflare"
+name = "swarmauri_llm_cloudflare"
+path = "pkgs/community/swarmauri_llm_cloudflare"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
 [packages.metadata.swarmauri]
 family = "llm"
 role = "atomic-concrete"
@@ -3760,7 +4196,7 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
+dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "llm"
 role = "atomic-concrete"
@@ -3813,6 +4249,20 @@ maturity = "community"
 workspace = true
 
 [[packages]]
+id = "swarmauri-llm-nvidia-nim"
+name = "swarmauri_llm_nvidia_nim"
+path = "pkgs/community/swarmauri_llm_nvidia_nim"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
 id = "swarmauri-llm-openai"
 name = "swarmauri_llm_openai"
 path = "pkgs/community/swarmauri_llm_openai"
@@ -3820,7 +4270,7 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
+dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "llm"
 role = "atomic-concrete"
@@ -3843,22 +4293,6 @@ maturity = "community"
 workspace = true
 
 [[packages]]
-id = "swarmauri-llm-playht"
-name = "swarmauri_llm_playht"
-path = "pkgs/community/swarmauri_llm_playht"
-ecosystem = "pypi"
-layer = "50-community"
-order = 0
-order_reason = "single-capability package by default"
-dependencies = ["swarmauri-tts-playht"]
-[packages.metadata.swarmauri]
-family = "llm"
-role = "atomic-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_tts_playht"]
-
-[[packages]]
 id = "swarmauri-llm-whisper"
 name = "swarmauri_llm_whisper"
 path = "pkgs/community/swarmauri_llm_whisper"
@@ -3867,6 +4301,20 @@ layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
 dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
+[packages.metadata.swarmauri]
+family = "llm"
+role = "atomic-concrete"
+maturity = "community"
+workspace = true
+
+[[packages]]
+id = "swarmauri-llm-xai"
+name = "swarmauri_llm_xai"
+path = "pkgs/community/swarmauri_llm_xai"
+ecosystem = "pypi"
+layer = "50-community"
+order = 0
+order_reason = "single-capability package by default"
 [packages.metadata.swarmauri]
 family = "llm"
 role = "atomic-concrete"
@@ -4076,7 +4524,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4091,7 +4538,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4106,7 +4552,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4122,7 +4567,6 @@ layer = "50-community"
 order = 0
 order_reason = "provider configuration without transport execution"
 order_source = "explicit"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4137,7 +4581,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4152,7 +4595,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "provider"
 role = "atomic-concrete"
@@ -4721,7 +5163,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "tool"
 role = "atomic-concrete"
@@ -4736,7 +5177,6 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "tool"
 role = "atomic-concrete"
@@ -5028,140 +5468,11 @@ ecosystem = "pypi"
 layer = "50-community"
 order = 0
 order_reason = "single-capability package by default"
-dependencies = ["swarmauri-base", "swarmauri-core"]
 [packages.metadata.swarmauri]
 family = "video"
 role = "atomic-concrete"
 maturity = "community"
 workspace = true
-
-[[packages]]
-id = "swarmauri-live-model-amazon-nova"
-name = "swarmauri_live_model_amazon_nova"
-path = "pkgs/community/swarmauri_live_model_amazon_nova"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-amazon-nova", "swarmauri-transport-aws-eventstream"]
-[packages.metadata.swarmauri]
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_amazon_nova", "swarmauri_transport_aws_eventstream"]
-
-[[packages]]
-id = "swarmauri-live-model-gemini"
-name = "swarmauri_live_model_gemini"
-path = "pkgs/community/swarmauri_live_model_gemini"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-gemini", "swarmauri-transport-websocket"]
-[packages.metadata.swarmauri]
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_gemini", "swarmauri_transport_websocket"]
-
-[[packages]]
-id = "swarmauri-live-model-openai"
-name = "swarmauri_live_model_openai"
-path = "pkgs/community/swarmauri_live_model_openai"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-openai", "swarmauri-transport-websocket"]
-[packages.metadata.swarmauri]
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_openai", "swarmauri_transport_websocket"]
-
-[[packages]]
-id = "swarmauri-live-model-qwen"
-name = "swarmauri_live_model_qwen"
-path = "pkgs/community/swarmauri_live_model_qwen"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-qwen", "swarmauri-transport-websocket"]
-[packages.metadata.swarmauri]
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_qwen", "swarmauri_transport_websocket"]
-
-[[packages]]
-id = "swarmauri-live-model-xai"
-name = "swarmauri_live_model_xai"
-path = "pkgs/community/swarmauri_live_model_xai"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-xai", "swarmauri-transport-websocket"]
-[packages.metadata.swarmauri]
-family = "live"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_xai", "swarmauri_transport_websocket"]
-
-[[packages]]
-id = "swarmauri-llm-azureopenai"
-name = "swarmauri_llm_azureopenai"
-path = "pkgs/community/swarmauri_llm_azureopenai"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard", "swarmauri-transport-httpx", "swarmauri-transport-retry"]
-[packages.metadata.swarmauri]
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-id = "swarmauri-llm-cloudflare"
-name = "swarmauri_llm_cloudflare"
-path = "pkgs/community/swarmauri_llm_cloudflare"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard", "swarmauri-transport-httpx", "swarmauri-transport-retry"]
-[packages.metadata.swarmauri]
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-id = "swarmauri-llm-nvidia-nim"
-name = "swarmauri_llm_nvidia_nim"
-path = "pkgs/community/swarmauri_llm_nvidia_nim"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 2 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard", "swarmauri-transport-httpx", "swarmauri-transport-retry"]
-[packages.metadata.swarmauri]
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 id = "swarmauri-llm-openrouter"
@@ -5172,29 +5483,12 @@ layer = "50-community"
 order = 1
 order_reason = "OpenRouter models compose provider configuration with shared HTTP and retry transports"
 order_source = "explicit"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-openrouter", "swarmauri-standard", "swarmauri-transport-httpx", "swarmauri-transport-retry"]
 [packages.metadata.swarmauri]
 family = "llm"
 role = "composite-concrete"
 maturity = "community"
 workspace = true
 composes = ["swarmauri_provider_openrouter", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
-
-[[packages]]
-id = "swarmauri-llm-xai"
-name = "swarmauri_llm_xai"
-path = "pkgs/community/swarmauri_llm_xai"
-ecosystem = "pypi"
-layer = "50-community"
-order = 1
-order_reason = "depends on 3 internal concrete packages"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-provider-xai", "swarmauri-standard", "swarmauri-transport-httpx", "swarmauri-transport-retry"]
-[packages.metadata.swarmauri]
-family = "llm"
-role = "composite-concrete"
-maturity = "community"
-workspace = true
-composes = ["swarmauri_provider_xai", "swarmauri_transport_httpx", "swarmauri_transport_retry"]
 
 [[packages]]
 id = "swarmauri-matrix-hamming74"
@@ -5853,7 +6147,6 @@ ecosystem = "pypi"
 layer = "70-experimental"
 order = 2
 order_reason = "orchestrator signal from metadata for swarmauri_workflow_statedriven"
-dependencies = ["swarmauri-base", "swarmauri-core", "swarmauri-standard"]
 [packages.metadata.swarmauri]
 family = "workflow"
 role = "experimental-orchestrator"
@@ -5915,6 +6208,34 @@ order_reason = "single-capability package by default"
 dependencies = ["swarmauri"]
 [packages.metadata.swarmauri]
 family = "experimental"
+role = "compat"
+maturity = "deprecated"
+workspace = true
+
+[[packages]]
+id = "swarmauri-llm-playht"
+name = "swarmauri_llm_playht"
+path = "pkgs/deprecated/swarmauri_llm_playht"
+ecosystem = "pypi"
+layer = "90-deprecated"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "llm"
+role = "compat"
+maturity = "deprecated"
+workspace = true
+
+[[packages]]
+id = "swarmauri-tts-playht"
+name = "swarmauri_tts_playht"
+path = "pkgs/deprecated/swarmauri_tts_playht"
+ecosystem = "pypi"
+layer = "90-deprecated"
+order = 0
+order_reason = "single-capability package by default"
+[packages.metadata.swarmauri]
+family = "tts"
 role = "compat"
 maturity = "deprecated"
 workspace = true

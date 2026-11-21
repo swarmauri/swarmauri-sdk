@@ -8,9 +8,9 @@ import sys
 from pathlib import Path
 
 from swarmauri_agent_package_maintenance import PackageMaintenanceAgent
-from swarmauri_agent_runner import SqliteRunStore
-from swarmauri_agent_runner.ApprovalDecision import ApprovalDecision
+from swarmauri_agent_runner import ApprovalDecision, RunState
 from swarmauri_base.skills.SkillCatalog import SkillCatalog
+from swarmauri_runstore_sqlite import SqliteRunStore
 from swarmauri_standard.tool_llms.OpenAIToolModel import OpenAIToolModel
 from swarmauri_toolkit_containertoolkit import ContainerToolkit
 
@@ -115,7 +115,7 @@ def start(store):
 
 def decide_run(store, run_id, approval_id, approved):
     """Recover the workspace ID from the saved approval and apply the decision."""
-    pending = store.load(run_id)
+    pending = RunState.from_checkpoint(store.load(run_id))
     if pending.status != "approval_required" or pending.approval is None:
         raise ValueError("The run has no pending approval")
     scope = re.fullmatch(DOCKER_SCOPE, pending.approval.scope)
@@ -176,12 +176,12 @@ def main():
     decide.add_argument("decision", choices=("approve", "deny"))
     args = parser.parse_args()
     args.db.parent.mkdir(parents=True, exist_ok=True)
-    store = SqliteRunStore(args.db)
+    store = SqliteRunStore(path=args.db)
     try:
         if args.action == "start":
             state = start(store)
         elif args.action == "resume":
-            state = store.load(args.run_id)
+            state = RunState.from_checkpoint(store.load(args.run_id))
             if state.status != "approval_required" or state.approval is None:
                 raise ValueError("The run has no pending approval")
         else:

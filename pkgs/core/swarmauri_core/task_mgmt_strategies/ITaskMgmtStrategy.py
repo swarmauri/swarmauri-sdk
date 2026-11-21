@@ -9,8 +9,8 @@ class ITaskMgmtStrategy(ABC):
     def assign_task(
         self,
         task: dict[str, Any],
-        agent_factory: Callable,
-        service_registry: Callable,
+        agent_factory: Callable | None = None,
+        service_registry: Callable | None = None,
     ) -> str:
         """
         Abstract method to assign a task to a service.
@@ -35,7 +35,9 @@ class ITaskMgmtStrategy(ABC):
         """
 
     @abstractmethod
-    def process_tasks(self, task: dict[str, Any]) -> None:
+    def process_tasks(
+        self, service_registry: Callable, transport: Callable
+    ) -> None:
         """
         Abstract method to process a task.
         """

@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev6"
+version = "0.11.0.dev12"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -28,7 +28,6 @@ requires-python = ">=3.10,<3.15"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -46,13 +45,14 @@ classifiers = [
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
     "toml>=0.10.2",
-    "httpx>=0.27.0",
+    "httpx>=0.27,<0.29",
     "pydantic>=2.9.2",
     "typing_extensions",
-    "swarmauri_core>=0.11.0.dev6,<0.12",
-    "swarmauri_base>=0.11.0.dev6,<0.12",
-    "swarmauri_standard>=0.11.0.dev8,<0.12",
+    "swarmauri_core>=0.11.0.dev8,<0.12",
+    "swarmauri_base>=0.11.0.dev13,<0.12",
+    "swarmauri_standard>=0.11.0.dev13,<0.12",
 ]
+license-files = ["LICENSE", "NOTICE"]
 
 [project.optional-dependencies]
 default = [
@@ -79,6 +79,23 @@ full = [
     "swarmauri_signing_ed25519",
 ]
 
+tts = [
+    "swarmauri_tts_gemini_dialogue>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_qwen3_voicedesign>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_qwen3>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepinfra_kokoro>=0.1.0a1,<0.2",
+    "swarmauri_tts_elevenlabs_dialogue>=0.1.0a1,<0.2",
+    "swarmauri_tts_azure>=0.1.0a1,<0.2",
+    "swarmauri_tts_polly>=0.1.0a1,<0.2",
+    "swarmauri_tts_cartesia>=0.1.0a1,<0.2",
+    "swarmauri_tts_elevenlabs>=0.1.0a1,<0.2",
+    "swarmauri_tts_deepgram>=0.1.0a1,<0.2",
+    "swarmauri_tts_gemini>=0.1.0a1,<0.2",
+    "swarmauri_tts_openai>=0.1.0a2,<0.2",
+    "swarmauri_tts_deepinfra>=0.1.0a1,<0.2",
+    "swarmauri_tts_together>=0.1.0a1,<0.2",
+]
+
 llms = [
     "swarmauri_llm_ai21",
     "swarmauri_llm_anthropic",
@@ -98,12 +115,25 @@ llms = [
     "swarmauri_llm_nvidia_nim",
     "swarmauri_llm_openai",
     "swarmauri_llm_perplexity",
-    "swarmauri_llm_playht",
     "swarmauri_llm_whisper",
     "swarmauri_llm_xai",
 ]
 
 [tool.uv.sources]
+swarmauri_tts_polly = { workspace = true }
+swarmauri_tts_elevenlabs_dialogue = { workspace = true }
+swarmauri_tts_deepinfra_kokoro = { workspace = true }
+swarmauri_tts_deepinfra_qwen3 = { workspace = true }
+swarmauri_tts_deepinfra_qwen3_voicedesign = { workspace = true }
+swarmauri_tts_azure = { workspace = true }
+swarmauri_tts_cartesia = { workspace = true }
+swarmauri_tts_elevenlabs = { workspace = true }
+swarmauri_tts_deepgram = { workspace = true }
+swarmauri_tts_gemini_dialogue = { workspace = true }
+swarmauri_tts_gemini = { workspace = true }
+swarmauri_tts_openai = { workspace = true }
+swarmauri_tts_deepinfra = { workspace = true }
+swarmauri_tts_together = { workspace = true }
 swarmauri_core = { workspace = true }
 swarmauri_base = { workspace = true }
 swarmauri_standard = { workspace = true }
@@ -125,7 +155,6 @@ swarmauri_llm_mistral = { workspace = true }
 swarmauri_llm_nvidia_nim = { workspace = true }
 swarmauri_llm_openai = { workspace = true }
 swarmauri_llm_perplexity = { workspace = true }
-swarmauri_llm_playht = { workspace = true }
 swarmauri_llm_whisper = { workspace = true }
 swarmauri_llm_xai = { workspace = true }
 swarmauri_vectorstore_doc2vec = { workspace = true }
@@ -162,12 +191,78 @@ asyncio_default_fixture_loop_scope = "function"
 namespace_packages = ["swarmauri"]
 
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/swarmauri"
+layer = "swarmauri"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/swarmauri/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/swarmauri/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    'swarmauri_tts_deepinfra_kokoro; python_version < "3.13"',
+    'swarmauri_tts_deepinfra_qwen3; python_version < "3.13"',
+    'swarmauri_tts_deepinfra_qwen3_voicedesign; python_version < "3.13"',
+    'swarmauri_tts_elevenlabs_dialogue; python_version < "3.13"',
+    'swarmauri_tts_gemini_dialogue; python_version < "3.13"',
+
+    'swarmauri_tts_azure; python_version < "3.13"',
+    'swarmauri_tts_polly; python_version < "3.13"',
+
+    'swarmauri_tts_cartesia; python_version < "3.13"',
+    'swarmauri_tts_deepgram; python_version < "3.13"',
+    'swarmauri_tts_elevenlabs; python_version < "3.13"',
+    'swarmauri_tts_gemini; python_version < "3.13"',
+
+    'swarmauri_tts_deepinfra; python_version < "3.13"',
+    'swarmauri_tts_openai; python_version < "3.13"',
+    'swarmauri_tts_together; python_version < "3.13"',
+
     "pytest>=8.0",
     "pytest-xdist>=3.6.1",
     "pytest-asyncio>=0.24.0",
@@ -180,6 +275,7 @@ dev = [
     "flake8>=7.0",
     "ruff>=0.9.9",
     "pytest-benchmark>=4.0.0",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
 
 [tool.ruff]

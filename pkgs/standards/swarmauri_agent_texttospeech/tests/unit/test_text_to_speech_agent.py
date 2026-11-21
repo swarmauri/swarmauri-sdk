@@ -108,3 +108,44 @@ def test_agent_entry_point() -> None:
     assert (
         entry_point.value == "swarmauri_agent_texttospeech:TextToSpeechAgent"
     )
+
+
+@pytest.mark.parametrize(
+    "value", [(), ("not a typed turn",), {"speaker": "One"}]
+)
+def test_malformed_structured_input_is_rejected(agent, value):
+    with pytest.raises(TypeError):
+        agent.exec(value)
+    assert not StubTTS.calls
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("limit", [0, -1, True, 1.5])
+async def test_invalid_async_batch_limit_is_local(agent, limit):
+    with pytest.raises(ValueError, match="positive integer"):
+        await agent.abatch(["One"], max_concurrent=limit)
+    assert not StubTTS.calls
+
+
+@pytest.mark.asyncio
+async def test_async_batch_is_bounded_and_preserves_order():
+    import asyncio
+
+    class CountingTTS(StubTTS):
+        active: ClassVar[int] = 0
+        peak: ClassVar[int] = 0
+
+        async def apredict(self, text, audio_path="output.mp3"):
+            type(self).active += 1
+            type(self).peak = max(type(self).peak, type(self).active)
+            await asyncio.sleep(0)
+            type(self).active -= 1
+            return audio_path
+
+    agent = TextToSpeechAgent(tts=CountingTTS(), output_path="speech.mp3")
+    assert await agent.abatch(["One", "Two", "Three"], max_concurrent=2) == [
+        "speech_0.mp3",
+        "speech_1.mp3",
+        "speech_2.mp3",
+    ]
+    assert CountingTTS.peak == 2

@@ -60,7 +60,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for matrix generation
         run: pip install toml
@@ -155,10 +155,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install dependencies for testing
-        run: pip install uv pytest toml
+        run: pip install uv pytest toml packaging
 
       - name: Install libsodium for sodium package
         if: ${{ matrix.package_name == 'swarmauri_crypto_sodium' }}
@@ -248,7 +248,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Download patch artifacts
         uses: actions/download-artifact@v4
@@ -355,10 +355,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install build tooling
-        run: pip install uv pytest toml
+        run: pip install uv pytest toml packaging
 
       - name: Install libsodium for sodium package
         if: ${{ matrix.package_name == 'swarmauri_crypto_sodium' }}
@@ -473,6 +473,36 @@ jobs:
               time.sleep(5)
           PY
 
+      - name: Verify published compatibility releases on Python 3.10 through 3.14
+        env:
+          PACKAGE_NAME: ${{ matrix.package_name }}
+        run: |
+          python - <<'PY'
+          from concurrent.futures import ThreadPoolExecutor
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import time
+
+          manifest = Path("docs/releases/python-310-314-remaining-2026-11-19.json")
+          name = os.environ["PACKAGE_NAME"]
+          if not manifest.exists() or name not in {p["name"] for p in json.loads(manifest.read_text())["scope"]}:
+              print(f"{name} is outside the remaining-package compatibility release.")
+              raise SystemExit(0)
+          def verify(version):
+              command = ["uv", "run", "--no-project", "--python", "3.12", "--with", "poetry-core", "--with", "packaging", "--with", "tomli", "python", "scripts/verify_remaining_python_support.py", "--published", "--package", name, "--python", version]
+              for attempt in range(3):
+                  result = subprocess.run(command)
+                  if result.returncode == 0:
+                      break
+                  if attempt == 2:
+                      raise SystemExit(result.returncode)
+                  time.sleep(10)
+          with ThreadPoolExecutor(max_workers=5) as executor:
+              list(executor.map(verify, ("3.10", "3.11", "3.12", "3.13", "3.14")))
+          PY
+
       - name: Prepare release variables
         id: prepare_release
         run: |
@@ -480,11 +510,7 @@ jobs:
           PACKAGE_NAME="${{ matrix.package_name }}"
           VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['project']['version'])")
           TAG="${PACKAGE_NAME}==${VERSION}"
-          if [ "${{ github.event.inputs.bump_type }}" = "finalize" ] || [[ "$VERSION" != *".dev"* ]]; then
-            PRERELEASE_FLAG=false
-          else
-            PRERELEASE_FLAG=true
-          fi
+          PRERELEASE_FLAG=$(python -c 'import sys; from packaging.version import Version; print(str(Version(sys.argv[1]).is_prerelease).lower())' "$VERSION")
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "prerelease=$PRERELEASE_FLAG" >> $GITHUB_OUTPUT
           echo "package_name=$PACKAGE_NAME" >> $GITHUB_OUTPUT

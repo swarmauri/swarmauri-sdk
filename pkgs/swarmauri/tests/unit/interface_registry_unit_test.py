@@ -63,3 +63,12 @@ def test_get_video_lipsync_interface():
         InterfaceRegistry.get_interface_for_resource("swarmauri.video_lipsync")
         is LipSyncBase
     )
+
+
+def test_run_store_interface():
+    from swarmauri_base.run_stores import RunStoreBase
+
+    assert (
+        InterfaceRegistry.get_interface_for_resource("swarmauri.run_stores")
+        is RunStoreBase
+    )

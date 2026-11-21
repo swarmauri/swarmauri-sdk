@@ -26,6 +26,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install the shared README policy checker
+        run: python -m pip install readme-standards==0.1.1
       - name: Run package verification
         id: verify
         continue-on-error: true
