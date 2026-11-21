@@ -128,8 +128,8 @@ login = GitHubOAuth21Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Send the browser to the authorization URL and capture code and state.
+    # In the callback, pass code and state to exchange_and_identity.
 
 
 asyncio.run(run_flow())
@@ -165,8 +165,8 @@ login = GitHubOAuth21Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Send the browser to the authorization URL and capture code and state.
+    # In the callback, pass code and state to exchange_and_identity.
 
 
 asyncio.run(run_flow())
@@ -266,6 +266,25 @@ Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_aut
 - [tests/unit/test_github_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_github/tests/unit/test_github_oauth21_login_unit.py)
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
+
+The package tests run fully offline. From the repository's `pkgs/` directory:
+
+```bash
+uv run --package swarmauri_auth_idp_github --directory standards/swarmauri_auth_idp_github pytest
+```
+
+The tests replace the HTTP client with a recording fake that replays canned
+GitHub responses, and they sign GitHub App JWTs with a throwaway RSA key
+generated at test time. No GitHub account, OAuth app, credentials, environment
+secrets, or network access are required.
+
+These tests verify the requests the adapter builds (URLs, methods, headers,
+form fields, and JSON bodies) and how it shapes the returned identities and
+tokens. The email fallback test records existing behavior: the adapter can
+return an unverified address when no primary verified email is available.
+They do not verify interoperability with live GitHub. Confirming live
+provider support requires a manual run against a real GitHub OAuth app or
+GitHub App installation.
 
 ### Certification Status
 
