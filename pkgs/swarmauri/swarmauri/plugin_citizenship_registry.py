@@ -303,6 +303,9 @@ class PluginCitizenshipRegistry:
         "swarmauri.agents.TextToSpeechAgent": (
             "swarmauri_agent_texttospeech.TextToSpeechAgent"
         ),
+        "swarmauri.agents.CompactingAgent": (
+            "swarmauri_agent_compacting.CompactingAgent"
+        ),
         "swarmauri.agents.SimpleConversationAgent": (
             "swarmauri_standard.agents.SimpleConversationAgent"
         ),
