@@ -1,5 +1,8 @@
 from swarmauri_canon_http import HttpClient
-from tests.parity.httpx.helpers import RecordingConnection, patch_http_connections
+from tests.parity.httpx.helpers import (
+    RecordingConnection,
+    patch_http_connections,
+)
 from tests.parity.requests.helpers import build_prepared_request
 
 
@@ -26,7 +29,9 @@ def test_query_param_parity_with_requests(monkeypatch):
     params = {"q": "hello world", "page": 2}
     client.get("/search", params=params)
 
-    expected = build_prepared_request("GET", "http://example.com/search", params=params)
+    expected = build_prepared_request(
+        "GET", "http://example.com/search", params=params
+    )
     sent = RecordingConnection.last_request
 
     assert sent["path"] == expected.path_url

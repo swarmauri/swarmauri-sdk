@@ -1,7 +1,11 @@
 import httpx
 import pytest
 
-from swarmauri_canon_http.exceptions import HTTP2Error, HttpClientError, TimeoutError
+from swarmauri_canon_http.exceptions import (
+    HTTP2Error,
+    HttpClientError,
+    TimeoutError,
+)
 from tests.parity.httpx.helpers import build_httpx_request
 
 

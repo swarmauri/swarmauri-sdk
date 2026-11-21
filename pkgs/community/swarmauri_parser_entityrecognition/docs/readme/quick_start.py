@@ -1,6 +1,9 @@
 from swarmauri_parser_entityrecognition import EntityRecognitionParser
 
-text = "Barack Obama was born in Hawaii and served as President of the United States."
+text = (
+    "Barack Obama was born in Hawaii and served as "
+    "President of the United States."
+)
 parser = EntityRecognitionParser()
 entities = parser.parse(text)
 

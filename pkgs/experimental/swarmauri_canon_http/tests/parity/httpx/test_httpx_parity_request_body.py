@@ -15,10 +15,14 @@ def test_json_body_serialization_parity_with_httpx(monkeypatch):
     payload = {"enabled": True, "count": 4}
     client.post("/json", json_data=payload)
 
-    expected = build_httpx_request("POST", "http://example.com/json", json=payload)
+    expected = build_httpx_request(
+        "POST", "http://example.com/json", json=payload
+    )
     sent = RecordingConnection.last_request
 
-    assert json.loads(sent["body"]) == json.loads(expected.content.decode("utf-8"))
+    assert json.loads(sent["body"]) == json.loads(
+        expected.content.decode("utf-8")
+    )
 
 
 def test_raw_content_body_parity_with_httpx(monkeypatch):

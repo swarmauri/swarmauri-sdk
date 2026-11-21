@@ -23,7 +23,9 @@ log = f"${base}/logs/app.log"
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Concatenated reference syntax not fully implemented")
+@pytest.mark.xfail(
+    reason="Concatenated reference syntax not fully implemented"
+)
 def test_concatenated_static_reference():
     # Test the concatenated syntax with static reference
     jml = """

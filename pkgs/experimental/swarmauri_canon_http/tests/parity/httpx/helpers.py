@@ -51,7 +51,9 @@ def patch_http_connections(monkeypatch):
     RecordingConnection.last_request = None
     RecordingConnection.request_count = 0
     monkeypatch.setattr(http.client, "HTTPConnection", RecordingConnection)
-    monkeypatch.setattr(http.client, "HTTPSConnection", RecordingHTTPSConnection)
+    monkeypatch.setattr(
+        http.client, "HTTPSConnection", RecordingHTTPSConnection
+    )
 
 
 def build_httpx_request(method, url, **kwargs):

@@ -136,7 +136,9 @@ a = file("b.toml").b
 
 
 @pytest.mark.unit
-@pytest.mark.xfail(reason="Unsupported file format handling not fully implemented")
+@pytest.mark.xfail(
+    reason="Unsupported file format handling not fully implemented"
+)
 def test_unsupported_file_format():
     # Test embedding an unsupported file format
     jml = """

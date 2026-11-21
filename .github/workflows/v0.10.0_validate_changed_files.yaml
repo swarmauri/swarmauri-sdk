@@ -37,10 +37,10 @@ jobs:
         run: |
           set -eo pipefail
           echo "Collecting changed files …"
-          git diff --name-only \
+          git diff --name-only -z \
             "${{ github.event.pull_request.base.sha }}" \
-            "${{ github.event.pull_request.head.sha }}" > changed_files.txt
-          cat changed_files.txt
+            "${{ github.event.pull_request.head.sha }}" -- pkgs/ > changed_files.bin
+          tr '\0' '\n' < changed_files.bin
 
       # ──────────────────────────────────────────────────────────────────────────
       # Step: Detect changes and generate package matrix (id=detect)
@@ -50,18 +50,6 @@ jobs:
         id: detect
         run: |
           echo "Detecting changed packages …"
-          # Exclude the monorepo root pyproject.toml as it does not represent
-          # a real package and will always fail validation.
-          # Documentation-only edits do not change package installation or runtime.
-          # pyproject.toml changes still receive the full package validation below.
-          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' | grep -vE '\.(md|rst)$' || true)
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No changes in pkgs/. Exiting."
-            echo 'matrix=[]' >> "$GITHUB_OUTPUT"
-            echo 'overflow_matrix=[]' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           declare -A PACKAGE_SET         # <package_path> ⇒ 1
 
           # ── Function: find_pyproject_root ────────────────────────────────────
@@ -75,15 +63,19 @@ jobs:
           }
           # ─────────────────────────────────────────────────────────────────────
 
-          for FILE in $CHANGED_FILES; do
+          while IFS= read -r -d '' FILE; do
+            # Ignore the workspace manifest and documentation-only changes.
+            case "$FILE" in
+              pkgs/pyproject.toml|*.md|*.rst) continue ;;
+            esac
             DIR=$(dirname "$FILE")
             PKG_ROOT=$(find_pyproject_root "$DIR")
-            if [[ -z "$PKG_ROOT" || "$PKG_ROOT" == "pkgs" ]]; then
+            if [[ "$PKG_ROOT" != pkgs/* ]]; then
               continue
             fi
             PKG_PATH="${PKG_ROOT#pkgs/}"          # strip leading pkgs/
             PACKAGE_SET["$PKG_PATH"]=1            # record the package
-          done
+          done < changed_files.bin
 
           # Each GitHub Actions matrix can expand to at most 256 jobs.
           MATRIX="["
