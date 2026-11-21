@@ -38,7 +38,23 @@ class AwsIdentityResolver:
             timeout=30,
         )
         response.raise_for_status()
-        return response.json()["roleCredentials"]
+        payload = response.json()
+        credentials = (
+            payload.get("roleCredentials") if isinstance(payload, dict) else None
+        )
+        if not isinstance(credentials, dict):
+            raise ValueError(
+                "invalid role credential response: missing roleCredentials"
+            )
+        validated: Dict[str, str] = {}
+        for field in ("accessKeyId", "secretAccessKey", "sessionToken"):
+            value = credentials.get(field)
+            if not isinstance(value, str) or not value:
+                raise ValueError(
+                    f"invalid role credential response: missing or empty {field}"
+                )
+            validated[field] = value
+        return validated
 
     def lookup_user_min(self, access_token: str) -> Dict[str, object]:
         creds = self._get_role_credentials(access_token)
