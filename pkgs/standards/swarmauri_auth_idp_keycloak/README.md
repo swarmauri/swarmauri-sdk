@@ -274,13 +274,15 @@ This source version of `swarmauri_auth_idp_keycloak` declares Python `>=3.10,<3.
 
 ### Tests
 
-Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_auth_idp_keycloak` package directory for the maintained example source checks (Python compilation and non-Python file presence). Existing package tests include:
+Run the full package suite offline from the repository's `pkgs/` directory with `uv run --package swarmauri_auth_idp_keycloak --directory standards/swarmauri_auth_idp_keycloak pytest`. The tests use fake HTTP clients and throwaway signing keys, with no network access, credentials, or live Keycloak server: they verify the request/response contract only and do not prove interoperability with a production Keycloak realm. Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_auth_idp_keycloak` package directory for the maintained example source checks (Python compilation and non-Python file presence). Existing package tests include:
 
 - [tests/unit/test_keycloak_oauth20_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oauth20_app_client_unit.py)
 - [tests/unit/test_keycloak_oauth20_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oauth20_login_unit.py)
 - [tests/unit/test_keycloak_oauth21_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oauth21_app_client_unit.py)
 - [tests/unit/test_keycloak_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oauth21_login_unit.py)
 - [tests/unit/test_keycloak_oidc10_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oidc10_app_client_unit.py)
+- [tests/unit/test_keycloak_oidc10_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_oidc10_login_unit.py)
+- [tests/unit/test_keycloak_login_contract_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_keycloak/tests/unit/test_keycloak_login_contract_unit.py)
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
 
