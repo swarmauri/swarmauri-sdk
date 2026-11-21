@@ -280,7 +280,9 @@ secrets, or network access are required.
 
 These tests verify the requests the adapter builds (URLs, methods, headers,
 form fields, and JSON bodies) and how it shapes the returned identities and
-tokens. They do not verify interoperability with live GitHub. Confirming live
+tokens. The email fallback test records existing behavior: the adapter can
+return an unverified address when no primary verified email is available.
+They do not verify interoperability with live GitHub. Confirming live
 provider support requires a manual run against a real GitHub OAuth app or
 GitHub App installation.
 
