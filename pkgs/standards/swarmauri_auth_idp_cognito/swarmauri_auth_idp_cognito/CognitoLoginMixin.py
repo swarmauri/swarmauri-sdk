@@ -25,6 +25,20 @@ def _load_signing_key(jwks: Mapping[str, Any], kid: str) -> Any:
     raise ValueError("signing key not found")
 
 
+# ID-token signing algorithms accepted by this implementation.
+#
+# Amazon Cognito user pools sign ID tokens with RS256 only (RSA signature
+# with SHA-256):
+# https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-id-token.html
+#
+# This allowlist is owned by the implementation. It must never be built
+# from the token's unverified ``alg`` header: a token that claims any other
+# algorithm (including ``none``) is rejected before verification. Client
+# secret signing (e.g. SECRET_HASH) is a separate concern and is not
+# governed by this list.
+ID_TOKEN_ALGORITHMS: tuple[str, ...] = ("RS256",)
+
+
 class CognitoLoginMixin:
     """Provide shared discovery, HTTP, and state helpers for Cognito logins."""
 
@@ -92,13 +106,17 @@ class CognitoLoginMixin:
         kid = header.get("kid")
         if not kid:
             raise ValueError("missing kid in id_token header")
+        algorithm = header.get("alg")
+        if not algorithm:
+            raise ValueError("missing alg in id_token header")
+        if algorithm not in ID_TOKEN_ALGORITHMS:
+            raise ValueError(f"unsupported id_token signing algorithm: {algorithm}")
         jwks = await self._http_get(jwks_uri)
         signer = _load_signing_key(jwks, kid)
-        algorithm = header.get("alg", "RS256")
         return jwt.decode(
             id_token,
             signer,
-            algorithms=[algorithm],
+            algorithms=list(ID_TOKEN_ALGORITHMS),
             audience=expected_audience,
             issuer=issuer,
         )
