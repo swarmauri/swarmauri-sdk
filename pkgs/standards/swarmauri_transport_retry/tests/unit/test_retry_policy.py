@@ -28,7 +28,7 @@ def test_policy_validates_configuration():
 
 
 def test_package_metadata_and_entry_point():
-    assert version("swarmauri_transport_retry") == "0.1.0.dev1"
+    assert version("swarmauri_transport_retry") == "0.1.0.dev2"
     assert "RetryingHttpClient" in {
         entry.name for entry in entry_points(group="swarmauri.transports")
     }

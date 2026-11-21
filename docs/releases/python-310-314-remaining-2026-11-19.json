@@ -1,0 +1,515 @@
+{
+  "contract_version": "1.0.0",
+  "artifact_type": "release",
+  "id": "swarmauri-python-310-314-remaining35",
+  "version": "0.1.0",
+  "owner": "Swarmauri SDK maintainers",
+  "status": "candidate",
+  "review_date": "2026-11-19",
+  "sources": [
+    "https://github.com/swarmauri/swarmauri-sdk/pull/6324",
+    "https://pypi.org",
+    "User instruction: verify and publish the remaining 35 packages individually"
+  ],
+  "facts": [
+    "All 35 source projects declare Python >=3.10,<3.15 and classifiers for 3.10 through 3.14.",
+    "Published Python files match master for 34 packages. AWS EventStream master adds awaiting of an awaitable SDK stream response.",
+    "The 35 existing PyPI projects require corrective versions; no new PyPI project is in this scope."
+  ],
+  "assumptions": [],
+  "inferences": [],
+  "dependencies": [],
+  "risks": [
+    "Offline compatibility tests do not certify live provider services.",
+    "PyPI versions are immutable; failures after upload require a superseding version."
+  ],
+  "metrics": [
+    {
+      "name": "published_and_verified",
+      "value": 0,
+      "target": 35
+    },
+    {
+      "name": "required_interpreters_per_package",
+      "value": 5
+    }
+  ],
+  "acceptance_criteria": [
+    "Each candidate passes isolated tests on Python 3.10, 3.11, 3.12, 3.13 and 3.14.",
+    "Configure or verify the matching trusted publisher before publishing each package.",
+    "Publish and verify wheel and sdist, metadata, source and GitHub release before proceeding.",
+    "Verify clean PyPI runtime installations and tests on all five interpreters after each publication."
+  ],
+  "release_version": "python-310-314-remaining35-2026-11-19",
+  "scope": [
+    {
+      "name": "swarmauri_transport_aws_eventstream",
+      "member": "standards/swarmauri_transport_aws_eventstream",
+      "version": "0.1.0.dev2",
+      "latest_pypi_version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_provider_amazon_nova",
+      "member": "community/swarmauri_provider_amazon_nova",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_transport_websocket",
+      "member": "standards/swarmauri_transport_websocket",
+      "version": "0.1.0.dev5",
+      "latest_pypi_version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_provider_gemini",
+      "member": "community/swarmauri_provider_gemini",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_openai",
+      "member": "community/swarmauri_provider_openai",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_qwen",
+      "member": "community/swarmauri_provider_qwen",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_provider_xai",
+      "member": "community/swarmauri_provider_xai",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_transport_retry",
+      "member": "standards/swarmauri_transport_retry",
+      "version": "0.1.0.dev2",
+      "latest_pypi_version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_provider_openrouter",
+      "member": "community/swarmauri_provider_openrouter",
+      "version": "0.1.0.dev2",
+      "latest_pypi_version": "0.1.0.dev1"
+    },
+    {
+      "name": "swarmauri_tool_queryimagevectorstore",
+      "member": "community/swarmauri_tool_queryimagevectorstore",
+      "version": "0.11.0.dev3",
+      "latest_pypi_version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_tool_queryknowledgebase",
+      "member": "community/swarmauri_tool_queryknowledgebase",
+      "version": "0.11.0.dev4",
+      "latest_pypi_version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_video_lipsync_synclabs",
+      "member": "community/swarmauri_video_lipsync_synclabs",
+      "version": "0.1.0.dev5",
+      "latest_pypi_version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_agent_realtime",
+      "member": "standards/swarmauri_agent_realtime",
+      "version": "0.1.0.dev5",
+      "latest_pypi_version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_tts_openai",
+      "member": "standards/swarmauri_tts_openai",
+      "version": "0.1.0a3",
+      "latest_pypi_version": "0.1.0a2"
+    },
+    {
+      "name": "swarmauri_similarity_gzip",
+      "member": "standards/swarmauri_similarity_gzip",
+      "version": "0.1.0.dev5",
+      "latest_pypi_version": "0.1.0.dev4"
+    },
+    {
+      "name": "swarmauri_storage_s3",
+      "member": "standards/swarmauri_storage_s3",
+      "version": "0.11.0.dev6",
+      "latest_pypi_version": "0.11.0.dev5"
+    },
+    {
+      "name": "swarmauri_storage_s3fs",
+      "member": "standards/swarmauri_storage_s3fs",
+      "version": "0.11.0.dev4",
+      "latest_pypi_version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_storage_s3_over_sftp",
+      "member": "standards/swarmauri_storage_s3_over_sftp",
+      "version": "0.11.0.dev6",
+      "latest_pypi_version": "0.11.0.dev5"
+    },
+    {
+      "name": "swarmauri_storage_webdav",
+      "member": "standards/swarmauri_storage_webdav",
+      "version": "0.11.0.dev2",
+      "latest_pypi_version": "0.11.0.dev1"
+    },
+    {
+      "name": "swarmauri_tool_subprocess",
+      "member": "standards/swarmauri_tool_subprocess",
+      "version": "0.11.0.dev4",
+      "latest_pypi_version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra",
+      "member": "standards/swarmauri_tts_deepinfra",
+      "version": "0.1.0a2",
+      "latest_pypi_version": "0.1.0a1"
+    },
+    {
+      "name": "swarmauri_tts_gemini",
+      "member": "standards/swarmauri_tts_gemini",
+      "version": "0.1.0a2",
+      "latest_pypi_version": "0.1.0a1"
+    },
+    {
+      "name": "swarmauri_tts_together",
+      "member": "standards/swarmauri_tts_together",
+      "version": "0.1.0a2",
+      "latest_pypi_version": "0.1.0a1"
+    },
+    {
+      "name": "swarmauri_live_model_amazon_nova",
+      "member": "community/swarmauri_live_model_amazon_nova",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_gemini",
+      "member": "community/swarmauri_live_model_gemini",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_openai",
+      "member": "community/swarmauri_live_model_openai",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_qwen",
+      "member": "community/swarmauri_live_model_qwen",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_live_model_xai",
+      "member": "community/swarmauri_live_model_xai",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_llm_azureopenai",
+      "member": "community/swarmauri_llm_azureopenai",
+      "version": "0.11.0.dev4",
+      "latest_pypi_version": "0.11.0.dev3"
+    },
+    {
+      "name": "swarmauri_llm_cloudflare",
+      "member": "community/swarmauri_llm_cloudflare",
+      "version": "0.11.0.dev3",
+      "latest_pypi_version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_llm_nvidia_nim",
+      "member": "community/swarmauri_llm_nvidia_nim",
+      "version": "0.11.0.dev3",
+      "latest_pypi_version": "0.11.0.dev2"
+    },
+    {
+      "name": "swarmauri_llm_xai",
+      "member": "community/swarmauri_llm_xai",
+      "version": "0.11.0.dev5",
+      "latest_pypi_version": "0.11.0.dev4"
+    },
+    {
+      "name": "swarmauri_llm_openrouter",
+      "member": "community/swarmauri_llm_openrouter",
+      "version": "0.1.0.dev4",
+      "latest_pypi_version": "0.1.0.dev3"
+    },
+    {
+      "name": "swarmauri_agent_texttospeech",
+      "member": "standards/swarmauri_agent_texttospeech",
+      "version": "0.11.0.dev7",
+      "latest_pypi_version": "0.11.0.dev6"
+    },
+    {
+      "name": "swarmauri_tts_playht",
+      "member": "deprecated/swarmauri_tts_playht",
+      "version": "0.11.1",
+      "latest_pypi_version": "0.11.0"
+    }
+  ],
+  "gates": [
+    "candidate five-interpreter tests",
+    "current-head CI",
+    "trusted publisher",
+    "registry artifacts",
+    "five-interpreter published-package verification"
+  ],
+  "artifacts": [
+    {
+      "name": "swarmauri_transport_aws_eventstream",
+      "wheel": "swarmauri_transport_aws_eventstream-0.1.0.dev2-py3-none-any.whl",
+      "sdist": "swarmauri_transport_aws_eventstream-0.1.0.dev2.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_amazon_nova",
+      "wheel": "swarmauri_provider_amazon_nova-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_provider_amazon_nova-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_transport_websocket",
+      "wheel": "swarmauri_transport_websocket-0.1.0.dev5-py3-none-any.whl",
+      "sdist": "swarmauri_transport_websocket-0.1.0.dev5.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_gemini",
+      "wheel": "swarmauri_provider_gemini-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_provider_gemini-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_openai",
+      "wheel": "swarmauri_provider_openai-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_provider_openai-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_qwen",
+      "wheel": "swarmauri_provider_qwen-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_provider_qwen-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_xai",
+      "wheel": "swarmauri_provider_xai-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_provider_xai-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_transport_retry",
+      "wheel": "swarmauri_transport_retry-0.1.0.dev2-py3-none-any.whl",
+      "sdist": "swarmauri_transport_retry-0.1.0.dev2.tar.gz"
+    },
+    {
+      "name": "swarmauri_provider_openrouter",
+      "wheel": "swarmauri_provider_openrouter-0.1.0.dev2-py3-none-any.whl",
+      "sdist": "swarmauri_provider_openrouter-0.1.0.dev2.tar.gz"
+    },
+    {
+      "name": "swarmauri_tool_queryimagevectorstore",
+      "wheel": "swarmauri_tool_queryimagevectorstore-0.11.0.dev3-py3-none-any.whl",
+      "sdist": "swarmauri_tool_queryimagevectorstore-0.11.0.dev3.tar.gz"
+    },
+    {
+      "name": "swarmauri_tool_queryknowledgebase",
+      "wheel": "swarmauri_tool_queryknowledgebase-0.11.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_tool_queryknowledgebase-0.11.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_video_lipsync_synclabs",
+      "wheel": "swarmauri_video_lipsync_synclabs-0.1.0.dev5-py3-none-any.whl",
+      "sdist": "swarmauri_video_lipsync_synclabs-0.1.0.dev5.tar.gz"
+    },
+    {
+      "name": "swarmauri_agent_realtime",
+      "wheel": "swarmauri_agent_realtime-0.1.0.dev5-py3-none-any.whl",
+      "sdist": "swarmauri_agent_realtime-0.1.0.dev5.tar.gz"
+    },
+    {
+      "name": "swarmauri_tts_openai",
+      "wheel": "swarmauri_tts_openai-0.1.0a3-py3-none-any.whl",
+      "sdist": "swarmauri_tts_openai-0.1.0a3.tar.gz"
+    },
+    {
+      "name": "swarmauri_similarity_gzip",
+      "wheel": "swarmauri_similarity_gzip-0.1.0.dev5-py3-none-any.whl",
+      "sdist": "swarmauri_similarity_gzip-0.1.0.dev5.tar.gz"
+    },
+    {
+      "name": "swarmauri_storage_s3",
+      "wheel": "swarmauri_storage_s3-0.11.0.dev6-py3-none-any.whl",
+      "sdist": "swarmauri_storage_s3-0.11.0.dev6.tar.gz"
+    },
+    {
+      "name": "swarmauri_storage_s3fs",
+      "wheel": "swarmauri_storage_s3fs-0.11.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_storage_s3fs-0.11.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_storage_s3_over_sftp",
+      "wheel": "swarmauri_storage_s3_over_sftp-0.11.0.dev6-py3-none-any.whl",
+      "sdist": "swarmauri_storage_s3_over_sftp-0.11.0.dev6.tar.gz"
+    },
+    {
+      "name": "swarmauri_storage_webdav",
+      "wheel": "swarmauri_storage_webdav-0.11.0.dev2-py3-none-any.whl",
+      "sdist": "swarmauri_storage_webdav-0.11.0.dev2.tar.gz"
+    },
+    {
+      "name": "swarmauri_tool_subprocess",
+      "wheel": "swarmauri_tool_subprocess-0.11.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_tool_subprocess-0.11.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_tts_deepinfra",
+      "wheel": "swarmauri_tts_deepinfra-0.1.0a2-py3-none-any.whl",
+      "sdist": "swarmauri_tts_deepinfra-0.1.0a2.tar.gz"
+    },
+    {
+      "name": "swarmauri_tts_gemini",
+      "wheel": "swarmauri_tts_gemini-0.1.0a2-py3-none-any.whl",
+      "sdist": "swarmauri_tts_gemini-0.1.0a2.tar.gz"
+    },
+    {
+      "name": "swarmauri_tts_together",
+      "wheel": "swarmauri_tts_together-0.1.0a2-py3-none-any.whl",
+      "sdist": "swarmauri_tts_together-0.1.0a2.tar.gz"
+    },
+    {
+      "name": "swarmauri_live_model_amazon_nova",
+      "wheel": "swarmauri_live_model_amazon_nova-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_live_model_amazon_nova-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_live_model_gemini",
+      "wheel": "swarmauri_live_model_gemini-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_live_model_gemini-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_live_model_openai",
+      "wheel": "swarmauri_live_model_openai-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_live_model_openai-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_live_model_qwen",
+      "wheel": "swarmauri_live_model_qwen-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_live_model_qwen-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_live_model_xai",
+      "wheel": "swarmauri_live_model_xai-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_live_model_xai-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_llm_azureopenai",
+      "wheel": "swarmauri_llm_azureopenai-0.11.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_llm_azureopenai-0.11.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_llm_cloudflare",
+      "wheel": "swarmauri_llm_cloudflare-0.11.0.dev3-py3-none-any.whl",
+      "sdist": "swarmauri_llm_cloudflare-0.11.0.dev3.tar.gz"
+    },
+    {
+      "name": "swarmauri_llm_nvidia_nim",
+      "wheel": "swarmauri_llm_nvidia_nim-0.11.0.dev3-py3-none-any.whl",
+      "sdist": "swarmauri_llm_nvidia_nim-0.11.0.dev3.tar.gz"
+    },
+    {
+      "name": "swarmauri_llm_xai",
+      "wheel": "swarmauri_llm_xai-0.11.0.dev5-py3-none-any.whl",
+      "sdist": "swarmauri_llm_xai-0.11.0.dev5.tar.gz"
+    },
+    {
+      "name": "swarmauri_llm_openrouter",
+      "wheel": "swarmauri_llm_openrouter-0.1.0.dev4-py3-none-any.whl",
+      "sdist": "swarmauri_llm_openrouter-0.1.0.dev4.tar.gz"
+    },
+    {
+      "name": "swarmauri_agent_texttospeech",
+      "wheel": "swarmauri_agent_texttospeech-0.11.0.dev7-py3-none-any.whl",
+      "sdist": "swarmauri_agent_texttospeech-0.11.0.dev7.tar.gz"
+    },
+    {
+      "name": "swarmauri_tts_playht",
+      "wheel": "swarmauri_tts_playht-0.11.1-py3-none-any.whl",
+      "sdist": "swarmauri_tts_playht-0.11.1.tar.gz"
+    }
+  ],
+  "rollout": {
+    "mode": "sequential",
+    "workflow": "v0.10.0_mono_prepare_validate_publish_batch.yaml",
+    "environment": "pypi-trusted-publishing",
+    "order": [
+      "swarmauri_transport_aws_eventstream",
+      "swarmauri_provider_amazon_nova",
+      "swarmauri_transport_websocket",
+      "swarmauri_provider_gemini",
+      "swarmauri_provider_openai",
+      "swarmauri_provider_qwen",
+      "swarmauri_provider_xai",
+      "swarmauri_transport_retry",
+      "swarmauri_provider_openrouter",
+      "swarmauri_tool_queryimagevectorstore",
+      "swarmauri_tool_queryknowledgebase",
+      "swarmauri_video_lipsync_synclabs",
+      "swarmauri_agent_realtime",
+      "swarmauri_tts_openai",
+      "swarmauri_similarity_gzip",
+      "swarmauri_storage_s3",
+      "swarmauri_storage_s3fs",
+      "swarmauri_storage_s3_over_sftp",
+      "swarmauri_storage_webdav",
+      "swarmauri_tool_subprocess",
+      "swarmauri_tts_deepinfra",
+      "swarmauri_tts_gemini",
+      "swarmauri_tts_together",
+      "swarmauri_live_model_amazon_nova",
+      "swarmauri_live_model_gemini",
+      "swarmauri_live_model_openai",
+      "swarmauri_live_model_qwen",
+      "swarmauri_live_model_xai",
+      "swarmauri_llm_azureopenai",
+      "swarmauri_llm_cloudflare",
+      "swarmauri_llm_nvidia_nim",
+      "swarmauri_llm_xai",
+      "swarmauri_llm_openrouter",
+      "swarmauri_agent_texttospeech",
+      "swarmauri_tts_playht"
+    ]
+  },
+  "rollback": "Retain previous releases; publish a superseding corrected version if necessary. Do not remove or overwrite published artifacts.",
+  "test_support": [
+    {
+      "name": "swarmauri_tests_component",
+      "version": "0.1.0.dev2",
+      "wheel": "swarmauri_tests_component-0.1.0.dev2-py3-none-any.whl",
+      "member": "experimental/swarmauri_tests_component"
+    },
+    {
+      "name": "swarmauri_tests_pylicense",
+      "version": "0.11.0.dev3",
+      "wheel": "swarmauri_tests_pylicense-0.11.0.dev3-py3-none-any.whl",
+      "member": "experimental/swarmauri_tests_pylicense"
+    },
+    {
+      "name": "swarmauri_tts_elevenlabs_dialogue",
+      "version": "0.1.0a1",
+      "wheel": "swarmauri_tts_elevenlabs_dialogue-0.1.0a1-py3-none-any.whl",
+      "member": "standards/swarmauri_tts_elevenlabs_dialogue"
+    },
+    {
+      "name": "swarmauri_tts_gemini_dialogue",
+      "version": "0.1.0a1",
+      "wheel": "swarmauri_tts_gemini_dialogue-0.1.0a1-py3-none-any.whl",
+      "member": "standards/swarmauri_tts_gemini_dialogue"
+    }
+  ],
+  "runtime_dependencies": [
+    "swarmauri_core==0.11.0.dev8",
+    "swarmauri_base==0.11.0.dev13",
+    "swarmauri_standard==0.11.0.dev13",
+    "swarmauri_transport_httpx==0.1.0.dev6"
+  ]
+}

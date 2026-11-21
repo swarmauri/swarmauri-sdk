@@ -71,7 +71,7 @@ async def test_auth_url_encodes_special_characters(
 
     login.client_id = "client&admin=true+test"
     login.redirect_uri = "https://example.com/callback?next=/home&a=1+2"
-    login.scope = "refresh_token profile+email=read"
+    login.scope = "refresh_token profile+email=café"
 
     payload = await login.auth_url()
     params = parse_qs(urlsplit(payload["url"]).query)

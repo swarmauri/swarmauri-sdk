@@ -1,16 +1,15 @@
 [project]
 name = "swarmauri_llm_openrouter"
-version = "0.1.0.dev3"
+version = "0.1.0.dev4"
 description = "OpenRouter models for Swarmauri chat, tool-calling, vision-language, and image-generation workflows."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 classifiers = [
     "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
@@ -19,17 +18,19 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core",
-    "swarmauri_base",
-    "swarmauri_provider_openrouter",
-    "swarmauri_standard",
-    "swarmauri_transport_httpx",
-    "swarmauri_transport_retry",
+    "swarmauri_core<0.12,>=0.11.0.dev8",
+    "swarmauri_base<0.12,>=0.11.0.dev13",
+    "swarmauri_provider_openrouter>=0.1.0.dev2",
+    "swarmauri_standard<0.12,>=0.11.0.dev13",
+    "swarmauri_transport_httpx>=0.1.0.dev6",
+    "swarmauri_transport_retry>=0.1.0.dev2",
 ]
 keywords = [
     "swarmauri",
@@ -43,6 +44,7 @@ keywords = [
     "structured output",
     "generative ai",
 ]
+license-files = ["LICENSE", "NOTICE"]
 
 [tool.uv.sources]
 swarmauri_core = { workspace = true }
@@ -52,6 +54,54 @@ swarmauri_standard = { workspace = true }
 swarmauri_transport_httpx = { workspace = true }
 swarmauri_transport_retry = { workspace = true }
 
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/community/swarmauri_llm_openrouter"
+layer = "community"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_llm_openrouter"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_llm_openrouter/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_llm_openrouter/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [project.entry-points."swarmauri.llms"]
 OpenRouterModel = "swarmauri_llm_openrouter:OpenRouterModel"
 
@@ -75,6 +125,7 @@ dev = [
     "pytest-timeout>=2.3.1",
     "ruff>=0.9.9",
     "swarmauri_tests_component",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
 
 [tool.pytest.ini_options]

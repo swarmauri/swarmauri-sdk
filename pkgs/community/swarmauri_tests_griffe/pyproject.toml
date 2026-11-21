@@ -4,14 +4,13 @@ version = "0.11.0.dev3"
 description = "Pytest plugin that turns Griffe inspection warnings into failing quality gates for Swarmauri packages."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
-license = { text = "Apache-2.0" }
+license = "Apache-2.0"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 classifiers = [
     "Development Status :: 1 - Planning",
     "Framework :: Pytest",
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Quality Assurance",
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Development Status :: 3 - Alpha",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -46,6 +45,7 @@ dependencies = [
     "griffe>=0.48",
     "tomli; python_version < '3.11'",
 ]
+license-files = ["LICENSE", "NOTICE"]
 
 [project.entry-points."pytest11"]
 swarmauri_tests_griffe = "swarmauri_tests_griffe"
@@ -58,4 +58,54 @@ build-backend = "poetry.core.masonry.api"
 dev = [
     "pytest>=8.0",
     "ruff>=0.9.9",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
 ]
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/community/swarmauri_tests_griffe"
+layer = "community"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_tests_griffe"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.sh"
+test = "tests/unit/test_readme_sources.py"
+language = "bash"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tests_griffe/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/community/swarmauri_tests_griffe/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"

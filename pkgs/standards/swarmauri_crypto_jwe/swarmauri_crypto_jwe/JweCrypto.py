@@ -16,7 +16,13 @@ from typing import Any, Dict, Iterable, Mapping, Optional, Tuple, Union
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.kdf.concatkdf import ConcatKDFHash
-from cryptography.hazmat.primitives.asymmetric import rsa, padding, ec, x25519
+from cryptography.hazmat.primitives.asymmetric import (
+    ec,
+    padding,
+    rsa,
+    x25519,
+    x448,
+)
 from cryptography.hazmat.primitives.serialization import (
     load_pem_public_key,
     load_pem_private_key,
@@ -102,12 +108,35 @@ def _ec_jwk_from_public_key(pk: ec.EllipticCurvePublicKey) -> Dict[str, Any]:
     return {"kty": "EC", "crv": crv_map[crv], "x": _b64u(x), "y": _b64u(y)}
 
 
-def _x25519_jwk_from_public_key(pk: x25519.X25519PublicKey) -> Dict[str, Any]:
+def _okp_jwk_from_public_key(
+    pk: x25519.X25519PublicKey | x448.X448PublicKey, crv: str
+) -> Dict[str, Any]:
     raw = pk.public_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PublicFormat.Raw,
     )
-    return {"kty": "OKP", "crv": "X25519", "x": _b64u(raw)}
+    return {"kty": "OKP", "crv": crv, "x": _b64u(raw)}
+
+
+def _load_x448_public_jwk(jwk: Mapping[str, Any]) -> x448.X448PublicKey:
+    value = jwk.get("x")
+    if not isinstance(value, str) or "d" in jwk:
+        raise ValueError("X448 requires a public JWK with an 'x' value.")
+    raw = _decode_base64url(value)
+    if len(raw) != 56:
+        raise ValueError(
+            "X448 'x' must encode 56 bytes as unpadded base64url."
+        )
+    return x448.X448PublicKey.from_public_bytes(raw)
+
+
+def _decode_base64url(value: Any) -> bytes:
+    if not isinstance(value, str):
+        raise ValueError("Expected an unpadded base64url string.")
+    raw = _b64u_dec(value)
+    if _b64u(raw) != value:
+        raise ValueError("Expected an unpadded base64url string.")
+    return raw
 
 
 def _load_rsa_public(key: Any) -> rsa.RSAPublicKey:
@@ -158,6 +187,8 @@ def _load_ecdh_recipient_public(jwk_or_pem: Any) -> Tuple[str, Any]:
         if kty == "OKP" and jwk_or_pem.get("crv") == "X25519":
             x = _b64u_dec(jwk_or_pem["x"])
             return "X25519", x25519.X25519PublicKey.from_public_bytes(x)
+        if kty == "OKP" and jwk_or_pem.get("crv") == "X448":
+            return "X448", _load_x448_public_jwk(jwk_or_pem)
         raise ValueError(
             f"Unsupported JWK kty/crv for ECDH-ES: {kty}/{jwk_or_pem.get('crv')}"  # noqa: E501
         )
@@ -184,23 +215,33 @@ def _load_ecdh_recipient_public(jwk_or_pem: Any) -> Tuple[str, Any]:
 def _concat_kdf(
     z: bytes,
     enc: JWAAlg,
-    hash_alg=hashes.SHA256(),
     apu: Optional[bytes] = None,
     apv: Optional[bytes] = None,
+    *,
+    legacy: bool = False,
 ) -> bytes:
-    keydatalen_bits = _cek_len_for_enc(enc) * 8
-    alg_id = _jwe_alg_id(enc)
+    key_length = _cek_len_for_enc(enc)
+    alg_id = _length_prefixed(enc.value.encode("ascii"))
+    party_u, party_v = apu or b"", apv or b""
+    if legacy:
+        other_info = alg_id + party_u + party_v
+    else:
+        other_info = (
+            alg_id
+            + _length_prefixed(party_u)
+            + _length_prefixed(party_v)
+            + (key_length * 8).to_bytes(4, "big")
+        )
     ckdf = ConcatKDFHash(
-        algorithm=hash_alg,
-        length=keydatalen_bits // 8,
-        otherinfo=alg_id + (apu or b"") + (apv or b""),
+        algorithm=hashes.SHA256(),
+        length=key_length,
+        otherinfo=other_info,
     )
     return ckdf.derive(z)
 
 
-def _jwe_alg_id(enc: JWAAlg) -> bytes:
-    enc_b = enc.value.encode("ascii")
-    return len(enc_b).to_bytes(4, "big") + enc_b
+def _length_prefixed(value: bytes) -> bytes:
+    return len(value).to_bytes(4, "big") + value
 
 
 JWECompact = str
@@ -224,6 +265,26 @@ class JweCrypto:
     The helpers create and parse compact JWE strings. All operations are
     asynchronous to integrate with async workflows.
     """
+
+    def __init__(self, *, enable_x448: bool = False) -> None:
+        self._enable_x448 = enable_x448
+
+    def _check_x448_profile(
+        self, header: Mapping[str, Any], aad: bytes | str | None
+    ) -> tuple[bytes, bytes]:
+        if not self._enable_x448:
+            raise ValueError("X448 requires JweCrypto(enable_x448=True).")
+        if header.get("alg") != "ECDH-ES" or header.get("enc") != "A256GCM":
+            raise ValueError("X448 requires ECDH-ES/A256GCM.")
+        if aad or "zip" in header or "crit" in header:
+            raise ValueError(
+                "X448 compact JWE requires unextended serialization."
+            )
+        apu = _decode_base64url(header["apu"]) if "apu" in header else b""
+        apv = _decode_base64url(header["apv"]) if "apv" in header else b""
+        if "apu" in header and "apv" in header and apu == apv:
+            raise ValueError("apu and apv must be distinct.")
+        return apu, apv
 
     async def encrypt_compact(
         self,
@@ -297,11 +358,20 @@ class JweCrypto:
             encrypted_key_b64 = _b64u(ekey)
         elif alg == JWAAlg.ECDH_ES:
             crv, rpk = _load_ecdh_recipient_public(key.get("pub") or key)
-            if crv == "X25519":
+            if crv == "X448":
+                apu_b, apv_b = self._check_x448_profile(protected, aad)
+                if enc != JWAAlg.A256GCM:
+                    raise ValueError("X448 requires ECDH-ES/A256GCM.")
+                ephemeral = x448.X448PrivateKey.generate()
+                z = ephemeral.exchange(rpk)
+                epk_header = _okp_jwk_from_public_key(
+                    ephemeral.public_key(), crv
+                )
+            elif crv == "X25519":
                 esk = x25519.X25519PrivateKey.generate()
                 epk = esk.public_key()
                 z = esk.exchange(rpk)  # type: ignore[arg-type]
-                epk_header = _x25519_jwk_from_public_key(epk)
+                epk_header = _okp_jwk_from_public_key(epk, crv)
             else:
                 curve = {
                     "P-256": ec.SECP256R1(),
@@ -312,21 +382,14 @@ class JweCrypto:
                 epk = esk.public_key()
                 z = esk.exchange(ec.ECDH(), rpk)  # type: ignore[arg-type]
                 epk_header = _ec_jwk_from_public_key(epk)
-            apu_b = None
-            apv_b = None
-            if "apu" in (header_extra or {}):
+            if crv != "X448":
                 apu_b = (
-                    _b64u_dec(header_extra["apu"])
-                    if isinstance(header_extra["apu"], str)
-                    else header_extra["apu"]
+                    _b64u_dec(protected["apu"]) if "apu" in protected else None
                 )
-            if "apv" in (header_extra or {}):
                 apv_b = (
-                    _b64u_dec(header_extra["apv"])
-                    if isinstance(header_extra["apv"], str)
-                    else header_extra["apv"]
+                    _b64u_dec(protected["apv"]) if "apv" in protected else None
                 )
-            cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
+            cek = _concat_kdf(z, enc, apu_b, apv_b)
             protected["epk"] = epk_header
         else:
             raise ValueError(f"Unsupported alg '{alg.value}'")
@@ -362,6 +425,7 @@ class JweCrypto:
         expected_algs: Optional[Iterable[JWAAlg]] = None,
         expected_encs: Optional[Iterable[JWAAlg]] = None,
         aad: Optional[Union[bytes, str]] = None,
+        legacy_ecdh_kdf: bool = False,
     ) -> JweDecryptResult:
         """Decrypt a compact JWE string.
 
@@ -375,6 +439,7 @@ class JweCrypto:
         expected_algs (Iterable[JWAAlg]): Allowed algorithm values.
         expected_encs (Iterable[JWAAlg]): Allowed encryption values.
         aad (Union[bytes, str]): Additional authenticated data.
+        legacy_ecdh_kdf (bool): Read pre-fix X25519 or NIST-curve JWE.
         RETURNS (JweDecryptResult): Header and plaintext of the decrypted
         token.
         """
@@ -434,6 +499,10 @@ class JweCrypto:
                 ),
             )
         elif alg == JWAAlg.ECDH_ES:
+            if b64_ekey:
+                raise ValueError(
+                    "ECDH-ES requires an empty Encrypted Key field."
+                )
             if ecdh_private_key is None:
                 raise ValueError(
                     "ecdh_private_key is required for ECDH-ES decryption."
@@ -443,7 +512,21 @@ class JweCrypto:
                 raise ValueError(
                     "Missing/invalid 'epk' in JWE header for ECDH-ES."
                 )
-            if epk.get("kty") == "OKP" and epk.get("crv") == "X25519":
+            is_x448 = (epk.get("kty"), epk.get("crv")) == ("OKP", "X448")
+            if is_x448:
+                apu_b, apv_b = self._check_x448_profile(header, aad)
+                if len(tag) != 16:
+                    raise ValueError(
+                        "A256GCM requires a 128-bit authentication tag."
+                    )
+                if legacy_ecdh_kdf:
+                    raise ValueError("X448 requires the RFC 7518 KDF.")
+                if not isinstance(ecdh_private_key, x448.X448PrivateKey):
+                    raise TypeError(
+                        "ECDH-ES with X448 requires an X448PrivateKey."
+                    )
+                z = ecdh_private_key.exchange(_load_x448_public_jwk(epk))
+            elif epk.get("kty") == "OKP" and epk.get("crv") == "X25519":
                 if not isinstance(ecdh_private_key, x25519.X25519PrivateKey):
                     raise TypeError(
                         "ECDH-ES with X25519 requires an X25519PrivateKey."
@@ -474,9 +557,10 @@ class JweCrypto:
                 z = ecdh_private_key.exchange(ec.ECDH(), rpk)
             else:
                 raise ValueError("Unsupported 'epk' kty/crv.")
-            apu_b = _b64u_dec(header["apu"]) if "apu" in header else None
-            apv_b = _b64u_dec(header["apv"]) if "apv" in header else None
-            cek = _concat_kdf(z, enc, hashes.SHA256(), apu_b, apv_b)
+            if not is_x448:
+                apu_b = _b64u_dec(header["apu"]) if "apu" in header else None
+                apv_b = _b64u_dec(header["apv"]) if "apv" in header else None
+            cek = _concat_kdf(z, enc, apu_b, apv_b, legacy=legacy_ecdh_kdf)
         else:
             raise ValueError(f"Unsupported alg '{alg.value}'")
 
