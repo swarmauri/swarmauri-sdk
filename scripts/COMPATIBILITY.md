@@ -3,7 +3,7 @@
 Run isolated package checks from the repository root:
 
 ```powershell
-uv run scripts/run_all_tests.py --python 3.10 3.11 3.12 3.13 3.14 3.15 --jobs 4
+uv run scripts/run_all_tests.py --python 3.10 3.11 3.12 3.13 3.14 --jobs 4
 ```
 
 The runner builds the selected package and its local dependency closure, installs
@@ -32,10 +32,10 @@ extras, other operating systems, or skipped features.
 ## Dependency limitations
 
 The November 2026 Windows validation uses an explicit local Gensim 4.4.0 rebuild
-for Python 3.14 and 3.15. Reproduce it with:
+for Python 3.14. Reproduce it with:
 
 ```powershell
-uv run scripts/build_gensim_compat.py --python 3.14 3.15
+uv run scripts/build_gensim_compat.py --python 3.14
 uv run scripts/run_all_tests.py --find-links .tmp/compatibility-dependency-wheels
 ```
 
@@ -43,11 +43,6 @@ The recipe verifies pinned upstream source hashes and regenerates extension code
 with Cython. It writes wheel hashes and build provenance beside the artifacts.
 This is a local dependency workaround, not evidence that a normal PyPI-only
 installation works on those interpreters.
-
-ChromaDB's required ONNX Runtime distribution currently lacks CPython 3.15 wheels.
-Weaviate's gRPC constraint selects an older release whose Windows CPython 3.15
-source build fails. These remain upstream installation blockers; do not label
-those combinations compatible or bypass dependency constraints.
 
 The deprecated experimental umbrella keeps TensorFlow/DeepFace and PaCMAP in
 optional `vision` and `manifold` extras. Its default unit checks do not validate

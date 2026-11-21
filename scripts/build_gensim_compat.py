@@ -48,7 +48,7 @@ def download(url: str, expected: str, path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--python", nargs="+", default=["3.14", "3.15"])
+    parser.add_argument("--python", nargs="+", default=["3.14"])
     parser.add_argument(
         "--output",
         type=Path,

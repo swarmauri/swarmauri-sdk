@@ -133,11 +133,6 @@ async def limit_requests(request, call_next):
 
 app.add_middleware(BaseHTTPMiddleware, dispatch=limit_requests)
 
-async def ping(_request):
-    return JSONResponse({"status": "ok"})
-
-
-app.add_route("/ping", ping)
 
 async def ping(_request):
     return JSONResponse({"status": "ok"})

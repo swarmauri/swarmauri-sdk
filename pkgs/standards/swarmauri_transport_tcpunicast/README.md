@@ -182,7 +182,7 @@ Inspect [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/
 ### Entry Points
 
 <!-- readme-standards:begin entry-points -->
-This package declares no command-line, GUI, or plugin entry points in its manifest.
+- `swarmauri.transports` → `TCPUnicast` → `swarmauri_transport_tcpunicast:TCPUnicast`
 <!-- readme-standards:end entry-points -->
 
 ### Injected Dependencies

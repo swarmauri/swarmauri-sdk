@@ -386,7 +386,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("filter", nargs="?", default="*")
     parser.add_argument(
-        "--python", nargs="+", default=[f"3.{n}" for n in range(10, 16)]
+        "--python", nargs="+", default=[f"3.{n}" for n in range(10, 15)]
     )
     parser.add_argument("--jobs", type=int, default=4)
     parser.add_argument("--timeout", type=int, default=600)
@@ -416,7 +416,7 @@ def main():
     )
     args = parser.parse_args()
     if any(not re.fullmatch(r"3\.\d+", version) for version in args.python):
-        parser.error("--python expects version labels such as 3.10 or 3.15")
+        parser.error("--python expects version labels such as 3.10 or 3.14")
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
     context = {
