@@ -48,7 +48,7 @@ Choose `swarmauri_monorepo` when your integration needs monorepo for multiple in
 - Centralizes the `pkgs/` workspace manifest for the Swarmauri SDK package fleet.
 - Provides one install surface for local workspace development across standards, community, experimental, and plugin packages.
 - Keeps shared dependency and tooling constraints aligned for Python 3.10 through 3.14.
-- Maintains a layered package index in [`package-index.toml`](package-index.toml), with a generated human-readable view in [`PACKAGE_INDEX.md`](PACKAGE_INDEX.md).
+- Maintains a layered package index in [`index.toml`](../index.toml), with a generated human-readable view in [`PACKAGE_INDEX.md`](PACKAGE_INDEX.md).
 
 ### Non-Goals
 
