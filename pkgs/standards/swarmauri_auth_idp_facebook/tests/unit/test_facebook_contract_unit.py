@@ -85,7 +85,9 @@ class FakeHTTPClient:
         if isinstance(route, Exception):
             raise route
         if isinstance(route, FakeResponse):
-            route.raise_for_status()
+            # Returned as-is: the adapter's own raise_for_status() is what
+            # turns a failing response into an error, and the HTTP-error
+            # tests pin that path rather than the fake raising first.
             return route
         return FakeResponse(route)
 
@@ -218,7 +220,11 @@ async def test_oauth20_app_client_access_token_missing_token():
 @pytest.mark.asyncio
 async def test_oauth20_app_client_access_token_http_error():
     fake = FakeHTTPClient(
-        {("POST", TOKEN_URL): FakeHTTPError("provider unavailable")}
+        {
+            ("POST", TOKEN_URL): FakeResponse(
+                {"error": "provider unavailable"}, status=400
+            )
+        }
     )
     client = FacebookOAuth20AppClient(
         client_id="app-id",
@@ -325,7 +331,11 @@ async def test_oauth20_login_exchange_posts_token_and_fetches_profile():
 @pytest.mark.asyncio
 async def test_oauth20_login_exchange_token_http_error():
     fake = FakeHTTPClient(
-        {("POST", TOKEN_URL): FakeHTTPError("provider unavailable")}
+        {
+            ("POST", TOKEN_URL): FakeResponse(
+                {"error": "provider unavailable"}, status=400
+            )
+        }
     )
     login = _login_fixture(FacebookOAuth20Login)
     login._http_client_factory = lambda: fake
@@ -540,7 +550,9 @@ async def test_oidc10_login_exchange_token_http_error():
     fake = FakeHTTPClient(
         {
             ("GET", DISCOVERY_URL): _oidc_metadata(),
-            ("POST", TOKEN_URL): FakeHTTPError("provider unavailable"),
+            ("POST", TOKEN_URL): FakeResponse(
+                {"error": "provider unavailable"}, status=400
+            ),
         }
     )
     login = _login_fixture(FacebookOIDC10Login)
