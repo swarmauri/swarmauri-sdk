@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Mapping, Optional
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import ConfigDict, Field, SecretBytes, SecretStr
 
@@ -55,20 +55,32 @@ class OktaOAuthLoginMixin:
         verifier, challenge = make_pkce_pair()
         state = sign_state(self._state_secret_value(), {"verifier": verifier})
         endpoint = metadata["authorization_endpoint"]
-        query = urlencode(
-            {
-                "response_type": "code",
-                "client_id": self.client_id,
-                "redirect_uri": self.redirect_uri,
-                "scope": self.scope,
-                "state": state,
-                "code_challenge": challenge,
-                "code_challenge_method": "S256",
-                "prompt": "consent",
-            }
-        )
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": self.scope,
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+            "prompt": "consent",
+        }
+        query = urlencode(params)
         parts = urlsplit(endpoint)
-        merged_query = f"{parts.query}&{query}" if parts.query else query
+        # An endpoint that already carries one of the generated keys (a stale
+        # state or PKCE value in its query) must not emit it twice: servers
+        # that take the first value or reject duplicates break the callback
+        # exchange. Other query keys the endpoint carries are kept.
+        kept = urlencode(
+            [
+                (key, value)
+                for key, value in parse_qsl(
+                    parts.query, keep_blank_values=True
+                )
+                if key not in params
+            ]
+        )
+        merged_query = f"{kept}&{query}" if kept else query
         url = urlunsplit(
             (
                 parts.scheme,
