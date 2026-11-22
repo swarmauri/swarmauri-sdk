@@ -41,6 +41,8 @@ cannot run ``auth_url``/``exchange`` at all without this assignment).
 
 from __future__ import annotations
 
+import base64
+import hashlib
 import time
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlsplit
@@ -80,13 +82,50 @@ METADATA = {
 # tokens and JWT bearer assertions below; the public half is served through
 # the fake JWKS endpoint and used to verify assertions. It is never used
 # outside this file.
-TEST_PRIVATE_KEY_PEM = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDRV/UMpGUSlPxC\nOFBFDk2oaCQKhxermGu0/u2KOu8WuzmvpXlVyXErFkbXuGMDiPHRyV5RWX5Bwmfr\nmobTbYaq5A6VVOh5hoWuICQU1qRWfH6ufTprXYUBH6WcIlmOjX6KPHwmc+AiRjfF\nqBGfsK5tQTgLQSS0oy7Jhu1d+/y5gSdQYiT0hlqXZqC4sfj7pW7t4hwa7XiCiCvT\ncnjcLIbzzYWWshQFt82u08CIZavRwRVUWRX6SUKvmOV0jCWzjvcAxVvTH8nDQk7p\nFjY+uz/nZeLgK+Dnu+xVjHB4rBfH6peKng/ML7ez+dH33oFLvC2531yzaWcW0Uk9\n7Q5GE6eHAgMBAAECggEAWNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDM\nkjGL4rC3olpyFkDKVyopvuUNbkSk9D+LvGiWdKohvmtGmuxsN4EzQZem5+bK1l4+\nnUlLXFrTQQ5ORoo26Ww2OW+AGQsLnU+hg/CVBefBpF/L6c6rRjGGfYKRP9PZQld8\nkdwZ2abTjeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhD\nW8BVxbs2lw2c3ZIZCW5feJD5t/lIDo+AHOCxponMpctKLikvgXvEvxf2pj9IGX09\nIKgx4lcuDUhz3DJ/+g67wJQTzPy6XhAp1Luy0Z/UOQKBgQDxt3yMu+h8xkgAG/v/\nsSDS7iz6HPQK8KQCtOI8ElDtlXJ399Vuq/SyxmYCKroENFmvt9eGqk1s6/PgbL6N\nuUlX/kk7mar3RKVeJRYq5GJvk/d3zLoBo8y0FyTrPFU0dGKrHikcfYuyGg+SwohR\n97vyzwDDUIASDbs0fn1Wo9NUnwKBgQDdtsDW+1o+5C6CMqzleOUVdpyYjpe3PkF2\nfG0XSPfvZsESvDClfEIjX8905dV0QgtqhuYnDhmmDLv7xc4Al9aougY831R7q31A\n7GxZ62vYKwnIu6htSmmfebHqvh+khiKPks77+6hB5JXV+9AXb0w/B4l3ylSKZaNQ\nBwlR0XEcGQKBgQCCpSfecRnhhtIXrQhxVO1m1HDe5pNI7nPXOqkkysmPAD2UdhGX\n9b0We4FbHnjYGOt4vCbzlEyw2H9CB8SemUz5EGnImu/7IdE3p1fp6vMBV7pjt/W5\nOS1FEVVVB5EN/vHthym1Sm4c31UXf6lqlDmzrQq+hl4SY/WRE+Tu1TE+BQKBgArp\nCFpL6if4IJXFmp58MYG54YDcW3jn9l63RsMDkzfTraKXYilykOqet13ARZ2/9kHa\nu46mcfqq28FK/ZUn46dP6CissMKZMMO2HqraG+d6TrPzEBm4tLPlUC0GCBaXhzHb\nfpYFz0TW08zA5H+SuYTMgSZE7Z4V3FB+2CWPkepZAoGAT3BhBtnaeauv7zX/hTHS\nmxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkRO8VvNitH6Qa18pEfK1mJV3Wv\njYzAro9YMCLRiGp8cVibK+WdLXEjfdEInLT7jbRNkaZuNi7abg+7+BMX1iInLZPI\ndwmn5AISPRKxmpl+rXQyeU8=\n-----END PRIVATE KEY-----\n"
+TEST_PRIVATE_KEY_PEM = (
+    "-----BEGIN PRIVATE KEY-----\n"
+    "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDRV/UMpGUSlPxC\n"
+    "OFBFDk2oaCQKhxermGu0/u2KOu8WuzmvpXlVyXErFkbXuGMDiPHRyV5RWX5Bwmfr\n"
+    "mobTbYaq5A6VVOh5hoWuICQU1qRWfH6ufTprXYUBH6WcIlmOjX6KPHwmc+AiRjfF\n"
+    "qBGfsK5tQTgLQSS0oy7Jhu1d+/y5gSdQYiT0hlqXZqC4sfj7pW7t4hwa7XiCiCvT\n"
+    "cnjcLIbzzYWWshQFt82u08CIZavRwRVUWRX6SUKvmOV0jCWzjvcAxVvTH8nDQk7p\n"
+    "FjY+uz/nZeLgK+Dnu+xVjHB4rBfH6peKng/ML7ez+dH33oFLvC2531yzaWcW0Uk9\n"
+    "7Q5GE6eHAgMBAAECggEAWNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDM\n"
+    "kjGL4rC3olpyFkDKVyopvuUNbkSk9D+LvGiWdKohvmtGmuxsN4EzQZem5+bK1l4+\n"
+    "nUlLXFrTQQ5ORoo26Ww2OW+AGQsLnU+hg/CVBefBpF/L6c6rRjGGfYKRP9PZQld8\n"
+    "kdwZ2abTjeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhD\n"
+    "W8BVxbs2lw2c3ZIZCW5feJD5t/lIDo+AHOCxponMpctKLikvgXvEvxf2pj9IGX09\n"
+    "IKgx4lcuDUhz3DJ/+g67wJQTzPy6XhAp1Luy0Z/UOQKBgQDxt3yMu+h8xkgAG/v/\n"
+    "sSDS7iz6HPQK8KQCtOI8ElDtlXJ399Vuq/SyxmYCKroENFmvt9eGqk1s6/PgbL6N\n"
+    "uUlX/kk7mar3RKVeJRYq5GJvk/d3zLoBo8y0FyTrPFU0dGKrHikcfYuyGg+SwohR\n"
+    "97vyzwDDUIASDbs0fn1Wo9NUnwKBgQDdtsDW+1o+5C6CMqzleOUVdpyYjpe3PkF2\n"
+    "fG0XSPfvZsESvDClfEIjX8905dV0QgtqhuYnDhmmDLv7xc4Al9aougY831R7q31A\n"
+    "7GxZ62vYKwnIu6htSmmfebHqvh+khiKPks77+6hB5JXV+9AXb0w/B4l3ylSKZaNQ\n"
+    "BwlR0XEcGQKBgQCCpSfecRnhhtIXrQhxVO1m1HDe5pNI7nPXOqkkysmPAD2UdhGX\n"
+    "9b0We4FbHnjYGOt4vCbzlEyw2H9CB8SemUz5EGnImu/7IdE3p1fp6vMBV7pjt/W5\n"
+    "OS1FEVVVB5EN/vHthym1Sm4c31UXf6lqlDmzrQq+hl4SY/WRE+Tu1TE+BQKBgArp\n"
+    "CFpL6if4IJXFmp58MYG54YDcW3jn9l63RsMDkzfTraKXYilykOqet13ARZ2/9kHa\n"
+    "u46mcfqq28FK/ZUn46dP6CissMKZMMO2HqraG+d6TrPzEBm4tLPlUC0GCBaXhzHb\n"
+    "fpYFz0TW08zA5H+SuYTMgSZE7Z4V3FB+2CWPkepZAoGAT3BhBtnaeauv7zX/hTHS\n"
+    "mxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkRO8VvNitH6Qa18pEfK1mJV3Wv\n"
+    "jYzAro9YMCLRiGp8cVibK+WdLXEjfdEInLT7jbRNkaZuNi7abg+7+BMX1iInLZPI\n"
+    "dwmn5AISPRKxmpl+rXQyeU8=\n"
+    "-----END PRIVATE KEY-----\n"
+    ""
+)
 TEST_JWK = {
     "kty": "RSA",
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hjA4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-lnCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZal2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qXip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw",
+    "n": (
+        "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hj"
+        "A4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-l"
+        "nCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZa"
+        "l2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV"
+        "-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qX"
+        "ip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw"
+    ),
     "e": "AQAB",
 }
 # Private half of TEST_JWK, for the OAuth 2.1 app-client JWT assertion.
@@ -95,19 +134,54 @@ TEST_PRIVATE_JWK = {
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hjA4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-lnCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZal2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qXip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw",
+    "n": (
+        "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hj"
+        "A4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-l"
+        "nCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZa"
+        "l2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV"
+        "-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qX"
+        "ip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw"
+    ),
     "e": "AQAB",
-    "d": "WNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDMkjGL4rC3olpyFkDKVyopvuUNbkSk9D-LvGiWdKohvmtGmuxsN4EzQZem5-bK1l4-nUlLXFrTQQ5ORoo26Ww2OW-AGQsLnU-hg_CVBefBpF_L6c6rRjGGfYKRP9PZQld8kdwZ2abTjeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhDW8BVxbs2lw2c3ZIZCW5feJD5t_lIDo-AHOCxponMpctKLikvgXvEvxf2pj9IGX09IKgx4lcuDUhz3DJ_-g67wJQTzPy6XhAp1Luy0Z_UOQ",
-    "p": "8bd8jLvofMZIABv7_7Eg0u4s-hz0CvCkArTiPBJQ7ZVyd_fVbqv0ssZmAiq6BDRZr7fXhqpNbOvz4Gy-jblJV_5JO5mq90SlXiUWKuRib5P3d8y6AaPMtBck6zxVNHRiqx4pHH2LshoPksKIUfe78s8Aw1CAEg27NH59VqPTVJ8",
-    "q": "3bbA1vtaPuQugjKs5XjlFXacmI6Xtz5BdnxtF0j372bBErwwpXxCI1_PdOXVdEILaobmJw4Zpgy7-8XOAJfWqLoGPN9Ue6t9QOxsWetr2CsJyLuobUppn3mx6r4fpIYij5LO-_uoQeSV1fvQF29MPweJd8pUimWjUAcJUdFxHBk",
-    "dp": "gqUn3nEZ4YbSF60IcVTtZtRw3uaTSO5z1zqpJMrJjwA9lHYRl_W9FnuBWx542BjreLwm85RMsNh_QgfEnplM-RBpyJrv-yHRN6dX6erzAVe6Y7f1uTktRRFVVQeRDf7x7YcptUpuHN9VF3-papQ5s60KvoZeEmP1kRPk7tUxPgU",
-    "dq": "CukIWkvqJ_gglcWannwxgbnhgNxbeOf2XrdGwwOTN9OtopdiKXKQ6p63XcBFnb_2Qdq7jqZx-qrbwUr9lSfjp0_oKKywwpkww7Yeqtob53pOs_MQGbi0s-VQLQYIFpeHMdt-lgXPRNbTzMDkf5K5hMyBJkTtnhXcUH7YJY-R6lk",
-    "qi": "T3BhBtnaeauv7zX_hTHSmxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkRO8VvNitH6Qa18pEfK1mJV3WvjYzAro9YMCLRiGp8cVibK-WdLXEjfdEInLT7jbRNkaZuNi7abg-7-BMX1iInLZPIdwmn5AISPRKxmpl-rXQyeU8",
+    "d": (
+        "WNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDMkjGL4rC3olpyFkDK"
+        "VyopvuUNbkSk9D-LvGiWdKohvmtGmuxsN4EzQZem5-bK1l4-nUlLXFrTQQ5O"
+        "Roo26Ww2OW-AGQsLnU-hg_CVBefBpF_L6c6rRjGGfYKRP9PZQld8kdwZ2abT"
+        "jeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhDW8BV"
+        "xbs2lw2c3ZIZCW5feJD5t_lIDo-AHOCxponMpctKLikvgXvEvxf2pj9IGX09"
+        "IKgx4lcuDUhz3DJ_-g67wJQTzPy6XhAp1Luy0Z_UOQ"
+    ),
+    "p": (
+        "8bd8jLvofMZIABv7_7Eg0u4s-hz0CvCkArTiPBJQ7ZVyd_fVbqv0ssZmAiq6"
+        "BDRZr7fXhqpNbOvz4Gy-jblJV_5JO5mq90SlXiUWKuRib5P3d8y6AaPMtBck"
+        "6zxVNHRiqx4pHH2LshoPksKIUfe78s8Aw1CAEg27NH59VqPTVJ8"
+    ),
+    "q": (
+        "3bbA1vtaPuQugjKs5XjlFXacmI6Xtz5BdnxtF0j372bBErwwpXxCI1_PdOXV"
+        "dEILaobmJw4Zpgy7-8XOAJfWqLoGPN9Ue6t9QOxsWetr2CsJyLuobUppn3mx"
+        "6r4fpIYij5LO-_uoQeSV1fvQF29MPweJd8pUimWjUAcJUdFxHBk"
+    ),
+    "dp": (
+        "gqUn3nEZ4YbSF60IcVTtZtRw3uaTSO5z1zqpJMrJjwA9lHYRl_W9FnuBWx54"
+        "2BjreLwm85RMsNh_QgfEnplM-RBpyJrv-yHRN6dX6erzAVe6Y7f1uTktRRFV"
+        "VQeRDf7x7YcptUpuHN9VF3-papQ5s60KvoZeEmP1kRPk7tUxPgU"
+    ),
+    "dq": (
+        "CukIWkvqJ_gglcWannwxgbnhgNxbeOf2XrdGwwOTN9OtopdiKXKQ6p63XcBF"
+        "nb_2Qdq7jqZx-qrbwUr9lSfjp0_oKKywwpkww7Yeqtob53pOs_MQGbi0s-VQ"
+        "LQYIFpeHMdt-lgXPRNbTzMDkf5K5hMyBJkTtnhXcUH7YJY-R6lk"
+    ),
+    "qi": (
+        "T3BhBtnaeauv7zX_hTHSmxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkR"
+        "O8VvNitH6Qa18pEfK1mJV3WvjYzAro9YMCLRiGp8cVibK-WdLXEjfdEInLT7"
+        "jbRNkaZuNi7abg-7-BMX1iInLZPIdwmn5AISPRKxmpl-rXQyeU8"
+    ),
 }
 
 
 class FakeHTTPError(Exception):
-    """Raised by the fake client when a canned response carries an error status."""
+    """Raised by the fake client when a canned response carries an
+    error status."""
 
 
 class DummyResponse:
@@ -241,7 +315,9 @@ def _token_payload(*, id_token=None):
     return payload
 
 
-def _assert_token_post(factory, *, code="auth-code-123") -> Dict[str, Any]:
+def _assert_token_post(
+    factory, *, code="auth-code-123", payload=None
+) -> Dict[str, Any]:
     posts = factory.posts()
     assert len(posts) == 1
     post = posts[0]
@@ -255,6 +331,21 @@ def _assert_token_post(factory, *, code="auth-code-123") -> Dict[str, Any]:
     assert data["client_id"] == CLIENT_ID
     assert data["client_secret"] == "secret"
     assert data["code_verifier"]
+    if payload is not None:
+        # The challenge the authorization URL advertised must be the S256
+        # digest of the verifier posted here: the fake token endpoint
+        # accepts any nonempty string, so only this check catches a
+        # challenge derived from a different verifier.
+        advertised = parse_qs(urlsplit(payload["url"]).query)["code_challenge"]
+        assert len(advertised) == 1
+        expected = (
+            base64.urlsafe_b64encode(
+                hashlib.sha256(data["code_verifier"].encode()).digest()
+            )
+            .decode()
+            .rstrip("=")
+        )
+        assert advertised[0] == expected
     return data
 
 
@@ -313,9 +404,11 @@ async def test_oauth20_exchange_returns_identity_from_userinfo() -> None:
     )
     login = _login(CognitoOAuth20Login, factory)
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
-    _assert_token_post(factory)
+    _assert_token_post(factory, payload=payload)
     _assert_bearer_get(factory, USERINFO_URL)
     assert result["issuer"] == "cognito-oauth2"
     assert result["sub"] == "user-sub-1"
@@ -342,7 +435,9 @@ async def test_oauth20_exchange_name_falls_back_to_given_name() -> None:
     )
     login = _login(CognitoOAuth20Login, factory)
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
     assert result["name"] == "Example"
 
@@ -358,7 +453,9 @@ async def test_oauth20_exchange_name_unknown_when_absent() -> None:
     )
     login = _login(CognitoOAuth20Login, factory)
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
     assert result["name"] == "Unknown"
 
@@ -382,7 +479,9 @@ async def test_oauth20_exchange_uses_default_userinfo_endpoint() -> None:
     login = _login(CognitoOAuth20Login, factory)
     login._discovery = metadata
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
     _assert_bearer_get(factory, DEFAULT_USERINFO_URL)
     assert result["sub"] == "user-sub-1"
@@ -428,9 +527,11 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     login = _login(CognitoOAuth21Login, factory)
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
-    _assert_token_post(factory)
+    _assert_token_post(factory, payload=payload)
     gets = factory.gets()
     assert [c["url"] for c in gets] == [JWKS_URL]
     assert gets[0]["headers"] == {"Accept": "application/json"}
@@ -455,7 +556,9 @@ async def test_oauth21_exchange_name_falls_back_to_given_name() -> None:
     )
     login = _login(CognitoOAuth21Login, factory)
     payload = await login.auth_url()
-    result = await login.exchange_and_identity("auth-code-123", payload["state"])
+    result = await login.exchange_and_identity(
+        "auth-code-123", payload["state"]
+    )
 
     assert result["name"] == "Example"
 
@@ -507,7 +610,7 @@ async def test_oidc_exchange_returns_claims() -> None:
     payload = await login.auth_url()
     result = await login.exchange("auth-code-123", payload["state"])
 
-    _assert_token_post(factory)
+    _assert_token_post(factory, payload=payload)
     gets = factory.gets()
     # Claims are complete, so no UserInfo call is made.
     assert [c["url"] for c in gets] == [JWKS_URL]
@@ -780,7 +883,9 @@ async def test_oidc_app_client_discovers_then_posts_token() -> None:
     assert len(posts) == 2
     assert all(p["url"] == TOKEN_URL for p in posts)
     assert all(p["auth"] == (CLIENT_ID, "secret") for p in posts)
-    assert all(p["data"] == {"grant_type": "client_credentials"} for p in posts)
+    assert all(
+        p["data"] == {"grant_type": "client_credentials"} for p in posts
+    )
 
 
 @pytest.mark.unit
