@@ -533,6 +533,10 @@ async def test_oidc_exchange_returns_claims() -> None:
     )
     login = _login(SalesforceOIDC10Login, factory)
     payload = await login.auth_url()
+    # The OIDC request must carry the openid scope: without it Salesforce
+    # returns no id_token, and this exchange would be impossible.
+    params = parse_qs(urlsplit(payload["url"]).query)
+    assert params["scope"] == ["openid refresh_token"]
     result = await login.exchange("auth-code-123", payload["state"])
 
     _assert_token_post(factory)
