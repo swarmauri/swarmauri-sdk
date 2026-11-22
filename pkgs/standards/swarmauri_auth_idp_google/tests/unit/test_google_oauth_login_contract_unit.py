@@ -54,24 +54,64 @@ METADATA = {
     "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
 }
 
-OAUTH20_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+OAUTH20_USERINFO_ENDPOINT = (
+    "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+)
 
 # Throwaway RSA key for these tests only. The private half signs the ID
 # tokens below; the public half is served through the fake JWKS endpoint.
 # It is never used outside this file.
-TEST_PRIVATE_KEY_PEM = "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDIIR4JGyix80SL\nQ89ddpVlWVTVzlMt/ydC7bdsz6bdXdi51+yogFyDZwKlVxjdpz9x0JdAWXNHOC1s\n3MSL5L9mMYltUn+/ejvuEeFg4KvZImIUMow8xOHuj4o7ezUY7fJ1qlHt7EJw4Dl8\ncTKLybjTkGF/HFF3F2I/eK4X5Q2QTYcRFNlQPkqmMYhc46ZhmRumh5EyuTmhbKoS\nKOAHyd4tyVOniKK+LdmQxPmfSqiLbq7EmzkEWj7eKKkKFpNITkNr55TakQ1MPhWK\njDbTWmmmx4CEWGF65yfSeRsdhVh0WajAA/P+Chjn3eq9TL3Kp9Loi1MW78lMsJbZ\nNEKpndItAgMBAAECggEAAIaXFHFgp9MFR5O2hul/AU9SRJDbBsBoWH8qX7FN9WqV\nMqvJYInxyZtAK7IGYTKwHSWYosp5XeMHui+m890hJEIWDoD3JUggwdfZ2TjN4Bn8\nhaQPr+sufW4dcAQ7V/pBYaNrEq5vtZSJN3VOq4UB+iBOI+4tnUak80NnEFisMp2t\nqZxO+RJwzXo1a9R6vNrFICyRT4iJ1uBGeW6sL+sLCZf4nPkivm4mMxt7xPIewIeN\nCNSRRvAnIdsqRI490Smr2cI7RXEzZnFVbfK60idAZ1iPtDE8CzR3SWdY0O4+TX0z\nnETQk1f0kf+qkXO8mQCvaCE7mMkpraZ1rok4dOwe4QKBgQD38JtGVJJqDFABdds1\nPXBWJpw8n3YR/N/iA7QylV6PlECuHd826G0/4gAnIt+SbcoGlZgHApKyt1VM2+M2\ntmqf1E5k6gvKSMQ+UpghBo+1qYrR8kaLk4lVcpXo5oH/cyWtz84mrRT0cQ5fn01C\nfCvGVyRiDAgwdhdJLq5S4BetvQKBgQDOop/cw4tZ6Gx1P+ajM0PQPTcvv1nlWodN\n0cTLTGhmL/LnC6Vhk367/wnmar1RH2xOZp7qYMylqfoVeIiNx+6F9SclBl7WAaQp\nE4jfs2f8NUv5CR2gtkiFfuoOXRbTlCewY0+PIBc42pQ27fZ8cAP9emUeHlgpWT5a\nzppE01JlMQKBgQDftGS1CTttmZxaJPdaywtff8i53fqO8kUiTMs6VJEUJORS9Trf\n9MgVupj+trVYDd0ZIcIgmQ65VzcMeN1CEUaU3N66qH1oz0zZGnaOXbguZUGOefVy\nm/Rud0uQ7uHeFQurDnLnbIUapCMe3cG8ugJZG2kFWevNpc8OxaKdvfk/VQKBgQCk\nSbQkh+xhfWPODRJIq1e9Vw5rjg3hRorRGnkG0icnJ/ROMno5DFX1Dp9GbZM7zmoE\nI58x5eiPxocpTv3zDATeyL1ouJnqOL/WUMvAYBnK8m0HAXJm9sbOLMvWw7iEXAT6\nPttghjkwYMj6q1QQN9dUT13aBnI93dCvzhflpMab4QKBgQDqTe3Svoaw4tHrjpNJ\nhk3THG6g/n7UpxNSYAHembAhSzb7QCkgJk/EmHiG+HFnEUhaL/cX4mR2oSpFJ8IC\nim5tTdKRSVtWRYY467czK7zCJ7iycgbvsp/hfVyDdXeHwvW1OUNPNgzdL31mk3cT\npuq+4OZG3lkDndQ3QMZRKx2S+g==\n-----END PRIVATE KEY-----\n"
+TEST_PRIVATE_KEY_PEM = (
+    "-----BEGIN PRIVATE KEY-----\n"
+    "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDIIR4JGyix80SL\n"
+    "Q89ddpVlWVTVzlMt/ydC7bdsz6bdXdi51+yogFyDZwKlVxjdpz9x0JdAWXNHOC1s\n"
+    "3MSL5L9mMYltUn+/ejvuEeFg4KvZImIUMow8xOHuj4o7ezUY7fJ1qlHt7EJw4Dl8\n"
+    "cTKLybjTkGF/HFF3F2I/eK4X5Q2QTYcRFNlQPkqmMYhc46ZhmRumh5EyuTmhbKoS\n"
+    "KOAHyd4tyVOniKK+LdmQxPmfSqiLbq7EmzkEWj7eKKkKFpNITkNr55TakQ1MPhWK\n"
+    "jDbTWmmmx4CEWGF65yfSeRsdhVh0WajAA/P+Chjn3eq9TL3Kp9Loi1MW78lMsJbZ\n"
+    "NEKpndItAgMBAAECggEAAIaXFHFgp9MFR5O2hul/AU9SRJDbBsBoWH8qX7FN9WqV\n"
+    "MqvJYInxyZtAK7IGYTKwHSWYosp5XeMHui+m890hJEIWDoD3JUggwdfZ2TjN4Bn8\n"
+    "haQPr+sufW4dcAQ7V/pBYaNrEq5vtZSJN3VOq4UB+iBOI+4tnUak80NnEFisMp2t\n"
+    "qZxO+RJwzXo1a9R6vNrFICyRT4iJ1uBGeW6sL+sLCZf4nPkivm4mMxt7xPIewIeN\n"
+    "CNSRRvAnIdsqRI490Smr2cI7RXEzZnFVbfK60idAZ1iPtDE8CzR3SWdY0O4+TX0z\n"
+    "nETQk1f0kf+qkXO8mQCvaCE7mMkpraZ1rok4dOwe4QKBgQD38JtGVJJqDFABdds1\n"
+    "PXBWJpw8n3YR/N/iA7QylV6PlECuHd826G0/4gAnIt+SbcoGlZgHApKyt1VM2+M2\n"
+    "tmqf1E5k6gvKSMQ+UpghBo+1qYrR8kaLk4lVcpXo5oH/cyWtz84mrRT0cQ5fn01C\n"
+    "fCvGVyRiDAgwdhdJLq5S4BetvQKBgQDOop/cw4tZ6Gx1P+ajM0PQPTcvv1nlWodN\n"
+    "0cTLTGhmL/LnC6Vhk367/wnmar1RH2xOZp7qYMylqfoVeIiNx+6F9SclBl7WAaQp\n"
+    "E4jfs2f8NUv5CR2gtkiFfuoOXRbTlCewY0+PIBc42pQ27fZ8cAP9emUeHlgpWT5a\n"
+    "zppE01JlMQKBgQDftGS1CTttmZxaJPdaywtff8i53fqO8kUiTMs6VJEUJORS9Trf\n"
+    "9MgVupj+trVYDd0ZIcIgmQ65VzcMeN1CEUaU3N66qH1oz0zZGnaOXbguZUGOefVy\n"
+    "m/Rud0uQ7uHeFQurDnLnbIUapCMe3cG8ugJZG2kFWevNpc8OxaKdvfk/VQKBgQCk\n"
+    "SbQkh+xhfWPODRJIq1e9Vw5rjg3hRorRGnkG0icnJ/ROMno5DFX1Dp9GbZM7zmoE\n"
+    "I58x5eiPxocpTv3zDATeyL1ouJnqOL/WUMvAYBnK8m0HAXJm9sbOLMvWw7iEXAT6\n"
+    "PttghjkwYMj6q1QQN9dUT13aBnI93dCvzhflpMab4QKBgQDqTe3Svoaw4tHrjpNJ\n"
+    "hk3THG6g/n7UpxNSYAHembAhSzb7QCkgJk/EmHiG+HFnEUhaL/cX4mR2oSpFJ8IC\n"
+    "im5tTdKRSVtWRYY467czK7zCJ7iycgbvsp/hfVyDdXeHwvW1OUNPNgzdL31mk3cT\n"
+    "puq+4OZG3lkDndQ3QMZRKx2S+g==\n"
+    "-----END PRIVATE KEY-----\n"
+    ""
+)
 TEST_JWK = {
     "kty": "RSA",
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "yCEeCRsosfNEi0PPXXaVZVlU1c5TLf8nQu23bM-m3V3YudfsqIBcg2cCpVcY3ac_cdCXQFlzRzgtbNzEi-S_ZjGJbVJ_v3o77hHhYOCr2SJiFDKMPMTh7o-KO3s1GO3ydapR7exCcOA5fHEyi8m405BhfxxRdxdiP3iuF-UNkE2HERTZUD5KpjGIXOOmYZkbpoeRMrk5oWyqEijgB8neLclTp4iivi3ZkMT5n0qoi26uxJs5BFo-3iipChaTSE5Da-eU2pENTD4Viow201pppseAhFhheucn0nkbHYVYdFmowAPz_goY593qvUy9yqfS6ItTFu_JTLCW2TRCqZ3SLQ",
+    "n": (
+        "yCEeCRsosfNEi0PPXXaVZVlU1c5TLf8nQu23bM-m3V3YudfsqIBcg2cCpVcY"
+        "3ac_cdCXQFlzRzgtbNzEi-S_ZjGJbVJ_v3o77hHhYOCr2SJiFDKMPMTh7o-K"
+        "O3s1GO3ydapR7exCcOA5fHEyi8m405BhfxxRdxdiP3iuF-UNkE2HERTZUD5K"
+        "pjGIXOOmYZkbpoeRMrk5oWyqEijgB8neLclTp4iivi3ZkMT5n0qoi26uxJs5"
+        "BFo-3iipChaTSE5Da-eU2pENTD4Viow201pppseAhFhheucn0nkbHYVYdFmo"
+        "wAPz_goY593qvUy9yqfS6ItTFu_JTLCW2TRCqZ3SLQ"
+    ),
     "e": "AQAB",
 }
 
 
 class FakeHTTPError(Exception):
-    """Raised by the fake client when a canned response carries an error status."""
+    """Raised by the fake client when a canned response carries an
+    error status."""
 
 
 class DummyResponse:
@@ -230,7 +270,9 @@ async def test_oauth20_auth_url_requests_offline_access() -> None:
 
     auth = await login.auth_url()
 
-    assert auth["url"].startswith("https://accounts.google.com/o/oauth2/v2/auth?")
+    assert auth["url"].startswith(
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+    )
     parsed = parse_qs(urlsplit(auth["url"]).query)
     assert parsed["response_type"] == ["code"]
     assert parsed["client_id"] == [CLIENT_ID]
@@ -264,7 +306,9 @@ async def test_oauth20_exchange_returns_identity_from_userinfo() -> None:
     login = _login(GoogleOAuth20Login, factory)
     auth = await login.auth_url()
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["issuer"] == "google-oauth20"
     assert identity["sub"] == "google-123"
@@ -290,7 +334,9 @@ async def test_oauth21_auth_url_requests_nonce_and_account_selection() -> None:
 
     auth = await login.auth_url()
 
-    assert auth["url"].startswith("https://accounts.google.com/o/oauth2/v2/auth?")
+    assert auth["url"].startswith(
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+    )
     parsed = parse_qs(urlsplit(auth["url"]).query)
     assert parsed["response_type"] == ["code"]
     assert parsed["scope"] == ["openid email profile"]
@@ -318,7 +364,9 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     factory.post_responses = [DummyResponse(_token_payload(id_token=id_token))]
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["issuer"] == "google-oauth21"
     assert identity["sub"] == "google-456"
@@ -356,7 +404,9 @@ async def test_oauth21_exchange_falls_back_to_given_name() -> None:
     )
     factory.post_responses = [DummyResponse(_token_payload(id_token=id_token))]
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["sub"] == "google-789"
     assert identity["email"] == "bo@example.com"
