@@ -206,6 +206,21 @@ maturity = "standard"
 workspace = true
 
 [[packages]]
+id = "swarmauri-agent-wimse"
+name = "swarmauri_agent_wimse"
+path = "pkgs/standards/swarmauri_agent_wimse"
+ecosystem = "pypi"
+layer = "40-standards"
+order = 0
+order_reason = "single-capability package by default"
+dependencies = ["swarmauri-base", "swarmauri-standard"]
+[packages.metadata.swarmauri]
+family = "agent"
+role = "atomic-concrete"
+maturity = "standard"
+workspace = true
+
+[[packages]]
 id = "swarmauri-auth-idp-apple"
 name = "swarmauri_auth_idp_apple"
 path = "pkgs/standards/swarmauri_auth_idp_apple"

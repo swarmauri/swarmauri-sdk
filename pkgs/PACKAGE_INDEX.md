@@ -22,7 +22,7 @@ fail validation because they make composition order ambiguous.
 | `10-interfaces` | 1 | 1 | interface and protocol contracts |
 | `20-bases` | 1 | 1 | reusable base classes, mixins, and component models |
 | `30-standard-kernel` | 1 | 1 | bundled first-party standard component kernel |
-| `40-standards` | 237 | 237 | first-party split standard packages |
+| `40-standards` | 238 | 238 | first-party split standard packages |
 | `50-community` | 130 | 130 | community and provider-specific packages |
 | `60-plugins` | 5 | 5 | plugin packages and plugin examples |
 | `70-experimental` | 45 | 13 | incubating and planning-stage packages |
@@ -65,6 +65,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `standards/swarmauri_agent_runner` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_skill](standards/swarmauri_agent_skill/) | `standards/swarmauri_agent_skill` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_texttospeech](standards/swarmauri_agent_texttospeech/) | `standards/swarmauri_agent_texttospeech` | `agent` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_agent_wimse](standards/swarmauri_agent_wimse/) | `standards/swarmauri_agent_wimse` | `agent` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_auth_idp_apple](standards/swarmauri_auth_idp_apple/) | `standards/swarmauri_auth_idp_apple` | `auth_idp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_auth_idp_aws](standards/swarmauri_auth_idp_aws/) | `standards/swarmauri_auth_idp_aws` | `auth_idp` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_auth_idp_azure](standards/swarmauri_auth_idp_azure/) | `standards/swarmauri_auth_idp_azure` | `auth_idp` | `atomic-concrete` | `standard` | yes |
@@ -545,6 +546,7 @@ fail validation because they make composition order ambiguous.
 | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_agent_skill](standards/swarmauri_agent_skill/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_agent_texttospeech](standards/swarmauri_agent_texttospeech/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
+| [swarmauri_agent_wimse](standards/swarmauri_agent_wimse/) | `agent` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_auth_idp_apple](standards/swarmauri_auth_idp_apple/) | `auth_idp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_auth_idp_aws](standards/swarmauri_auth_idp_aws/) | `auth_idp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
 | [swarmauri_auth_idp_azure](standards/swarmauri_auth_idp_azure/) | `auth_idp` | `atomic-concrete` | `inferred` | 0 | single-capability package by default |
@@ -1082,6 +1084,7 @@ fail validation because they make composition order ambiguous.
 | `40.0` | [swarmauri_agent_runner](standards/swarmauri_agent_runner/) | `40-standards` | `standards/swarmauri_agent_runner` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_skill](standards/swarmauri_agent_skill/) | `40-standards` | `standards/swarmauri_agent_skill` | `atomic-concrete` | `standard` | yes |
 | `40.0` | [swarmauri_agent_texttospeech](standards/swarmauri_agent_texttospeech/) | `40-standards` | `standards/swarmauri_agent_texttospeech` | `atomic-concrete` | `standard` | yes |
+| `40.0` | [swarmauri_agent_wimse](standards/swarmauri_agent_wimse/) | `40-standards` | `standards/swarmauri_agent_wimse` | `atomic-concrete` | `standard` | yes |
 
 ### `auth_idp`
 
