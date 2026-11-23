@@ -6,7 +6,7 @@ import json
 from typing import Any, Callable, Mapping, Optional
 
 import jwt
-from pydantic import ConfigDict, PrivateAttr
+from pydantic import ConfigDict
 
 from swarmauri_base.auth_idp.http import RetryingAsyncClient
 from swarmauri_base.auth_idp.utils import verify_state
@@ -44,10 +44,8 @@ class CognitoLoginMixin:
 
     model_config = ConfigDict(extra="forbid")
 
-    _http_client_factory: Callable[[], RetryingAsyncClient] = PrivateAttr(
-        default=RetryingAsyncClient
-    )
-    _discovery: Optional[Mapping[str, Any]] = PrivateAttr(default=None)
+    _http_client_factory: Callable[[], RetryingAsyncClient]
+    _discovery: Mapping[str, Any] | None
 
     def _state_secret_value(self) -> bytes:
         return self.state_secret.get_secret_value()
