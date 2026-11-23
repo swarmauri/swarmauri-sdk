@@ -126,7 +126,14 @@ TEST_JWK = {
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "xV9apzLgqFS_lqhuiWIG9aOOdCMMKhlyBcG3jTw-XEbtYsjz2C0fV23qQUnN9YzFqNuW_rviyymyC9ZHwyX6EesINK3mHNrJzj_OlvTBI3Arlgvc09MHWvs5Vaylqdwq3skTnrQq0vZ9myN8MTj68Mt-zk-EE5Vd-LmpSNzB1Ln3JM_GgkwuL-IsGwsBZnmOhTbxfCrlXMiJBbCHenNDtIkqHibqKjNtm_SpQsS453sCwmKSmRNxCq4bSF10qNqLpeZqhUTQDmdu8EkK8CsyCWN7i-ysyepuxbBA6aAJ3Eso-rY50vpYlDRlmZX9FNStrkwwjsXlA_lo49TRV2nAXQ",
+    "n": (
+        "xV9apzLgqFS_lqhuiWIG9aOOdCMMKhlyBcG3jTw-XEbtYsjz2C0fV23qQUnN9YzF"
+        "qNuW_rviyymyC9ZHwyX6EesINK3mHNrJzj_OlvTBI3Arlgvc09MHWvs5Vaylqdwq"
+        "3skTnrQq0vZ9myN8MTj68Mt-zk-EE5Vd-LmpSNzB1Ln3JM_GgkwuL-IsGwsBZnmO"
+        "hTbxfCrlXMiJBbCHenNDtIkqHibqKjNtm_SpQsS453sCwmKSmRNxCq4bSF10qNqL"
+        "peZqhUTQDmdu8EkK8CsyCWN7i-ysyepuxbBA6aAJ3Eso-"
+        "rY50vpYlDRlmZX9FNStrkwwjsXlA_lo49TRV2nAXQ"
+    ),
     "e": "AQAB",
 }
 
@@ -134,7 +141,9 @@ TEST_JWK = {
 class FakeResponse:
     """Minimal stand-in for an httpx response."""
 
-    def __init__(self, payload: Any, *, status: int = 200, error: bool = False) -> None:
+    def __init__(
+        self, payload: Any, *, status: int = 200, error: bool = False
+    ) -> None:
         self._payload = payload
         self.status_code = status
         self._error = error
@@ -196,17 +205,23 @@ class FakeClientFactory:
     def __init__(
         self, routes: dict[tuple[str, str], list[FakeResponse]] | None = None
     ) -> None:
-        self.routes = {key: list(value) for key, value in (routes or {}).items()}
+        self.routes = {
+            key: list(value) for key, value in (routes or {}).items()
+        }
         self.calls: list[dict[str, Any]] = []
 
     def __call__(self) -> FakeClient:
         return FakeClient(self)
 
     def gets(self, url: str) -> list[dict[str, Any]]:
-        return [c for c in self.calls if c["method"] == "GET" and c["url"] == url]
+        return [
+            c for c in self.calls if c["method"] == "GET" and c["url"] == url
+        ]
 
     def posts(self, url: str) -> list[dict[str, Any]]:
-        return [c for c in self.calls if c["method"] == "POST" and c["url"] == url]
+        return [
+            c for c in self.calls if c["method"] == "POST" and c["url"] == url
+        ]
 
 
 def _make_id_token(
@@ -276,7 +291,9 @@ def _assert_client_secret(secret: str) -> dict[str, Any]:
     return claims
 
 
-def _assert_auth_url(url: str, *, endpoint: str, scope: str) -> tuple[str, str]:
+def _assert_auth_url(
+    url: str, *, endpoint: str, scope: str
+) -> tuple[str, str]:
     parsed = urlsplit(url)
     assert f"{parsed.scheme}://{parsed.netloc}{parsed.path}" == endpoint
     query = parse_qs(parsed.query)
@@ -334,7 +351,9 @@ def _assert_token_post(
     assert data["code"] == "auth-code-123"
     assert data["redirect_uri"] == REDIRECT_URI
     assert data["client_id"] == CLIENT_ID
-    assert data["code_verifier"] == verify_state(STATE_SECRET, state)["verifier"]
+    assert (
+        data["code_verifier"] == verify_state(STATE_SECRET, state)["verifier"]
+    )
     _assert_client_secret(data["client_secret"])
     return data
 
@@ -361,14 +380,18 @@ async def test_oauth20_exchange_and_identity() -> None:
         endpoint=AUTH_ENDPOINT,
         scope="name email",
     )
-    id_token = _make_id_token(nonce=nonce, email="jane@example.com", name="Jane Doe")
+    id_token = _make_id_token(
+        nonce=nonce, email="jane@example.com", name="Jane Doe"
+    )
     factory.routes = _token_routes(
         token_url=TOKEN_ENDPOINT, jwks_url=JWKS_URI, id_token=id_token
     )
     result = await login.exchange_and_identity("auth-code-123", state)
     _assert_token_post(factory, token_url=TOKEN_ENDPOINT, state=state)
     assert len(factory.gets(JWKS_URI)) == 1
-    assert factory.gets(JWKS_URI)[0]["headers"] == {"Accept": "application/json"}
+    assert factory.gets(JWKS_URI)[0]["headers"] == {
+        "Accept": "application/json"
+    }
     assert result == {
         "issuer": "apple-oauth2",
         "sub": "apple-sub-1",
@@ -479,14 +502,18 @@ async def test_oauth21_exchange_and_identity() -> None:
         endpoint=METADATA["authorization_endpoint"],
         scope="openid email name",
     )
-    id_token = _make_id_token(nonce=nonce, email="jane@example.com", name="Jane Doe")
+    id_token = _make_id_token(
+        nonce=nonce, email="jane@example.com", name="Jane Doe"
+    )
     factory.routes = _token_routes(
         token_url=METADATA["token_endpoint"],
         jwks_url=METADATA["jwks_uri"],
         id_token=id_token,
     )
     result = await login.exchange_and_identity("auth-code-123", state)
-    _assert_token_post(factory, token_url=METADATA["token_endpoint"], state=state)
+    _assert_token_post(
+        factory, token_url=METADATA["token_endpoint"], state=state
+    )
     assert len(factory.gets(METADATA["jwks_uri"])) == 1
     assert result == {
         "issuer": "apple-oauth21",
@@ -565,14 +592,18 @@ async def test_oidc10_exchange() -> None:
         endpoint=METADATA["authorization_endpoint"],
         scope="openid email name",
     )
-    id_token = _make_id_token(nonce=nonce, email="jane@example.com", name="Jane Doe")
+    id_token = _make_id_token(
+        nonce=nonce, email="jane@example.com", name="Jane Doe"
+    )
     factory.routes = _token_routes(
         token_url=METADATA["token_endpoint"],
         jwks_url=METADATA["jwks_uri"],
         id_token=id_token,
     )
     result = await login.exchange("auth-code-123", state)
-    _assert_token_post(factory, token_url=METADATA["token_endpoint"], state=state)
+    _assert_token_post(
+        factory, token_url=METADATA["token_endpoint"], state=state
+    )
     assert result == {
         "issuer": "apple-oidc",
         "sub": "apple-sub-1",
