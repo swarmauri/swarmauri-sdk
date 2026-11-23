@@ -130,8 +130,8 @@ login = OktaOAuth20Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]` and capture `code` and `state`.
+    # In the callback handler, call `login.exchange_and_identity(code, state)`.
 
 
 asyncio.run(run_flow())
@@ -168,8 +168,8 @@ login = OktaOAuth20Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]` and capture `code` and `state`.
+    # In the callback handler, call `login.exchange_and_identity(code, state)`.
 
 
 asyncio.run(run_flow())
@@ -288,13 +288,15 @@ This source version of `swarmauri_auth_idp_okta` declares Python `>=3.10,<3.15`.
 
 ### Tests
 
-Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_auth_idp_okta` package directory for the maintained example source checks (Python compilation and non-Python file presence). Existing package tests include:
+Run the full package suite offline from the repository's `pkgs/` directory with `uv run --package swarmauri_auth_idp_okta --directory standards/swarmauri_auth_idp_okta pytest`. The tests use fake HTTP clients and throwaway signing keys, with no network access, credentials, or live Okta account: they verify the request/response contract only and do not prove interoperability with Okta's production service. Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_auth_idp_okta` package directory for the maintained example source checks (Python compilation and non-Python file presence). Existing package tests include:
 
 - [tests/unit/test_okta_oauth20_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oauth20_app_client_unit.py)
 - [tests/unit/test_okta_oauth20_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oauth20_login_unit.py)
 - [tests/unit/test_okta_oauth21_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oauth21_app_client_unit.py)
 - [tests/unit/test_okta_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oauth21_login_unit.py)
 - [tests/unit/test_okta_oidc10_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oidc10_app_client_unit.py)
+- [tests/unit/test_okta_oidc10_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oidc10_login_unit.py)
+- [tests/unit/test_okta_oauth_login_contract_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_okta/tests/unit/test_okta_oauth_login_contract_unit.py)
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
 
