@@ -108,8 +108,7 @@ def is_valid_package_path(package_root: str, module_file: str) -> bool:
     """
     # e.g., package_root=/repo/pkgs/20-bases/swarmauri_base,
     # module_file=/repo/pkgs/20-bases/swarmauri_base/swarmauri_base/foo/bar.py
-    # We need to check /repo/pkgs/20-bases/swarmauri_base/swarmauri_base[/foo]... all dirs to
-    # bar.py have __init__.py
+    # Check for __init__.py in each directory from package_root to bar.py.
     rel = os.path.relpath(module_file, package_root)
     parts = rel.split(os.sep)
     # drop filename

@@ -4,7 +4,10 @@ from EmbedXMP import EmbedXMP, embed, embed_file, read, read_file_xmp
 
 manager = EmbedXMP()
 image = Path("example.png")
-packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
+packet = (
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
+    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+)
 
 # Embed into the file in place.
 embed_file(image, packet)

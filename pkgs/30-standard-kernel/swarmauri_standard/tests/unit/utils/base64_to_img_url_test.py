@@ -1,5 +1,6 @@
 import base64
 import os
+from pathlib import Path
 
 import httpx
 import pytest
@@ -14,7 +15,9 @@ load_dotenv()
 API_KEY = os.getenv("IMGBB_API_KEY")
 
 # Path to the test image
-TEST_IMAGE_PATH = "pkgs/30-standard-kernel/swarmauri_standard/tests/static/cityscape.png"
+TEST_IMAGE_PATH = str(
+    Path(__file__).resolve().parents[2] / "static/cityscape.png"
+)
 
 
 @pytest.mark.skipif(

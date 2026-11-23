@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from swarmauri_standard.dataconnectors.GoogleDriveDataConnector import (
@@ -5,12 +7,13 @@ from swarmauri_standard.dataconnectors.GoogleDriveDataConnector import (
 )
 
 
+CREDENTIALS = Path(__file__).resolve().parents[2] / "static/credentials.json"
+
+
 @pytest.fixture(scope="module")
 def authenticated_connector():
     """Authenticate the GoogleDriveDataConnector once for the test suite."""
-    # Path to the valid credentials JSON file
-    credentials_path = "pkgs/30-standard-kernel/swarmauri_standard/tests/static/credentials.json"
-    connector = GoogleDriveDataConnector(credentials_path=credentials_path)
+    connector = GoogleDriveDataConnector(credentials_path=str(CREDENTIALS))
 
     # Perform authentication once
     try:
@@ -31,9 +34,7 @@ def shared_file_id():
 @pytest.mark.skip(reason="Skipping test_generate_authorization_url")
 def test_generate_authorization_url():
     """Test generate_authorization_url without authentication."""
-    # Path to the valid credentials JSON file
-    credentials_path = "pkgs/30-standard-kernel/swarmauri_standard/tests/static/credentials.json"
-    connector = GoogleDriveDataConnector(credentials_path=credentials_path)
+    connector = GoogleDriveDataConnector(credentials_path=str(CREDENTIALS))
     url = connector.generate_authorization_url()
     assert isinstance(url, str)
     assert "client_id" in url

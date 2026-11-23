@@ -8,7 +8,7 @@ def query_image_index(*, image_payload, my_image_index, my_vision_embedder):
         image_embedder=my_vision_embedder,
     )
 
-    matches = tool(
+    return tool(
         image=image_payload,
         top_k=5,
         metadata_filter={"category": "diagram"},
