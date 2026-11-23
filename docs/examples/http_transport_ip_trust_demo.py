@@ -17,14 +17,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 for relative in (
-    "pkgs/core",
-    "pkgs/base",
-    "pkgs/standards/swarmauri_certs_self_signed",
-    "pkgs/standards/swarmauri_certs_x509verify",
-    "pkgs/standards/swarmauri_cipher_suite_tls13",
-    "pkgs/standards/swarmauri_middleware_httpsig",
-    "pkgs/standards/swarmauri_signing_jws",
-    "pkgs/standards/swarmauri_tokens_jwt",
+    "pkgs/10-interfaces/swarmauri_core",
+    "pkgs/20-bases/swarmauri_base",
+    "pkgs/40-standards/swarmauri_certs_self_signed",
+    "pkgs/40-standards/swarmauri_certs_x509verify",
+    "pkgs/40-standards/swarmauri_cipher_suite_tls13",
+    "pkgs/40-standards/swarmauri_middleware_httpsig",
+    "pkgs/40-standards/swarmauri_signing_jws",
+    "pkgs/40-standards/swarmauri_tokens_jwt",
 ):
     sys.path.insert(0, str(ROOT / relative))
 

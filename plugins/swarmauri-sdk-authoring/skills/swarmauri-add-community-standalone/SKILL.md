@@ -7,7 +7,7 @@ description: Add a second-class standalone Swarmauri package under pkgs/communit
 
 ## Workflow
 
-1. Choose `pkgs/community/<package_name>` and inspect the closest community package with the same resource family.
+1. Choose `pkgs/50-community/<package_name>` and inspect the closest community package with the same resource family.
 2. Create package source, README, `pyproject.toml`, tests, and exports.
 3. Add metadata: Planning development status, Python 3.10-3.12 classifiers, Apache-2.0, Jacob Stewart as the author, descriptive summary, and package-specific keywords.
 4. Add workspace membership in `pkgs/pyproject.toml` unless explicitly excluded.
@@ -26,6 +26,6 @@ Read these before changing files:
 
 ## Completion Checks
 
-- Do not place community packages under `pkgs/standards`.
+- Do not place community packages under `pkgs/40-standards`.
 - Use second-class registry rows, not first-class rows.
-- Run validation for the new member and `pkgs/swarmauri` when citizenship changed.
+- Run validation for the new member and `pkgs/80-facades/swarmauri` when citizenship changed.

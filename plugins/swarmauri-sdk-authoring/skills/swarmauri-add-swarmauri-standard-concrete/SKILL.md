@@ -7,7 +7,7 @@ description: Add or update a concrete component inside pkgs/swarmauri_standard. 
 
 ## Workflow
 
-1. Locate the target resource family under `pkgs/swarmauri_standard/swarmauri_standard/<family>/` and inspect sibling concretes.
+1. Locate the target resource family under `pkgs/30-standard-kernel/swarmauri_standard/swarmauri_standard/<family>/` and inspect sibling concretes.
 2. Implement the concrete by inheriting the matching `swarmauri_base` base class.
 3. Decorate with `@ComponentBase.register_type(<BaseClass>, "<ConcreteName>")`.
 4. Set `type: Literal["<ConcreteName>"] = "<ConcreteName>"`, `version`, and required fields using local conventions.
@@ -26,4 +26,4 @@ Read these before changing files:
 
 - Do not add a standalone `pyproject.toml`; this skill is for the existing `swarmauri_standard` package.
 - Add or update registry tests when first-class citizenship changes.
-- Run validation for `pkgs/swarmauri_standard`; also run `pkgs/swarmauri` tests if citizenship changed.
+- Run validation for `pkgs/30-standard-kernel/swarmauri_standard`; also run `pkgs/80-facades/swarmauri` tests if citizenship changed.

@@ -13,7 +13,7 @@ sources:
 - https://github.com/swarmauri/swarmauri-sdk/actions/runs/44240639951
 - https://github.com/swarmauri/swarmauri-sdk/actions/runs/44240852977
 facts:
-- Both Play.ht distributions move to pkgs/deprecated without changing import names.
+- Both Play.ht distributions move to pkgs/90-deprecated without changing import names.
 - Stable 0.11.0 releases carry Development Status 7 - Inactive.
 - Import emits FutureWarning; construction fails locally with migration guidance.
 assumptions:
@@ -35,8 +35,8 @@ release_version:
 - swarmauri_tts_playht==0.11.0
 - swarmauri_llm_playht==0.11.0
 scope:
-- pkgs/deprecated/swarmauri_tts_playht
-- pkgs/deprecated/swarmauri_llm_playht
+- pkgs/90-deprecated/swarmauri_tts_playht
+- pkgs/90-deprecated/swarmauri_llm_playht
 gates:
 - Package tests, Ruff, wheel metadata inspection and clean-install verification.
 - Repository PyPI authentication and environment policies apply.

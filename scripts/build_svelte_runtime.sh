@@ -2,9 +2,9 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SVELTE_RUNTIME_SRC="$REPO_ROOT/pkgs/experimental/swarmakit/libs/layout-engine-svelte"
-SWARMAKIT_SVELTE_SRC="$REPO_ROOT/pkgs/experimental/swarmakit/libs/svelte"
-RUNTIME_DEST="$REPO_ROOT/pkgs/experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/svelte/assets"
+SVELTE_RUNTIME_SRC="$REPO_ROOT/pkgs/70-experimental/swarmakit/libs/layout-engine-svelte"
+SWARMAKIT_SVELTE_SRC="$REPO_ROOT/pkgs/70-experimental/swarmakit/libs/svelte"
+RUNTIME_DEST="$REPO_ROOT/pkgs/70-experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/svelte/assets"
 
 echo "Building layout-engine Svelte runtime bundle…"
 

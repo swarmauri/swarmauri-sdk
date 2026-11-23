@@ -1,0 +1,203 @@
+[project]
+name = "swarmauri_standard"
+version = "0.11.0.dev13"
+description = "First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows."
+keywords = [
+    "swarmauri",
+    "standard-components",
+    "ai-sdk",
+    "agents",
+    "tools",
+    "toolkits",
+    "parsers",
+    "vector-stores",
+    "llms",
+    "embeddings",
+    "schema-converters",
+    "composable-intelligence",
+    "dynamic-json-schema",
+    "discriminated-unions",
+    "pydantic",
+    "schema-first",
+    "serialization",
+    "yaml",
+    "toml",
+    "plugin-factory",
+    "typed-components",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+license = "Apache-2.0"
+readme = { file = "README.md", content-type = "text/markdown" }
+repository = "http://github.com/swarmauri/swarmauri-sdk"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+]
+requires-python = ">=3.10,<3.15"
+dependencies = [
+"toml>=0.10.2",
+"pydantic>=2.9.2",
+"h11>=0.16.0",
+"httpx>=0.27,<0.29",
+"numpy",
+"pandas",
+"joblib>=1.4.0",
+"pillow>=11.1.0",
+"aiofiles",
+"rich",
+"typing_extensions",
+"swarmauri_core>=0.11.0.dev8,<0.12",
+"swarmauri_base>=0.11.0.dev13,<0.12",
+"swarmauri_tts_openai>=0.1.0a2,<0.2",
+]
+license-files = ["LICENSE", "NOTICE"]
+
+
+[tool.uv.sources]
+swarmauri_agent_texttospeech = { workspace = true }
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_tts_openai = { workspace = true }
+
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/30-standard-kernel/swarmauri_standard"
+layer = "swarmauri_standard"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_standard"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/30-standard-kernel/swarmauri_standard/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/30-standard-kernel/swarmauri_standard/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+[dependency-groups]
+dev = [
+'swarmauri_agent_texttospeech; python_version < "3.13"',
+"flake8>=7.0",
+"pytest>=8.0",
+"pytest-asyncio>=0.24.0",
+"pytest-xdist>=3.6.1",
+"pytest-json-report>=1.5.0",
+"pytest-timeout>=2.3.1",
+"python-dotenv>=1.0.0",
+"jsonschema>=4.18.5",
+"ipython>=8.28.0",
+"httpx>=0.27",
+"ruff>=0.9.9",
+"pytest-benchmark>=4.0.0",
+"readme-standards==0.1.1; python_version >= \"3.11\"",
+]
+
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint]
+# Legacy compatibility baseline. These rules conflict with public CamelCase
+# import paths, Pydantic model fields, provider boundary behavior, or tests
+# that intentionally exercise exceptional and dynamic execution paths.
+ignore = [
+    "ASYNC230",
+    "B017",
+    "B018",
+    "BLE001",
+    "DTZ001",
+    "DTZ003",
+    "DTZ005",
+    "DTZ006",
+    "E501",
+    "LOG015",
+    "N999",
+    "PERF402",
+    "RUF012",
+    "RUF034",
+    "S102",
+    "SIM102",
+    "SIM115",
+    "SIM117",
+    "TRY002",
+    "TRY004",
+    "TRY203",
+    "UP006",
+    "UP007",
+    "UP035",
+    "UP045",
+]
+[tool.pytest.ini_options]
+timeout = 5
+asyncio_mode = "auto"
+
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration Tests",
+    "r8n: Regression Tests",
+    "timeout: mark test to timeout after X seconds",
+    "xfail: Expected failures",
+    "xpass: Expected passes",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage"
+]
+
+
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

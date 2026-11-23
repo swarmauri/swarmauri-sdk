@@ -9,7 +9,7 @@ import pytest
 def _should_load_griffe_plugin() -> bool:
     plugin_root = (
         Path(__file__).resolve().parent
-        / "community"
+        / "50-community"
         / "swarmauri_tests_griffe"
     ).resolve()
     try:

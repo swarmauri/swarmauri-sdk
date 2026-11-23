@@ -7,7 +7,7 @@ description: Add a Swarmauri plugin package under pkgs/plugins. Use when Codex n
 
 ## Workflow
 
-1. Choose `pkgs/plugins/<package_name>` and inspect the closest plugin package before scaffolding.
+1. Choose `pkgs/60-plugins/<package_name>` and inspect the closest plugin package before scaffolding.
 2. Create package source, README, `pyproject.toml`, tests, and exports.
 3. Add metadata: Planning development status, Python 3.10-3.12 classifiers, Apache-2.0, Jacob Stewart as the author, descriptive summary, and plugin-focused keywords.
 4. Add workspace membership in `pkgs/pyproject.toml` unless explicitly excluded.
@@ -26,6 +26,6 @@ Read these before changing files:
 
 ## Completion Checks
 
-- Keep Codex plugins under top-level `plugins/`; keep Python plugin packages under `pkgs/plugins/`.
+- Keep Codex plugins under top-level `plugins/`; keep Python plugin packages under `pkgs/60-plugins/`.
 - Include both `uv` and `pip` install instructions.
-- Run validation for the new member and `pkgs/swarmauri` when citizenship changed.
+- Run validation for the new member and `pkgs/80-facades/swarmauri` when citizenship changed.

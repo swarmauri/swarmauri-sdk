@@ -46,11 +46,11 @@ def main():
         encoding="utf-8",
     )
     for member in MEMBERS:
-        path = root / "pkgs" / "standards" / f"swarmauri_{member}"
+        path = root / "pkgs" / "40-standards" / f"swarmauri_{member}"
         run("uv", "build", "--directory", path, "--wheel", "--out-dir", wheels)
     for member in MEMBERS:
         name = f"swarmauri_{member}"
-        path = root / "pkgs" / "standards" / name
+        path = root / "pkgs" / "40-standards" / name
         with (path / "pyproject.toml").open("rb") as stream:
             metadata = tomllib.load(stream)
         environment = output / name

@@ -1,0 +1,176 @@
+[project]
+name = "swarmauri_toolkit_jupytertoolkit"
+version = "0.11.0.dev3"
+description = "A unified toolkit for aggregating standalone jupyter notebook tools."
+license = "Apache-2.0"
+readme = "README.md"
+repository = "http://github.com/swarmauri/swarmauri-sdk/pkgs//swarmauri_toolkit_jupytertoolkit/"
+requires-python = ">=3.10,<3.15"
+classifiers = [
+    "Natural Language :: English",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+dependencies = [
+    "pydantic",
+    "swarmauri_core",
+    "swarmauri_base",
+    "swarmauri_standard",
+    "swarmauri_tool_jupyterclearoutput",
+    "swarmauri_tool_jupyterdisplay",
+    "swarmauri_tool_jupyterdisplayhtml",
+    "swarmauri_tool_jupyterexecuteandconvert",
+    "swarmauri_tool_jupyterexecutecell",
+    "swarmauri_tool_jupyterexecutenotebook",
+    "swarmauri_tool_jupyterexecutenotebookwithparameters",
+    "swarmauri_tool_jupyterexporthtml",
+    "swarmauri_tool_jupyterexportlatex",
+    "swarmauri_tool_jupyterexportmarkdown",
+    "swarmauri_tool_jupyterexportpython",
+    "swarmauri_tool_jupyterfromdict",
+    "swarmauri_tool_jupytergetiopubmessage",
+    "swarmauri_tool_jupytergetshellmessage",
+    "swarmauri_tool_jupyterreadnotebook",
+    "swarmauri_tool_jupyterruncell",
+    "swarmauri_tool_jupytershutdownkernel",
+    "swarmauri_tool_jupyterstartkernel",
+    "swarmauri_tool_jupytervalidatenotebook",
+    "swarmauri_tool_jupyterwritenotebook",
+]
+keywords = [
+    "swarmauri",
+    "toolkit",
+    "jupytertoolkit",
+    "unified",
+    "aggregating",
+    "standalone",
+    "jupyter",
+    "notebook",
+    "tools",
+]
+license-files = ["LICENSE", "NOTICE"]
+
+[tool.uv.sources]
+swarmauri_core = { workspace = true }
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+swarmauri_tool_jupyterclearoutput = { workspace = true }
+swarmauri_tool_jupyterdisplay = { workspace = true }
+swarmauri_tool_jupyterdisplayhtml = { workspace = true }
+swarmauri_tool_jupyterexecuteandconvert = { workspace = true }
+swarmauri_tool_jupyterexecutecell = { workspace = true }
+swarmauri_tool_jupyterexecutenotebook = { workspace = true }
+swarmauri_tool_jupyterexecutenotebookwithparameters = { workspace = true }
+swarmauri_tool_jupyterexporthtml = { workspace = true }
+swarmauri_tool_jupyterexportlatex = { workspace = true }
+swarmauri_tool_jupyterexportmarkdown = { workspace = true }
+swarmauri_tool_jupyterexportpython = { workspace = true }
+swarmauri_tool_jupyterfromdict = { workspace = true }
+swarmauri_tool_jupytergetiopubmessage = { workspace = true }
+swarmauri_tool_jupytergetshellmessage = { workspace = true }
+swarmauri_tool_jupyterreadnotebook = { workspace = true }
+swarmauri_tool_jupyterruncell = { workspace = true }
+swarmauri_tool_jupytershutdownkernel = { workspace = true }
+swarmauri_tool_jupyterstartkernel = { workspace = true }
+swarmauri_tool_jupytervalidatenotebook = { workspace = true }
+swarmauri_tool_jupyterwritenotebook = { workspace = true }
+
+[tool.pytest.ini_options]
+norecursedirs = ["combined", "scripts"]
+markers = [
+    "test: standard test",
+    "unit: Unit tests",
+    "i9n: Integration tests",
+    "r8n: Regression tests",
+    "timeout: mark test to timeout after X seconds",
+    "xpass: Expected passes",
+    "xfail: Expected failures",
+    "acceptance: Acceptance tests",
+    "perf: Performance tests that measure execution time and resource usage",
+]
+timeout = 300
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/50-community/swarmauri_toolkit_jupytertoolkit"
+layer = "community"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_toolkit_jupytertoolkit"
+published = true
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_readme_sources.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "example source"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_toolkit_jupytertoolkit/tests/unit/test_readme_sources.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_toolkit_jupytertoolkit/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+[project.entry-points.'swarmauri.toolkits']
+JupyterToolkit = "swarmauri_toolkit_jupytertoolkit:JupyterToolkit"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-json-report>=1.5.0",
+    "python-dotenv",
+    "httpx>=0.27",
+    "flake8>=7.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.9.9",
+    "pytest-benchmark>=4.0.0",
+    "readme-standards==0.1.1; python_version >= \"3.11\"",
+]

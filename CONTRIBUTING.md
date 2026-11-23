@@ -35,7 +35,7 @@ To suggest improvements to existing features:
 
 ### Style Guide
 Please follow the [SDK Style Guide](STYLE_GUIDE.md) and the
-[Contribution & Extension Guidelines](pkgs/standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md).
+[Contribution & Extension Guidelines](pkgs/40-standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md).
 
 Code must satisfy the automated checks used in CI:
 
@@ -99,14 +99,14 @@ Swarmauri follows a plugin-based architecture where components can be added via 
 
    ```bash
    # Using pip
-   pip install -e pkgs/core/
-   pip install -e pkgs/base/
-   pip install -e pkgs/swarmauri_standard/
+   pip install -e pkgs/10-interfaces/swarmauri_core/
+   pip install -e pkgs/20-bases/swarmauri_base/
+   pip install -e pkgs/30-standard-kernel/swarmauri_standard/
    
    # Or using uv (faster)
-   uv pip install -e pkgs/core/
-   uv pip install -e pkgs/base/
-   uv pip install -e pkgs/swarmauri_standard/
+   uv pip install -e pkgs/10-interfaces/swarmauri_core/
+   uv pip install -e pkgs/20-bases/swarmauri_base/
+   uv pip install -e pkgs/30-standard-kernel/swarmauri_standard/
    ```
 2. **Package Structure:**
 
@@ -232,10 +232,10 @@ my_store = MyVectorStore()
 Plugins must declare their licence (Apache-2.0 or MIT preferred) and register
 entry points under `[project.entry-points]`. Entry-point names should remain
 stable to preserve backwards compatibility. See the
-[Contribution & Extension Guidelines](pkgs/standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md)
+[Contribution & Extension Guidelines](pkgs/40-standards/peagen/docs/feature_evolve/15\ \ Contribution\ \&\ Extension\ Guidelines.md)
 for the complete checklist including tests, metrics and documentation.
 Refer to the
-[Dependency Matrix & Licences](pkgs/standards/peagen/docs/feature_evolve/16\ \ Dependency\ Matrix\ \&\ Licences.md)
+[Dependency Matrix & Licences](pkgs/40-standards/peagen/docs/feature_evolve/16\ \ Dependency\ Matrix\ \&\ Licences.md)
 document for a list of approved dependencies and licences.
 
 ### Development Setup

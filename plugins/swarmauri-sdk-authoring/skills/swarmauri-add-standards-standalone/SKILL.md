@@ -7,7 +7,7 @@ description: Add a first-class standalone Swarmauri package under pkgs/standards
 
 ## Workflow
 
-1. Choose `pkgs/standards/<package_name>` and derive the import package from existing naming conventions.
+1. Choose `pkgs/40-standards/<package_name>` and derive the import package from existing naming conventions.
 2. Create package source, `pyproject.toml`, README, tests, and exports from the closest standards package example.
 3. Add metadata: Planning development status, Python 3.10-3.12 classifiers, Apache-2.0, Jacob Stewart as the author, descriptive summary, and detailed keywords.
 4. Add workspace membership in `pkgs/pyproject.toml` unless the user explicitly wants it out of the workspace.
@@ -28,4 +28,4 @@ Read these before changing files:
 
 - Use Swarmauri branding unless the package is clearly Tigrbl.
 - Include both `uv` and `pip` install instructions.
-- Run validation for the new member and `pkgs/swarmauri` when citizenship changed.
+- Run validation for the new member and `pkgs/80-facades/swarmauri` when citizenship changed.

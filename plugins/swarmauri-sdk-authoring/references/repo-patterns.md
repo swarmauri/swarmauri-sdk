@@ -4,13 +4,13 @@ Use these rules before changing SDK package surfaces.
 
 ## Package Families
 
-- Core interfaces live in `pkgs/core/swarmauri_core`.
-- Base classes and mixins live in `pkgs/base/swarmauri_base`.
-- Built-in concretes live in `pkgs/swarmauri_standard/swarmauri_standard`.
-- First-class standalone packages live in `pkgs/standards`.
-- Second-class community packages live in `pkgs/community`.
-- Experimental packages live in `pkgs/experimental`.
-- Python plugin packages live in `pkgs/plugins`.
+- Core interfaces live in `pkgs/10-interfaces/swarmauri_core/swarmauri_core`.
+- Base classes and mixins live in `pkgs/20-bases/swarmauri_base/swarmauri_base`.
+- Built-in concretes live in `pkgs/30-standard-kernel/swarmauri_standard/swarmauri_standard`.
+- First-class standalone packages live in `pkgs/40-standards`.
+- Second-class community packages live in `pkgs/50-community`.
+- Experimental packages live in `pkgs/70-experimental`.
+- Python plugin packages live in `pkgs/60-plugins`.
 - Codex plugins live in top-level `plugins`.
 
 ## Metadata
@@ -37,4 +37,4 @@ uv run --directory <member> --package <name> ruff check . --fix
 uv run --package <name> --directory <member> pytest
 ```
 
-If `pkgs/swarmauri/swarmauri/interface_registry.py` or `plugin_citizenship_registry.py` changes, also run the focused `pkgs/swarmauri` registry tests.
+If `pkgs/80-facades/swarmauri/swarmauri/interface_registry.py` or `plugin_citizenship_registry.py` changes, also run the focused `pkgs/80-facades/swarmauri` registry tests.
