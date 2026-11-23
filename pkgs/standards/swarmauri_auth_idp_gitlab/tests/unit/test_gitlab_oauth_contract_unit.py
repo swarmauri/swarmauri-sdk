@@ -37,6 +37,8 @@ from urllib.parse import parse_qs, urlsplit
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 from swarmauri_auth_idp_gitlab import (
     GitLabOAuth20AppClient,
@@ -69,102 +71,19 @@ DISCOVERY_ENDPOINT = f"{ISSUER}/.well-known/openid-configuration"
 # tokens and the OAuth 2.1 client assertions below; the public half is
 # served through the fake JWKS endpoint. It is never used outside this
 # file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuEcVV9M+2rdrk\n"
-    "P675tP0yuI7YXJbapvVhIPw96aTVvIwTFcqb0yOwkpx7vgpas1nJ6lmr+e7PBKuM\n"
-    "nsi4E/kY7APIQIJgKTBd3DLp72o94YvkvzkyvzCUjj64tI6cWYFwOwHEZ47KkTIU\n"
-    "JKJZKiGTh6kJzm+YskHs1r+EvNprZlg6YeNdAX+XbohI8qF/DggHdRB5siiPm495\n"
-    "nEfBvS1hxVrjj2gSytIb8RpYMBzymE9rLw/862uJjFlu8glqtd+Tc7k4uNwjan5n\n"
-    "SVwHt9xkNXj79G5gfvYpPr8fhL90gsbiZXuZR/ZXClZYjb2NzIDC7YrtV7xaeE0+\n"
-    "zUG0no6FAgMBAAECggEAAbT/DLoBnOOl0ElZl21xcn+4sV5wB53NrWoYFgTGYUJN\n"
-    "ivmDbGZMyXdVdcHc77P1dqvBsQgs+XmOaoxl49erD9wZnCg+XYq20NRwrAvQpoBG\n"
-    "I+gDHUZntW/ohwfkKgoFC+mvdnEQrxqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh\n"
-    "3Ll27w4PDNDvqVvQDAFZHQ402VRpYk3Aeryhc9ynYw03sA+5N3X42bvcW1JeocVw\n"
-    "pgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M/eICWUkY0zyJnHZn4rPVYxZgKvUNTWc\n"
-    "0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbwKBgQDwMqqqImVbzBs2BgU7\n"
-    "s+IT6E5gXNtrPRpqmuGKt47C8cyATPV1mtCFj/7yzdc5mp5f4goaTPkavg+KvGFE\n"
-    "oNTs6c+tGwDSbNx3i1DllS9qgG+H7uLkYXIc2OTGgnfUXV2h0iaEowWFG2C2nEEA\n"
-    "ySBdzkpaBWZMf9N82bqJRi2sCwKBgQC5hWPYFi9fxef41W+fDeeTEq9hTkAsN7I3\n"
-    "BtwL5Gb+H/PRP9IaxyGjPiGiB1c6VMVBhGo4REgCGhd+sFeR0+Rb45akz+L6Y5AU\n"
-    "N6mrLc640vBkcqHFrwXcbJjnwJGK4Sh9ey5KmvmeQdm8OvKW4s+D6UVVJNbXwCxF\n"
-    "EWwKZ3a5rwKBgBAatYqWp8kR1Dk5ChzIoL3I84hOcX+tJxpCrCCK0g2L/LQVdNef\n"
-    "u59Y2jUZS/bWwQuYsii1RHZgi9Y3byYUynHf80ad6t4w4k85jgD2kalIVzH7+EZr\n"
-    "qiT4/c25baNVZzO0TVTTQUl9Xmyf6VPOKFdhv2ZtukAiyeEzD+ioReOlAoGAeqwI\n"
-    "PE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtqv4rW\n"
-    "TcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs+J71g2P2Fa55ncP71fhaqFmcI\n"
-    "Ug6ttgam+f8kf78UJo5t6QIGCf2piDYf8bU+XUMCgYEAhehaV7xIYE2QmT/xYLt9\n"
-    "uPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJXRzlP0x73QakpE9uJwxv\n"
-    "lRunmoBa/5inh2em2jtOh/aBgO6s97P8KBBQPzMVTTjkvnezMHx497vU63K1K6Gq\n"
-    "xexIDVXSEEE01rtJVdRf4ho=\n"
-    "-----END PRIVATE KEY-----\n"
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZ"
-        "yepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-"
-        "uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26I"
-        "SPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZ"
-        "bvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-"
-        "_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ"
-    ),
-    "e": "AQAB",
-}
-TEST_PRIVATE_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-2",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZ"
-        "yepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-"
-        "uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26I"
-        "SPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZ"
-        "bvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-"
-        "_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ"
-    ),
-    "e": "AQAB",
-    "d": (
-        "AbT_DLoBnOOl0ElZl21xcn-"
-        "4sV5wB53NrWoYFgTGYUJNivmDbGZMyXdVdcHc77P1dqvBsQgs-"
-        "XmOaoxl49erD9wZnCg-XYq20NRwrAvQpoBGI-gDHUZntW_ohwfkKgoFC-mvdnEQr"
-        "xqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh3Ll27w4PDNDvqVvQDAFZHQ402VRpY"
-        "k3Aeryhc9ynYw03sA-"
-        "5N3X42bvcW1JeocVwpgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M_eICWUkY0zyJnH"
-        "Zn4rPVYxZgKvUNTWc0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbw"
-    ),
-    "p": (
-        "8DKqqiJlW8wbNgYFO7PiE-"
-        "hOYFzbaz0aaprhireOwvHMgEz1dZrQhY_-8s3XOZqeX-IKGkz5Gr4PirxhRKDU7O"
-        "nPrRsA0mzcd4tQ5ZUvaoBvh-"
-        "7i5GFyHNjkxoJ31F1dodImhKMFhRtgtpxBAMkgXc5KWgVmTH_TfNm6iUYtrAs"
-    ),
-    "q": (
-        "uYVj2BYvX8Xn-NVvnw3nkxKvYU5ALDeyNwbcC-"
-        "Rm_h_z0T_SGschoz4hogdXOlTFQYRqOERIAhoXfrBXkdPkW-OWpM_i-"
-        "mOQFDepqy3OuNLwZHKhxa8F3GyY58CRiuEofXsuSpr5nkHZvDryluLPg-"
-        "lFVSTW18AsRRFsCmd2ua8"
-    ),
-    "dp": (
-        "EBq1ipanyRHUOTkKHMigvcjziE5xf60nGkKsIIrSDYv8tBV015-"
-        "7n1jaNRlL9tbBC5iyKLVEdmCL1jdvJhTKcd_zRp3q3jDiTzmOAPaRqUhXMfv4Rmu"
-        "qJPj9zblto1VnM7RNVNNBSX1ebJ_pU84oV2G_Zm26QCLJ4TMP6KhF46U"
-    ),
-    "dq": (
-        "eqwIPE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtq"
-        "v4rWTcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs-"
-        "J71g2P2Fa55ncP71fhaqFmcIUg6ttgam-f8kf78UJo5t6QIGCf2piDYf8bU-XUM"
-    ),
-    "qi": (
-        "hehaV7xIYE2QmT_xYLt9uPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJ"
-        "XRzlP0x73QakpE9uJwxvlRunmoBa_5inh2em2jtOh_aBgO6s97P8KBBQPzMVTTjk"
-        "vnezMHx497vU63K1K6GqxexIDVXSEEE01rtJVdRf4ho"
-    ),
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
+TEST_PRIVATE_JWK = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY))
+TEST_PRIVATE_JWK.update(kid="test-key-2", use="sig", alg="RS256")
 
 
 class FakeHTTPError(Exception):
@@ -454,7 +373,7 @@ async def test_oauth21_auth_url_uses_discovery() -> None:
 @pytest.mark.asyncio
 async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GitLabOAuth21Login, factory)
     auth = await login.auth_url()
@@ -486,7 +405,7 @@ async def test_oauth21_exchange_falls_back_to_preferred_username() -> None:
     # Google mixin, this mixin counts preferred_username as the name,
     # so no UserInfo lookup happens and the identity falls back to it.
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GitLabOAuth21Login, factory)
     auth = await login.auth_url()
@@ -512,7 +431,7 @@ async def test_oauth21_exchange_falls_back_to_preferred_username() -> None:
 async def test_oidc10_exchange_uses_userinfo_when_claims_incomplete() -> None:
     factory = DummyClientFactory(
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse(
                 {
                     "sub": "gitlab-999",
@@ -546,7 +465,7 @@ async def test_oidc10_exchange_uses_userinfo_when_claims_incomplete() -> None:
 @pytest.mark.asyncio
 async def test_oidc10_exchange_skips_userinfo_when_claims_complete() -> None:
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GitLabOIDC10Login, factory)
     auth = await login.auth_url()
@@ -616,7 +535,7 @@ async def test_oauth20_exchange_missing_access_token() -> None:
 async def test_oauth21_exchange_missing_id_token() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload())],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GitLabOAuth21Login, factory)
     auth = await login.auth_url()
