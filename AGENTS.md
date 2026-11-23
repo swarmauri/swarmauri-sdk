@@ -9,7 +9,7 @@ Follow these high-level steps when updating this repository:
 - **Default Branch** – the repository's default branch is `master`.
 
 Changes to the **peagen** package require additional validation steps detailed in
-`pkgs/standards/peagen/AGENTS.md`. Plugins should be instantiated directly;
+`pkgs/40-standards/peagen/AGENTS.md`. Plugins should be instantiated directly;
 avoid using the ``PluginManager`` unless explicitly directed otherwise.
 
 ## Swarmauri & Tigrbl Package Requirements

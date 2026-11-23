@@ -1,6 +1,6 @@
 ---
 name: swarmauri-add-base-mixin
-description: Add or update a Swarmauri SDK base mixin in pkgs/base/swarmauri_base. Use when Codex needs reusable mixin behavior tied to existing interfaces or base classes, with correct Pydantic inheritance, exports, and tests without unnecessary registry entries.
+description: Add or update a Swarmauri SDK base mixin in pkgs/20-bases/swarmauri_base/swarmauri_base. Use when Codex needs reusable mixin behavior tied to existing interfaces or base classes, with correct Pydantic inheritance, exports, and tests without unnecessary registry entries.
 ---
 
 # Swarmauri Add Base Mixin
@@ -25,4 +25,4 @@ Read these before changing files:
 
 - Do not update `InterfaceRegistry` unless the mixin creates a new resource kind, which should be rare.
 - Do not add package entry points for mixins.
-- Run validation for `pkgs/base`.
+- Run validation for `pkgs/20-bases/swarmauri_base`.

@@ -7,11 +7,11 @@ poetry-core pytest pytest-asyncio pytest-timeout pytest-mock pytest-json-report
 python-dotenv pyppeteer ruff==0.15.21
 
 Editable support members: core, base, typing, swarmauri_standard, swarmauri;
-standards/swarmauri_agent_runner, swarmauri_runstore_sqlite,
+40-standards/swarmauri_agent_runner, swarmauri_runstore_sqlite,
 swarmauri_tool_askuser, swarmauri_tokens_jwt, swarmauri_keyprovider_local,
 swarmauri_transport_httpx, swarmauri_signing_jws, swarmauri_signing_hmac,
 swarmauri_signing_rsa, swarmauri_signing_ecdsa, swarmauri_signing_ed25519;
-experimental/swarmauri_workflow_statedriven; and all nine MEMBERS below.
+70-experimental/swarmauri_workflow_statedriven; and all nine MEMBERS below.
 
 The explicit --no-sync uses these installed workspace revisions rather than
 resolving every unrelated provider. On Windows, asyncio needs loopback access.
@@ -46,7 +46,7 @@ def main():
                 "run",
                 "--no-sync",
                 "--directory",
-                str(root / "pkgs" / "standards" / member),
+                str(root / "pkgs" / "40-standards" / member),
                 "--package",
                 member,
                 "pytest",

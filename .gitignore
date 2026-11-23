@@ -20,13 +20,13 @@ env
 *.obj
 *.exe
 pytest_results.json
-pkgs/community/swarmauri_vectorstore_annoy/test_annoy.ann
-/pkgs/standards/ptree_dag/pkgs
+pkgs/50-community/swarmauri_vectorstore_annoy/test_annoy.ann
+/pkgs/40-standards/ptree_dag/pkgs
 *secrets/*
 peagen_artifacts/
-pkgs/standards/peagen/peagen.zip
+pkgs/40-standards/peagen/peagen.zip
 /pkgs/uv.lock
-pkgs/standards/peagen/.pymon
+pkgs/40-standards/peagen/.pymon
 *.pem
 gateway.db
 kms.db
@@ -36,7 +36,7 @@ kms.db
 *.db
 target/
 !.gitkeep          # keep the empty dir in repo
-pkgs/experimental/swarmakit/libs/svelte/.vscode/extensions.json
+pkgs/70-experimental/swarmakit/libs/svelte/.vscode/extensions.json
 node_modules/
 *.zip
 .pymon

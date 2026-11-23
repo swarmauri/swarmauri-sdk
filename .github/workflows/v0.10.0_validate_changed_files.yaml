@@ -44,60 +44,46 @@ jobs:
 
       # ──────────────────────────────────────────────────────────────────────────
       # Step: Detect changes and generate package matrix (id=detect)
-      # Function: find_pyproject_root   (Bash function)
       # ──────────────────────────────────────────────────────────────────────────
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Detect changes and generate test matrix
         id: detect
         run: |
-          echo "Detecting changed packages …"
-          declare -A PACKAGE_SET         # <package_path> ⇒ 1
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import tomllib
 
-          # ── Function: find_pyproject_root ────────────────────────────────────
-          find_pyproject_root() {
-            local path="$1"
-            while true; do
-              [[ -f "$path/pyproject.toml" ]] && { echo "$path"; return; }
-              [[ "$path" == "." ]] && { echo ""; return; }
-              path="$(dirname "$path")"
-            done
-          }
-          # ─────────────────────────────────────────────────────────────────────
+          with open("index.toml", "rb") as index_file:
+              index = tomllib.load(index_file)
+          package_roots = {Path(entry["path"]) for entry in index["packages"]}
+          selected = set()
+          for file in Path("changed_files.bin").read_bytes().split(b"\0"):
+              if not file:
+                  continue
+              path = Path(os.fsdecode(file))
+              if path.suffix in {".md", ".rst"}:
+                  continue
+              for parent in path.parents:
+                  if parent in package_roots:
+                      selected.add(parent.relative_to("pkgs").as_posix())
+                      break
 
-          while IFS= read -r -d '' FILE; do
-            # Ignore the workspace manifest and documentation-only changes.
-            case "$FILE" in
-              pkgs/pyproject.toml|*.md|*.rst) continue ;;
-            esac
-            DIR=$(dirname "$FILE")
-            PKG_ROOT=$(find_pyproject_root "$DIR")
-            if [[ "$PKG_ROOT" != pkgs/* ]]; then
-              continue
-            fi
-            PKG_PATH="${PKG_ROOT#pkgs/}"          # strip leading pkgs/
-            PACKAGE_SET["$PKG_PATH"]=1            # record the package
-          done < changed_files.bin
+          if len(selected) > 512:
+              raise SystemExit(
+                  f"Detected {len(selected)} packages, exceeding the two 256-job matrices."
+              )
 
-          # Each GitHub Actions matrix can expand to at most 256 jobs.
-          MATRIX="["
-          OVERFLOW_MATRIX="["
-          count=0
-          while IFS= read -r PKG; do
-            [[ -n "$PKG" ]] || continue
-            printf -v ENTRY '{"package_path":"%s","tests":""},' "$PKG"
-            if (( count < 256 )); then
-              MATRIX+="$ENTRY"
-            else
-              OVERFLOW_MATRIX+="$ENTRY"
-            fi
-            count=$((count + 1))
-          done < <(printf '%s\n' "${!PACKAGE_SET[@]}" | LC_ALL=C sort)
-          if (( count > 512 )); then
-            echo "::error::Detected $count packages, exceeding the two 256-job matrices."
-            exit 1
-          fi
-          echo "matrix=${MATRIX%,}]" >> "$GITHUB_OUTPUT"
-          echo "overflow_matrix=${OVERFLOW_MATRIX%,}]" >> "$GITHUB_OUTPUT"
-          echo "Detected $count packages for validation."
+          entries = [{"package_path": name, "tests": ""} for name in sorted(selected)]
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              print(f"matrix={json.dumps(entries[:256], separators=(',', ':'))}", file=output)
+              print(f"overflow_matrix={json.dumps(entries[256:], separators=(',', ':'))}", file=output)
+          print(f"Detected {len(entries)} packages for validation.")
+          PY
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job: run-tests  – executes once per package reported in matrix
@@ -116,7 +102,7 @@ jobs:
     env: &package-test-env
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
       # Meson editable installs refer to the temporary isolated build tools.
-      UV_NO_EDITABLE: ${{ (startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') || matrix.package_tests.package_path == 'experimental/swarmauri_crypto_sodium') && 'true' || 'false' }}
+      UV_NO_EDITABLE: ${{ (startsWith(matrix.package_tests.package_path, '70-experimental/RapidSimilarity/') || matrix.package_tests.package_path == '70-experimental/swarmauri_crypto_sodium') && 'true' || 'false' }}
 
     steps: &package-test-steps
       # ────────────────────────────────────────────────────────────────────────
@@ -187,16 +173,16 @@ jobs:
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           export PKG_PATH PACKAGE_NAME
           case "$PKG_PATH" in
-            community/swarmauri_parser_textblob)
+            50-community/swarmauri_parser_textblob)
               corpora=(punkt_tab averaged_perceptron_tagger_eng brown wordnet)
               ;;
-            community/swarmauri_tool_dalechallreadability)
+            50-community/swarmauri_tool_dalechallreadability)
               corpora=(cmudict)
               ;;
-            community/swarmauri_tool_lexicaldensity)
+            50-community/swarmauri_tool_lexicaldensity)
               corpora=(punkt_tab averaged_perceptron_tagger_eng)
               ;;
-            community/swarmauri_tool_sentencecomplexity|community/swarmauri_tool_smogindex|community/swarmauri_tool_textlength)
+            50-community/swarmauri_tool_sentencecomplexity|50-community/swarmauri_tool_smogindex|50-community/swarmauri_tool_textlength)
               corpora=(punkt_tab)
               ;;
             *)

@@ -2,7 +2,7 @@
 
 Audience: copywriting, technical writing, developer relations, product marketing, and website implementation teams.
 
-Source basis: local `swarmauri-sdk` repository audit on June 19, 2026. Primary repo sources inspected include the root `README.md`, `pkgs/README.md`, `pkgs/pyproject.toml`, foundational package metadata and READMEs, `pkgs/swarmauri/docs/callflow.md`, `pkgs/swarmauri/docs/citizenship.md`, and active package manifests under `pkgs/`.
+Source basis: local `swarmauri-sdk` repository audit on June 19, 2026. Primary repo sources inspected include the root `README.md`, `pkgs/README.md`, `pkgs/pyproject.toml`, foundational package metadata and READMEs, `pkgs/80-facades/swarmauri/docs/callflow.md`, `pkgs/80-facades/swarmauri/docs/citizenship.md`, and active package manifests under `pkgs/`.
 
 ## Executive Summary
 
@@ -481,7 +481,7 @@ The website should explain plugin discovery in plain language:
 
 > Swarmauri packages can expose components through entry points and namespace mappings. The `swarmauri` namespace importer checks registry mappings, discovers installed entry points, validates first-class and second-class plugins against expected interfaces, and makes components available through stable public import paths.
 
-Plugin classes from `pkgs/swarmauri/docs/citizenship.md`:
+Plugin classes from `pkgs/80-facades/swarmauri/docs/citizenship.md`:
 
 - First-class plugins: pre-registered, priority mapped under specific namespaces such as `swarmauri.agents`, and expected to implement required interfaces.
 - Second-class plugins: community-contributed, not pre-registered, share the same namespace as first-class components, and expected to implement required interfaces.

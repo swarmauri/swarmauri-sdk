@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-CLIENT_DIR="$REPO_ROOT/pkgs/experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/vue/client"
+CLIENT_DIR="$REPO_ROOT/pkgs/70-experimental/layout_engine_atoms/src/layout_engine_atoms/runtime/vue/client"
 
 echo "Building layout-engine Vue runtime bundle (requires Node/npm)…"
 

@@ -3,7 +3,7 @@
 <p align="center">
     <a href="https://pepy.tech/project/swarmauri/">
         <img src="https://static.pepy.tech/badge/swarmauri/month" alt="PyPI - Downloads"/></a>
-    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri/">
+    <a href="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/80-facades/swarmauri/">
         <img alt="Hits" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/tree/master/pkgs/swarmauri.svg"/></a>
     <a href="https://pypi.org/project/swarmauri/">
         <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue" alt="PyPI - Python Version"/></a>
@@ -180,12 +180,12 @@ Foundational packages:
 
 Repository package areas:
 
-- `pkgs/core`, `pkgs/base`, `pkgs/typing`, and `pkgs/swarmauri` contain foundational packages.
-- `pkgs/swarmauri_standard` contains first-party standard components.
-- `pkgs/community` contains community-maintained packages and provider integrations.
-- `pkgs/plugins` contains plugin packages.
-- `pkgs/standards` contains standard-interface and standards-oriented packages.
-- `pkgs/experimental` contains early-stage packages.
+- `pkgs/10-interfaces/swarmauri_core`, `pkgs/20-bases/swarmauri_base`, `pkgs/00-typing/swarmauri_typing`, and `pkgs/80-facades/swarmauri` contain foundational packages.
+- `pkgs/30-standard-kernel/swarmauri_standard` contains first-party standard components.
+- `pkgs/50-community` contains community-maintained packages and provider integrations.
+- `pkgs/60-plugins` contains plugin packages.
+- `pkgs/40-standards` contains standard-interface and standards-oriented packages.
+- `pkgs/70-experimental` contains early-stage packages.
 
 Common package families:
 
@@ -223,8 +223,8 @@ Billing provider packages:
 ## Documentation
 
 - [Dynamic schemas guide](infra/docs/swarmauri-sdk/docs/guide/dynamic_schemas.md)
-- [Swarmauri namespace call flow](pkgs/swarmauri/docs/callflow.md)
-- [Swarmauri citizenship notes](pkgs/swarmauri/docs/citizenship.md)
+- [Swarmauri namespace call flow](pkgs/80-facades/swarmauri/docs/callflow.md)
+- [Swarmauri citizenship notes](pkgs/80-facades/swarmauri/docs/citizenship.md)
 - [Contribution guide](CONTRIBUTING.md)
 - [Style guide](STYLE_GUIDE.md)
 - [Package index](pkgs/)

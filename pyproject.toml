@@ -2,7 +2,7 @@
 package = false
 
 [tool.readme_standards]
-exclude = ["pkgs/deprecated", "pkgs/99_deprecated", "docs/notes/archive", "docs/examples/package-maintenance/src"]
+exclude = ["pkgs/90-deprecated", "pkgs/99_deprecated", "docs/notes/archive", "docs/examples/package-maintenance/src"]
 
 [dependency-groups]
 dev = ["readme-standards==0.1.1; python_version >= \"3.11\""]

@@ -1,6 +1,6 @@
 # Migrate from retired TTS providers
 
-Play.ht is discontinued. Both distributions live in pkgs/deprecated with their
+Play.ht is discontinued. Both distributions live in pkgs/90-deprecated with their
 original distribution/import names, inactive metadata and published retirement
 releases. PlayhtTTS and both PlayHTModel compatibility paths warn and fail
 locally before credential validation or network access. Historical release

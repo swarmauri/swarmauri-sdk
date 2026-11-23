@@ -1,0 +1,96 @@
+[project]
+name = "swarmauri_agent_wimse"
+version = "0.1.0"
+description = "Run a WIMSE-authenticated research agent with a delegated file read tool."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10,<3.15"
+authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
+keywords = ["swarmauri", "wimse", "agent", "proof-of-possession", "delegation"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+    "swarmauri_base",
+    "swarmauri_standard",
+    "pydantic>=2",
+    "tba-profile-workload-credential-wimse-wit==0.4.0.dev3",
+    "tba-profile-workload-proof-wimse-http-signature==0.4.0.dev2",
+    "tba-provider-jose-cryptography==0.4.0.dev3",
+    "tba-concrete-jwt==0.4.0.dev2",
+]
+
+[project.urls]
+Repository = "https://github.com/swarmauri/swarmauri-sdk"
+
+[project.entry-points."swarmauri.agents"]
+WimseResearchAgent = "swarmauri_agent_wimse:WimseResearchAgent"
+
+[project.entry-points."swarmauri.tools"]
+WimseFileTool = "swarmauri_agent_wimse:WimseFileTool"
+
+[tool.uv.sources]
+swarmauri_base = { workspace = true }
+swarmauri_standard = { workspace = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.9.9"]
+
+[tool.readme_standards]
+policy = "package-guide-v1"
+readme = "README.md"
+brand = "swarmauri"
+brand_catalog = "../../../tools/readme/brands.toml"
+repository = "https://github.com/swarmauri/swarmauri-sdk"
+ref = "master"
+package_path = "pkgs/40-standards/swarmauri_agent_wimse"
+layer = "standards"
+lifecycle = "active"
+license_file = "LICENSE"
+notice_file = "NOTICE"
+
+[tool.readme_standards.distributions.pypi]
+name = "swarmauri_agent_wimse"
+published = false
+
+[tool.readme_standards.examples.quick_start]
+source = "docs/readme/quick_start.py"
+test = "tests/unit/test_nine_hop_native.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.examples.usage]
+source = "docs/readme/usage.py"
+test = "tests/unit/test_nine_hop_native.py"
+language = "python"
+expected_exit_code = 0
+
+[tool.readme_standards.statuses.readme]
+label = "CI gate"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
+
+[tool.readme_standards.statuses.tests]
+label = "package tests"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_wimse/tests/unit/test_nine_hop_native.py"
+
+[tool.readme_standards.statuses.certification]
+label = "not certified"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_wimse/README.md#certification-status"
+
+[tool.readme_standards.statuses.governance]
+label = "repository policy"
+url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"
+
+[tool.readme_standards.statuses.evidence]
+label = "source and CI"
+url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"

@@ -138,7 +138,7 @@ if __name__ == "__main__":
         directory = sys.argv[1]
         update_pyproject_toml(directory)
     else:
-        directory = "/Users/michaeldecent/Swarmauri/swarmauri-sdk/pkgs/standards/swarmauri_vectorstore_tfidf"
+        directory = "/Users/michaeldecent/Swarmauri/swarmauri-sdk/pkgs/40-standards/swarmauri_vectorstore_tfidf"
 
     print(f"Finding and updating TOML files in {directory}...")
     find_and_update_toml_files(directory)

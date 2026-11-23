@@ -34,7 +34,7 @@ Polly instead requires explicit `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,
 `AZURE_SPEECH_KEY` and `AZURE_SPEECH_REGION`. Credentials alone never opt in:
 
 ```bash
-uv run --directory pkgs/standards/swarmauri_tts_openai \
+uv run --directory pkgs/40-standards/swarmauri_tts_openai \
   --package swarmauri_tts_openai pytest tests/i9n -q
 ```
 

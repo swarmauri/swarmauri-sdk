@@ -248,12 +248,12 @@ The [repository contribution guide](https://github.com/swarmauri/swarmauri-sdk/b
 
 ### Related Packages
 
-- [swarmauri_base](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/base/README.md): Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure.
-- [swarmauri_agent_package_maintenance](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_agent_package_maintenance/README.md): Compose human input, skills, and container checks for SDK maintenance.
-- [swarmauri_agent_runner](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_agent_runner/README.md): Run model tool calls and resume checkpointed human interactions.
-- [swarmauri_runstore_sqlite](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_runstore_sqlite/README.md): SQLite checkpoint storage for resumable Swarmauri agent runs.
-- [swarmauri_toolkit_containertoolkit](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_toolkit_containertoolkit/README.md): Toolkit bundling container management tools.
-- [swarmauri_standard](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/swarmauri_standard/README.md): First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows.
+- [swarmauri_base](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/20-bases/swarmauri_base/README.md): Reusable Swarmauri base classes, mixins, and dynamic Pydantic component models for composable intelligence infrastructure.
+- [swarmauri_agent_package_maintenance](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_package_maintenance/README.md): Compose human input, skills, and container checks for SDK maintenance.
+- [swarmauri_agent_runner](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_runner/README.md): Run model tool calls and resume checkpointed human interactions.
+- [swarmauri_runstore_sqlite](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_runstore_sqlite/README.md): SQLite checkpoint storage for resumable Swarmauri agent runs.
+- [swarmauri_toolkit_containertoolkit](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_toolkit_containertoolkit/README.md): Toolkit bundling container management tools.
+- [swarmauri_standard](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/30-standard-kernel/swarmauri_standard/README.md): First-party Swarmauri standard components for agents, tools, parsers, vectors, model adapters, and composable intelligence workflows.
 
 ### Project Links
 

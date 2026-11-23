@@ -7,8 +7,8 @@ import json
 from pathlib import Path
 from typing import List
 
-TEMPLATES_ROOT = Path("pkgs/standards/peagen/peagen/templates")
-SCHEMAS_DIR = Path("pkgs/standards/peagen/peagen/jsonschemas/extras")
+TEMPLATES_ROOT = Path("pkgs/40-standards/peagen/peagen/templates")
+SCHEMAS_DIR = Path("pkgs/40-standards/peagen/peagen/jsonschemas/extras")
 
 
 def _parse_keys(md_path: Path) -> List[str]:

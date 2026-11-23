@@ -7,7 +7,7 @@ description: Add an experimental standalone Swarmauri package under pkgs/experim
 
 ## Workflow
 
-1. Choose `pkgs/experimental/<package_name>` and inspect nearby experimental packages before scaffolding.
+1. Choose `pkgs/70-experimental/<package_name>` and inspect nearby experimental packages before scaffolding.
 2. Create package source, README, `pyproject.toml`, tests, and exports using the closest matching package family.
 3. Add metadata: Planning development status, Python 3.10-3.12 classifiers, Apache-2.0, Jacob Stewart as the author, descriptive summary, and experimental keywords.
 4. Add workspace membership only when the package should be installed and tested with the workspace; leave it out when the surrounding experimental pattern excludes similar packages.
@@ -26,6 +26,6 @@ Read these before changing files:
 
 ## Completion Checks
 
-- Keep experimental packages under `pkgs/experimental`.
+- Keep experimental packages under `pkgs/70-experimental`.
 - State explicitly in the final response whether workspace membership and citizenship registry rows were added or intentionally skipped.
 - Run validation for the new member when it is in the workspace.
