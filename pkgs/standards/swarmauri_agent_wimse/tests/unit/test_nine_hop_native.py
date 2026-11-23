@@ -262,7 +262,10 @@ def test_native_nine_hop_pairing(local_chain, monkeypatch, sdk_role):
         )
         return conversation
 
-    def research_model(self, *, conversation, toolkit, **kwargs):
+    def research_model(
+        self, conversation, toolkit, tool_choice, multiturn=True
+    ):
+        assert tool_choice == {}
         content = toolkit.get_tool_by_name("read_file")(file=FILE)
         conversation.add_message(AgentMessage(content=summarize(content)))
         return conversation

@@ -43,7 +43,8 @@ def test_agent_dispatches_only_the_authorized_file(
         post_json=post_json,
     )
 
-    def predict(self, *, conversation, toolkit, **kwargs):
+    def predict(self, conversation, toolkit, tool_choice, multiturn=True):
+        assert tool_choice == {}
         assert isinstance(toolkit, ToolkitBase)
         read_file = toolkit.get_tool_by_name("read_file")
         content = read_file(file=requested_file)
