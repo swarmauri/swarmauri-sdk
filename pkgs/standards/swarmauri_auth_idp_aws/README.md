@@ -261,6 +261,9 @@ Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_aut
 - [tests/unit/test_aws_identity_resolver_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_aws/tests/unit/test_aws_identity_resolver_unit.py)
 - [tests/unit/test_aws_oauth20_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_aws/tests/unit/test_aws_oauth20_login_unit.py)
 - [tests/unit/test_aws_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_aws/tests/unit/test_aws_oauth21_login_unit.py)
+- [tests/unit/test_aws_login_contract_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_aws/tests/unit/test_aws_login_contract_unit.py)
+
+Run the offline contract suite from the package directory with `python -m pytest tests/unit/test_aws_login_contract_unit.py`; it uses a fake HTTP client and stubbed AWS SDK calls, so it verifies the request/response contract only, not live AWS interoperability.
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
 
