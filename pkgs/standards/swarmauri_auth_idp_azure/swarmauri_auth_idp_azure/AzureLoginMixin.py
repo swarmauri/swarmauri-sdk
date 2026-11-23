@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 from typing import Any, Callable, Dict, Mapping
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import ConfigDict, Field, SecretStr
 
@@ -56,14 +57,34 @@ class AzureLoginMixin:
             self._state_secret(),
             {"verifier": verifier, "ts": int(time.time())},
         )
-        url = (
-            f"{self._authorization_endpoint()}?response_type=code"
-            f"&client_id={self.client_id}&redirect_uri={self.redirect_uri}"
-            f"&scope={self.scope}&state={state}"
-            f"&code_challenge={challenge}&code_challenge_method=S256"
-        )
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": self.scope,
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
         if prompt:
-            url = f"{url}&prompt={prompt}"
+            params["prompt"] = prompt
+        endpoint = self._authorization_endpoint()
+        parts = urlsplit(endpoint)
+        endpoint_params = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key not in params
+        ]
+        query = urlencode([*endpoint_params, *params.items()])
+        url = urlunsplit(
+            (
+                parts.scheme,
+                parts.netloc,
+                parts.path,
+                query,
+                parts.fragment,
+            )
+        )
         return {"url": url, "state": state}
 
     async def _post_token(self, form: Mapping[str, Any]) -> Mapping[str, Any]:

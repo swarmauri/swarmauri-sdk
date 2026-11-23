@@ -148,10 +148,6 @@ async def test_access_token_request_body_repository_ids(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="GitHub expects `repositories`, not repository_names (#6328)",
-)
 async def test_access_token_request_body_repository_names(
     client: GitHubOAuth21AppClient, recording_client
 ) -> None:

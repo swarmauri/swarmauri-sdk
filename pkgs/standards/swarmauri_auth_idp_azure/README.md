@@ -245,6 +245,9 @@ Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_aut
 - [tests/unit/test_azure_oauth20_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_azure/tests/unit/test_azure_oauth20_login_unit.py)
 - [tests/unit/test_azure_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_azure/tests/unit/test_azure_oauth21_login_unit.py)
 - [tests/unit/test_azure_oidc10_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_azure/tests/unit/test_azure_oidc10_login_unit.py)
+- [tests/unit/test_azure_login_contract_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_azure/tests/unit/test_azure_login_contract_unit.py)
+
+Run the full offline package suite from the `pkgs/` directory with `uv run --package swarmauri_auth_idp_azure --directory standards/swarmauri_auth_idp_azure pytest`. The contract tests in `tests/unit/test_azure_login_contract_unit.py` use fake HTTP clients and locally signed ID tokens; they verify the request/response contract only, not live Azure interoperability.
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
 
