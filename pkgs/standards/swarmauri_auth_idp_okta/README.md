@@ -130,8 +130,8 @@ login = OktaOAuth20Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]` and capture `code` and `state`.
+    # In the callback handler, call `login.exchange_and_identity(code, state)`.
 
 
 asyncio.run(run_flow())
@@ -168,8 +168,8 @@ login = OktaOAuth20Login(
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]` and capture `code` and `state`.
+    # In the callback handler, call `login.exchange_and_identity(code, state)`.
 
 
 asyncio.run(run_flow())
