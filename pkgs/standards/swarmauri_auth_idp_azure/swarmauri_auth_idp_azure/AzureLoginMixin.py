@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from typing import Any, Callable, Dict, Mapping
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
 
@@ -70,16 +70,20 @@ class AzureLoginMixin:
         }
         if prompt:
             params["prompt"] = prompt
-        query = urlencode(params)
         endpoint = self._authorization_endpoint()
         parts = urlsplit(endpoint)
-        merged_query = f"{parts.query}&{query}" if parts.query else query
+        endpoint_params = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key not in params
+        ]
+        query = urlencode([*endpoint_params, *params.items()])
         url = urlunsplit(
             (
                 parts.scheme,
                 parts.netloc,
                 parts.path,
-                merged_query,
+                query,
                 parts.fragment,
             )
         )

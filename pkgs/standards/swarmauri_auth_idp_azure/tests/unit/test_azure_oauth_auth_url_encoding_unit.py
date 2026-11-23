@@ -35,7 +35,9 @@ BASE_PARAMS = {
     "code_challenge_method",
 }
 
-AUTH_ENDPOINT = "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+AUTH_ENDPOINT = (
+    "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize"
+)
 
 
 def _login(cls):
@@ -107,25 +109,40 @@ async def test_oidc_auth_url_encodes_reserved_characters(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_oidc_auth_url_preserves_endpoint_query(
-    monkeypatch: pytest.MonkeyPatch,
+@pytest.mark.parametrize(
+    "cls", [AzureOAuth20Login, AzureOAuth21Login, AzureOIDC10Login]
+)
+async def test_auth_url_replaces_generated_endpoint_parameters(
+    cls, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    login = _login(AzureOIDC10Login)
+    endpoint = (
+        f"{AUTH_ENDPOINT}"
+        "?foo=bar&foo=&st%61te=stale&code_challenge_method=plain"
+    )
+    expected_params = BASE_PARAMS | {"foo"}
+    if cls is AzureOAuth21Login:
+        endpoint += "&prompt=none"
+        expected_params |= {"prompt"}
 
-    async def fake_metadata():
-        return {
-            "authorization_endpoint": f"{AUTH_ENDPOINT}?foo=bar",
-            "token_endpoint": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-            "jwks_uri": "https://login.microsoftonline.com/common/discovery/v2.0/keys",
-            "issuer": "https://login.microsoftonline.com/{tenantid}/v2.0",
-        }
+    login = _login(cls)
+    if cls is AzureOIDC10Login:
 
-    monkeypatch.setattr(login, "_metadata", fake_metadata)
+        async def fake_metadata():
+            return {"authorization_endpoint": endpoint}
+
+        monkeypatch.setattr(login, "_metadata", fake_metadata)
+    else:
+        monkeypatch.setattr(
+            cls, "_authorization_endpoint", lambda self: endpoint
+        )
 
     payload = await login.auth_url()
-    parsed = parse_qs(urlsplit(payload["url"]).query)
+    parsed = parse_qs(urlsplit(payload["url"]).query, keep_blank_values=True)
 
-    assert parsed["foo"] == ["bar"]
-    assert set(parsed) == BASE_PARAMS | {"foo"}
+    assert parsed["foo"] == ["bar", ""]
+    assert set(parsed) == expected_params
     assert parsed["redirect_uri"] == [TRICKY_REDIRECT_URI]
+    assert parsed["state"] == [payload["state"]]
     assert parsed["code_challenge_method"] == ["S256"]
+    if cls is AzureOAuth21Login:
+        assert parsed["prompt"] == ["select_account"]

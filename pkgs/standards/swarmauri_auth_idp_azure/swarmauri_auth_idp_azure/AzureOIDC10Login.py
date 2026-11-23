@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Literal, Mapping, Optional
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import jwt
 from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
@@ -71,25 +71,28 @@ class AzureOIDC10Login(OIDC10LoginBase):
             {"verifier": verifier},
         )
         endpoint = metadata["authorization_endpoint"]
-        query = urlencode(
-            {
-                "response_type": "code",
-                "client_id": self.client_id,
-                "redirect_uri": self.redirect_uri,
-                "scope": self.scope,
-                "state": state,
-                "code_challenge": challenge,
-                "code_challenge_method": "S256",
-            }
-        )
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": self.scope,
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
         parts = urlsplit(endpoint)
-        merged_query = f"{parts.query}&{query}" if parts.query else query
+        endpoint_params = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key not in params
+        ]
+        query = urlencode([*endpoint_params, *params.items()])
         url = urlunsplit(
             (
                 parts.scheme,
                 parts.netloc,
                 parts.path,
-                merged_query,
+                query,
                 parts.fragment,
             )
         )
