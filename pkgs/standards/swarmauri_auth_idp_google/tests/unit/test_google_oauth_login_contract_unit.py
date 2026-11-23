@@ -28,12 +28,15 @@ interoperability with Google's production service.
 
 from __future__ import annotations
 
+import json
 import time
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 from swarmauri_auth_idp_google import (
     GoogleOAuth20Login,
@@ -61,52 +64,17 @@ OAUTH20_USERINFO_ENDPOINT = (
 # Throwaway RSA key for these tests only. The private half signs the ID
 # tokens below; the public half is served through the fake JWKS endpoint.
 # It is never used outside this file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDIIR4JGyix80SL\n"
-    "Q89ddpVlWVTVzlMt/ydC7bdsz6bdXdi51+yogFyDZwKlVxjdpz9x0JdAWXNHOC1s\n"
-    "3MSL5L9mMYltUn+/ejvuEeFg4KvZImIUMow8xOHuj4o7ezUY7fJ1qlHt7EJw4Dl8\n"
-    "cTKLybjTkGF/HFF3F2I/eK4X5Q2QTYcRFNlQPkqmMYhc46ZhmRumh5EyuTmhbKoS\n"
-    "KOAHyd4tyVOniKK+LdmQxPmfSqiLbq7EmzkEWj7eKKkKFpNITkNr55TakQ1MPhWK\n"
-    "jDbTWmmmx4CEWGF65yfSeRsdhVh0WajAA/P+Chjn3eq9TL3Kp9Loi1MW78lMsJbZ\n"
-    "NEKpndItAgMBAAECggEAAIaXFHFgp9MFR5O2hul/AU9SRJDbBsBoWH8qX7FN9WqV\n"
-    "MqvJYInxyZtAK7IGYTKwHSWYosp5XeMHui+m890hJEIWDoD3JUggwdfZ2TjN4Bn8\n"
-    "haQPr+sufW4dcAQ7V/pBYaNrEq5vtZSJN3VOq4UB+iBOI+4tnUak80NnEFisMp2t\n"
-    "qZxO+RJwzXo1a9R6vNrFICyRT4iJ1uBGeW6sL+sLCZf4nPkivm4mMxt7xPIewIeN\n"
-    "CNSRRvAnIdsqRI490Smr2cI7RXEzZnFVbfK60idAZ1iPtDE8CzR3SWdY0O4+TX0z\n"
-    "nETQk1f0kf+qkXO8mQCvaCE7mMkpraZ1rok4dOwe4QKBgQD38JtGVJJqDFABdds1\n"
-    "PXBWJpw8n3YR/N/iA7QylV6PlECuHd826G0/4gAnIt+SbcoGlZgHApKyt1VM2+M2\n"
-    "tmqf1E5k6gvKSMQ+UpghBo+1qYrR8kaLk4lVcpXo5oH/cyWtz84mrRT0cQ5fn01C\n"
-    "fCvGVyRiDAgwdhdJLq5S4BetvQKBgQDOop/cw4tZ6Gx1P+ajM0PQPTcvv1nlWodN\n"
-    "0cTLTGhmL/LnC6Vhk367/wnmar1RH2xOZp7qYMylqfoVeIiNx+6F9SclBl7WAaQp\n"
-    "E4jfs2f8NUv5CR2gtkiFfuoOXRbTlCewY0+PIBc42pQ27fZ8cAP9emUeHlgpWT5a\n"
-    "zppE01JlMQKBgQDftGS1CTttmZxaJPdaywtff8i53fqO8kUiTMs6VJEUJORS9Trf\n"
-    "9MgVupj+trVYDd0ZIcIgmQ65VzcMeN1CEUaU3N66qH1oz0zZGnaOXbguZUGOefVy\n"
-    "m/Rud0uQ7uHeFQurDnLnbIUapCMe3cG8ugJZG2kFWevNpc8OxaKdvfk/VQKBgQCk\n"
-    "SbQkh+xhfWPODRJIq1e9Vw5rjg3hRorRGnkG0icnJ/ROMno5DFX1Dp9GbZM7zmoE\n"
-    "I58x5eiPxocpTv3zDATeyL1ouJnqOL/WUMvAYBnK8m0HAXJm9sbOLMvWw7iEXAT6\n"
-    "PttghjkwYMj6q1QQN9dUT13aBnI93dCvzhflpMab4QKBgQDqTe3Svoaw4tHrjpNJ\n"
-    "hk3THG6g/n7UpxNSYAHembAhSzb7QCkgJk/EmHiG+HFnEUhaL/cX4mR2oSpFJ8IC\n"
-    "im5tTdKRSVtWRYY467czK7zCJ7iycgbvsp/hfVyDdXeHwvW1OUNPNgzdL31mk3cT\n"
-    "puq+4OZG3lkDndQ3QMZRKx2S+g==\n"
-    "-----END PRIVATE KEY-----\n"
-    ""
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "yCEeCRsosfNEi0PPXXaVZVlU1c5TLf8nQu23bM-m3V3YudfsqIBcg2cCpVcY"
-        "3ac_cdCXQFlzRzgtbNzEi-S_ZjGJbVJ_v3o77hHhYOCr2SJiFDKMPMTh7o-K"
-        "O3s1GO3ydapR7exCcOA5fHEyi8m405BhfxxRdxdiP3iuF-UNkE2HERTZUD5K"
-        "pjGIXOOmYZkbpoeRMrk5oWyqEijgB8neLclTp4iivi3ZkMT5n0qoi26uxJs5"
-        "BFo-3iipChaTSE5Da-eU2pENTD4Viow201pppseAhFhheucn0nkbHYVYdFmo"
-        "wAPz_goY593qvUy9yqfS6ItTFu_JTLCW2TRCqZ3SLQ"
-    ),
-    "e": "AQAB",
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
 
 
 class FakeHTTPError(Exception):
@@ -351,7 +319,7 @@ async def test_oauth21_auth_url_requests_nonce_and_account_selection() -> None:
 @pytest.mark.asyncio
 async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GoogleOAuth21Login, factory)
     auth = await login.auth_url()
@@ -389,7 +357,7 @@ async def test_oauth21_exchange_falls_back_to_given_name() -> None:
     # to the given_name claim.
     factory = DummyClientFactory(
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse({"sub": "google-789", "email": "bo@example.com"}),
         ],
     )
@@ -422,7 +390,7 @@ async def test_oauth21_exchange_falls_back_to_given_name() -> None:
 async def test_oidc10_exchange_uses_userinfo_when_claims_incomplete() -> None:
     factory = DummyClientFactory(
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse(
                 {
                     "sub": "google-999",
@@ -457,7 +425,7 @@ async def test_oidc10_exchange_uses_userinfo_when_claims_incomplete() -> None:
 @pytest.mark.asyncio
 async def test_oidc10_exchange_skips_userinfo_when_claims_complete() -> None:
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GoogleOIDC10Login, factory)
     auth = await login.auth_url()
@@ -535,7 +503,7 @@ async def test_oauth20_exchange_missing_access_token() -> None:
 async def test_oauth21_exchange_missing_id_token() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload())],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GoogleOAuth21Login, factory)
     auth = await login.auth_url()
@@ -548,7 +516,7 @@ async def test_oauth21_exchange_missing_id_token() -> None:
 @pytest.mark.asyncio
 async def test_oidc10_exchange_rejects_nonce_mismatch() -> None:
     factory = DummyClientFactory(
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(GoogleOIDC10Login, factory)
     auth = await login.auth_url()
