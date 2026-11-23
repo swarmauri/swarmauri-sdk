@@ -15,6 +15,8 @@ checks fail.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
+import re
 import sys
 from pathlib import Path
 
@@ -151,6 +153,33 @@ def failures(rows: list[dict]) -> set[tuple[str, str]]:
     }
 
 
+def baseline_failures(
+    rows: list[dict], baseline_rows: list[dict]
+) -> set[tuple[str, str]]:
+    """Match moved projects by distribution name when the match is unique."""
+
+    def project_name(row: dict) -> str:
+        return re.sub(r"[-_.]+", "-", row["name"]).lower()
+
+    current_counts = Counter(map(project_name, rows))
+    baseline_counts = Counter(map(project_name, baseline_rows))
+    current_paths = {
+        project_name(row): row["directory"]
+        for row in rows
+        if current_counts[project_name(row)] == 1
+    }
+    moved_paths = {
+        row["directory"]: current_paths[project_name(row)]
+        for row in baseline_rows
+        if baseline_counts[project_name(row)] == 1
+        and project_name(row) in current_paths
+    }
+    return {
+        (moved_paths.get(directory, directory), check)
+        for directory, check in failures(baseline_rows)
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -164,7 +193,7 @@ def main() -> None:
     if args.baseline is not None:
         if not (args.baseline / "pkgs/pyproject.toml").is_file():
             parser.error("--baseline must point to a Swarmauri SDK checkout")
-        violations -= failures(collect_rows(args.baseline))
+        violations -= baseline_failures(rows, collect_rows(args.baseline))
     print(build_report(rows))
     if violations:
         for directory, check in sorted(violations):
