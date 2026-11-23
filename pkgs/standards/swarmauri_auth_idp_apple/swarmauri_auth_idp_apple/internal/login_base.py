@@ -13,6 +13,16 @@ from swarmauri_base.auth_idp.utils import verify_state
 APPLE_ISSUER = "https://appleid.apple.com"
 DISCOVERY_URL = "https://appleid.apple.com/.well-known/openid-configuration"
 
+# Algorithms Apple uses to sign Sign in with Apple identity tokens.
+# Apple's published JWKS (https://appleid.apple.com/auth/keys) lists only
+# RSA keys with alg RS256, and Apple's "Generate and validate tokens"
+# documentation describes the identity token as an RS256-signed JWT.
+# This allowlist is owned by the implementation: the token's unverified
+# `alg` header must never choose the verification algorithm. It is
+# deliberately separate from the ES256 algorithm used to sign the client
+# secret JWT (see client_secret.py), which uses our own EC (.p8) key.
+ID_TOKEN_ALGORITHMS: tuple[str, ...] = ("RS256",)
+
 
 def _load_signing_key(jwks: Mapping[str, Any], kid: str) -> Any:
     """Select the verification key referenced by the JWT header."""
@@ -84,13 +94,17 @@ class AppleLoginMixin:
         kid = header.get("kid")
         if not kid:
             raise ValueError("missing kid in id_token header")
+        alg = header.get("alg")
+        if alg not in ID_TOKEN_ALGORITHMS:
+            raise ValueError(
+                f"unsupported id_token signing algorithm: {alg!r}"
+            )
         jwks = await self._http_get(jwks_uri)
         signer = _load_signing_key(jwks, kid)
-        alg = header.get("alg", "ES256")
         claims = jwt.decode(
             id_token,
             signer,
-            algorithms=[alg],
+            algorithms=list(ID_TOKEN_ALGORITHMS),
             audience=expected_audience,
             issuer=APPLE_ISSUER,
         )

@@ -248,6 +248,10 @@ Run `python -m pytest tests/unit/test_readme_sources.py` from the `swarmauri_aut
 - [tests/unit/test_facebook_oauth21_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/tests/unit/test_facebook_oauth21_app_client_unit.py)
 - [tests/unit/test_facebook_oauth21_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/tests/unit/test_facebook_oauth21_login_unit.py)
 - [tests/unit/test_facebook_oidc10_app_client_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/tests/unit/test_facebook_oidc10_app_client_unit.py)
+- [tests/unit/test_facebook_oidc10_login_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/tests/unit/test_facebook_oidc10_login_unit.py)
+- [tests/unit/test_facebook_contract_unit.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/tests/unit/test_facebook_contract_unit.py)
+
+Run the offline contract checks from the repository's `pkgs/` directory with `uv run --package swarmauri_auth_idp_facebook --directory standards/swarmauri_auth_idp_facebook pytest tests/unit/test_facebook_contract_unit.py`. These tests use fake HTTP clients and local throwaway keys only; they verify request/response contracts offline and do not certify live Facebook interoperability.
 
 The repository README gate also checks the required heading tree, metadata, managed fragments, and referenced files.
 
@@ -343,3 +347,4 @@ Licensed under `Apache-2.0`. See [LICENSE](https://github.com/swarmauri/swarmaur
 <!-- readme-standards:begin notices -->
 See [NOTICE](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/standards/swarmauri_auth_idp_facebook/NOTICE) for attribution.
 <!-- readme-standards:end notices -->
+
