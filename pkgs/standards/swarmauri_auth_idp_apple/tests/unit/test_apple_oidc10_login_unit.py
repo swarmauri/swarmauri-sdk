@@ -1,6 +1,7 @@
 import base64
 import json
 import time
+from secrets import token_bytes
 
 import jwt
 import pytest
@@ -167,7 +168,7 @@ async def test_decode_identity_accepts_rs256_token(
 async def test_decode_identity_rejects_hs256_token(
     login: AppleOIDC10Login, rsa_key, jwks
 ) -> None:
-    token = _mint_token(rsa_key, alg="HS256", key=b"shared-secret")
+    token = _mint_token(rsa_key, alg="HS256", key=token_bytes(32))
     with pytest.raises(
         ValueError, match="unsupported id_token signing algorithm"
     ):
