@@ -95,16 +95,26 @@ async def test_auth_url_encodes_reserved_characters(cls) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.parametrize("cls", [GitLabOAuth21Login, GitLabOIDC10Login])
-async def test_auth_url_preserves_endpoint_query(cls) -> None:
-    login = _login(
-        cls,
-        "https://gitlab.example/oauth/authorize?foo=bar",
+@pytest.mark.parametrize(
+    "cls", [GitLabOAuth20Login, GitLabOAuth21Login, GitLabOIDC10Login]
+)
+async def test_auth_url_replaces_generated_endpoint_parameters(
+    cls, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    endpoint = (
+        "https://gitlab.example/oauth/authorize"
+        "?foo=bar&foo=&st%61te=stale&code_challenge_method=plain"
     )
+    login = _login(cls, endpoint)
+    if cls is GitLabOAuth20Login:
+        monkeypatch.setattr(
+            cls, "_authorization_endpoint", lambda self: endpoint
+        )
     payload = await login.auth_url()
-    parsed = parse_qs(urlsplit(payload["url"]).query)
+    parsed = parse_qs(urlsplit(payload["url"]).query, keep_blank_values=True)
 
-    assert parsed["foo"] == ["bar"]
+    assert parsed["foo"] == ["bar", ""]
     assert set(parsed) == EXPECTED_PARAMS | {"foo"}
     assert parsed["redirect_uri"] == [TRICKY_REDIRECT_URI]
+    assert parsed["state"] == [payload["state"]]
     assert parsed["code_challenge_method"] == ["S256"]

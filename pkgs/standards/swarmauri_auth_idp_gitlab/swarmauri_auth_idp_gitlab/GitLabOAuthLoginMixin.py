@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Mapping, Optional
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import ConfigDict, Field, SecretBytes, SecretStr
 
@@ -49,25 +49,28 @@ class GitLabOAuthLoginMixin:
     async def _auth_payload(self) -> Mapping[str, str]:
         verifier, challenge = make_pkce_pair()
         state = sign_state(self._state_secret_value(), {"verifier": verifier})
-        query = urlencode(
-            {
-                "response_type": "code",
-                "client_id": self.client_id,
-                "redirect_uri": self.redirect_uri,
-                "scope": self.scope,
-                "state": state,
-                "code_challenge": challenge,
-                "code_challenge_method": "S256",
-            }
-        )
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": self.scope,
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
         parts = urlsplit(self._authorization_endpoint())
-        merged_query = f"{parts.query}&{query}" if parts.query else query
+        endpoint_params = [
+            (key, value)
+            for key, value in parse_qsl(parts.query, keep_blank_values=True)
+            if key not in params
+        ]
+        query = urlencode([*endpoint_params, *params.items()])
         url = urlunsplit(
             (
                 parts.scheme,
                 parts.netloc,
                 parts.path,
-                merged_query,
+                query,
                 parts.fragment,
             )
         )
