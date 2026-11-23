@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping
+from typing import Any, Callable, Literal, Mapping
 
+from pydantic import PrivateAttr
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OAuth20LoginBase
+from swarmauri_base.auth_idp import OAuth20LoginBase, RetryingAsyncClient
 
 from .AzureLoginMixin import AzureLoginMixin
 
@@ -15,6 +16,10 @@ class AzureOAuth20Login(AzureLoginMixin, OAuth20LoginBase):
     """Implement the Azure AD OAuth 2.0 authorization code flow."""
 
     type: Literal["AzureOAuth20Login"] = "AzureOAuth20Login"
+
+    _http_client_factory: Callable[[], RetryingAsyncClient] = PrivateAttr(
+        default=RetryingAsyncClient
+    )
 
     async def auth_url(self) -> Mapping[str, str]:
         payload = await self._auth_payload()

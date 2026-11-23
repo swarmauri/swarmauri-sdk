@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import Any, Callable, Dict, Mapping
 
-from pydantic import ConfigDict, Field, PrivateAttr, SecretStr
+from pydantic import ConfigDict, Field, SecretStr
 
 from swarmauri_base.auth_idp import (
     RetryingAsyncClient,
@@ -31,9 +31,7 @@ class AzureLoginMixin:
     scope: str = Field(default=_DEFAULT_SCOPE)
     graph_me_url: str = Field(default=_GRAPH_ME_URL, frozen=True)
 
-    _http_client_factory: Callable[[], RetryingAsyncClient] = PrivateAttr(
-        default=RetryingAsyncClient
-    )
+    _http_client_factory: Callable[[], RetryingAsyncClient]
 
     def _client_secret_value(self) -> str:
         return self.client_secret.get_secret_value()
