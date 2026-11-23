@@ -40,7 +40,9 @@ class AwsIdentityResolver:
         response.raise_for_status()
         payload = response.json()
         credentials = (
-            payload.get("roleCredentials") if isinstance(payload, dict) else None
+            payload.get("roleCredentials")
+            if isinstance(payload, dict)
+            else None
         )
         if not isinstance(credentials, dict):
             raise ValueError(
@@ -51,7 +53,8 @@ class AwsIdentityResolver:
             value = credentials.get(field)
             if not isinstance(value, str) or not value:
                 raise ValueError(
-                    f"invalid role credential response: missing or empty {field}"
+                    "invalid role credential response: "
+                    f"missing or empty {field}"
                 )
             validated[field] = value
         return validated

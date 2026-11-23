@@ -80,7 +80,9 @@ def stubbed_aws(monkeypatch: pytest.MonkeyPatch):
     FakeSession.calls = []
 
     def install(payload: Any) -> None:
-        monkeypatch.setattr("httpx.get", lambda *args, **kwargs: FakeResponse(payload))
+        monkeypatch.setattr(
+            "httpx.get", lambda *args, **kwargs: FakeResponse(payload)
+        )
         monkeypatch.setattr("boto3.Session", FakeSession)
 
     return install
@@ -110,7 +112,9 @@ def test_valid_credentials_reach_boto3(
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("payload", [{}, {"other": {}}, {"roleCredentials": None}])
+@pytest.mark.parametrize(
+    "payload", [{}, {"other": {}}, {"roleCredentials": None}]
+)
 def test_missing_or_null_role_credentials(
     stubbed_aws, resolver: AwsIdentityResolver, payload: dict[str, Any]
 ) -> None:
@@ -121,7 +125,9 @@ def test_missing_or_null_role_credentials(
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("credentials", ["not-a-mapping", ["ak", "sk", "st"], 42])
+@pytest.mark.parametrize(
+    "credentials", ["not-a-mapping", ["ak", "sk", "st"], 42]
+)
 def test_non_mapping_role_credentials(
     stubbed_aws, resolver: AwsIdentityResolver, credentials: Any
 ) -> None:
@@ -132,7 +138,9 @@ def test_non_mapping_role_credentials(
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("field", ["accessKeyId", "secretAccessKey", "sessionToken"])
+@pytest.mark.parametrize(
+    "field", ["accessKeyId", "secretAccessKey", "sessionToken"]
+)
 @pytest.mark.parametrize("bad_value", [None, "", 123, ["x"]])
 def test_missing_empty_or_non_string_field(
     stubbed_aws,
