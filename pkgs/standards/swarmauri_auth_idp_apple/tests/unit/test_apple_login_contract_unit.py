@@ -32,6 +32,7 @@ with Apple's production service.
 from __future__ import annotations
 
 import base64
+import json
 import hashlib
 import time
 from typing import Any
@@ -40,6 +41,8 @@ from urllib.parse import parse_qs, urlsplit
 import httpx
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from pydantic import SecretBytes
 
 from swarmauri_auth_idp_apple import (
@@ -75,67 +78,33 @@ METADATA = {
 # Throwaway EC key for these tests only. The private half signs the Apple
 # client-secret JWTs; the public half verifies them. It is never used
 # outside this file.
-TEST_EC_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgFJn3Ljf0NP3Ou11A\n"
-    "9g34efhujjHMsU4370Lvyl1+ohShRANCAAS5HiDTLsultFTl29JVoLnykboeS3Im\n"
-    "+lptJy2j7b76oNpVWCytjhH4hOTy021z1r4wzu4wTPYRHCNG5lV9i3/i\n"
-    "-----END PRIVATE KEY-----\n"
-)
+_EC_KEY = ec.generate_private_key(ec.SECP256R1())
+TEST_EC_PRIVATE_KEY_PEM = _EC_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
 TEST_EC_PUBLIC_KEY_PEM = (
-    "-----BEGIN PUBLIC KEY-----\n"
-    "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEuR4g0y7LpbRU5dvSVaC58pG6Hkty\n"
-    "JvpabScto+2++qDaVVgsrY4R+ITk8tNtc9a+MM7uMEz2ERwjRuZVfYt/4g==\n"
-    "-----END PUBLIC KEY-----\n"
+    _EC_KEY.public_key()
+    .public_bytes(
+        serialization.Encoding.PEM,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    .decode("ascii")
 )
 
-# Throwaway RSA key for these tests only. The private half signs the ID
-# tokens; the public half is served through the fake JWKS endpoint.
-TEST_RSA_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDFX1qnMuCoVL+W\n"
-    "qG6JYgb1o450IwwqGXIFwbeNPD5cRu1iyPPYLR9XbepBSc31jMWo25b+u+LLKbIL\n"
-    "1kfDJfoR6wg0reYc2snOP86W9MEjcCuWC9zT0wda+zlVrKWp3CreyROetCrS9n2b\n"
-    "I3wxOPrwy37OT4QTlV34ualI3MHUufckz8aCTC4v4iwbCwFmeY6FNvF8KuVcyIkF\n"
-    "sId6c0O0iSoeJuoqM22b9KlCxLjnewLCYpKZE3EKrhtIXXSo2oul5mqFRNAOZ27w\n"
-    "SQrwKzIJY3uL7KzJ6m7FsEDpoAncSyj6tjnS+liUNGWZlf0U1K2uTDCOxeUD+Wjj\n"
-    "1NFXacBdAgMBAAECggEADG9ahcg10UUtoO9Rr4QmjhlU40pF/O0Hewdeah6Oiz/I\n"
-    "uv2QJ2GIZPi+1ogw2rSYy2+yTrBFtKkW15oTgV8GJ1TYeoEuS0kZh84LVQVsma/6\n"
-    "fwSWUB4ui3Pig9xRv6boaIrgmpIdVJdFCJ4ut+cwIDWh8pud5aH2frIr0TRfXeiR\n"
-    "JqNj+SUlXu6PY1cXmzahXGOeMezMphq99Cj5eB2oJajRJugzyE8lq/j4ATszgbfl\n"
-    "IWJYy1ZIu2mtI3uEwMZ56bJpsbwLfZgri/o6vNDpcJEMKKbEFNL4sqtnrlknhW9t\n"
-    "e0rkDz8AeHe2W8PbEHi+V4Cgjvx+PIZo5rQAV3FGHQKBgQDsO0nDoC4rnBiVKmhQ\n"
-    "efwwtS6WU3gnbPwlavgOxSY1FVLxBddJYEzITiQpe8AboIbfMah6MB1bIVzTD859\n"
-    "4Umv+e7wPmUU2Lx86wKkabxSYLDMwYyAhO8eBLQM+O7d8nwA7X7qtD6HV1nsTT2i\n"
-    "bEAxnORr0dhjHRD/b+lsritzlwKBgQDV45mQxOhZAErnHN/D0KMG8uDTWCEBVlKt\n"
-    "s3aWhlvb4stoax8pt04gLnbo6vctL246LZ7dtxO3sH/vLarpXoXXYgq8TFieRxxl\n"
-    "xDA40/SXxU/e+8tzSRIJiZzDLTb6B0M5/LNphhWscTuD7sXraMseXrjMotKF/i4S\n"
-    "9IO5wqAaKwKBgHiqgC9Q7sSP426uTsJszQkEQ1u+Hy3kWZezYCoLQkzzK366ARIW\n"
-    "AqJ+Z7JY5/Q0ty/i6bAgS551GDknZc6e+UjOXeKRvIg9fWpBkQPyjqN1iFnOs7oi\n"
-    "LRIkTOQjc8AjUHwY1C+HCjmPwPsXKViB+vhcr8DzW5ilDD2uKIm/HarZAoGBAIZc\n"
-    "WG6B03d9YJA4KjTnDlJiJmt9NBaT9JIbZ4Z9Vp0VpjOs/0GEXfaHWblNSQLAhdzU\n"
-    "JbUfuaotnOBR7sh00V0QwK+ywgSDpUokaSp5s2/XyinIQPDl2QfWw3w0HhIIl+mI\n"
-    "XegPC/RsmTdyui/8f4RPeoVKTzdPCgBsS4dYxJxLAoGBAMIVAR8NOLYdeIPpoBSI\n"
-    "9d3dT3VuwNmBvJNYz9FncvUIFzWxRn02PkqEsYUg2tGhDb9AkZWA8ft4MSOlEBUK\n"
-    "cRdBGtIMA3JvMYylb5uexM4FXpFi8cffFFw9GIcUuqZrc8HzGWdjhdrodcUQo86x\n"
-    "Jjzz4xpR6mTYMbZZi1VVhask\n"
-    "-----END PRIVATE KEY-----\n"
+# Use a separate RSA key to sign the provider's test ID tokens.
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_RSA_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "xV9apzLgqFS_lqhuiWIG9aOOdCMMKhlyBcG3jTw-XEbtYsjz2C0fV23qQUnN9YzF"
-        "qNuW_rviyymyC9ZHwyX6EesINK3mHNrJzj_OlvTBI3Arlgvc09MHWvs5Vaylqdwq"
-        "3skTnrQq0vZ9myN8MTj68Mt-zk-EE5Vd-LmpSNzB1Ln3JM_GgkwuL-IsGwsBZnmO"
-        "hTbxfCrlXMiJBbCHenNDtIkqHibqKjNtm_SpQsS453sCwmKSmRNxCq4bSF10qNqL"
-        "peZqhUTQDmdu8EkK8CsyCWN7i-ysyepuxbBA6aAJ3Eso-"
-        "rY50vpYlDRlmZX9FNStrkwwjsXlA_lo49TRV2nAXQ"
-    ),
-    "e": "AQAB",
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
 
 
 class FakeResponse:
@@ -335,7 +304,7 @@ def _token_routes(
         ("POST", token_url): [
             FakeResponse(payload, status=500 if error else 200, error=error)
         ],
-        ("GET", jwks_url): [FakeResponse({"keys": [TEST_JWK]})],
+        ("GET", jwks_url): [FakeResponse(TEST_JWKS)],
     }
 
 
