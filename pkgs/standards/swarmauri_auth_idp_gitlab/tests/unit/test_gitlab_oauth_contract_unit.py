@@ -12,7 +12,8 @@ prefix checks, invalid-state failures, and token-cache behavior:
 - ``GitLabOAuth21Login.auth_url`` / ``GitLabOIDC10Login.exchange``: token
   exchange + ID token verification against a fake JWKS endpoint, with the
   ``preferred_username`` fallback and the UserInfo fallback only when the
-  claims are incomplete.- ``auth_url`` without a preset discovery cache: issuer discovery through
+  claims are incomplete.
+- ``auth_url`` without a preset discovery cache: issuer discovery through
   the fake client.
 - ``GitLabOAuth20AppClient.access_token``: client-credentials POST (form,
   basic auth, scope) and cache reuse.
@@ -68,13 +69,49 @@ DISCOVERY_ENDPOINT = f"{ISSUER}/.well-known/openid-configuration"
 # tokens and the OAuth 2.1 client assertions below; the public half is
 # served through the fake JWKS endpoint. It is never used outside this
 # file.
-TEST_PRIVATE_KEY_PEM = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuEcVV9M+2rdrk\nP675tP0yuI7YXJbapvVhIPw96aTVvIwTFcqb0yOwkpx7vgpas1nJ6lmr+e7PBKuM\nnsi4E/kY7APIQIJgKTBd3DLp72o94YvkvzkyvzCUjj64tI6cWYFwOwHEZ47KkTIU\nJKJZKiGTh6kJzm+YskHs1r+EvNprZlg6YeNdAX+XbohI8qF/DggHdRB5siiPm495\nnEfBvS1hxVrjj2gSytIb8RpYMBzymE9rLw/862uJjFlu8glqtd+Tc7k4uNwjan5n\nSVwHt9xkNXj79G5gfvYpPr8fhL90gsbiZXuZR/ZXClZYjb2NzIDC7YrtV7xaeE0+\nzUG0no6FAgMBAAECggEAAbT/DLoBnOOl0ElZl21xcn+4sV5wB53NrWoYFgTGYUJN\nivmDbGZMyXdVdcHc77P1dqvBsQgs+XmOaoxl49erD9wZnCg+XYq20NRwrAvQpoBG\nI+gDHUZntW/ohwfkKgoFC+mvdnEQrxqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh\n3Ll27w4PDNDvqVvQDAFZHQ402VRpYk3Aeryhc9ynYw03sA+5N3X42bvcW1JeocVw\npgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M/eICWUkY0zyJnHZn4rPVYxZgKvUNTWc\n0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbwKBgQDwMqqqImVbzBs2BgU7\ns+IT6E5gXNtrPRpqmuGKt47C8cyATPV1mtCFj/7yzdc5mp5f4goaTPkavg+KvGFE\noNTs6c+tGwDSbNx3i1DllS9qgG+H7uLkYXIc2OTGgnfUXV2h0iaEowWFG2C2nEEA\nySBdzkpaBWZMf9N82bqJRi2sCwKBgQC5hWPYFi9fxef41W+fDeeTEq9hTkAsN7I3\nBtwL5Gb+H/PRP9IaxyGjPiGiB1c6VMVBhGo4REgCGhd+sFeR0+Rb45akz+L6Y5AU\nN6mrLc640vBkcqHFrwXcbJjnwJGK4Sh9ey5KmvmeQdm8OvKW4s+D6UVVJNbXwCxF\nEWwKZ3a5rwKBgBAatYqWp8kR1Dk5ChzIoL3I84hOcX+tJxpCrCCK0g2L/LQVdNef\nu59Y2jUZS/bWwQuYsii1RHZgi9Y3byYUynHf80ad6t4w4k85jgD2kalIVzH7+EZr\nqiT4/c25baNVZzO0TVTTQUl9Xmyf6VPOKFdhv2ZtukAiyeEzD+ioReOlAoGAeqwI\nPE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtqv4rW\nTcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs+J71g2P2Fa55ncP71fhaqFmcI\nUg6ttgam+f8kf78UJo5t6QIGCf2piDYf8bU+XUMCgYEAhehaV7xIYE2QmT/xYLt9\nuPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJXRzlP0x73QakpE9uJwxv\nlRunmoBa/5inh2em2jtOh/aBgO6s97P8KBBQPzMVTTjkvnezMHx497vU63K1K6Gq\nxexIDVXSEEE01rtJVdRf4ho=\n-----END PRIVATE KEY-----\n"
+TEST_PRIVATE_KEY_PEM = (
+    "-----BEGIN PRIVATE KEY-----\n"
+    "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCuEcVV9M+2rdrk\n"
+    "P675tP0yuI7YXJbapvVhIPw96aTVvIwTFcqb0yOwkpx7vgpas1nJ6lmr+e7PBKuM\n"
+    "nsi4E/kY7APIQIJgKTBd3DLp72o94YvkvzkyvzCUjj64tI6cWYFwOwHEZ47KkTIU\n"
+    "JKJZKiGTh6kJzm+YskHs1r+EvNprZlg6YeNdAX+XbohI8qF/DggHdRB5siiPm495\n"
+    "nEfBvS1hxVrjj2gSytIb8RpYMBzymE9rLw/862uJjFlu8glqtd+Tc7k4uNwjan5n\n"
+    "SVwHt9xkNXj79G5gfvYpPr8fhL90gsbiZXuZR/ZXClZYjb2NzIDC7YrtV7xaeE0+\n"
+    "zUG0no6FAgMBAAECggEAAbT/DLoBnOOl0ElZl21xcn+4sV5wB53NrWoYFgTGYUJN\n"
+    "ivmDbGZMyXdVdcHc77P1dqvBsQgs+XmOaoxl49erD9wZnCg+XYq20NRwrAvQpoBG\n"
+    "I+gDHUZntW/ohwfkKgoFC+mvdnEQrxqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh\n"
+    "3Ll27w4PDNDvqVvQDAFZHQ402VRpYk3Aeryhc9ynYw03sA+5N3X42bvcW1JeocVw\n"
+    "pgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M/eICWUkY0zyJnHZn4rPVYxZgKvUNTWc\n"
+    "0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbwKBgQDwMqqqImVbzBs2BgU7\n"
+    "s+IT6E5gXNtrPRpqmuGKt47C8cyATPV1mtCFj/7yzdc5mp5f4goaTPkavg+KvGFE\n"
+    "oNTs6c+tGwDSbNx3i1DllS9qgG+H7uLkYXIc2OTGgnfUXV2h0iaEowWFG2C2nEEA\n"
+    "ySBdzkpaBWZMf9N82bqJRi2sCwKBgQC5hWPYFi9fxef41W+fDeeTEq9hTkAsN7I3\n"
+    "BtwL5Gb+H/PRP9IaxyGjPiGiB1c6VMVBhGo4REgCGhd+sFeR0+Rb45akz+L6Y5AU\n"
+    "N6mrLc640vBkcqHFrwXcbJjnwJGK4Sh9ey5KmvmeQdm8OvKW4s+D6UVVJNbXwCxF\n"
+    "EWwKZ3a5rwKBgBAatYqWp8kR1Dk5ChzIoL3I84hOcX+tJxpCrCCK0g2L/LQVdNef\n"
+    "u59Y2jUZS/bWwQuYsii1RHZgi9Y3byYUynHf80ad6t4w4k85jgD2kalIVzH7+EZr\n"
+    "qiT4/c25baNVZzO0TVTTQUl9Xmyf6VPOKFdhv2ZtukAiyeEzD+ioReOlAoGAeqwI\n"
+    "PE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtqv4rW\n"
+    "TcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs+J71g2P2Fa55ncP71fhaqFmcI\n"
+    "Ug6ttgam+f8kf78UJo5t6QIGCf2piDYf8bU+XUMCgYEAhehaV7xIYE2QmT/xYLt9\n"
+    "uPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJXRzlP0x73QakpE9uJwxv\n"
+    "lRunmoBa/5inh2em2jtOh/aBgO6s97P8KBBQPzMVTTjkvnezMHx497vU63K1K6Gq\n"
+    "xexIDVXSEEE01rtJVdRf4ho=\n"
+    "-----END PRIVATE KEY-----\n"
+)
 TEST_JWK = {
     "kty": "RSA",
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZyepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26ISPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZbvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ",
+    "n": (
+        "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZ"
+        "yepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-"
+        "uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26I"
+        "SPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZ"
+        "bvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-"
+        "_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ"
+    ),
     "e": "AQAB",
 }
 TEST_PRIVATE_JWK = {
@@ -82,19 +119,56 @@ TEST_PRIVATE_JWK = {
     "kid": "test-key-2",
     "use": "sig",
     "alg": "RS256",
-    "n": "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZyepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26ISPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZbvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ",
+    "n": (
+        "rhHFVfTPtq3a5D-u-bT9MriO2FyW2qb1YSD8Pemk1byMExXKm9MjsJKce74KWrNZ"
+        "yepZq_nuzwSrjJ7IuBP5GOwDyECCYCkwXdwy6e9qPeGL5L85Mr8wlI4-"
+        "uLSOnFmBcDsBxGeOypEyFCSiWSohk4epCc5vmLJB7Na_hLzaa2ZYOmHjXQF_l26I"
+        "SPKhfw4IB3UQebIoj5uPeZxHwb0tYcVa449oEsrSG_EaWDAc8phPay8P_OtriYxZ"
+        "bvIJarXfk3O5OLjcI2p-Z0lcB7fcZDV4-"
+        "_RuYH72KT6_H4S_dILG4mV7mUf2VwpWWI29jcyAwu2K7Ve8WnhNPs1BtJ6OhQ"
+    ),
     "e": "AQAB",
-    "d": "AbT_DLoBnOOl0ElZl21xcn-4sV5wB53NrWoYFgTGYUJNivmDbGZMyXdVdcHc77P1dqvBsQgs-XmOaoxl49erD9wZnCg-XYq20NRwrAvQpoBGI-gDHUZntW_ohwfkKgoFC-mvdnEQrxqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh3Ll27w4PDNDvqVvQDAFZHQ402VRpYk3Aeryhc9ynYw03sA-5N3X42bvcW1JeocVwpgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M_eICWUkY0zyJnHZn4rPVYxZgKvUNTWc0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbw",
-    "p": "8DKqqiJlW8wbNgYFO7PiE-hOYFzbaz0aaprhireOwvHMgEz1dZrQhY_-8s3XOZqeX-IKGkz5Gr4PirxhRKDU7OnPrRsA0mzcd4tQ5ZUvaoBvh-7i5GFyHNjkxoJ31F1dodImhKMFhRtgtpxBAMkgXc5KWgVmTH_TfNm6iUYtrAs",
-    "q": "uYVj2BYvX8Xn-NVvnw3nkxKvYU5ALDeyNwbcC-Rm_h_z0T_SGschoz4hogdXOlTFQYRqOERIAhoXfrBXkdPkW-OWpM_i-mOQFDepqy3OuNLwZHKhxa8F3GyY58CRiuEofXsuSpr5nkHZvDryluLPg-lFVSTW18AsRRFsCmd2ua8",
-    "dp": "EBq1ipanyRHUOTkKHMigvcjziE5xf60nGkKsIIrSDYv8tBV015-7n1jaNRlL9tbBC5iyKLVEdmCL1jdvJhTKcd_zRp3q3jDiTzmOAPaRqUhXMfv4RmuqJPj9zblto1VnM7RNVNNBSX1ebJ_pU84oV2G_Zm26QCLJ4TMP6KhF46U",
-    "dq": "eqwIPE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtqv4rWTcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs-J71g2P2Fa55ncP71fhaqFmcIUg6ttgam-f8kf78UJo5t6QIGCf2piDYf8bU-XUM",
-    "qi": "hehaV7xIYE2QmT_xYLt9uPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJXRzlP0x73QakpE9uJwxvlRunmoBa_5inh2em2jtOh_aBgO6s97P8KBBQPzMVTTjkvnezMHx497vU63K1K6GqxexIDVXSEEE01rtJVdRf4ho",
+    "d": (
+        "AbT_DLoBnOOl0ElZl21xcn-"
+        "4sV5wB53NrWoYFgTGYUJNivmDbGZMyXdVdcHc77P1dqvBsQgs-"
+        "XmOaoxl49erD9wZnCg-XYq20NRwrAvQpoBGI-gDHUZntW_ohwfkKgoFC-mvdnEQr"
+        "xqsIAbfd6gMO7jVHc09n9P7sG1lpvvA8aNh3Ll27w4PDNDvqVvQDAFZHQ402VRpY"
+        "k3Aeryhc9ynYw03sA-"
+        "5N3X42bvcW1JeocVwpgGnSDjYjPOc2Mwp5YMhr6w9jF4EWtv5M_eICWUkY0zyJnH"
+        "Zn4rPVYxZgKvUNTWc0g6HKKatrLFWkixV4d0TFGYBBRFu6Tu8G8K7VVsWbw"
+    ),
+    "p": (
+        "8DKqqiJlW8wbNgYFO7PiE-"
+        "hOYFzbaz0aaprhireOwvHMgEz1dZrQhY_-8s3XOZqeX-IKGkz5Gr4PirxhRKDU7O"
+        "nPrRsA0mzcd4tQ5ZUvaoBvh-"
+        "7i5GFyHNjkxoJ31F1dodImhKMFhRtgtpxBAMkgXc5KWgVmTH_TfNm6iUYtrAs"
+    ),
+    "q": (
+        "uYVj2BYvX8Xn-NVvnw3nkxKvYU5ALDeyNwbcC-"
+        "Rm_h_z0T_SGschoz4hogdXOlTFQYRqOERIAhoXfrBXkdPkW-OWpM_i-"
+        "mOQFDepqy3OuNLwZHKhxa8F3GyY58CRiuEofXsuSpr5nkHZvDryluLPg-"
+        "lFVSTW18AsRRFsCmd2ua8"
+    ),
+    "dp": (
+        "EBq1ipanyRHUOTkKHMigvcjziE5xf60nGkKsIIrSDYv8tBV015-"
+        "7n1jaNRlL9tbBC5iyKLVEdmCL1jdvJhTKcd_zRp3q3jDiTzmOAPaRqUhXMfv4Rmu"
+        "qJPj9zblto1VnM7RNVNNBSX1ebJ_pU84oV2G_Zm26QCLJ4TMP6KhF46U"
+    ),
+    "dq": (
+        "eqwIPE9XHgYYAILpXwvrr2VwkHAUoOhnMFmZ0UdDDxCDwT5pKIm55V5lEOW3uPtq"
+        "v4rWTcRgtPsZxAzIqsWov1X7O5m25YhGMggoaedNRQs-"
+        "J71g2P2Fa55ncP71fhaqFmcIUg6ttgam-f8kf78UJo5t6QIGCf2piDYf8bU-XUM"
+    ),
+    "qi": (
+        "hehaV7xIYE2QmT_xYLt9uPktZy4NUK8yDPRUusCOhZ2ppMB0L5GsdgDwKXubg9YJ"
+        "XRzlP0x73QakpE9uJwxvlRunmoBa_5inh2em2jtOh_aBgO6s97P8KBBQPzMVTTjk"
+        "vnezMHx497vU63K1K6GqxexIDVXSEEE01rtJVdRf4ho"
+    ),
 }
 
 
 class FakeHTTPError(Exception):
-    """Raised by the fake client when a canned response carries an error status."""
+    """A canned response returned an HTTP error status."""
 
 
 class DummyResponse:
@@ -277,13 +351,17 @@ async def test_oauth20_exchange_returns_identity_from_user() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload())],
         get_responses=[
-            DummyResponse({"id": 42, "email": "ada@example.com", "name": "Ada"})
+            DummyResponse(
+                {"id": 42, "email": "ada@example.com", "name": "Ada"}
+            )
         ],
     )
     login = _login(GitLabOAuth20Login, factory)
     auth = await login.auth_url()
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["issuer"] == "gitlab-oauth20"
     assert identity["sub"] == "42"
@@ -304,7 +382,9 @@ async def test_oauth20_exchange_returns_identity_from_user() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_oauth20_exchange_falls_back_to_public_email_and_username() -> None:
+async def test_oauth20_exchange_falls_back_to_public_email_and_username() -> (
+    None
+):
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload())],
         get_responses=[
@@ -320,7 +400,9 @@ async def test_oauth20_exchange_falls_back_to_public_email_and_username() -> Non
     login = _login(GitLabOAuth20Login, factory)
     auth = await login.auth_url()
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["sub"] == "7"
     assert identity["email"] == "bo@example.com"
@@ -336,10 +418,14 @@ async def test_oauth20_exchange_uses_custom_api_base() -> None:
             DummyResponse({"id": 9, "email": "cy@example.com", "name": "Cy"})
         ],
     )
-    login = _login(GitLabOAuth20Login, factory, api_base="https://api.gitlab.example")
+    login = _login(
+        GitLabOAuth20Login, factory, api_base="https://api.gitlab.example"
+    )
     auth = await login.auth_url()
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["sub"] == "9"
     gets = factory.gets()
@@ -372,10 +458,14 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     login = _login(GitLabOAuth21Login, factory)
     auth = await login.auth_url()
-    id_token = _make_id_token(sub="gitlab-456", email="cy@example.com", name="Cy")
+    id_token = _make_id_token(
+        sub="gitlab-456", email="cy@example.com", name="Cy"
+    )
     factory.post_responses = [DummyResponse(_token_payload(id_token=id_token))]
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["issuer"] == "gitlab-oauth21"
     assert identity["sub"] == "gitlab-456"
@@ -407,7 +497,9 @@ async def test_oauth21_exchange_falls_back_to_preferred_username() -> None:
     )
     factory.post_responses = [DummyResponse(_token_payload(id_token=id_token))]
 
-    identity = await login.exchange_and_identity("auth-code-123", auth["state"])
+    identity = await login.exchange_and_identity(
+        "auth-code-123", auth["state"]
+    )
 
     assert identity["sub"] == "gitlab-789"
     assert identity["email"] == "bo@example.com"
@@ -458,7 +550,9 @@ async def test_oidc10_exchange_skips_userinfo_when_claims_complete() -> None:
     )
     login = _login(GitLabOIDC10Login, factory)
     auth = await login.auth_url()
-    id_token = _make_id_token(sub="gitlab-111", email="eve@example.com", name="Eve")
+    id_token = _make_id_token(
+        sub="gitlab-111", email="eve@example.com", name="Eve"
+    )
     factory.post_responses = [DummyResponse(_token_payload(id_token=id_token))]
 
     identity = await login.exchange("auth-code-123", auth["state"])
