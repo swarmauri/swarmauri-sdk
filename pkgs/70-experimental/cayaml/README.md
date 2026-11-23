@@ -5,24 +5,24 @@
 <p align="center"><strong>cayaml</strong></p>
 <p align="center">Swarmauri&#x27;s Canon Yaml Handler</p>
 <p align="center">
-<a href="https://pypi.org/project/cayaml/"><img alt="pypi: cayaml" src="https://img.shields.io/pypi/v/cayaml"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Source version: 0.3.2.dev5" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.3.2.dev5&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Layer: experimental" src="https://img.shields.io/static/v1?label=Layer&amp;message=experimental&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md#lifecycle-and-migration"><img alt="Lifecycle: experimental" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=experimental&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/static/v1?label=License&amp;message=Apache-2.0&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;color=525252"></a>
+<a href="https://pypi.org/project/cayaml/"><img alt="pypi: cayaml" src="https://img.shields.io/pypi/v/cayaml?labelColor=1E293B&amp;color=1D4ED8"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Source version: 0.3.2.dev5" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.3.2.dev5&amp;labelColor=1E293B&amp;color=4338CA"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/pyproject.toml"><img alt="Layer: experimental" src="https://img.shields.io/static/v1?label=Layer&amp;message=experimental&amp;labelColor=1E293B&amp;color=6D28D9"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md#lifecycle-and-migration"><img alt="Lifecycle: experimental" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=experimental&amp;labelColor=1E293B&amp;color=6D28D9"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/static/v1?label=License&amp;message=Apache-2.0&amp;labelColor=1E293B&amp;color=86198F"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;labelColor=1E293B&amp;color=86198F"></a>
 </p>
 <p align="center">
-<a href="https://pypi.org/project/cayaml/"><img alt="Monthly PyPI downloads: cayaml" src="https://img.shields.io/pypi/dm/cayaml"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md"><img alt="README hits: cayaml" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/pkgs/70-experimental/cayaml/README.md.svg?label=README%20hits"></a>
+<a href="https://pypi.org/project/cayaml/"><img alt="Monthly PyPI downloads: cayaml" src="https://img.shields.io/pypi/dm/cayaml?labelColor=1E293B&amp;color=0E7490"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md"><img alt="README hits: cayaml" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/pkgs/70-experimental/cayaml/README.md.svg?label=README%20hits&amp;labelColor=1E293B&amp;color=0E7490"></a>
 </p>
 <p align="center">
-<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="README standards: CI gate" src="https://img.shields.io/static/v1?label=README%20standards&amp;message=CI%20gate&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/tests/unit/test_readme_sources.py"><img alt="Tests: example source" src="https://img.shields.io/static/v1?label=Tests&amp;message=example%20source&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md#certification-status"><img alt="Certification: not certified" src="https://img.shields.io/static/v1?label=Certification&amp;message=not%20certified&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"><img alt="Governance: repository policy" src="https://img.shields.io/static/v1?label=Governance&amp;message=repository%20policy&amp;color=525252"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="Evidence: source and CI" src="https://img.shields.io/static/v1?label=Evidence&amp;message=source%20and%20CI&amp;color=525252"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="README standards: CI gate" src="https://img.shields.io/static/v1?label=README%20standards&amp;message=CI%20gate&amp;labelColor=1E293B&amp;color=1D4ED8"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/tests/unit/test_readme_sources.py"><img alt="Tests: example source" src="https://img.shields.io/static/v1?label=Tests&amp;message=example%20source&amp;labelColor=1E293B&amp;color=0F766E"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/70-experimental/cayaml/README.md#certification-status"><img alt="Certification: not certified" src="https://img.shields.io/static/v1?label=Certification&amp;message=not%20certified&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLICY.md"><img alt="Governance: repository policy" src="https://img.shields.io/static/v1?label=Governance&amp;message=repository%20policy&amp;labelColor=1E293B&amp;color=4338CA"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"><img alt="Evidence: source and CI" src="https://img.shields.io/static/v1?label=Evidence&amp;message=source%20and%20CI&amp;labelColor=1E293B&amp;color=6D28D9"></a>
 </p>
 <p align="center"><a href="#overview">Overview</a> · <a href="#installation">Installation</a> · <a href="#quick-start">Quick Start</a> · <a href="#usage">Usage</a> · <a href="#public-api-and-import-surfaces">API</a> · <a href="#contributing">Contributing</a> · <a href="#governance">Governance</a> · <a href="#license">License</a></p>
 <!-- readme-standards:end branding -->
@@ -261,7 +261,7 @@ Follow the [contribution guide](https://github.com/swarmauri/swarmauri-sdk/blob/
 
 ### Development Setup
 
-Work from the `pkgs/70-experimental/cayaml` checkout. Synchronize its declared development environment with uv, then run the relevant package tests and `python -m pytest tests/unit/test_readme_sources.py`. The repository’s dedicated README job installs `readme-standards==0.1.1` without resolving unrelated runtime packages.
+Work from the `pkgs/70-experimental/cayaml` checkout. Synchronize its declared development environment with uv, then run the relevant package tests and `python -m pytest tests/unit/test_readme_sources.py`. The repository’s dedicated README job installs `readme-standards==0.1.3` without resolving unrelated runtime packages.
 
 ### Notes for Maintainers
 
