@@ -22,12 +22,15 @@ interoperability with Okta's production service.
 
 from __future__ import annotations
 
+import json
 import time
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlsplit
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 
 from swarmauri_auth_idp_okta import (
@@ -50,51 +53,17 @@ METADATA = {
 # Throwaway RSA key for these tests only. The private half signs the ID
 # tokens below; the public half is served through the fake JWKS endpoint.
 # It is never used outside this file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDbrhQm8mnhEpRx\n"
-    "6PswBtkZbQhYvAAoIq99e11nyOFHgbzuIMG+wyIgsIgdglHEDjtUGVSQYH9rZbcq\n"
-    "0bKMz1Zwe17yaG3Q5vTPmLLUcDwIKhJnXzmZV671Ifwc1howxvQrjAlWEXTSgBg+\n"
-    "SXI+aH54+W34hM50E8wHcdvlIs0N0yFBjyv0i7lM81gVDljT8hlXGqA+22QCwyTI\n"
-    "F33CjNhWOL8kOR/UZ7N5tZhAQCIK0U9+JSqF0EfwRWQvt9gdv40BRa9gpTa1mA/v\n"
-    "e+bcld/gEUK/8bpog/SyISSUgwwSi0aMljaeS+tiMryY0cK3PRwm0RlOj3MrACBD\n"
-    "TXs9z5nJAgMBAAECggEAD23/DBvBeE2s58HOl8lZWQ31lL7yr179Tr3aGgqr2REJ\n"
-    "nzulhBOyW1Ou4cy4F8JMpDvpusDOXlGc/4jORtHez0R5DyNq2C4KoqSl5eIyszua\n"
-    "QpC3i9fS6fSOv8tBeGzW9FKQCs+r0getfD1+JNhDztUtJlQUqKZF0b2LbYEH4Ekz\n"
-    "R3NCFGen4MfcnBlJIF/KpGHCrKEOGu64kfXO5WbrE5E73o6numPVNNXmxneJ4M0r\n"
-    "B7dbbr8WP8ApG5F6jxRTd08Xp9LBJ1Td0kOrxlQcXDMXsnHCA5JugfearPgqpseU\n"
-    "nP9mkFWfjYKHh0b5KyIHru6TolFGCU+xK3lSjoR0cQKBgQD8W4vQ3i8MYXYoVbfd\n"
-    "1uXbQ4/wEdVcA82i0j3AtwzHuhXOUXNYd/XIA0Z9Ej7JI7T/g63XTL4m115h3yjr\n"
-    "EEdfpMVuPoX63nU7SwATupQNmDKhPNEob07qz0gU+XJhMpEUhDCOhknCARYHb8CF\n"
-    "uesxv+QI8WcFYGU2EjWxhEd3kQKBgQDe2couu5YTG5+zirRhN1mklbn/vs+V6ufh\n"
-    "yavyr+11p7U3kANZT8aCx7AF2hm3Cf39t5wnhm3qBS9mKFgjhEg21gk6Slto6TsA\n"
-    "IC1vH9EULGmlE5E4L8EHjlJa3mbs9jI/Lmbc4S7f+1cWNFJ74GV7NAR3iptijz6z\n"
-    "Q2lNlqISuQKBgDJ9PmPzkAYyGanIPJktvZ84zTuC1eUq/aFt3t0Hwo7TNDmrIiC5\n"
-    "H3t87EVpuRYVBsl4VveUaxbqT//U3iLpht4j4TxFVhjzGRFb2BAabDSsFrUbrd0h\n"
-    "J/Dit9E6dx/rNgucxvo889TU0st6GFKo991kPwNrCOmSd61xxzxU8teBAoGAbTvb\n"
-    "+uRAP8V+locau7xh2Gb78PwazKWEXAx6mE7b2pwGG+Ifghu0dk5jXbr2d94R/deO\n"
-    "V2FxZxB7l1uXOHGS5C4t/8CK5fXM0dbz7lBuL7FFZ4Eb4aqmt4lvnNL/KI/VOVsJ\n"
-    "WKOYUnnkyiGDfO0VUTrCJcZvO/RzC3OznjCD6SECgYAP08e1UTLwo3gBi6NwJyb1\n"
-    "ee2RNa91MYG8AHr1wVewamz8BZhteMWSdwK8jnPduf+cpRnyP1y14RaYHM6WRPFo\n"
-    "0q20X+AJeYXHOlc6N17LBQ0qiXfhzEi/XUM0sl487Xr7KgjkvO3kPEq5W0SXSxhP\n"
-    "M10IS1aJp79jY96+POY+6w==\n"
-    "-----END PRIVATE KEY-----\n"
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "264UJvJp4RKUcej7MAbZGW0IWLwAKCKvfXtdZ8jhR4G87iDBvsMiILCIHYJRxA47"
-        "VBlUkGB_a2W3KtGyjM9WcHte8mht0Ob0z5iy1HA8CCoSZ185mVeu9SH8HNYaMMb0"
-        "K4wJVhF00oAYPklyPmh-ePlt-ITOdBPMB3Hb5SLNDdMhQY8r9Iu5TPNYFQ5Y0_IZ"
-        "VxqgPttkAsMkyBd9wozYVji_JDkf1GezebWYQEAiCtFPfiUqhdBH8EVkL7fYHb-N"
-        "AUWvYKU2tZgP73vm3JXf4BFCv_G6aIP0siEklIMMEotGjJY2nkvrYjK8mNHCtz0c"
-        "JtEZTo9zKwAgQ017Pc-ZyQ"
-    ),
-    "e": "AQAB",
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
 
 
 class FakeHTTPError(Exception):
@@ -317,7 +286,7 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(OktaOAuth21Login, factory)
     auth = await login.auth_url()
@@ -345,7 +314,7 @@ async def test_oidc10_exchange_uses_userinfo_when_claims_incomplete() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse(
                 {"sub": "00u789", "email": "di@example.com", "name": "Di"}
             ),
@@ -379,7 +348,7 @@ async def test_oidc10_exchange_skips_userinfo_when_claims_complete() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(OktaOIDC10Login, factory)
     auth = await login.auth_url()
