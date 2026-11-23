@@ -29,12 +29,15 @@ nothing here proves interoperability with a production Keycloak realm.
 
 from __future__ import annotations
 
+import json
 import time
 from typing import Any, Dict, List, Optional
 from urllib.parse import parse_qs, urlsplit
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 
 from swarmauri_auth_idp_keycloak import (
@@ -66,100 +69,19 @@ METADATA = {
 # tokens and client assertions below; the public half is served through
 # the fake JWKS endpoint and used to verify assertions. It is never used
 # outside this file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCl4KNS3w3x6UHS\n"
-    "NEbiXrnWCf5J+FSnSCFsXbGK/DYQ9Xi/rgK3n/0x4sg6+46t2GXHIjkXtNTpf7YK\n"
-    "ZcaMy79EbEnywBH2mZ2cUyL9sKcey1E6kX3CvrnwAkrm7FLqbfyhKN08cfF7oq07\n"
-    "iU4Mo65ElcNpsRTSL1mZ7fSQUdsMWDtvFn8P89zVsdi9ahefjdxFbvQE+2VB3FL3\n"
-    "X3gndpWCpd0GXm5sKZgr4omjmgViCbIxYJjTwER39E5WfJQ+S7QsKrX/zvMQ72cw\n"
-    "NxCjFbGX0n2Rf3e2JzT62t6Kv7l+JDlnmSFOTmxqgdPqFy0Dk4882x3nXvKBa3ec\n"
-    "ItOo/IVNAgMBAAECggEACPUXfLsk0qJo9oPyK/k3idJiU/ZABASGIYbxtnKmLMZE\n"
-    "rf0kkmvmTVJUw7Kf4s1juZwkfx45vR4zY15ZmXLLMlOyrpQmpC1pcG6g3hgy/hu2\n"
-    "mDYRF3obKlXFW7D5TUWBNeayA7iXdLi1KBjjCRWxrGx17/grCqqZ6RELetugu4rV\n"
-    "8HAj1gb8JUlNPzqi3hZFeBea/p94S491QAGEMA3j3vVxP1k1m3SVQrsdyGhr3JBy\n"
-    "u3O/dLIE7oycI5S4Jg3s+8emx8bBXnho927UeLjvN60ey3nqzWAlaEJXYxrJ1IEU\n"
-    "TVj4mSghjc0rvIcs4kLxPLRLhqrBIa+p3v9baNzylQKBgQDRq1HlwepQdlOwfJq0\n"
-    "dj70cccurteOMYhEFc7BypPcWXeQmBrBzYMIZdsII5dEasQmxgMYafgXw8xcMbcW\n"
-    "x3NGyzxBBEyl18oB4SQRI68DrtTvX0nWQKZSxV04p9MFYMMGameTdWlrcjDn5gB+\n"
-    "dqLQV0Ay7zJQP2t8iI6icwNB/wKBgQDKiBWYpEaWjWn7Xa5Siz4CyDiCsqAMX7Mf\n"
-    "VyEnrGDP0C8UT/6YiMqIluko2XoEh4+rHDGsEpTqL2D4R0lOrb5iHYo63XNRQfy1\n"
-    "+c3HUwd9CeEXz1iMmtU+ez3fXKegawDu0R7lJgZxv3qxlvBQQ5p78EXCwL56uuO6\n"
-    "ph3kX4qgswKBgBcs5KSMxqWWLrH3U/JWj6bdXLLgSJtDBljgQDZTefyFNx4Ycfyy\n"
-    "BqXK/Gbt6C57zqqqgHUWYYHe9pvKMv6llSxiEortOruqGn4SsLXkR9gUXx0GX1b7\n"
-    "VmcXwbIdesnBZE01PbWi6MAjoxw+5BcWbfCxdDstDVapa+wb/Aggxl9pAoGAZdn1\n"
-    "8mN61C+dwrmj9wLrVn7WXHP0JQTjkblBhTAdJ6UsZ+yqvo7cO8CY1OA5ipmZ2JU/\n"
-    "LafSl8rn2zQOW7Doc3MjluLTIWQr8GAF6l2JAIq9VjoB8APVhax4uyFfcz8cov0r\n"
-    "qlVrHD0NOM4NYG/++qEklAJWSGZALBdqJPUfRB0CgYBr4WMx6pEAKcuPVg0+qiG6\n"
-    "GQGn223poPUb+HClCp2od2WalZRx9ECNQ4k33iW6RCU8uhvpqBrA/gCB86wzcpd+\n"
-    "9uvDRDztoepnfgDb78zka5C+plm+2li5G/SF6na/G5HkcjngkUZH4vFszyUJd2BQ\n"
-    "RsM6ser4ptT7aEDn9002jA==\n"
-    "-----END PRIVATE KEY-----\n"
-    ""
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "peCjUt8N8elB0jRG4l651gn-SfhUp0ghbF2xivw2EPV4v64Ct5_9MeLIOvuO"
-        "rdhlxyI5F7TU6X-2CmXGjMu_RGxJ8sAR9pmdnFMi_bCnHstROpF9wr658AJK"
-        "5uxS6m38oSjdPHHxe6KtO4lODKOuRJXDabEU0i9Zme30kFHbDFg7bxZ_D_Pc"
-        "1bHYvWoXn43cRW70BPtlQdxS9194J3aVgqXdBl5ubCmYK-KJo5oFYgmyMWCY"
-        "08BEd_ROVnyUPku0LCq1_87zEO9nMDcQoxWxl9J9kX93tic0-treir-5fiQ5"
-        "Z5khTk5saoHT6hctA5OPPNsd517ygWt3nCLTqPyFTQ"
-    ),
-    "e": "AQAB",
-}
-TEST_PRIVATE_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "peCjUt8N8elB0jRG4l651gn-SfhUp0ghbF2xivw2EPV4v64Ct5_9MeLIOvuO"
-        "rdhlxyI5F7TU6X-2CmXGjMu_RGxJ8sAR9pmdnFMi_bCnHstROpF9wr658AJK"
-        "5uxS6m38oSjdPHHxe6KtO4lODKOuRJXDabEU0i9Zme30kFHbDFg7bxZ_D_Pc"
-        "1bHYvWoXn43cRW70BPtlQdxS9194J3aVgqXdBl5ubCmYK-KJo5oFYgmyMWCY"
-        "08BEd_ROVnyUPku0LCq1_87zEO9nMDcQoxWxl9J9kX93tic0-treir-5fiQ5"
-        "Z5khTk5saoHT6hctA5OPPNsd517ygWt3nCLTqPyFTQ"
-    ),
-    "e": "AQAB",
-    "d": (
-        "CPUXfLsk0qJo9oPyK_k3idJiU_ZABASGIYbxtnKmLMZErf0kkmvmTVJUw7Kf"
-        "4s1juZwkfx45vR4zY15ZmXLLMlOyrpQmpC1pcG6g3hgy_hu2mDYRF3obKlXF"
-        "W7D5TUWBNeayA7iXdLi1KBjjCRWxrGx17_grCqqZ6RELetugu4rV8HAj1gb8"
-        "JUlNPzqi3hZFeBea_p94S491QAGEMA3j3vVxP1k1m3SVQrsdyGhr3JByu3O_"
-        "dLIE7oycI5S4Jg3s-8emx8bBXnho927UeLjvN60ey3nqzWAlaEJXYxrJ1IEU"
-        "TVj4mSghjc0rvIcs4kLxPLRLhqrBIa-p3v9baNzylQ"
-    ),
-    "p": (
-        "0atR5cHqUHZTsHyatHY-9HHHLq7XjjGIRBXOwcqT3Fl3kJgawc2DCGXbCCOX"
-        "RGrEJsYDGGn4F8PMXDG3FsdzRss8QQRMpdfKAeEkESOvA67U719J1kCmUsVd"
-        "OKfTBWDDBmpnk3Vpa3Iw5-YAfnai0FdAMu8yUD9rfIiOonMDQf8"
-    ),
-    "q": (
-        "yogVmKRGlo1p-12uUos-Asg4grKgDF-zH1chJ6xgz9AvFE_-mIjKiJbpKNl6"
-        "BIePqxwxrBKU6i9g-EdJTq2-Yh2KOt1zUUH8tfnNx1MHfQnhF89YjJrVPns9"
-        "31ynoGsA7tEe5SYGcb96sZbwUEOae_BFwsC-errjuqYd5F-KoLM"
-    ),
-    "dp": (
-        "FyzkpIzGpZYusfdT8laPpt1csuBIm0MGWOBANlN5_IU3Hhhx_LIGpcr8Zu3o"
-        "LnvOqqqAdRZhgd72m8oy_qWVLGISiu06u6oafhKwteRH2BRfHQZfVvtWZxfB"
-        "sh16ycFkTTU9taLowCOjHD7kFxZt8LF0Oy0NVqlr7Bv8CCDGX2k"
-    ),
-    "dq": (
-        "Zdn18mN61C-dwrmj9wLrVn7WXHP0JQTjkblBhTAdJ6UsZ-yqvo7cO8CY1OA5"
-        "ipmZ2JU_LafSl8rn2zQOW7Doc3MjluLTIWQr8GAF6l2JAIq9VjoB8APVhax4"
-        "uyFfcz8cov0rqlVrHD0NOM4NYG_--qEklAJWSGZALBdqJPUfRB0"
-    ),
-    "qi": (
-        "a-FjMeqRACnLj1YNPqohuhkBp9tt6aD1G_hwpQqdqHdlmpWUcfRAjUOJN94l"
-        "ukQlPLob6agawP4AgfOsM3KXfvbrw0Q87aHqZ34A2-_M5GuQvqZZvtpYuRv0"
-        "hep2vxuR5HI54JFGR-LxbM8lCXdgUEbDOrHq-KbU-2hA5_dNNow"
-    ),
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
+TEST_PRIVATE_JWK = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY))
+TEST_PRIVATE_JWK.update(kid="test-key-1", use="sig", alg="RS256")
 
 
 class FakeHTTPError(Exception):
@@ -469,7 +391,7 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(KeycloakOAuth21Login, factory)
     payload = await login.auth_url()
@@ -506,7 +428,7 @@ async def test_oauth21_exchange_missing_sub_raises() -> None:
     id_token = _make_id_token(sub=None, email="nosub@example.com")
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(KeycloakOAuth21Login, factory)
     payload = await login.auth_url()
@@ -529,7 +451,7 @@ async def test_oidc_exchange_returns_claims() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(KeycloakOIDC10Login, factory)
     payload = await login.auth_url()
@@ -552,7 +474,7 @@ async def test_oidc_exchange_userinfo_fills_missing_email_and_name() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse(
                 {"email": "filled@example.com", "given_name": "Faye"}
             ),
@@ -720,8 +642,9 @@ async def test_oidc_app_client_discovers_token_endpoint() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_oidc_app_client_discovery_without_token_endpoint_raises(
-) -> None:
+async def test_oidc_app_client_discovery_without_token_endpoint_raises() -> (
+    None
+):
     factory = DummyClientFactory(
         post_responses=[],
         get_responses=[DummyResponse({"issuer": ISSUER})],
