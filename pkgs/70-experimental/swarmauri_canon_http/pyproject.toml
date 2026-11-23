@@ -143,5 +143,5 @@ dev = [
     "requests>=2.32",
     "httpx[http2]>=0.27",
     "ruff>=0.11.0",
-    "readme-standards==0.1.1; python_version >= \"3.11\"",
+    "readme-standards==0.1.3; python_version >= \"3.11\"",
 ]

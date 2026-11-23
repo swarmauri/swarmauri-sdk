@@ -82,7 +82,7 @@ url = "https://github.com/swarmauri/swarmauri-sdk/blob/master/tools/readme/POLIC
 label = "source and CI"
 url = "https://github.com/swarmauri/swarmauri-sdk/actions/workflows/readme-standards.yml"
 [dependency-groups]
-dev = ["pytest>=8", "pytest-asyncio", "ruff==0.15.21", "readme-standards==0.1.1; python_version >= \"3.11\""]
+dev = ["pytest>=8", "pytest-asyncio", "ruff==0.15.21", "readme-standards==0.1.3; python_version >= \"3.11\""]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
