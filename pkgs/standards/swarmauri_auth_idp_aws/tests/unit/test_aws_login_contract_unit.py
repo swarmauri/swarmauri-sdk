@@ -55,7 +55,9 @@ DEFAULT_SCOPE = "openid aws sso:account:access"
 class FakeResponse:
     """Minimal stand-in for an httpx response."""
 
-    def __init__(self, payload: Any, *, status: int = 200, error: bool = False) -> None:
+    def __init__(
+        self, payload: Any, *, status: int = 200, error: bool = False
+    ) -> None:
         self._payload = payload
         self.status_code = status
         self._error = error
@@ -183,7 +185,9 @@ def _assert_token_post(
     assert data["redirect_uri"] == REDIRECT_URI
     assert data["client_id"] == CLIENT_ID
     assert data["client_secret"] == "client-secret"
-    assert data["code_verifier"] == verify_state(STATE_SECRET, state)["verifier"]
+    assert (
+        data["code_verifier"] == verify_state(STATE_SECRET, state)["verifier"]
+    )
     return data
 
 
@@ -441,7 +445,9 @@ def test_resolver_lookup_user_min_lists_first_user_only(
     get = _FakeHttpGet(_role_creds())
     store = _FakeIdentityStore([_user("u-1"), _user("u-2")])
     monkeypatch.setattr("httpx.get", get)
-    monkeypatch.setattr("boto3.Session", lambda **kwargs: _FakeSession(store, **kwargs))
+    monkeypatch.setattr(
+        "boto3.Session", lambda **kwargs: _FakeSession(store, **kwargs)
+    )
     result = _resolver().lookup_user_min("access-token")
     assert result["userId"] == "u-1"
 
@@ -460,12 +466,16 @@ def test_resolver_credentials_http_error_raises(
 def test_resolver_missing_role_credentials_raises(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Current behavior, recorded: a response without roleCredentials raises
-    # KeyError rather than a typed error.
     get = _FakeHttpGet({})
     monkeypatch.setattr("httpx.get", get)
-    with pytest.raises(KeyError):
-        _resolver()._get_role_credentials("access-token")
+
+    def unexpected_session(**kwargs: Any):
+        pytest.fail("Missing role credentials must not create an AWS session")
+
+    monkeypatch.setattr("boto3.Session", unexpected_session)
+    # The original resolver raises KeyError; #6345 raises ValueError.
+    with pytest.raises((KeyError, ValueError), match="roleCredentials"):
+        _resolver().lookup_user_min("access-token")
 
 
 @pytest.mark.unit
@@ -476,6 +486,8 @@ def test_resolver_lookup_user_min_empty_users_raises(
     get = _FakeHttpGet(_role_creds())
     store = _FakeIdentityStore([])
     monkeypatch.setattr("httpx.get", get)
-    monkeypatch.setattr("boto3.Session", lambda **kwargs: _FakeSession(store, **kwargs))
+    monkeypatch.setattr(
+        "boto3.Session", lambda **kwargs: _FakeSession(store, **kwargs)
+    )
     with pytest.raises(IndexError):
         _resolver().lookup_user_min("access-token")
