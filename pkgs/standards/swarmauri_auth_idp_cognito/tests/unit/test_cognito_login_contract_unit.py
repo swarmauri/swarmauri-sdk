@@ -42,6 +42,7 @@ cannot run ``auth_url``/``exchange`` at all without this assignment).
 from __future__ import annotations
 
 import base64
+import json
 import hashlib
 import time
 from typing import Any, Dict, List, Optional
@@ -49,6 +50,8 @@ from urllib.parse import parse_qs, urlsplit
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 
 from swarmauri_auth_idp_cognito import (
@@ -82,101 +85,19 @@ METADATA = {
 # tokens and JWT bearer assertions below; the public half is served through
 # the fake JWKS endpoint and used to verify assertions. It is never used
 # outside this file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDRV/UMpGUSlPxC\n"
-    "OFBFDk2oaCQKhxermGu0/u2KOu8WuzmvpXlVyXErFkbXuGMDiPHRyV5RWX5Bwmfr\n"
-    "mobTbYaq5A6VVOh5hoWuICQU1qRWfH6ufTprXYUBH6WcIlmOjX6KPHwmc+AiRjfF\n"
-    "qBGfsK5tQTgLQSS0oy7Jhu1d+/y5gSdQYiT0hlqXZqC4sfj7pW7t4hwa7XiCiCvT\n"
-    "cnjcLIbzzYWWshQFt82u08CIZavRwRVUWRX6SUKvmOV0jCWzjvcAxVvTH8nDQk7p\n"
-    "FjY+uz/nZeLgK+Dnu+xVjHB4rBfH6peKng/ML7ez+dH33oFLvC2531yzaWcW0Uk9\n"
-    "7Q5GE6eHAgMBAAECggEAWNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDM\n"
-    "kjGL4rC3olpyFkDKVyopvuUNbkSk9D+LvGiWdKohvmtGmuxsN4EzQZem5+bK1l4+\n"
-    "nUlLXFrTQQ5ORoo26Ww2OW+AGQsLnU+hg/CVBefBpF/L6c6rRjGGfYKRP9PZQld8\n"
-    "kdwZ2abTjeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhD\n"
-    "W8BVxbs2lw2c3ZIZCW5feJD5t/lIDo+AHOCxponMpctKLikvgXvEvxf2pj9IGX09\n"
-    "IKgx4lcuDUhz3DJ/+g67wJQTzPy6XhAp1Luy0Z/UOQKBgQDxt3yMu+h8xkgAG/v/\n"
-    "sSDS7iz6HPQK8KQCtOI8ElDtlXJ399Vuq/SyxmYCKroENFmvt9eGqk1s6/PgbL6N\n"
-    "uUlX/kk7mar3RKVeJRYq5GJvk/d3zLoBo8y0FyTrPFU0dGKrHikcfYuyGg+SwohR\n"
-    "97vyzwDDUIASDbs0fn1Wo9NUnwKBgQDdtsDW+1o+5C6CMqzleOUVdpyYjpe3PkF2\n"
-    "fG0XSPfvZsESvDClfEIjX8905dV0QgtqhuYnDhmmDLv7xc4Al9aougY831R7q31A\n"
-    "7GxZ62vYKwnIu6htSmmfebHqvh+khiKPks77+6hB5JXV+9AXb0w/B4l3ylSKZaNQ\n"
-    "BwlR0XEcGQKBgQCCpSfecRnhhtIXrQhxVO1m1HDe5pNI7nPXOqkkysmPAD2UdhGX\n"
-    "9b0We4FbHnjYGOt4vCbzlEyw2H9CB8SemUz5EGnImu/7IdE3p1fp6vMBV7pjt/W5\n"
-    "OS1FEVVVB5EN/vHthym1Sm4c31UXf6lqlDmzrQq+hl4SY/WRE+Tu1TE+BQKBgArp\n"
-    "CFpL6if4IJXFmp58MYG54YDcW3jn9l63RsMDkzfTraKXYilykOqet13ARZ2/9kHa\n"
-    "u46mcfqq28FK/ZUn46dP6CissMKZMMO2HqraG+d6TrPzEBm4tLPlUC0GCBaXhzHb\n"
-    "fpYFz0TW08zA5H+SuYTMgSZE7Z4V3FB+2CWPkepZAoGAT3BhBtnaeauv7zX/hTHS\n"
-    "mxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkRO8VvNitH6Qa18pEfK1mJV3Wv\n"
-    "jYzAro9YMCLRiGp8cVibK+WdLXEjfdEInLT7jbRNkaZuNi7abg+7+BMX1iInLZPI\n"
-    "dwmn5AISPRKxmpl+rXQyeU8=\n"
-    "-----END PRIVATE KEY-----\n"
-    ""
+_RSA_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+TEST_PRIVATE_KEY_PEM = _RSA_KEY.private_bytes(
+    serialization.Encoding.PEM,
+    serialization.PrivateFormat.PKCS8,
+    serialization.NoEncryption(),
+).decode("ascii")
+TEST_JWK = json.loads(
+    jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY.public_key())
 )
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hj"
-        "A4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-l"
-        "nCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZa"
-        "l2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV"
-        "-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qX"
-        "ip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw"
-    ),
-    "e": "AQAB",
-}
-# Private half of TEST_JWK, for the OAuth 2.1 app-client JWT assertion.
-TEST_PRIVATE_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "0Vf1DKRlEpT8QjhQRQ5NqGgkCocXq5hrtP7tijrvFrs5r6V5VclxKxZG17hj"
-        "A4jx0cleUVl-QcJn65qG022GquQOlVToeYaFriAkFNakVnx-rn06a12FAR-l"
-        "nCJZjo1-ijx8JnPgIkY3xagRn7CubUE4C0EktKMuyYbtXfv8uYEnUGIk9IZa"
-        "l2aguLH4-6Vu7eIcGu14gogr03J43CyG882FlrIUBbfNrtPAiGWr0cEVVFkV"
-        "-klCr5jldIwls473AMVb0x_Jw0JO6RY2Prs_52Xi4Cvg57vsVYxweKwXx-qX"
-        "ip4PzC-3s_nR996BS7wtud9cs2lnFtFJPe0ORhOnhw"
-    ),
-    "e": "AQAB",
-    "d": (
-        "WNTTiZlKwE9TGcBuo1b18hO603LOwwRLFAMnBgSLBuDMkjGL4rC3olpyFkDK"
-        "VyopvuUNbkSk9D-LvGiWdKohvmtGmuxsN4EzQZem5-bK1l4-nUlLXFrTQQ5O"
-        "Roo26Ww2OW-AGQsLnU-hg_CVBefBpF_L6c6rRjGGfYKRP9PZQld8kdwZ2abT"
-        "jeQ4a7NNYyKnwo4UZ5yVczjzRyTV2bMBoS0ITl5BFRuQLjtInp7YrRhDW8BV"
-        "xbs2lw2c3ZIZCW5feJD5t_lIDo-AHOCxponMpctKLikvgXvEvxf2pj9IGX09"
-        "IKgx4lcuDUhz3DJ_-g67wJQTzPy6XhAp1Luy0Z_UOQ"
-    ),
-    "p": (
-        "8bd8jLvofMZIABv7_7Eg0u4s-hz0CvCkArTiPBJQ7ZVyd_fVbqv0ssZmAiq6"
-        "BDRZr7fXhqpNbOvz4Gy-jblJV_5JO5mq90SlXiUWKuRib5P3d8y6AaPMtBck"
-        "6zxVNHRiqx4pHH2LshoPksKIUfe78s8Aw1CAEg27NH59VqPTVJ8"
-    ),
-    "q": (
-        "3bbA1vtaPuQugjKs5XjlFXacmI6Xtz5BdnxtF0j372bBErwwpXxCI1_PdOXV"
-        "dEILaobmJw4Zpgy7-8XOAJfWqLoGPN9Ue6t9QOxsWetr2CsJyLuobUppn3mx"
-        "6r4fpIYij5LO-_uoQeSV1fvQF29MPweJd8pUimWjUAcJUdFxHBk"
-    ),
-    "dp": (
-        "gqUn3nEZ4YbSF60IcVTtZtRw3uaTSO5z1zqpJMrJjwA9lHYRl_W9FnuBWx54"
-        "2BjreLwm85RMsNh_QgfEnplM-RBpyJrv-yHRN6dX6erzAVe6Y7f1uTktRRFV"
-        "VQeRDf7x7YcptUpuHN9VF3-papQ5s60KvoZeEmP1kRPk7tUxPgU"
-    ),
-    "dq": (
-        "CukIWkvqJ_gglcWannwxgbnhgNxbeOf2XrdGwwOTN9OtopdiKXKQ6p63XcBF"
-        "nb_2Qdq7jqZx-qrbwUr9lSfjp0_oKKywwpkww7Yeqtob53pOs_MQGbi0s-VQ"
-        "LQYIFpeHMdt-lgXPRNbTzMDkf5K5hMyBJkTtnhXcUH7YJY-R6lk"
-    ),
-    "qi": (
-        "T3BhBtnaeauv7zX_hTHSmxUI0ZNSkIRMihQnB5CiogxNtTK9bjZ05BfGINkR"
-        "O8VvNitH6Qa18pEfK1mJV3WvjYzAro9YMCLRiGp8cVibK-WdLXEjfdEInLT7"
-        "jbRNkaZuNi7abg-7-BMX1iInLZPIdwmn5AISPRKxmpl-rXQyeU8"
-    ),
-}
+TEST_JWK.update(kid="test-key-1", use="sig", alg="RS256")
+TEST_JWKS = {"keys": [TEST_JWK]}
+TEST_PRIVATE_JWK = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(_RSA_KEY))
+TEST_PRIVATE_JWK.update(kid="test-key-1", use="sig", alg="RS256")
 
 
 class FakeHTTPError(Exception):
@@ -523,7 +444,7 @@ async def test_oauth21_exchange_returns_identity_from_id_token() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(CognitoOAuth21Login, factory)
     payload = await login.auth_url()
@@ -552,7 +473,7 @@ async def test_oauth21_exchange_name_falls_back_to_given_name() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(CognitoOAuth21Login, factory)
     payload = await login.auth_url()
@@ -582,7 +503,7 @@ async def test_oauth21_exchange_missing_sub_raises() -> None:
     id_token = _make_id_token(sub=None, email="user@example.com")
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(CognitoOAuth21Login, factory)
     payload = await login.auth_url()
@@ -604,7 +525,7 @@ async def test_oidc_exchange_returns_claims() -> None:
     )
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
-        get_responses=[DummyResponse({"keys": [TEST_JWK]})],
+        get_responses=[DummyResponse(TEST_JWKS)],
     )
     login = _login(CognitoOIDC10Login, factory)
     payload = await login.auth_url()
@@ -628,7 +549,7 @@ async def test_oidc_exchange_userinfo_fills_missing_email() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse({"email": "filled@example.com"}),
         ],
     )
@@ -650,7 +571,7 @@ async def test_oidc_exchange_userinfo_fills_unknown_name() -> None:
     factory = DummyClientFactory(
         post_responses=[DummyResponse(_token_payload(id_token=id_token))],
         get_responses=[
-            DummyResponse({"keys": [TEST_JWK]}),
+            DummyResponse(TEST_JWKS),
             DummyResponse({"name": "Userinfo User"}),
         ],
     )
