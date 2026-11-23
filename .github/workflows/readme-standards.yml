@@ -24,7 +24,7 @@ jobs:
         run: >-
           uv run --no-project --with ruff==0.15.21 ruff check --isolated
           --select F821 --config 'include = ["**/docs/readme/*.py"]' .
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: readme-standards-results
@@ -44,7 +44,7 @@ jobs:
           --with "httpx>=0.27,<0.29" --with "numpy>=1.26.4" --with starlette
           --with "toml>=0.10.2" --with "cryptography>=45" --with pytest
           python tools/readme/verify_tls_examples.py --junitxml=tls-readme-results.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: tls-readme-results
