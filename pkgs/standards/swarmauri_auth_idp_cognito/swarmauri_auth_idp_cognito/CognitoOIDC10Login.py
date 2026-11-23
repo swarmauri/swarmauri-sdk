@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
-from pydantic import Field, SecretBytes, SecretStr
+from pydantic import Field, PrivateAttr, SecretBytes, SecretStr
 from swarmauri_base.ComponentBase import ComponentBase
-from swarmauri_base.auth_idp import OIDC10LoginBase, make_pkce_pair, sign_state
+from swarmauri_base.auth_idp import (
+    OIDC10LoginBase,
+    RetryingAsyncClient,
+    make_pkce_pair,
+    sign_state,
+)
 
 from .CognitoLoginMixin import CognitoLoginMixin
 
@@ -23,6 +28,11 @@ class CognitoOIDC10Login(CognitoLoginMixin, OIDC10LoginBase):
     redirect_uri: str
     state_secret: SecretBytes
     scope: str = Field(default="openid email profile")
+
+    _http_client_factory: Callable[[], RetryingAsyncClient] = PrivateAttr(
+        default=RetryingAsyncClient
+    )
+    _discovery: Mapping[str, Any] | None = PrivateAttr(default=None)
 
     async def auth_url(self) -> Mapping[str, str]:
         metadata = await self._metadata()
