@@ -13,6 +13,10 @@ class SalesforceOIDCLoginMixin(SalesforceOAuthLoginMixin):
     """Extend the Salesforce OAuth mixin with discovery and ID token
     verification."""
 
+    # An OIDC request must carry the openid scope, or Salesforce returns no
+    # id_token; refresh_token stays so the exchange still issues one.
+    scope: str = "openid refresh_token"
+
     discovery_cache: Optional[Mapping[str, Any]] = None
 
     DISCOVERY_PATH = "/.well-known/openid-configuration"
