@@ -3,8 +3,8 @@ from transformers import BertTokenizer, BertModel
 from typing import Literal
 from pydantic import PrivateAttr
 
-from swarmauri.embeddings.base.EmbeddingBase import EmbeddingBase
-from swarmauri.vectors.concrete.Vector import Vector
+from swarmauri_base.embeddings.EmbeddingBase import EmbeddingBase
+from swarmauri_standard.vectors.Vector import Vector
 
 
 class SpatialDocEmbedding(EmbeddingBase):
@@ -29,6 +29,14 @@ class SpatialDocEmbedding(EmbeddingBase):
                 "[SUBSECTION]",
             ]
         }
+        self._tokenizer = None
+        self._model = None
+        self._device = None
+
+    def _ensure_model(self):
+        """Load model weights only when an embedding is requested."""
+        if self._model is not None:
+            return
         self._tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         self._tokenizer.add_special_tokens(self._special_tokens_dict)
         self._model = BertModel.from_pretrained(
@@ -53,6 +61,7 @@ class SpatialDocEmbedding(EmbeddingBase):
         return metadata_str + " " + text if metadata_components else text
 
     def tokenize_and_encode(self, text):
+        self._ensure_model()
         inputs = self._tokenizer(
             text,
             return_tensors="pt",

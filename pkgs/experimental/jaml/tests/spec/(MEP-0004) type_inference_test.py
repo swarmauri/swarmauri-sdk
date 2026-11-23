@@ -9,7 +9,8 @@ from jaml import loads
 
 @pytest.mark.spec
 @pytest.mark.mep0004
-# @pytest.mark.xfail(reason="Inference for basic scalar types is not yet implemented")
+# @pytest.mark.xfail(reason="Inference for basic scalar types is not yet
+# implemented")
 def test_infer_basic_scalars():
     """
     Tests basic scalar inference for integer, float, boolean, null, and string.
@@ -36,10 +37,12 @@ def test_infer_basic_scalars():
 
 @pytest.mark.spec
 @pytest.mark.mep0004
-# @pytest.mark.xfail(reason="Inference for numeric prefixes and special float values not yet implemented")
+# @pytest.mark.xfail(reason="Inference for numeric prefixes and special float
+# values not yet implemented")
 def test_infer_numeric_prefixes_and_specials():
     """
-    Tests inference for octal, hexadecimal, binary integers, and special float values (inf, nan).
+    Tests inference for octal, hexadecimal, binary integers, and special float
+    values (inf, nan).
     """
     source = """
     [numbers]
@@ -62,7 +65,8 @@ def test_infer_numeric_prefixes_and_specials():
 
 @pytest.mark.spec
 @pytest.mark.mep0004
-# @pytest.mark.xfail(reason="Inference for lists, including multiline arrays, not fully implemented")
+# @pytest.mark.xfail(reason="Inference for lists, including multiline arrays,
+# not fully implemented")
 def test_infer_lists():
     """
     Tests that lists/arrays are correctly inferred as list types.
@@ -87,10 +91,12 @@ def test_infer_lists():
 
 @pytest.mark.spec
 @pytest.mark.mep0004
-# @pytest.mark.xfail(reason="Inference for inline tables not fully implemented")
+# @pytest.mark.xfail(reason="Inference for inline tables not fully
+# implemented")
 def test_infer_inline_tables():
     """
-    Verifies that inline tables (dict-like structures) are inferred as 'table' objects.
+    Verifies that inline tables (dict-like structures) are inferred as 'table'
+    objects.
     """
     source = """
     [inline]
@@ -105,10 +111,12 @@ def test_infer_inline_tables():
 
 @pytest.mark.spec
 @pytest.mark.mep0004
-# @pytest.mark.xfail(reason="Heterogeneous lists might require special behavior or error reporting")
+# @pytest.mark.xfail(reason="Heterogeneous lists might require special behavior
+# or error reporting")
 def test_heterogeneous_list_inference():
     """
-    MEP-004 open issue: lists with mixed types. Should it be a generic list or raise warning/error?
+    MEP-004 open issue: lists with mixed types. Should it be a generic list or
+    raise warning/error?
     """
     source = 'mixed = ["a", 1, true]'
     loads(source)

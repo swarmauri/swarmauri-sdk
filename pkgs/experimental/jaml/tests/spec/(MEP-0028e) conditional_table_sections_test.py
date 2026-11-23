@@ -43,7 +43,8 @@ BASE_CONTEXT = {
     ],
 }
 
-expected_result = r"""
+expected_result = (
+    r"""
 rootDir = "src"
 packages = {
     "name": "auth",
@@ -95,7 +96,8 @@ module = {
 name = "login.py"
 path = "new_src/auth/login.py"
 type = "python"
-test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_login", "test_v2_auth"] }
+test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_login","""
+    r""" "test_v2_auth"] }
 
 [file.auth.signup.source]
 package = {
@@ -126,9 +128,11 @@ module =  {
 name = "signup.py"
 path = "new_src/auth/signup.py"
 type = "python"
-test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source", "test_v2_auth"] }
+test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source","""
+    r""" "test_v2_auth"] }
 
 """
+)
 
 
 @pytest.mark.xfail(reason="Pending proper implementation")
@@ -136,7 +140,8 @@ test_conf = { "testFramework" = "pytest", "tests" = ["test_v2_source", "test_v2_
 @pytest.mark.mep0028e
 def test_section_header_with_alias():
     """
-    Validate that updating the 'rootDir' in the AST leads to an updated path in the rendered output.
+    Validate that updating the 'rootDir' in the AST leads to an updated path in
+    the rendered output.
     """
     data = round_trip_loads(JML_INPUT)
     print("\n\n[TEST DEBUG]:")

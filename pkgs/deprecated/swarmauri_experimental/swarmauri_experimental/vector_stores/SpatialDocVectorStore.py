@@ -1,15 +1,15 @@
 from typing import List, Union, Literal
-from swarmauri.documents.concrete.Document import Document
+from swarmauri_standard.documents.Document import Document
 from swarmauri.embeddings.concrete.SpatialDocEmbedding import (
     SpatialDocEmbedding,
 )
 from swarmauri_standard.similarities.CosineSimilarity import CosineSimilarity
 
-from swarmauri.vector_stores.base.VectorStoreBase import VectorStoreBase
-from swarmauri.vector_stores.base.VectorStoreRetrieveMixin import (
+from swarmauri_base.vector_stores.VectorStoreBase import VectorStoreBase
+from swarmauri_base.vector_stores.VectorStoreRetrieveMixin import (
     VectorStoreRetrieveMixin,
 )
-from swarmauri.vector_stores.base.VectorStoreSaveLoadMixin import (
+from swarmauri_base.vector_stores.VectorStoreSaveLoadMixin import (
     VectorStoreSaveLoadMixin,
 )
 

@@ -1,4 +1,5 @@
 import pytest
+from importlib import import_module
 from unittest.mock import patch
 
 from swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool import (
@@ -66,7 +67,10 @@ def test_tool_call_success(tool: JupyterDisplayHtmlTool) -> None:
     )
 
 
-@patch("swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool.display")
+@patch.object(
+    import_module("swarmauri_tool_jupyterdisplayhtml.JupyterDisplayHtmlTool"),
+    "display",
+)
 def test_tool_call_error(mock_display, tool: JupyterDisplayHtmlTool) -> None:
     """
     Tests that the tool handles exceptions during HTML display operations

@@ -1,7 +1,10 @@
 import httpx
 
 from swarmauri_canon_http import HttpClient
-from tests.parity.httpx.helpers import RecordingConnection, patch_http_connections
+from tests.parity.httpx.helpers import (
+    RecordingConnection,
+    patch_http_connections,
+)
 
 
 def test_httpx_mock_transport_handles_request_without_network():

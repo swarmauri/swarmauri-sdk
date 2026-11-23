@@ -21,12 +21,15 @@ class HTTP2Frame:
     """
     Represents an HTTP/2 frame.
 
-    An HTTP/2 frame consists of a 9-byte header followed by a variable-length payload.
+    An HTTP/2 frame consists of a 9-byte header followed by a variable-length
+    payload.
     The header format is:
-      - Length: 24 bits (3 bytes, big-endian) specifying the length of the payload.
+      - Length: 24 bits (3 bytes, big-endian) specifying the length of the
+        payload.
       - Type: 8 bits (1 byte) indicating the frame type.
       - Flags: 8 bits (1 byte) for frame-specific flags.
-      - R + Stream Identifier: 1 reserved bit and 31 bits (4 bytes, big-endian) for the stream ID.
+      - R + Stream Identifier: 1 reserved bit and 31 bits (4 bytes, big-
+        endian) for the stream ID.
     """
 
     HEADER_LENGTH = 9
@@ -37,19 +40,23 @@ class HTTP2Frame:
 
         :param frame_type: Integer (0-255) representing the frame type.
         :param flags: Integer (0-255) representing frame-specific flags.
-        :param stream_id: Integer for the stream identifier (only the lower 31 bits are used).
+        :param stream_id: Integer for the stream identifier (only the lower 31
+          bits are used).
         :param payload: Bytes payload of the frame.
         """
         self.frame_type = frame_type
         self.flags = flags
-        self.stream_id = stream_id & 0x7FFFFFFF  # Ensure only 31 bits are used.
+        self.stream_id = (
+            stream_id & 0x7FFFFFFF
+        )  # Ensure only 31 bits are used.
         self.payload = payload
 
     def pack(self):
         """
         Pack the frame into its binary representation.
 
-        :return: A bytes object containing the 9-byte header followed by the payload.
+        :return: A bytes object containing the 9-byte header followed by the
+          payload.
         """
         length = len(self.payload)
         header = (
@@ -66,8 +73,10 @@ class HTTP2Frame:
         Unpack a single HTTP/2 frame from the given data.
 
         :param data: Bytes containing at least one complete frame.
-        :return: A tuple (frame, remaining_bytes), where 'frame' is an HTTP2Frame instance
-                 and 'remaining_bytes' contains any extra data after this frame.
+        :return: A tuple (frame, remaining_bytes), where 'frame' is an
+          HTTP2Frame instance
+                 and 'remaining_bytes' contains any extra data after this
+                 frame.
         :raises ValueError: If there is insufficient data for a complete frame.
         """
         if len(data) < cls.HEADER_LENGTH:

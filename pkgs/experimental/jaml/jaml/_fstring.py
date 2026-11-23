@@ -63,21 +63,26 @@ def _lookup(path: str, *envs: Optional[Dict[str, Any]]) -> Optional[Any]:
 # utils.py
 
 
-# ────────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # ① expand global- and local-scope f-strings
-def _eval_fstrings(mapping: Dict[str, Any]):
+def _eval_fstrings(mapping: Dict[str, Any], global_data=None):
+    if global_data is None:
+        global_data = mapping
     for key, val in list(mapping.items()):
-        if isinstance(val, str) and (val.startswith('f"') or val.startswith("f'")):
-            # Skip context-scoped placeholders (${…}), only expand static f-strings
+        if isinstance(val, str) and (
+            val.startswith('f"') or val.startswith("f'")
+        ):
+            # Skip context-scoped placeholders (${…}), only expand static
+            # f-strings
             if "${" not in val:
                 mapping[key] = _evaluate_f_string(
                     val,
-                    global_data=mapping,
+                    global_data=global_data,
                     local_data=mapping,
                     context={},
                 )
         elif isinstance(val, dict):
-            _eval_fstrings(val)
+            _eval_fstrings(val, global_data)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -97,9 +102,12 @@ def _evaluate_f_string(
     Marker semantics
     ────────────────
     • ``@{var}``  → search *only* the global/root mapping
-    • ``%{var}``  → start at *local_data* (section scope), fall back to *global_data*
-    • ``{expr}``  → same lookup as ``%{}``; if unresolved, try ``safe_eval(expr)``
-    • ``${var}``  → search the caller‑supplied *context*, then local, then global
+    • ``%{var}``  → start at *local_data* (section scope), fall back to
+    *global_data*
+    • ``{expr}``  → same lookup as ``%{}``; if unresolved, try
+    ``safe_eval(expr)``
+    • ``${var}``  → search the caller‑supplied *context*, then local, then
+    global
 
     Unresolved placeholders are returned verbatim so round‑trip fidelity is
     preserved.
@@ -108,7 +116,12 @@ def _evaluate_f_string(
 
     # Must begin with f"… or f'…
     if not (f_str.startswith('f"') or f_str.startswith("f'")):
-        print("[DEBUG _fstring._evaluate_f_string] Not an f-string; returning as‑is.")
+        print(
+            (
+                "[DEBUG _fstring._evaluate_f_string] Not an f-string; "
+                "returning as‑is."
+            )
+        )
         return f_str
 
     # Strip leading f and its surrounding quotes
@@ -117,11 +130,15 @@ def _evaluate_f_string(
         quote_char = inner[0]
         inner = inner[1:-1] if inner.endswith(quote_char) else inner[1:]
     print(
-        "[DEBUG _fstring._evaluate_f_string] After removing f prefix and quotes, inner:",
+        (
+            "[DEBUG _fstring._evaluate_f_string] After removing f prefix and"
+            " quotes, inner:"
+        ),
         inner,
     )
 
-    # ───────────────────────────────────────────────────────── placeholder pass
+    # ───────────────────────────────────────────────────────── placeholder
+    # pass
     def repl(match: "re.Match[str]") -> str:
         scope_marker, content = match.groups()
         content = content.strip()
@@ -142,7 +159,10 @@ def _evaluate_f_string(
             value = _lookup(content, context, local_data, global_data)
             if value is None:
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Context lookup failed for",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Context lookup "
+                        "failed for"
+                    ),
                     content,
                 )
                 return match.group(0)
@@ -164,14 +184,20 @@ def _evaluate_f_string(
             try:
                 value = safe_eval(content, local_env=local_data)
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Evaluated expression:",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Evaluated "
+                        "expression:"
+                    ),
                     content,
                     "to:",
                     value,
                 )
             except Exception as exc:
                 print(
-                    "[DEBUG _fstring._evaluate_f_string] Expression evaluation failed:",
+                    (
+                        "[DEBUG _fstring._evaluate_f_string] Expression "
+                        "evaluation failed:"
+                    ),
                     exc,
                 )
                 return match.group(0)
@@ -191,13 +217,20 @@ def _evaluate_f_string(
         return str(value)
 
     substituted = _VAR_RE.sub(repl, inner)
-    print("[DEBUG _fstring._evaluate_f_string] After substitution:", substituted)
+    print(
+        "[DEBUG _fstring._evaluate_f_string] After substitution:", substituted
+    )
 
     # If the whole string now looks like a simple literal/expression, eval it
-    if re.fullmatch(r"[\d\s+\-*/().]+|true|false|null", substituted, flags=re.I):
+    if re.fullmatch(
+        r"[\d\s+\-*/().]+|true|false|null", substituted, flags=re.I
+    ):
         try:
             evaluated = safe_eval(substituted, local_env=local_data)
-            print("[DEBUG _fstring._evaluate_f_string] safe_eval result:", evaluated)
+            print(
+                "[DEBUG _fstring._evaluate_f_string] safe_eval result:",
+                evaluated,
+            )
             return str(evaluated)
         except Exception as exc:
             print("[DEBUG _fstring._evaluate_f_string] safe_eval failed:", exc)

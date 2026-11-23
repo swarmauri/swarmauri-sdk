@@ -9,7 +9,9 @@ from tests.parity.httpx.helpers import (
 
 
 def test_httpx_request_object_exposes_rich_api():
-    request = httpx.Request("POST", "https://example.com/api", json={"ok": True})
+    request = httpx.Request(
+        "POST", "https://example.com/api", json={"ok": True}
+    )
 
     assert request.method == "POST"
     assert request.url.path == "/api"
@@ -17,7 +19,9 @@ def test_httpx_request_object_exposes_rich_api():
 
 
 def test_httpx_response_object_has_status_helpers_and_errors():
-    response = httpx.Response(404, request=httpx.Request("GET", "https://example.com"))
+    response = httpx.Response(
+        404, request=httpx.Request("GET", "https://example.com")
+    )
 
     assert response.is_error is True
 

@@ -2,9 +2,9 @@ import inspect
 from threading import Lock
 from typing import Dict, List, Optional, Tuple
 
-from swarmauri.conversations.base.ConversationBase import ConversationBase
-from swarmauri.messages.concrete.HumanMessage import HumanMessage
-from swarmauri.messages.concrete.SystemMessage import SystemMessage
+from swarmauri_base.conversations.ConversationBase import ConversationBase
+from swarmauri_standard.messages.HumanMessage import HumanMessage
+from swarmauri_standard.messages.SystemMessage import SystemMessage
 from swarmauri_core.messages.IMessage import IMessage
 
 

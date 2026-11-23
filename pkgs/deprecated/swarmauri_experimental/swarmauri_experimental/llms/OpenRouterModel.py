@@ -3,11 +3,11 @@ from typing import List, Dict, Literal, AsyncIterator, Iterator, Optional
 from openai import OpenAI, AsyncOpenAI
 from pydantic import Field
 import asyncio
-from swarmauri_core.typing import SubclassUnion
+from swarmauri_base import SubclassUnion
 
-from swarmauri.messages.base.MessageBase import MessageBase
-from swarmauri.messages.concrete.AgentMessage import AgentMessage
-from swarmauri.llms.base.LLMBase import LLMBase
+from swarmauri_base.messages.MessageBase import MessageBase
+from swarmauri_standard.messages.AgentMessage import AgentMessage
+from swarmauri_base.llms.LLMBase import LLMBase
 
 
 class OpenRouterModel(LLMBase):

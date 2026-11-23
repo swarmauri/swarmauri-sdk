@@ -1,7 +1,10 @@
 import httpx
 
 from swarmauri_canon_http import HttpClient
-from tests.parity.httpx.helpers import RecordingConnection, patch_http_connections
+from tests.parity.httpx.helpers import (
+    RecordingConnection,
+    patch_http_connections,
+)
 
 
 def test_query_param_encoding_matches_httpx(monkeypatch):

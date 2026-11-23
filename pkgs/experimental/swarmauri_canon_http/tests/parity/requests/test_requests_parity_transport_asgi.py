@@ -13,7 +13,7 @@ def _load_swarmauri_transport_asgi():
         return importlib.import_module("swarmauri_transport_asgi")
     except Exception as exc:  # pragma: no cover - environment dependent
         pytest.skip(
-            f"swarmauri_transport_asgi is unavailable in this environment: {exc}",
+            f"swarmauri_transport_asgi is unavailable: {exc}",
             allow_module_level=False,
         )
 
@@ -48,7 +48,9 @@ def test_swarmauri_asgi_transport_is_constructible_like_httpx_with_app():
     swarmauri_transport = _build_swarmauri_sample_transport()
 
     assert isinstance(httpx_transport, httpx.ASGITransport)
-    assert isinstance(swarmauri_transport, swarmauri_transport_asgi.ASGITransport)
+    assert isinstance(
+        swarmauri_transport, swarmauri_transport_asgi.ASGITransport
+    )
 
 
 @pytest.mark.parametrize(
@@ -67,11 +69,13 @@ def test_swarmauri_asgi_transport_has_no_httpx_specific_constructor_options(
     _build_httpx_sample_transport(**transport_kwargs)
 
     with pytest.raises(TypeError):
-        _build_swarmauri_sample_transport(app=_noop_asgi_app, **transport_kwargs)
+        _build_swarmauri_sample_transport(
+            app=_noop_asgi_app, **transport_kwargs
+        )
 
 
 @pytest.mark.asyncio
-async def test_swarmauri_asgi_transport_is_not_usable_as_httpx_async_client_transport():
+async def test_asgi_transport_is_not_an_httpx_async_transport():
     _load_swarmauri_transport_asgi()
 
     async def app(scope, receive, send):

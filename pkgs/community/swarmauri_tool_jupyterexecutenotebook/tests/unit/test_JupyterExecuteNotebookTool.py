@@ -5,6 +5,7 @@ the JupyterExecuteNotebookTool class. The tests ensure that the tool correctly
 executes Jupyter notebooks, handles errors, and returns the expected results.
 """
 
+from importlib import import_module
 from unittest.mock import patch, MagicMock, mock_open
 from nbclient.exceptions import CellExecutionError
 from nbformat.notebooknode import NotebookNode
@@ -43,8 +44,11 @@ def test_default_attributes() -> None:
 
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 @patch("nbformat.read")
-@patch(
-    "swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool.NotebookClient"
+@patch.object(
+    import_module(
+        "swarmauri_tool_jupyterexecutenotebook.JupyterExecuteNotebookTool"
+    ),
+    "NotebookClient",
 )
 def test_call_executes_notebook(
     mock_notebook_client: MagicMock,

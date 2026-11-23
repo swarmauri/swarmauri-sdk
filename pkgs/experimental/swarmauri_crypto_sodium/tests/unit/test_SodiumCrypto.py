@@ -14,18 +14,12 @@ from swarmauri_core.crypto.types import (
     WrappedKey,
 )
 
-try:
-    from swarmauri_crypto_sodium import SodiumCrypto
-    from swarmauri_crypto_sodium.SodiumCrypto import (
-        _CRYPTO_BOX_PUBLICKEYBYTES,
-        _CRYPTO_BOX_SECRETKEYBYTES,
-        _sodium,
-    )
-except Exception as exc:  # pragma: no cover - handled by pytest.skip
-    pytest.skip(
-        f"swarmauri_crypto_sodium import failed: {exc}",
-        allow_module_level=True,
-    )
+from swarmauri_crypto_sodium import SodiumCrypto
+from swarmauri_crypto_sodium.SodiumCrypto import (
+    _CRYPTO_BOX_PUBLICKEYBYTES,
+    _CRYPTO_BOX_SECRETKEYBYTES,
+    _sodium,
+)
 
 
 @pytest.fixture
@@ -551,9 +545,10 @@ async def test_decrypt_uses_explicit_aad_when_provided(
     sodium_crypto, symmetric_key
 ):
     ct = await sodium_crypto.encrypt(symmetric_key, b"aad-data", aad=b"orig")
-    new_aad = b"override"
-    decrypted = await sodium_crypto.decrypt(symmetric_key, ct, aad=new_aad)
+    decrypted = await sodium_crypto.decrypt(symmetric_key, ct, aad=b"orig")
     assert decrypted == b"aad-data"
+    with pytest.raises(IntegrityError):
+        await sodium_crypto.decrypt(symmetric_key, ct, aad=b"override")
 
 
 @pytest.mark.asyncio

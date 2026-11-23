@@ -38,5 +38,6 @@ def test_canon_client_has_no_wsgi_transport_constructor_parity():
 
     with pytest.raises(TypeError):
         HttpClient(
-            base_url="http://example.com", transport=httpx.WSGITransport(app=app)
+            base_url="http://example.com",
+            transport=httpx.WSGITransport(app=app),
         )

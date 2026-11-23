@@ -248,17 +248,21 @@ def test_functional_logging(temp_log_file):
     # Set up a logger
     logger = logging.getLogger("test_logger")
     logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler_config.compile_handler())
+    handler = handler_config.compile_handler()
+    logger.addHandler(handler)
 
     # Log a test message
     test_message = "This is a test log message"
-    logger.debug(test_message)
+    try:
+        logger.debug(test_message)
 
-    # Verify the message was written to the file
-    with open(temp_log_file, "r") as f:
-        log_content = f.read()
-
-    assert test_message in log_content
+        # Verify the message was written to the file.
+        with open(temp_log_file, "r") as f:
+            log_content = f.read()
+        assert test_message in log_content
+    finally:
+        logger.removeHandler(handler)
+        handler.close()
 
 
 @pytest.mark.unit

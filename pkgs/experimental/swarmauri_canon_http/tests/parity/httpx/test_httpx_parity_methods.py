@@ -31,7 +31,9 @@ def test_sync_method_parity_with_httpx(monkeypatch, method_name, http_method):
         )
     else:
         getattr(client, method_name)("/resource")
-        expected = build_httpx_request(http_method, "http://example.com/resource")
+        expected = build_httpx_request(
+            http_method, "http://example.com/resource"
+        )
 
     sent = RecordingConnection.last_request
     assert sent["method"] == expected.method

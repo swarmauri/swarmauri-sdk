@@ -222,7 +222,7 @@ Inspect [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/
 ### Entry Points
 
 <!-- readme-standards:begin entry-points -->
-- `swarmauri.middlewares` → `ExceptionHandlingMiddleware` → `swarmauri_middleware_exceptionhandling:ExceptionHandlingMiddleware'`
+- `swarmauri.middlewares` → `ExceptionHandlingMiddleware` → `swarmauri_middleware_exceptionhandling:ExceptionHandlingMiddleware`
 <!-- readme-standards:end entry-points -->
 
 ### Injected Dependencies

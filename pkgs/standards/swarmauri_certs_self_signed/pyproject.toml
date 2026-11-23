@@ -24,6 +24,7 @@ dependencies = [
     "swarmauri_core",
     "swarmauri_base",
     "cryptography",
+    "typing-extensions>=4.12",
 ]
 keywords = [
     'swarmauri',

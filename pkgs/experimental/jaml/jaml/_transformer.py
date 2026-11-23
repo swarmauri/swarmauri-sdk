@@ -49,6 +49,22 @@ if TYPE_CHECKING:
 
 
 class ConfigTransformer(Transformer):
+    @v_args(meta=True)
+    def merge_entry(self, meta, items):
+        node = AssignmentNode()
+        node.identifier = Token("IDENTIFIER", "<<")
+        node.equals = Token("SETTER", ":")
+        node.value = str(items[-1])
+        node.meta = meta
+        return node
+
+    def LEGACY_EXPR(self, token):
+        from ._ast_nodes import LegacyExpressionNode
+
+        node = LegacyExpressionNode()
+        node.origin = node.value = str(token)
+        return node
+
     def __init__(self, debug=True):
         super().__init__()
         self.debug = debug
@@ -81,7 +97,9 @@ class ConfigTransformer(Transformer):
         )
 
         self.debug_print("start() called with items")
-        node = StartNode(data=self._root_data, contents=items, origin="", meta=meta)
+        node = StartNode(
+            data=self._root_data, contents=items, origin="", meta=meta
+        )
         node.lines = []
 
         # ─────────────────── collect top‑level lines
@@ -103,7 +121,8 @@ class ConfigTransformer(Transformer):
                         child,
                         (
                             SectionNode,
-                            TableArraySectionNode,  # <— now captured in line children
+                            # <— now captured in line children
+                            TableArraySectionNode,
                             AssignmentNode,
                             CommentNode,
                             NewlineNode,
@@ -256,7 +275,9 @@ class ConfigTransformer(Transformer):
         for comment_text in node.__comments__:
             for c in reversed(node.contents):
                 if isinstance(c, AssignmentNode):
-                    c.inline_comment = Token("INLINE_COMMENT", "  " + comment_text)
+                    c.inline_comment = Token(
+                        "INLINE_COMMENT", "  " + comment_text
+                    )
                     break
         node.__comments__ = []
 
@@ -281,13 +302,17 @@ class ConfigTransformer(Transformer):
             )
         else:
             raw_key = (
-                node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+                node.header.emit()
+                if hasattr(node.header, "emit")
+                else str(node.header)
             )
             self.data[raw_key] = {}
             self.current_section = self.data[raw_key]
             self._last_section = self.current_section
             self._last_section_name = raw_key
-            self.debug_print(f"section(): Processing dynamic section {raw_key}")
+            self.debug_print(
+                f"section(): Processing dynamic section {raw_key}"
+            )
 
         # relocate assignments primed into root back into this section
         from ._ast_nodes import AssignmentNode as _AssignmentNode
@@ -295,7 +320,10 @@ class ConfigTransformer(Transformer):
         for child in node.contents:
             if isinstance(child, _AssignmentNode):
                 key = child.identifier.value
-                if key in self.data and self.data[key] is not self.current_section:
+                if (
+                    key in self.data
+                    and self.data[key] is not self.current_section
+                ):
                     self.data.pop(key, None)
                     if hasattr(child.value, "evaluate"):
                         try:
@@ -307,7 +335,10 @@ class ConfigTransformer(Transformer):
                         val = child.value
                     self.current_section[key] = val
                     self.debug_print(
-                        f"section(): Moved assignment '{key}' into section '{self._last_section_name}'"
+                        (
+                            f"section(): Moved assignment '{key}' into "
+                            f"section '{self._last_section_name}'"
+                        )
                     )
 
         return node
@@ -358,7 +389,11 @@ class ConfigTransformer(Transformer):
         # 3) optional type‐annotation + WS
         while i < len(items) and _is_ws(items[i]):
             i += 1
-        if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].value == ":"
+        ):
             node.colon = items[i]
             i += 1
             node.type_annotation = items[i]
@@ -367,7 +402,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 4) equals sign
-        if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].value == "="
+        ):
             node.equals = items[i]
             i += 1
         while i < len(items) and _is_ws(items[i]):
@@ -447,7 +486,9 @@ class ConfigTransformer(Transformer):
         # 7) Inference & priming into the raw data mapping
         if self.current_section is not None:
             val = node.value
-            if isinstance(val, (IntegerNode, FloatNode, BooleanNode, NullNode)):
+            if isinstance(
+                val, (IntegerNode, FloatNode, BooleanNode, NullNode)
+            ):
                 processed = val.evaluate()
             elif isinstance(val, InlineTableNode):
                 val.resolve(self.data, self.current_section)
@@ -484,7 +525,10 @@ class ConfigTransformer(Transformer):
 
             self.current_section[key] = processed
             self.debug_print(
-                f"assignment(): Added {key} = {processed!r} to section {self._last_section_name or 'root'}"
+                (
+                    f"assignment(): Added {key} = {processed!r} to section "
+                    f"{self._last_section_name or 'root'}"
+                )
             )
 
         return node
@@ -609,7 +653,10 @@ class ConfigTransformer(Transformer):
             or items[0].type != "IDENTIFIER"
         ):
             raise ValueError(
-                f"Expected at least one IDENTIFIER in section_name, got {items[0] if items else 'nothing'}"
+                (
+                    f"Expected at least one IDENTIFIER in section_name, got "
+                    f"{items[0] if items else 'nothing'}"
+                )
             )
 
         node.parts = []
@@ -636,7 +683,8 @@ class ConfigTransformer(Transformer):
         node.origin = node.value
         node.meta = meta
 
-        # If you need the same number of DOT tokens as the "gaps" between identifiers:
+        # If you need the same number of DOT tokens as the "gaps" between
+        # identifiers:
         # node.dots = [Token("DOT", ".") for _ in range(len(node.parts) - 1)]
         # or keep them as read from the grammar (the above loop).
 
@@ -649,20 +697,26 @@ class ConfigTransformer(Transformer):
         self.current_section = d.setdefault(section_name, {})
         self._last_section = self.current_section
         self._last_section_name = node.value
-        self.debug_print(f"section_name(): Set current_section to {node.value}")
+        self.debug_print(
+            f"section_name(): Set current_section to {node.value}"
+        )
 
         return node
 
     # ───────────────────────── table‑array section ─────────────────────────
     @v_args(meta=True)
-    def table_array_section(self, meta, items: List[Any]) -> TableArraySectionNode:
+    def table_array_section(
+        self, meta, items: List[Any]
+    ) -> TableArraySectionNode:
         """
         2) Detect comprehension headers immediately after '[[' and mount them,
         deferring full expansion to render time.
         """
         self.debug_print("table_array_section() called with items")
         if not (
-            items and isinstance(items[0], Token) and items[0].type == "L_DBL_SQ_BRACK"
+            items
+            and isinstance(items[0], Token)
+            and items[0].type == "L_DBL_SQ_BRACK"
         ):
             raise ValueError("Table-array section must start with '[['")
 
@@ -689,7 +743,9 @@ class ConfigTransformer(Transformer):
         i = 1  # skip '[[' token
         # header node (TableArrayHeaderNode or ComprehensionHeaderNode)
         header = items[i]
-        if not isinstance(header, (TableArrayHeaderNode, ComprehensionHeaderNode)):
+        if not isinstance(
+            header, (TableArrayHeaderNode, ComprehensionHeaderNode)
+        ):
             raise ValueError("Missing or invalid table‑array header")
         node.header = header
         i += 1
@@ -720,7 +776,9 @@ class ConfigTransformer(Transformer):
         ]
         # mount into raw data
         raw_key = (
-            node.header.emit() if hasattr(node.header, "emit") else str(node.header)
+            node.header.emit()
+            if hasattr(node.header, "emit")
+            else str(node.header)
         )
         self.data[raw_key] = {}
         self.current_section = self.data[raw_key]
@@ -732,7 +790,9 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def table_array_header(self, meta, items: List[Any]) -> TableArrayHeaderNode:
+    def table_array_header(
+        self, meta, items: List[Any]
+    ) -> TableArrayHeaderNode:
         self.debug_print("table_array_header() called with items")
         from ._ast_nodes import TableArrayHeaderNode, ComprehensionHeaderNode
 
@@ -777,7 +837,9 @@ class ConfigTransformer(Transformer):
 
     # ───────────────────────── header comprehension ──────────────────────────
     @v_args(meta=True)
-    def header_comprehension(self, meta, items: List[Any]) -> ComprehensionHeaderNode:
+    def header_comprehension(
+        self, meta, items: List[Any]
+    ) -> ComprehensionHeaderNode:
         """
         1) Parse f-string and comprehension clauses into a single node,
         capturing header_expr and clauses for later render.
@@ -799,7 +861,11 @@ class ConfigTransformer(Transformer):
         from ._ast_nodes import ComprehensionClausesNode
 
         clauses = next(
-            (itm for itm in items[1:] if isinstance(itm, ComprehensionClausesNode)),
+            (
+                itm
+                for itm in items[1:]
+                if isinstance(itm, ComprehensionClausesNode)
+            ),
             None,
         )
         node.clauses = clauses
@@ -834,7 +900,8 @@ class ConfigTransformer(Transformer):
             )
         ]
         node.origin = "".join(
-            itm.emit() if hasattr(itm, "emit") else str(itm) for itm in node.parts
+            itm.emit() if hasattr(itm, "emit") else str(itm)
+            for itm in node.parts
         )
         node.value = node.origin
         node.meta = meta
@@ -861,7 +928,8 @@ class ConfigTransformer(Transformer):
         node = StringExprNode()
         node.parts = items
         node.origin = "".join(
-            item.value if isinstance(item, Token) else item.emit() for item in items
+            item.value if isinstance(item, Token) else item.emit()
+            for item in items
         )
         node.value = node.origin
         node.meta = meta
@@ -871,9 +939,11 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def pair_expr(self, meta, items: List[Any]) -> PairExprNode:
         """
-        (string_expr | FStringNode | IDENTIFIER) (HSPACES? (SETTER | COLON) HSPACES? (string_expr | FStringNode | IDENTIFIER))
+        (string_expr | FStringNode | IDENTIFIER) (HSPACES? (SETTER | COLON)
+        HSPACES? (string_expr | FStringNode | IDENTIFIER))
 
-        Handles either plain identifiers, FStringNode, or StringExprNode‑style keys/values,
+        Handles either plain identifiers, FStringNode, or StringExprNode‑style
+        keys/values,
         while tolerating both raw HSPACES tokens and the HspacesNode helper
         that earlier rules may have produced.
         """
@@ -886,9 +956,9 @@ class ConfigTransformer(Transformer):
         ):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
                 key_node = DottedExprNode()
-                key_node.dotted_value = key_node.origin = key_node.value = items[
-                    i
-                ].value
+                key_node.dotted_value = key_node.origin = key_node.value = (
+                    items[i].value
+                )
                 key_node.meta = meta
                 node.key = key_node
             else:
@@ -912,7 +982,8 @@ class ConfigTransformer(Transformer):
                     i < len(items)
                     and isinstance(items[i], (HspacesNode, Token))
                     and (
-                        isinstance(items[i], HspacesNode) or items[i].type == "HSPACES"
+                        isinstance(items[i], HspacesNode)
+                        or items[i].type == "HSPACES"
                     )
                 ):
                     i += 1
@@ -925,9 +996,9 @@ class ConfigTransformer(Transformer):
         ):
             if isinstance(items[i], Token) and items[i].type == "IDENTIFIER":
                 value_node = DottedExprNode()
-                value_node.dotted_value = value_node.origin = value_node.value = items[
-                    i
-                ].value
+                value_node.dotted_value = value_node.origin = (
+                    value_node.value
+                ) = items[i].value
                 value_node.meta = meta
                 node.value = value_node
             else:
@@ -935,8 +1006,14 @@ class ConfigTransformer(Transformer):
 
         # ── 4. bookkeeping ─────────────────────────────────────────────
         # Safely emit key and value (in case one is still None)
-        key_emit = node.key.emit() if getattr(node, "key", None) is not None else ""
-        val_emit = node.value.emit() if getattr(node, "value", None) is not None else ""
+        key_emit = (
+            node.key.emit() if getattr(node, "key", None) is not None else ""
+        )
+        val_emit = (
+            node.value.emit()
+            if getattr(node, "value", None) is not None
+            else ""
+        )
         node.origin = f"{key_emit} {separator} {val_emit}"
         node.value = node.origin
         node.meta = meta
@@ -985,7 +1062,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 2) Handle comma immediately following the value
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "COMMA"
+        ):
             node.has_comma = True
             i += 1
 
@@ -1020,7 +1101,8 @@ class ConfigTransformer(Transformer):
     @v_args(meta=True)
     def ml_array_item(self, meta, items: List[Any]) -> "MLArrayItemNode":
         """
-        Handle a multiline array item, preserving values, inline comments, and comma.
+        Handle a multiline array item, preserving values, inline comments, and
+        comma.
         Supports both value lines and comment-only lines.
         """
         self.debug_print("ml_array_item() called with items")
@@ -1041,7 +1123,12 @@ class ConfigTransformer(Transformer):
         while i < len(items) and (
             isinstance(
                 items[i],
-                (WhitespaceNode, HspacesNode, InlineWhitespaceNode, NewlineNode),
+                (
+                    WhitespaceNode,
+                    HspacesNode,
+                    InlineWhitespaceNode,
+                    NewlineNode,
+                ),
             )
             or (
                 isinstance(items[i], Token)
@@ -1061,7 +1148,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 3) Handle comma immediately following the value
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "COMMA":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "COMMA"
+        ):
             node.has_comma = True
             i += 1
 
@@ -1106,7 +1197,8 @@ class ConfigTransformer(Transformer):
     def inline_table(self, meta, items: List[Any]) -> InlineTableNode:
         """
         Parse an inline table `{ key1 = val1, key2 = val2 }`, storing
-        full AssignmentNode ASTs so annotations and formatting can be round-tripped.
+        full AssignmentNode ASTs so annotations and formatting can be
+        round-tripped.
         """
         self.debug_print(f"inline_table() called with items '{items}'")
         node = InlineTableNode()
@@ -1120,16 +1212,22 @@ class ConfigTransformer(Transformer):
                         child.value, AssignmentNode
                     ):
                         assignment = child.value
-                        # Store the entire AssignmentNode to preserve the ': TYPE = value'
+                        # Store the entire AssignmentNode to preserve the ':
+                        # TYPE = value'
                         node.data[assignment.identifier.value] = assignment
                         self.debug_print(
-                            f"[DEBUG INLINE_TABLE]: Added AST node for '{assignment.identifier.value}'"
+                            (
+                                f"[DEBUG INLINE_TABLE]: Added AST node for "
+                                f"'{assignment.identifier.value}'"
+                            )
                         )
                 break
 
         # Build a best‑guess origin string (emit() will use node.data directly)
         parts = [assignment.emit() for assignment in node.data.values()]
         node.origin = "{" + ", ".join(parts) + "}"
+        if getattr(self, "_context", None) is not None:
+            node.origin = self._context.text[meta.start_pos : meta.end_pos]
         node.value = node.data
         node.meta = meta
         return node
@@ -1151,7 +1249,10 @@ class ConfigTransformer(Transformer):
         if i < len(items):
             if items[i] is None:
                 i += 1
-            elif isinstance(items[i], Tree) and items[i].data == "inline_assignment":
+            elif (
+                isinstance(items[i], Tree)
+                and items[i].data == "inline_assignment"
+            ):
                 # Transform inline_assignment tree to AssignmentNode
                 node.value = self.inline_assignment(meta, items[i].children)
                 i += 1
@@ -1159,7 +1260,9 @@ class ConfigTransformer(Transformer):
                 node.value = items[i]
                 i += 1
             else:
-                self.debug_print(f"Skipping unexpected item at index {i}: {items[i]}")
+                self.debug_print(
+                    f"Skipping unexpected item at index {i}: {items[i]}"
+                )
                 i += 1
         # Handle inline comment
         if (
@@ -1178,7 +1281,9 @@ class ConfigTransformer(Transformer):
             )
         # Set origin safely
         node.origin = (
-            node.value.emit() if node.value and hasattr(node.value, "emit") else ""
+            node.value.emit()
+            if node.value and hasattr(node.value, "emit")
+            else ""
         )
         node.meta = meta
         return node
@@ -1219,7 +1324,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # 4) Optional type annotation
-        if i < len(items) and isinstance(items[i], Token) and items[i].value == ":":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].value == ":"
+        ):
             node.colon = items[i]
             i += 1
             if (
@@ -1247,7 +1356,11 @@ class ConfigTransformer(Transformer):
                 else HspacesNode(items[i].value)
             )
             i += 1
-        if i < len(items) and isinstance(items[i], Token) and items[i].value == "=":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].value == "="
+        ):
             node.equals = items[i]
             i += 1
         if i < len(items) and (
@@ -1303,16 +1416,22 @@ class ConfigTransformer(Transformer):
         node.origin = node.identifier
         node.meta = meta
         self.debug_print(
-            f"[DEBUG INLINE_ASSIGNMENT]: Created AssignmentNode(identifier={node.identifier.value}, "
-            f"type_annotation={getattr(node.type_annotation, 'value', None)}, value={node.value})"
+            f"[DEBUG INLINE_ASSIGNMENT]: Created "
+            f"AssignmentNode(identifier={node.identifier.value}, "
+            f"type_annotation="
+            f"{getattr(node.type_annotation, 'value', None)}, "
+            f"value={node.value})"
         )
         return node
 
     # ────────────────────────── list comprehension ──────────────────────────
     @v_args(meta=True)
-    def list_comprehension(self, meta, items: List[Any]) -> ListComprehensionNode:
+    def list_comprehension(
+        self, meta, items: List[Any]
+    ) -> ListComprehensionNode:
         """
-        "[" comprehension_expr (WS|NEWLINE|HSPACES)* comprehension_clauses NEWLINE* "]"
+        "[" comprehension_expr (WS|NEWLINE|HSPACES)* comprehension_clauses
+        NEWLINE* "]"
         """
         self.debug_print("list_comprehension() called with items")
         node = ListComprehensionNode()
@@ -1356,7 +1475,10 @@ class ConfigTransformer(Transformer):
 
         # ── skip whitespace/newlines before clauses ───────────────────────
         while i < len(items) and (
-            (isinstance(items[i], Token) and items[i].type in ("HSPACES", "NEWLINE"))
+            (
+                isinstance(items[i], Token)
+                and items[i].type in ("HSPACES", "NEWLINE")
+            )
             or isinstance(items[i], HspacesNode)
             or isinstance(items[i], NewlineNode)
         ):
@@ -1387,11 +1509,15 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def dict_comprehension(self, meta, items: List[Any]) -> DictComprehensionNode:
+    def dict_comprehension(
+        self, meta, items: List[Any]
+    ) -> DictComprehensionNode:
         """
-        Transform the 'dict_comprehension' rule: "{" NEWLINE* dict_comprehension_pair
+        Transform the 'dict_comprehension' rule: "{" NEWLINE*
+        dict_comprehension_pair
         "for" IDENTIFIER "in" value ("if" value)? NEWLINE* "}"
-        Creates a DictComprehensionNode, handling keys and values by delegating to pair_expr.
+        Creates a DictComprehensionNode, handling keys and values by delegating
+        to pair_expr.
         """
         self.debug_print("dict_comprehension() called with items")
         node = DictComprehensionNode()
@@ -1419,7 +1545,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # Skip "for"
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "FOR"
+        ):
             i += 1
 
         # Loop variable
@@ -1432,7 +1562,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # Skip "in"
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IN":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IN"
+        ):
             i += 1
 
         # Iterable expression
@@ -1441,7 +1575,11 @@ class ConfigTransformer(Transformer):
             i += 1
 
         # Optional "if" clause
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IF":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IF"
+        ):
             i += 1
             if i < len(items):
                 node.condition = items[i]
@@ -1494,7 +1632,10 @@ class ConfigTransformer(Transformer):
         if i >= len(items):
             raise ValueError("Missing inline_comprehension_pair")
 
-        if isinstance(items[i], Tree) and items[i].data == "inline_comprehension_pair":
+        if (
+            isinstance(items[i], Tree)
+            and items[i].data == "inline_comprehension_pair"
+        ):
             pair_items = items[i].children
             pair_index = 0
             pair_node = PairExprNode()
@@ -1575,12 +1716,17 @@ class ConfigTransformer(Transformer):
             i += 1
         else:
             raise ValueError(
-                f"Expected PairExprNode or inline_comprehension_pair Tree at index {i}, got {items[i]!r}"
+                (
+                    f"Expected PairExprNode or inline_comprehension_pair Tree "
+                    f"at index {i}, got {items[i]!r}"
+                )
             )
 
         # ── “for” IDENTIFIER “in” iterable [if cond] ───────────────────────
         if not (
-            i < len(items) and isinstance(items[i], Token) and items[i].type == "FOR"
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "FOR"
         ):
             raise ValueError("Expected 'for' in inline‑table comprehension")
         i += 1
@@ -1595,7 +1741,9 @@ class ConfigTransformer(Transformer):
         i += 1
 
         if not (
-            i < len(items) and isinstance(items[i], Token) and items[i].type == "IN"
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IN"
         ):
             raise ValueError("Expected 'in' after loop variable")
         i += 1
@@ -1605,7 +1753,11 @@ class ConfigTransformer(Transformer):
         node.iterable = items[i]
         i += 1
 
-        if i < len(items) and isinstance(items[i], Token) and items[i].type == "IF":
+        if (
+            i < len(items)
+            and isinstance(items[i], Token)
+            and items[i].type == "IF"
+        ):
             i += 1
             if i >= len(items):
                 raise ValueError("Missing condition after 'if'")
@@ -1624,7 +1776,9 @@ class ConfigTransformer(Transformer):
 
         # ── origin string --------------------------------------------------
         origin_parts = [
-            node.pair.emit() if hasattr(node.pair, "emit") else node.pair.origin,
+            node.pair.emit()
+            if hasattr(node.pair, "emit")
+            else node.pair.origin,
             f"for {node.loop_var.value} in {node.iterable.emit()}",
         ]
         if node.condition:
@@ -1635,7 +1789,9 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def comprehension_clauses(self, meta, items: List[Any]) -> ComprehensionClausesNode:
+    def comprehension_clauses(
+        self, meta, items: List[Any]
+    ) -> ComprehensionClausesNode:
         self.debug_print("comprehension_clauses() called with items")
         node = ComprehensionClausesNode()
         node.clauses = items
@@ -1647,7 +1803,9 @@ class ConfigTransformer(Transformer):
         return node
 
     @v_args(meta=True)
-    def comprehension_clause(self, meta, items: List[Any]) -> ComprehensionClauseNode:
+    def comprehension_clause(
+        self, meta, items: List[Any]
+    ) -> ComprehensionClauseNode:
         self.debug_print("comprehension_clause() called with items")
         node = ComprehensionClauseNode()
 
@@ -1659,7 +1817,9 @@ class ConfigTransformer(Transformer):
         node.conditions = ast_items[2:]
 
         vars_txt = " ".join(
-            getattr(v, "origin", v.emit() if hasattr(v, "emit") else str(v)).strip()
+            getattr(
+                v, "origin", v.emit() if hasattr(v, "emit") else str(v)
+            ).strip()
             for v in node.loop_vars
         )
         iterable_txt = (
@@ -1668,7 +1828,9 @@ class ConfigTransformer(Transformer):
             else str(node.iterable)
         ).strip()
         cond_txt = " ".join(
-            getattr(c, "origin", c.emit() if hasattr(c, "emit") else str(c)).strip()
+            getattr(
+                c, "origin", c.emit() if hasattr(c, "emit") else str(c)
+            ).strip()
             for c in node.conditions
         )
 
@@ -1690,13 +1852,12 @@ class ConfigTransformer(Transformer):
     def loop_var(self, meta, items: List[Any]) -> Any:
         """
         Transform the 'loop_var' rule: dotted_expr alias_clause?
-        Creates an AliasClauseNode if alias_clause is present, else returns DottedExprNode.
+        Creates an AliasClauseNode if alias_clause is present, else returns
+        DottedExprNode.
         """
         self.debug_print("loop_var() called with items")
         if len(items) > 1:
-            node = AliasClauseNode()
-            node.keyword = "as"
-            node.scoped_var = items[1]
+            node = items[1]
             node.origin = f"{items[0].emit()} {items[1].emit()}"
             node.value = node.origin
             node.meta = meta
@@ -1704,10 +1865,14 @@ class ConfigTransformer(Transformer):
         return items[0]  # DottedExprNode, not string
 
     @v_args(meta=True)
-    def comprehension_condition(self, meta, items: List[Any]) -> StringExprNode:
+    def comprehension_condition(
+        self, meta, items: List[Any]
+    ) -> StringExprNode:
         """
-        Transform the 'comprehension_condition' rule: comp_expr (OPERATOR comp_expr)?
-        Creates a StringExprNode with parts, handling OPERATOR tokens correctly.
+        Transform the 'comprehension_condition' rule: comp_expr (OPERATOR
+        comp_expr)?
+        Creates a StringExprNode with parts, handling OPERATOR tokens
+        correctly.
         """
         self.debug_print("comprehension_condition() called with items")
         node = StringExprNode()
@@ -1765,7 +1930,8 @@ class ConfigTransformer(Transformer):
 
         node = FoldedExpressionNode()
 
-        # items structure: [Token('<('), Tree('folded_content', [...]), Token(')>')]
+        # items structure: [Token('<('), Tree('folded_content', [...]),
+        # Token(')>')]
         folded_wrapper = items[1]
 
         # If folded_wrapper is exactly one real AST subtree, unwrap it:
@@ -1779,7 +1945,8 @@ class ConfigTransformer(Transformer):
         else:
             node.content_tree = folded_wrapper
 
-        # Rebuild origin exactly as parsed (so dumps()/emit() remains unchanged)
+        # Rebuild origin exactly as parsed (so dumps()/emit() remains
+        # unchanged)
         content_parts: List[str] = []
         for child in getattr(folded_wrapper, "children", []):
             if isinstance(child, Token):
@@ -1834,7 +2001,12 @@ class ConfigTransformer(Transformer):
 
                 if isinstance(
                     child,
-                    (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode),
+                    (
+                        NewlineNode,
+                        WhitespaceNode,
+                        HspacesNode,
+                        InlineWhitespaceNode,
+                    ),
                 ):
                     continue
 
@@ -1875,15 +2047,31 @@ class ConfigTransformer(Transformer):
             node.rbrack = items[i]
 
         node.contents = contents
+        if not contents:
+            # Lark inlines a single item instead of creating sl_array_content.
+            for child in items:
+                if isinstance(child, BaseNode):
+                    contents.append(child)
+                elif isinstance(child, Token) and child.type in {
+                    "SINGLE_QUOTED_STRING",
+                    "INTEGER",
+                    "FLOAT",
+                    "BOOLEAN",
+                    "NULL",
+                }:
+                    contents.append(self.value(meta, [child]))
         return node
 
     # ───────────────────── multiline array ──────────────────────
     @v_args(meta=True, inline=False)
     def multiline_array(self, meta, items: List[Any]) -> MultiLineArrayNode:
         """
-        Parse a multiline array into a MultiLineArrayNode, preserving values and comments.
-        Handles both raw COMMENT tokens and CommentNode instances, and ensures that
-        any trailing commas on comment‑only lines are captured, and inline comments
+        Parse a multiline array into a MultiLineArrayNode, preserving values
+        and comments.
+        Handles both raw COMMENT tokens and CommentNode instances, and ensures
+        that
+        any trailing commas on comment‑only lines are captured, and inline
+        comments
         on value lines are correctly attached.
         """
         self.debug_print("multiline_array() called with items")
@@ -1898,10 +2086,12 @@ class ConfigTransformer(Transformer):
         )
         from lark import Token, Tree
 
-        # Remove any explicit NewlineNode instances (we'll skip raw NEWLINE tokens below)
+        # Remove any explicit NewlineNode instances (we'll skip raw NEWLINE
+        # tokens below)
         items = [itm for itm in items if not isinstance(itm, NewlineNode)]
 
         node = MultiLineArrayNode()
+        node.origin = self._context.text[meta.start_pos : meta.end_pos]
 
         for itm in items:
             # Skip purely structural whitespace/newline tokens
@@ -1910,12 +2100,18 @@ class ConfigTransformer(Transformer):
                 and itm.type in ("NEWLINE", "HSPACES", "INLINE_WS")
                 or isinstance(
                     itm,
-                    (NewlineNode, WhitespaceNode, HspacesNode, InlineWhitespaceNode),
+                    (
+                        NewlineNode,
+                        WhitespaceNode,
+                        HspacesNode,
+                        InlineWhitespaceNode,
+                    ),
                 )
             ):
                 continue
 
-            # 1) Raw COMMENT token (e.g. "# something,"), strip and detect comma
+            # 1) Raw COMMENT token (e.g. "# something,"), strip and detect
+            # comma
             if isinstance(itm, Token) and itm.type == "COMMENT":
                 raw = itm.value.rstrip()
                 has_comma = raw.endswith(",")
@@ -1941,7 +2137,8 @@ class ConfigTransformer(Transformer):
                 node.contents.append(vn)
                 continue
 
-            # 3) Explicit ml_array_item subtree (value lines, possibly with inline comments)
+            # 3) Explicit ml_array_item subtree (value lines, possibly with
+            # inline comments)
             if isinstance(itm, Tree) and itm.data == "ml_array_item":
                 node.contents.append(self.ml_array_item(meta, itm.children))
                 continue
@@ -1968,7 +2165,10 @@ class ConfigTransformer(Transformer):
             # 7) Inline-comment subtree (rare): attach to last entry
             if isinstance(itm, Tree) and itm.data == "inline_comment":
                 for child in itm.children:
-                    if isinstance(child, Token) and child.type == "INLINE_COMMENT":
+                    if (
+                        isinstance(child, Token)
+                        and child.type == "INLINE_COMMENT"
+                    ):
                         if node.contents:
                             node.contents[-1].inline_comment = child
                         break
@@ -1983,7 +2183,8 @@ class ConfigTransformer(Transformer):
             curr = node.contents[i]
             if curr.value is None and i > 0:
                 prev = merged[-1]
-                # Attach only if previous is a true value and has no inline comment yet
+                # Attach only if previous is a true value and has no inline
+                # comment yet
                 if prev.value is not None and prev.inline_comment is None:
                     prev.inline_comment = curr.inline_comment
                     prev.has_comma = prev.has_comma or curr.has_comma
@@ -1993,8 +2194,11 @@ class ConfigTransformer(Transformer):
             i += 1
         node.contents = merged
 
-        # Finally, ensure that every true value item (not comment‑only) ends with a comma
-        value_idxs = [idx for idx, v in enumerate(node.contents) if v.value is not None]
+        # Finally, ensure that every true value item (not comment‑only) ends
+        # with a comma
+        value_idxs = [
+            idx for idx, v in enumerate(node.contents) if v.value is not None
+        ]
         for idx in value_idxs[:-1]:
             node.contents[idx].has_comma = True
 
@@ -2023,23 +2227,28 @@ class ConfigTransformer(Transformer):
     def INLINE_COMMENT(self, token: Token) -> Token:
         """
         Transform the INLINE_COMMENT terminal: /[ \t]+#[^\n]*/
-        Returns the token directly for storage in AssignmentNode.inline_comment.
+        Returns the token directly for storage in
+        AssignmentNode.inline_comment.
         """
         self.debug_print("INLINE_COMMENT() called with token")
         return token
 
     def IDENTIFIER(self, token: Token) -> Token:
         """
-        Transform the IDENTIFIER terminal: /(?!\b(?:is|not|and|...)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
-        Returns the token directly for use in AssignmentNode, SectionNameNode, etc.
+        Transform the IDENTIFIER terminal:
+        /(?!\b(?:is|not|and|...)\b)\b[a-zA-Z_][a-zA-Z0-9_-]*\b/
+        Returns the token directly for use in AssignmentNode, SectionNameNode,
+        etc.
         """
         self.debug_print("IDENTIFIER() called with token")
         return token
 
     def FLOAT(self, token: Token) -> IntegerNode:
         """
-        Transform the FLOAT terminal: /[+-]?(?:\\d+\\.\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[+-]?(?:inf|nan)/
-        Creates an IntegerNode (simplified; FloatNode could be used if distinct).
+        Transform the FLOAT terminal:
+        /[+-]?(?:\\d+\\.\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?|[+-]?(?:inf|nan)/
+        Creates an IntegerNode (simplified; FloatNode could be used if
+        distinct).
         """
         self.debug_print("FLOAT() called with token")
         node = FloatNode()
@@ -2049,7 +2258,8 @@ class ConfigTransformer(Transformer):
 
     def INTEGER(self, token: Token) -> IntegerNode:
         """
-        Transform the INTEGER terminal: /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\\d*)/
+        Transform the INTEGER terminal:
+        /0[oO][0-7]+|0[xX][0-9a-fA-F]+|0[bB][01]+|[+-]?(?:0|[1-9]\\d*)/
         Creates an IntegerNode with the numeric value.
         """
         self.debug_print("INTEGER() called with token")
@@ -2068,8 +2278,10 @@ class ConfigTransformer(Transformer):
 
     def TRIPLE_QUOTED_STRING(self, token):
         raw_text = token.value  # e.g. '"""\nsomething\n"""'
-        # In TOML-like syntaxes, triple quotes are always at both ends (assuming valid parse).
-        # Just strip the first 3 and last 3 chars. If your grammar supports both `"""` and `'''`,
+        # In TOML-like syntaxes, triple quotes are always at both ends
+        # (assuming valid parse).
+        # Just strip the first 3 and last 3 chars. If your grammar supports
+        # both `"""` and `'''`,
         # you'd detect which is used. For now, assume `"""`.
         self.debug_print("TRIPLE_QUOTED_STRING() called with token")
         if raw_text.startswith('"""') and raw_text.endswith('"""'):
@@ -2079,7 +2291,9 @@ class ConfigTransformer(Transformer):
 
         node = TripleQuotedStringNode()
         node.value = inner_text  # store just the contents
-        node.origin = token.value  # keep the full original for debugging if desired
+        node.origin = (
+            token.value
+        )  # keep the full original for debugging if desired
         return node
 
     def BACKTICK_STRING(self, token):
@@ -2098,8 +2312,10 @@ class ConfigTransformer(Transformer):
 
     def TRIPLE_BACKTICK_STRING(self, token):
         raw_text = token.value  # e.g. '"""\nsomething\n"""'
-        # In TOML-like syntaxes, triple quotes are always at both ends (assuming valid parse).
-        # Just strip the first 3 and last 3 chars. If your grammar supports both `"""` and `'''`,
+        # In TOML-like syntaxes, triple quotes are always at both ends
+        # (assuming valid parse).
+        # Just strip the first 3 and last 3 chars. If your grammar supports
+        # both `"""` and `'''`,
         # you'd detect which is used. For now, assume `"""`.
         self.debug_print("TRIPLE_BACKTICK_STRING() called with token")
         if raw_text.startswith("```") and raw_text.endswith("```"):
@@ -2108,7 +2324,9 @@ class ConfigTransformer(Transformer):
             inner_text = raw_text
         node = TripleBacktickStringNode()
         node.value = inner_text  # store just the contents
-        node.origin = token.value  # keep the full original for debugging if desired
+        node.origin = (
+            token.value
+        )  # keep the full original for debugging if desired
         return node
 
     def RESERVED_FUNC(self, token: Token) -> ReservedFuncNode:
@@ -2145,7 +2363,8 @@ class ConfigTransformer(Transformer):
     def OPERATOR(self, token: Token) -> Token:
         """
         Transform the OPERATOR terminal: |==|!=|>=|<=|->|<<|+|-|*|/|%|>|<(?!{)/
-        Returns the token directly for use in StringExprNode or FoldedExpressionNode.
+        Returns the token directly for use in StringExprNode or
+        FoldedExpressionNode.
         """
         self.debug_print("OPERATOR() called with token")
         return token

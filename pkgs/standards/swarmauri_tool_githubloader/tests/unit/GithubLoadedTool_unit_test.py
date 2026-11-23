@@ -1,3 +1,4 @@
+from importlib import import_module
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -20,7 +21,9 @@ def test_ubc_type():
     )
 
 
-@patch("swarmauri_tool_githubloader.GithubLoadedTool.httpx.get")
+@patch.object(
+    import_module("swarmauri_tool_githubloader.GithubLoadedTool").httpx, "get"
+)
 @pytest.mark.unit
 def test_init_loads_metadata(mock_get):
     yaml_content = "type: AdditionTool\nname: LoadedAddTool"
@@ -36,7 +39,9 @@ def test_init_loads_metadata(mock_get):
     assert tool.parameters == AdditionTool().parameters
 
 
-@patch("swarmauri_tool_githubloader.GithubLoadedTool.httpx.get")
+@patch.object(
+    import_module("swarmauri_tool_githubloader.GithubLoadedTool").httpx, "get"
+)
 @pytest.mark.unit
 def test_call_uses_cache(mock_get):
     yaml_content = "type: AdditionTool\nname: LoadedAddTool"
@@ -55,7 +60,9 @@ def test_call_uses_cache(mock_get):
     mock_get.assert_called_once()
 
 
-@patch("swarmauri_tool_githubloader.GithubLoadedTool.httpx.get")
+@patch.object(
+    import_module("swarmauri_tool_githubloader.GithubLoadedTool").httpx, "get"
+)
 @pytest.mark.unit
 def test_call_without_cache(mock_get):
     yaml_content = "type: AdditionTool\nname: LoadedAddTool"

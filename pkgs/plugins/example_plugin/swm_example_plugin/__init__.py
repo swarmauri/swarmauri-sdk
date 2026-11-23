@@ -4,7 +4,10 @@ except ImportError:  # pragma: no cover
     from importlib_metadata import PackageNotFoundError, version
 from pathlib import Path
 
-import tomllib
+try:
+    import tomllib
+except ImportError:  # Python 3.10
+    import tomli as tomllib
 
 try:
     __version__ = version("swm-example-plugin")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import csv
 import re
 import subprocess
 import tempfile
@@ -71,12 +72,34 @@ def _write_temp(
 ) -> str:
     tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     try:
+        if os.name == "nt":
+            identity = subprocess.check_output(
+                ["whoami", "/user", "/fo", "csv", "/nh"], text=True
+            )
+            sid = next(csv.reader(identity.splitlines()))[1]
+            subprocess.run(
+                [
+                    "icacls",
+                    tmp.name,
+                    "/inheritance:r",
+                    "/grant:r",
+                    f"*{sid}:(R,W)",
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
         if isinstance(data, str):
             data = data.encode("utf-8")
         tmp.write(data)
         tmp.flush()
-        os.fchmod(tmp.fileno(), mode)
+        if hasattr(os, "fchmod"):
+            os.fchmod(tmp.fileno(), mode)
         return tmp.name
+    except Exception:
+        tmp.close()
+        os.unlink(tmp.name)
+        raise
     finally:
         tmp.close()
 
@@ -394,7 +417,8 @@ class SshCertTokenService(TokenServiceBase):
         def _parse_ts(s: str) -> int:
             s = s.replace("T", " ").strip()
             tm = time.strptime(s, "%Y-%m-%d %H:%M:%S")
-            return int(time.mktime(time.gmtime(time.mktime(tm))))
+            # ssh-keygen -L displays local time. Convert it exactly once.
+            return int(time.mktime(tm))
 
         now = int(time.time())
         va = info.get("valid_after_str")

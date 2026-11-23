@@ -49,11 +49,15 @@ def test_standalone_comment():
     assert tokens[0] == "# This is a comment"
 
 
-# Test that an inline table is recognized as INLINE_TABLE and that its nested tokens include comments.
+# Test that an inline table is recognized as INLINE_TABLE and that its nested
+# tokens include comments.
 @pytest.mark.spec
 @pytest.mark.mep0002
 def test_inline_table_nesting():
-    sample = 'test = { key0 = "value0", key1 = "value1"  # Inline table comment\n , key2 = "value2" }'
+    sample = (
+        'test = { key0 = "value0", key1 = "value1"  # Inline table comment\n '
+        ', key2 = "value2" }'
+    )
     tree = parser.parse(sample)
     print(f"[DEBUG]: {tree}")
     tokens = [t for t in tree.scan_values(lambda v: isinstance(v, Token))]
@@ -66,7 +70,8 @@ def test_inline_table_nesting():
     assert "# Inline table comment" in tokens[18].value
 
 
-# Test that a multiline array with commas is parsed as an ARRAY (not as a table section).
+# Test that a multiline array with commas is parsed as an ARRAY (not as a table
+# section).
 @pytest.mark.spec
 @pytest.mark.mep0002
 def test_multiline_array_precedence():
@@ -89,7 +94,8 @@ def test_multiline_array_precedence():
     assert tokens[2].value == "="
 
 
-# Test that a table section header (which should be single-line) is recognized as TABLE_SECTION.
+# Test that a table section header (which should be single-line) is recognized
+# as TABLE_SECTION.
 @pytest.mark.spec
 @pytest.mark.mep0002
 def test_table_section_precedence():
@@ -130,7 +136,13 @@ def test_operator_precedence():
 
     # Expected order: IDENTIFIER, OPERATOR, IDENTIFIER.
     token_types = [t.type for t in tokens]
-    assert token_types == ["IDENTIFIER", "HSPACES", "SETTER", "HSPACES", "INTEGER"]
+    assert token_types == [
+        "IDENTIFIER",
+        "HSPACES",
+        "SETTER",
+        "HSPACES",
+        "INTEGER",
+    ]
 
 
 # Test that scoped variables take precedence (e.g. '${base}' is a SCOPED_VAR).

@@ -3,6 +3,18 @@ from pydantic import BaseModel, Field, model_validator
 from swarmauri_base.ComponentBase import ComponentBase
 
 
+def get_deepface():
+    """Load the optional vision backend when vision inference is requested."""
+    try:
+        from deepface import DeepFace
+    except ImportError as exc:
+        raise RuntimeError(
+            "Install swarmauri_experimental[vision] on a TensorFlow-supported "
+            "Python version (currently 3.10 through 3.13)"
+        ) from exc
+    return DeepFace
+
+
 class DeepFaceBase(ComponentBase, BaseModel):
     type: Literal["DeepFaceBase"] = "DeepFaceBase"
     allowed_models: ClassVar[List[str]] = [

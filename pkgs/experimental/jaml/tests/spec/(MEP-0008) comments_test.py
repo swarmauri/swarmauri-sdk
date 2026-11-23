@@ -8,7 +8,8 @@ from jaml import loads, round_trip_loads
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Standalone comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Standalone comment preservation not yet
+# implemented.")
 def test_standalone_comment_preserved():
     """
     MEP-008:
@@ -24,7 +25,9 @@ key = "value"
     ast = round_trip_loads(original)
     serialized = ast.dumps()
     # Check that the standalone comment is still present exactly
-    assert "# This is a standalone comment at the top of the file" in serialized
+    assert (
+        "# This is a standalone comment at the top of the file" in serialized
+    )
 
 
 @pytest.mark.spec
@@ -44,13 +47,15 @@ greeting = "Hello, World!"  # Inline comment: greeting message
     serialized = ast.dumps()
     # Check that the inline comment is present on the same line
     assert (
-        'greeting = "Hello, World!"  # Inline comment: greeting message' in serialized
+        'greeting = "Hello, World!"  # Inline comment: greeting message'
+        in serialized
     )
 
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet
+# implemented.")
 def test_multiline_array_comments_preserved():
     """
     MEP-008:
@@ -70,7 +75,8 @@ colors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet
+# implemented.")
 def test_multiline_array_comment_out_preserved():
     """
     MEP-008:
@@ -92,7 +98,8 @@ colors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet
+# implemented.")
 def test_multiline_array_comment_out_preserved_comma():
     """
     MEP-008:
@@ -114,7 +121,8 @@ colors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Multiline array comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Multiline array comment preservation not yet
+# implemented.")
 def test_multiline_array_comments_preserved_comma():
     """
     MEP-008:
@@ -138,7 +146,8 @@ colors = [
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Multiline inline table comment preservation not yet implemented.")
+# @pytest.mark.xfail(reason="Multiline inline table comment preservation not
+# yet implemented.")
 def test_multiline_inline_table_comments_preserved():
     """
     MEP-008:
@@ -168,7 +177,8 @@ profile = {
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Comments within multiline arrays may not preserve exact spacing/newlines.")
+# @pytest.mark.xfail(reason="Comments within multiline arrays may not preserve
+# exact spacing/newlines.")
 def test_multiline_arrays_with_comments_spacing():
     """
     MEP-008:
@@ -217,7 +227,8 @@ numbers = [
 
 @pytest.mark.spec
 @pytest.mark.mep0008
-# @pytest.mark.xfail(reason="Leading/trailing whitespace around comments not fully handled yet.")
+# @pytest.mark.xfail(reason="Leading/trailing whitespace around comments not
+# fully handled yet.")
 def test_whitespace_around_comments():
     """
     MEP-008:
@@ -230,5 +241,6 @@ key = "value"  #   note the extra spaces before/after comment"""
 
     ast = round_trip_loads(original)
     serialized = ast.dumps()
-    # If the spec requires preserving that extra whitespace, we can do a direct substring check:
+    # If the spec requires preserving that extra whitespace, we can do a direct
+    # substring check:
     assert 'key = "value"  #   note the extra spaces before' in serialized

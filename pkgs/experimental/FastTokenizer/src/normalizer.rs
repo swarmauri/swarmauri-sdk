@@ -48,6 +48,6 @@ impl Normalizer {
     }
 
     fn normalize_unicode(&self, text: &str) -> PyResult<String> {
-        Ok(text.to_lowercase().nfc().collect::<String>())
+        Ok(text.nfc().collect::<String>())
     }
 }

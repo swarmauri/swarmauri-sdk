@@ -7,7 +7,8 @@ from jaml import parser
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until full data type parser is implemented")
+# @pytest.mark.xfail(reason="Expected failure until full data type parser is
+# implemented")
 def test_string_scalar():
     # Test a simple string literal.
     source = 'greeting = "Hello, World!"'
@@ -21,7 +22,8 @@ def test_string_scalar():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until multiline string support is complete")
+# @pytest.mark.xfail(reason="Expected failure until multiline string support is
+# complete")
 def test_multiline_string():
     # Test that newlines are preserved in a string.
     source = 'description = "Line one\nLine two\nLine three"'
@@ -35,7 +37,8 @@ def test_multiline_string():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until integer parsing is complete")
+# @pytest.mark.xfail(reason="Expected failure until integer parsing is
+# complete")
 def test_decimal_integer():
     source = "answer = 42"
     tree = parser.parse(source)
@@ -47,7 +50,8 @@ def test_decimal_integer():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until octal integer parsing is complete")
+# @pytest.mark.xfail(reason="Expected failure until octal integer parsing is
+# complete")
 def test_octal_integer():
     source = "octal = 0o52"
     tree = parser.parse(source)
@@ -59,7 +63,8 @@ def test_octal_integer():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until hexadecimal integer parsing is complete")
+# @pytest.mark.xfail(reason="Expected failure until hexadecimal integer parsing
+# is complete")
 def test_hexadecimal_integer():
     source = "hex = 0x2A"
     tree = parser.parse(source)
@@ -71,7 +76,8 @@ def test_hexadecimal_integer():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until binary integer parsing is complete")
+# @pytest.mark.xfail(reason="Expected failure until binary integer parsing is
+# complete")
 def test_binary_integer():
     source = "binary = 0b101010"
     tree = parser.parse(source)
@@ -95,7 +101,8 @@ def test_standard_float():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until special float values are parsed")
+# @pytest.mark.xfail(reason="Expected failure until special float values are
+# parsed")
 def test_special_float():
     source = "infinity = inf\nnot_a_number = nan"
     tree = parser.parse(source)
@@ -111,7 +118,8 @@ def test_special_float():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until boolean parsing is complete")
+# @pytest.mark.xfail(reason="Expected failure until boolean parsing is
+# complete")
 def test_boolean_literal():
     source = "active = true\nvalid = false"
     tree = parser.parse(source)
@@ -151,7 +159,8 @@ def test_inline_array():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until multiline arrays are parser.parsed correctly")
+# @pytest.mark.xfail(reason="Expected failure until multiline arrays are
+# parser.parsed correctly")
 def test_multiline_array():
     source = """
     colors = [
@@ -167,7 +176,8 @@ def test_multiline_array():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until inline tables are parser.parsed correctly")
+# @pytest.mark.xfail(reason="Expected failure until inline tables are
+# parser.parsed correctly")
 def test_inline_table():
     # source = 'point = { x = 10, y = 20 }'
     source = "point = { x = 10, y = 20 }"
@@ -178,7 +188,8 @@ def test_inline_table():
 
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until standard table sections are parser.parsed correctly")
+# @pytest.mark.xfail(reason="Expected failure until standard table sections are
+# parser.parsed correctly")
 def test_standard_table_section():
     source = '[section]\nkey = "value"'
     tree = parser.parse(source)
@@ -199,7 +210,8 @@ def test_table_array_header():
 # Optionally, you can include a test for nested inline tables.
 @pytest.mark.spec
 @pytest.mark.mep0003
-# @pytest.mark.xfail(reason="Expected failure until nested inline tables are parser.parsed correctly")
+# @pytest.mark.xfail(reason="Expected failure until nested inline tables are
+# parser.parsed correctly")
 def test_nested_inline_table():
     source = 'user = { name = "Azzy", details = { age = 9, role = "admin" } }'
     tree = parser.parse(source)

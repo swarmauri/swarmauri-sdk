@@ -18,6 +18,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
+      overflow_matrix: ${{ steps.detect.outputs.overflow_matrix }}
 
     steps:
       # ──────────────────────────────────────────────────────────────────────────
@@ -36,10 +37,10 @@ jobs:
         run: |
           set -eo pipefail
           echo "Collecting changed files …"
-          git diff --name-only \
+          git diff --name-only -z \
             "${{ github.event.pull_request.base.sha }}" \
-            "${{ github.event.pull_request.head.sha }}" > changed_files.txt
-          cat changed_files.txt
+            "${{ github.event.pull_request.head.sha }}" -- pkgs/ > changed_files.bin
+          tr '\0' '\n' < changed_files.bin
 
       # ──────────────────────────────────────────────────────────────────────────
       # Step: Detect changes and generate package matrix (id=detect)
@@ -49,17 +50,6 @@ jobs:
         id: detect
         run: |
           echo "Detecting changed packages …"
-          # Exclude the monorepo root pyproject.toml as it does not represent
-          # a real package and will always fail validation.
-          # Documentation-only edits do not change package installation or runtime.
-          # pyproject.toml changes still receive the full package validation below.
-          CHANGED_FILES=$(grep '^pkgs/' changed_files.txt | grep -v '^pkgs/pyproject.toml$' | grep -vE '\.(md|rst)$' || true)
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "No changes in pkgs/. Exiting."
-            echo 'matrix=[]' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
           declare -A PACKAGE_SET         # <package_path> ⇒ 1
 
           # ── Function: find_pyproject_root ────────────────────────────────────
@@ -73,31 +63,48 @@ jobs:
           }
           # ─────────────────────────────────────────────────────────────────────
 
-          for FILE in $CHANGED_FILES; do
+          while IFS= read -r -d '' FILE; do
+            # Ignore the workspace manifest and documentation-only changes.
+            case "$FILE" in
+              pkgs/pyproject.toml|*.md|*.rst) continue ;;
+            esac
             DIR=$(dirname "$FILE")
             PKG_ROOT=$(find_pyproject_root "$DIR")
-            if [[ -z "$PKG_ROOT" || "$PKG_ROOT" == "pkgs" ]]; then
+            if [[ "$PKG_ROOT" != pkgs/* ]]; then
               continue
             fi
             PKG_PATH="${PKG_ROOT#pkgs/}"          # strip leading pkgs/
             PACKAGE_SET["$PKG_PATH"]=1            # record the package
-          done
+          done < changed_files.bin
 
-          # Build JSON matrix
+          # Each GitHub Actions matrix can expand to at most 256 jobs.
           MATRIX="["
-          for PKG in "${!PACKAGE_SET[@]}"; do
-            MATRIX+='{"package_path":"'"$PKG"'","tests":""},'
-          done
-          MATRIX="${MATRIX%,}]"
-          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
-          echo "Final test matrix: $MATRIX"
+          OVERFLOW_MATRIX="["
+          count=0
+          while IFS= read -r PKG; do
+            [[ -n "$PKG" ]] || continue
+            printf -v ENTRY '{"package_path":"%s","tests":""},' "$PKG"
+            if (( count < 256 )); then
+              MATRIX+="$ENTRY"
+            else
+              OVERFLOW_MATRIX+="$ENTRY"
+            fi
+            count=$((count + 1))
+          done < <(printf '%s\n' "${!PACKAGE_SET[@]}" | LC_ALL=C sort)
+          if (( count > 512 )); then
+            echo "::error::Detected $count packages, exceeding the two 256-job matrices."
+            exit 1
+          fi
+          echo "matrix=${MATRIX%,}]" >> "$GITHUB_OUTPUT"
+          echo "overflow_matrix=${OVERFLOW_MATRIX%,}]" >> "$GITHUB_OUTPUT"
+          echo "Detected $count packages for validation."
 
   # ─────────────────────────────────────────────────────────────────────────────
   # Job: run-tests  – executes once per package reported in matrix
   # ─────────────────────────────────────────────────────────────────────────────
   run-tests:
     needs: detect-changed-files
-    if: ${{ !cancelled() && needs.detect-changed-files.outputs.matrix != '[]' }}
+    if: ${{ !cancelled() && needs.detect-changed-files.result == 'success' && needs.detect-changed-files.outputs.matrix != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
@@ -106,12 +113,12 @@ jobs:
       matrix:
         package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.matrix) }}
 
-    env:
+    env: &package-test-env
       UNIQUE_VENV_PATH: "${{ github.workspace }}/.venv_core_${{ github.run_id }}"
       # Meson editable installs refer to the temporary isolated build tools.
-      UV_NO_EDITABLE: ${{ startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') && 'true' || 'false' }}
+      UV_NO_EDITABLE: ${{ (startsWith(matrix.package_tests.package_path, 'experimental/RapidSimilarity/') || matrix.package_tests.package_path == 'experimental/swarmauri_crypto_sodium') && 'true' || 'false' }}
 
-    steps:
+    steps: &package-test-steps
       # ────────────────────────────────────────────────────────────────────────
       # Step: Check out code ─ (uses: actions/checkout@v4)
       # ────────────────────────────────────────────────────────────────────────
@@ -179,6 +186,38 @@ jobs:
           cd pkgs
           PACKAGE_NAME=$(python -c "import toml, pathlib, sys; print(toml.load(pathlib.Path('$PKG_PATH')/'pyproject.toml')['project']['name'])")
           export PKG_PATH PACKAGE_NAME
+          case "$PKG_PATH" in
+            community/swarmauri_parser_textblob)
+              corpora=(punkt_tab averaged_perceptron_tagger_eng brown wordnet)
+              ;;
+            community/swarmauri_tool_dalechallreadability)
+              corpora=(cmudict)
+              ;;
+            community/swarmauri_tool_lexicaldensity)
+              corpora=(punkt_tab averaged_perceptron_tagger_eng)
+              ;;
+            community/swarmauri_tool_sentencecomplexity|community/swarmauri_tool_smogindex|community/swarmauri_tool_textlength)
+              corpora=(punkt_tab)
+              ;;
+            *)
+              corpora=()
+              ;;
+          esac
+          if (( ${#corpora[@]} )); then
+            export NLTK_DATA="$RUNNER_TEMP/nltk_data"
+            mkdir -p "$NLTK_DATA"
+            uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active \
+              python - "${corpora[@]}" <<'PY'
+          import os
+          import sys
+
+          import nltk
+
+          nltk.download(
+              sys.argv[1:], download_dir=os.environ["NLTK_DATA"], raise_on_error=True
+          )
+          PY
+          fi
           set +e
           uv run --directory "$PKG_PATH" --package "$PACKAGE_NAME" --isolated --active pytest -vvv | tee pytest.log
           STATUS=${PIPESTATUS[0]}
@@ -205,6 +244,21 @@ jobs:
           summary = " ".join(f"{k}={v}" for k, v in counts.items())
           print(f"::notice title=pytest summary ({pkg_name})::pkg_path={pkg_path} {summary}")
           PY
-          exit $STATUS
+          if [[ "$STATUS" == 5 && ! -d "$PKG_PATH/tests" ]] &&
+             [[ -z "$(find "$PKG_PATH" -type f \( -name 'test_*.py' -o -name '*_test.py' \) -print -quit)" ]]; then
+            echo "::notice::No pytest files in $PKG_PATH. Build and lint passed."
+            exit 0
+          fi
+          exit "$STATUS"
 
-
+  run-tests-overflow:
+    needs: detect-changed-files
+    if: ${{ !cancelled() && needs.detect-changed-files.result == 'success' && needs.detect-changed-files.outputs.overflow_matrix != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        package_tests: ${{ fromJSON(needs.detect-changed-files.outputs.overflow_matrix) }}
+    env: *package-test-env
+    steps: *package-test-steps

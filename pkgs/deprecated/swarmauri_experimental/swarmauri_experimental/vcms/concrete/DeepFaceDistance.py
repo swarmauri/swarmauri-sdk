@@ -2,9 +2,9 @@ from typing import Union, Dict, Any, List, Optional, Literal
 import os
 from pydantic import Field
 import numpy as np
-from deepface import DeepFace
-from swarmauri.vcms.base.DeepFaceBase import DeepFaceBase
-from swarmauri.distances.base.VisionDistanceBase import VisionDistanceBase
+from swarmauri_experimental.vcms.base.DeepFaceBase import get_deepface
+from swarmauri_experimental.vcms.base.DeepFaceBase import DeepFaceBase
+from swarmauri_base.distances.VisionDistanceBase import VisionDistanceBase
 import warnings
 
 warnings.warn(
@@ -40,7 +40,7 @@ class DeepFaceDistance(DeepFaceBase, VisionDistanceBase):
             Dict[str, Any]: A dictionary containing the verification results.
         """
         try:
-            result = DeepFace.verify(
+            result = get_deepface().verify(
                 img1_path=img1_path,
                 img2_path=img2_path,
                 model_name=self.name,

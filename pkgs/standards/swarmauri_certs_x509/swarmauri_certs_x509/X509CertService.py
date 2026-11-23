@@ -388,10 +388,10 @@ class X509CertService(CertServiceBase):
             .public_key(pub)
             .serial_number(serial or x509.random_serial_number())
             .not_valid_before(
-                datetime.datetime.fromtimestamp(nbf, datetime.UTC)
+                datetime.datetime.fromtimestamp(nbf, datetime.timezone.utc)
             )
             .not_valid_after(
-                datetime.datetime.fromtimestamp(naf, datetime.UTC)
+                datetime.datetime.fromtimestamp(naf, datetime.timezone.utc)
             )
         )
 
@@ -462,10 +462,10 @@ class X509CertService(CertServiceBase):
             .public_key(_csr.public_key())
             .serial_number(serial or x509.random_serial_number())
             .not_valid_before(
-                datetime.datetime.fromtimestamp(nbf, datetime.UTC)
+                datetime.datetime.fromtimestamp(nbf, datetime.timezone.utc)
             )
             .not_valid_after(
-                datetime.datetime.fromtimestamp(naf, datetime.UTC)
+                datetime.datetime.fromtimestamp(naf, datetime.timezone.utc)
             )
         )
 

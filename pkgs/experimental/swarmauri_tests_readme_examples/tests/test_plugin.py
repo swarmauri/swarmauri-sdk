@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 pytest_plugins = ["pytester"]
 
 
@@ -106,3 +108,9 @@ readme_files = \"\"\"
     result = pytester.runpytest("-p", "swarmauri_tests_readme_examples")
     result.assert_outcomes()
     result.stdout.fnmatch_lines(["*readme examples plugin: missing files*"])
+
+
+@pytest.fixture(autouse=True)
+def isolate_nested_pytest_license_check(monkeypatch, pytester):
+    """Nested pytester projects exercise this plugin without SDK metadata."""
+    monkeypatch.setenv("PYTEST_ADDOPTS", "-p no:swarmauri_tests_pylicense")

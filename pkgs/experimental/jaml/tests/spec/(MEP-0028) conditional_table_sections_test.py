@@ -40,7 +40,9 @@ db_host = "prod.database.example.com"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Excluding conditional tables not fully validated yet.")
+@pytest.mark.xfail(
+    reason="Excluding conditional tables not fully validated yet."
+)
 def test_table_excluded_if_expression_is_none():
     """
     MEP-0028:
@@ -77,7 +79,8 @@ db_host = "prod.database.example.com"
 def test_direct_boolean_inclusion():
     """
     MEP-0028:
-      A conditional table can be declared with a direct boolean expression [~(${expr})].
+      A conditional table can be declared with a direct boolean expression
+      [~(${expr})].
       If it's true => table name is retained, if false => excluded.
     """
     toml_str = """
@@ -95,8 +98,10 @@ db_url = "https://prod-db.example.com"
 
     context = {"env.is_prod": True}
     rendered_str = render(reserialized, context=context)
-    # If the expression is True, the table name is presumably the same as the original
-    # or we might define a default name. The spec says "the expression must evaluate
+    # If the expression is True, the table name is presumably the same as the
+    # original
+    # or we might define a default name. The spec says "the expression must
+    # evaluate
     # to string or null/false." So if true => ???
 
     # We'll assume your parser names it "true".
@@ -105,7 +110,9 @@ db_url = "https://prod-db.example.com"
 
 
 @pytest.mark.spec
-@pytest.mark.xfail(reason="Merging multiple conditionals might not be implemented.")
+@pytest.mark.xfail(
+    reason="Merging multiple conditionals might not be implemented."
+)
 def test_multiple_conditionals_merging_same_name():
     """
     MEP-0028:
@@ -139,7 +146,8 @@ timeout = 60
 def test_ternary_style_expression():
     """
     MEP-0028:
-      A user can use standard ternary syntax: "table_name" if condition else None
+      A user can use standard ternary syntax: "table_name" if condition else
+      None
     """
     toml_str = """
 [settings]
@@ -158,7 +166,9 @@ db_host = "localhost"
 
 
 @pytest.mark.xfail(
-    reason="Not implemented: error if expression not a valid name or null/false"
+    reason=(
+        "Not implemented: error if expression not a valid name or null/false"
+    )
 )
 @pytest.mark.spec
 def test_error_if_result_not_string_or_boolean():
@@ -171,7 +181,8 @@ def test_error_if_result_not_string_or_boolean():
 [~(123)]
 key = "value"
 """
-    # Expect an error at render time because 123 is not a string, null, or false
+    # Expect an error at render time because 123 is not a string, null, or
+    # false
     ast = round_trip_loads(invalid_toml)
     with pytest.raises(
         Exception, match="Expression must yield a string, null, or false"
@@ -180,7 +191,10 @@ key = "value"
 
 
 @pytest.mark.xfail(
-    reason="No syntax check for environment usage or disallowed load-time variables yet"
+    reason=(
+        "No syntax check for environment usage or disallowed load-time "
+        "variables yet"
+    )
 )
 @pytest.mark.spec
 def test_disallow_load_time_variables_in_conditional_header():
@@ -196,7 +210,8 @@ env = "test"
 [~(@{env})]
 key = "value"
 """
-    # Expect an error because the spec forbids load-time references in conditional headers
+    # Expect an error because the spec forbids load-time references in
+    # conditional headers
     ast = round_trip_loads(invalid_toml)
     render(round_trip_dumps(ast), context={})  # Should raise an error
 
@@ -208,7 +223,8 @@ key = "value"
 def test_syntax_error_in_conditional_header():
     """
     MEP-0028:
-      If there's a syntax error in the expression, we should get an error at render time.
+      If there's a syntax error in the expression, we should get an error at
+      render time.
     """
     invalid_toml = """
 [~("config" if ${env} = "prod" else None)]
@@ -216,5 +232,7 @@ key = "value"
 """
     # Single '=' instead of '==' is a syntax error
     ast = round_trip_loads(invalid_toml)
-    with pytest.raises(Exception, match="Syntax error in conditional expression"):
+    with pytest.raises(
+        Exception, match="Syntax error in conditional expression"
+    ):
         render(round_trip_dumps(ast), context={"env": "prod"})

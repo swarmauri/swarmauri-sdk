@@ -1,6 +1,6 @@
 import logging
 import pytest
-from FastTokenizer.whitespace_tokenizer import whitespace_tokenizer
+from fasttokenizer import whitespace_tokenizer
 
 # Setting up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -12,10 +12,14 @@ def sample_text():
     """Fixtures for sample text inputs."""
     return {
         "simple": "This is a sample text.",
-        "with_whitespace": "This\tis\na sample\textended\tover\nmultiple\nlines.",
+        "with_whitespace": (
+            "This\tis\na sample\textended\tover\nmultiple\nlines."
+        ),
         "empty": "",
         "whitespace_only": "    \t\n  ",
-        "mixed": "Hello, World! This is a test.\nWith multiple lines and\ttabs.",
+        "mixed": (
+            "Hello, World! This is a test.\nWith multiple lines and\ttabs."
+        ),
     }
 
 
@@ -48,7 +52,16 @@ def test_whitespace_tokenizer_with_whitespace(sample_text):
         None
     """
     text = sample_text["with_whitespace"]
-    expected = ["This", "is", "a", "sample", "extended", "over", "multiple", "lines."]
+    expected = [
+        "This",
+        "is",
+        "a",
+        "sample",
+        "extended",
+        "over",
+        "multiple",
+        "lines.",
+    ]
     result = whitespace_tokenizer(text)
     assert result == expected, f"Expected {expected}, got {result}"
 

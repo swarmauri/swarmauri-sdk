@@ -28,7 +28,8 @@ class HttpClient:
         :param base_url: Optional base URL for all requests.
         :param timeout: Timeout (in seconds) for connections and operations.
         :param version: HTTP version to use. Accepts "1.1" (default) or "2".
-                        For "2", the client configures ALPN negotiation for HTTP/2.
+                        For "2", the client configures ALPN negotiation for
+                        HTTP/2.
         """
         self.base_url = base_url
         self.timeout = timeout
@@ -36,7 +37,8 @@ class HttpClient:
 
     def _prepare_url(self, url, params):
         """
-        Combine the base URL (if provided) with the endpoint and attach query parameters.
+        Combine the base URL (if provided) with the endpoint and attach query
+        parameters.
         """
         if self.base_url:
             url = urllib.parse.urljoin(self.base_url, url)
@@ -109,7 +111,9 @@ class HttpClient:
         if self.version == "1.1":
             # Build a raw HTTP/1.1 request.
             host = parsed_url.hostname
-            port = parsed_url.port or (443 if parsed_url.scheme == "https" else 80)
+            port = parsed_url.port or (
+                443 if parsed_url.scheme == "https" else 80
+            )
             ssl_context = None
             if parsed_url.scheme == "https":
                 ssl_context = ssl.create_default_context()
@@ -168,7 +172,8 @@ class HttpClient:
           2. Verifies that HTTP/2 was negotiated.
           3. Sends the connection preface.
           4. Instantiates an HTTP2Multiplexer to manage streams.
-          5. Uses HPACK to encode headers and sends a HEADERS frame (and optionally a DATA frame).
+          5. Uses HPACK to encode headers and sends a HEADERS frame (and
+            optionally a DATA frame).
           6. Waits for a response frame and returns its payload.
         """
         host = parsed_url.hostname
@@ -189,7 +194,9 @@ class HttpClient:
             raise TimeoutError("HTTP/2 Connection timed out")
 
         # Verify ALPN negotiation.
-        negotiated = writer.get_extra_info("ssl_object").selected_alpn_protocol()
+        negotiated = writer.get_extra_info(
+            "ssl_object"
+        ).selected_alpn_protocol()
         if negotiated != "h2":
             writer.close()
             await writer.wait_closed()
@@ -226,7 +233,9 @@ class HttpClient:
             await multiplexer.send_frame(data_frame)
 
         # Wait for a response frame on the stream.
-        response_frame = await multiplexer.get_response(stream_id, timeout=self.timeout)
+        response_frame = await multiplexer.get_response(
+            stream_id, timeout=self.timeout
+        )
         response_payload = response_frame.payload
 
         # Clean up.
@@ -236,13 +245,18 @@ class HttpClient:
 
         return response_payload.decode("utf-8")
 
-    def _handle_http2_sync_request(self, method, parsed_url, path, headers, data):
+    def _handle_http2_sync_request(
+        self, method, parsed_url, path, headers, data
+    ):
         """
-        Handle synchronous HTTP/2 requests by running the asynchronous implementation
+        Handle synchronous HTTP/2 requests by running the asynchronous
+        implementation
         in an event loop.
         """
         return asyncio.run(
-            self._handle_http2_async_request(method, parsed_url, path, headers, data)
+            self._handle_http2_async_request(
+                method, parsed_url, path, headers, data
+            )
         )
 
     # --- Convenience methods for synchronous requests ---
@@ -273,11 +287,15 @@ class HttpClient:
         return self.sync_request("HEAD", url, headers=headers, params=params)
 
     def options(self, url, headers=None, params=None):
-        return self.sync_request("OPTIONS", url, headers=headers, params=params)
+        return self.sync_request(
+            "OPTIONS", url, headers=headers, params=params
+        )
 
     # --- Convenience methods for asynchronous requests ---
     async def aget(self, url, headers=None, params=None):
-        return await self.async_request("GET", url, headers=headers, params=params)
+        return await self.async_request(
+            "GET", url, headers=headers, params=params
+        )
 
     async def apost(self, url, headers=None, data=None, json_data=None):
         return await self.async_request(
@@ -300,7 +318,11 @@ class HttpClient:
         )
 
     async def ahead(self, url, headers=None, params=None):
-        return await self.async_request("HEAD", url, headers=headers, params=params)
+        return await self.async_request(
+            "HEAD", url, headers=headers, params=params
+        )
 
     async def aoptions(self, url, headers=None, params=None):
-        return await self.async_request("OPTIONS", url, headers=headers, params=params)
+        return await self.async_request(
+            "OPTIONS", url, headers=headers, params=params
+        )

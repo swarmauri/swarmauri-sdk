@@ -95,7 +95,8 @@ message: str = ~( "Hello, Admin" if $user.role == "admin" else "Hello, User" )
 
 @pytest.mark.unit
 def test_rt_ren_nested_logical_with_at_marker():
-    # This test uses the @ marker to resolve a value from another section in the same JML document.
+    # This test uses the @ marker to resolve a value from another section in
+    # the same JML document.
     jml = """
 [user]
 role: str = "admin"

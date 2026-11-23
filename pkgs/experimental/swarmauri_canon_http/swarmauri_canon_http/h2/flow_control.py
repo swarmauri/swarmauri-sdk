@@ -2,8 +2,10 @@
 h2/flow_control.py
 
 Provides a basic implementation of HTTP/2 flow control management.
-This module manages both connection-level and stream-level flow control windows.
-Note: This is a simplified version and does not cover the full complexity of HTTP/2 flow control.
+This module manages both connection-level and stream-level flow control
+windows.
+Note: This is a simplified version and does not cover the full complexity of
+HTTP/2 flow control.
 """
 
 import asyncio
@@ -23,7 +25,8 @@ class FlowControlManager:
         Initialize the flow control manager.
 
         :param initial_stream_window: Default window size for new streams.
-        :param initial_connection_window: Initial window size for the connection.
+        :param initial_connection_window: Initial window size for the
+          connection.
         """
         self.connection_window = initial_connection_window
         self.stream_windows = {}  # stream_id -> window size
@@ -36,7 +39,8 @@ class FlowControlManager:
         Register a new stream with an initial window size.
 
         :param stream_id: The ID of the stream.
-        :param window_size: Optional override of the default stream window size.
+        :param window_size: Optional override of the default stream window
+          size.
         """
         if window_size is None:
             window_size = DEFAULT_INITIAL_STREAM_WINDOW
@@ -53,7 +57,8 @@ class FlowControlManager:
 
     async def wait_for_window(self, stream_id, data_length):
         """
-        Wait until both the connection-level and stream-level windows are large enough
+        Wait until both the connection-level and stream-level windows are
+        large enough
         to accommodate data_length bytes.
 
         :param stream_id: The stream ID to check.
@@ -77,17 +82,21 @@ class FlowControlManager:
         if self.connection_window < data_length:
             raise ValueError("Insufficient connection window available")
         if self.stream_windows.get(stream_id, 0) < data_length:
-            raise ValueError(f"Insufficient window available on stream {stream_id}")
+            raise ValueError(
+                f"Insufficient window available on stream {stream_id}"
+            )
 
         self.connection_window -= data_length
         self.stream_windows[stream_id] -= data_length
 
     def update_window(self, stream_id, increment):
         """
-        Increase the available window size. If stream_id is 0, update the connection-level window;
+        Increase the available window size. If stream_id is 0, update the
+        connection-level window;
         otherwise, update the specified stream's window.
 
-        :param stream_id: 0 for connection-level, or a stream ID for stream-level update.
+        :param stream_id: 0 for connection-level, or a stream ID for stream-
+          level update.
         :param increment: Number of bytes to add to the window.
         """
         if stream_id == 0:
