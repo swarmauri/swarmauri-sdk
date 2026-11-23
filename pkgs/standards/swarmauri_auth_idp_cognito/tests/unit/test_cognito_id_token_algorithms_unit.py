@@ -19,10 +19,13 @@ import base64
 import json
 import time
 from collections.abc import Mapping
+from secrets import token_bytes
 from typing import Any
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from pydantic import SecretBytes, SecretStr
 
 from swarmauri_auth_idp_cognito import CognitoOIDC10Login
@@ -31,55 +34,30 @@ ISSUER = "https://cognito.example"
 CLIENT_ID = "client"
 JWKS_URI = "https://cognito.example/jwks"
 
-# Throwaway RSA key for these tests only. The private half signs the ID
-# tokens below; the public half is served through the stubbed JWKS
-# endpoint. It is never used outside this file.
-TEST_PRIVATE_KEY_PEM = (
-    "-----BEGIN PRIVATE KEY-----\n"
-    "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDsn4gUPdQqJ8d7\n"
-    "WFYfJqHtnGMgNg47x887hnQEW3NlNNb8J4C8lCZMh4Zgnc+9zuCkWFj57PlRvNTS\n"
-    "uCBlrRn2LSRbwN3c8LceqZyOb1dutAFkyRuKX/c6eW9g1LHBM3r/TQ9FZU95VKbu\n"
-    "KbntCSV3CmPRqimnwcKOCZIxGwPD+6cN5kwW3VgYiLHNp07C3Y8r8+WlNGufBh1G\n"
-    "TLeJypUc57k1nNNXG8uqKr2u1VVl7bbJWWBaED4HYXd1bS9guCaPbGCZwTlb1/nG\n"
-    "zwpnIYabko57ZN7L8YruSm+qVP3zLxNR3lw1awW7/bNmOHXfT1b8S0OfjesiuU0r\n"
-    "ILr0WrGjAgMBAAECggEADK9QHlkZmr4RwACUvDDF2cc1uuJ4rSbharPsEtcnEO9w\n"
-    "XmT/KZzZReZtcQXt437aEqelzpXUlzMD2biVeb3nuD5R2Mw2fSgS7+CVQvYN6/3F\n"
-    "gVrwUE6Rj+jIo1E/FIEVAHnVgHUDMKt+7ti0XeaDw8oQXvjgce8ZCn/2R6B9i52M\n"
-    "mpY0vugzRKjPcdL4ix5gsAgWOnBcoXJbueOQS2OeX7IPkh8+YoZWo436UteOZNvO\n"
-    "TOnpWbirJdfTfX+e96D9i1kh4it+J7LeWrQ3TmuS+tGqeJQkKCERXAha32z4vr+e\n"
-    "Gi3Ix17+KKzN5OJFKsU74GSe3zW+4P4zWDRTVj8LkQKBgQD+fXZIivX9+70BTxUo\n"
-    "iuKLmCuDyXMokhoPdTSM80XIAiKk7un+mV0Vfgx3Ir8ynmGsMlAAZoPhFaxWkgVz\n"
-    "uF+n5zRHE0TrUG6mSRBwamZMYqV1ta6pmgQuqP3BQBVDaKwGfR3Y2p1iNGdXae/o\n"
-    "AEP3Xva3lH9tSQl/Z+knNG3p2wKBgQDuBu6UQtVMtHSzSjupVxb6PcvRu3ahomnJ\n"
-    "qIyai5MHAqaSClj7MJeKDe1xd9lL0Iliwf3Pu/CFpkhN8AjBHWHkbTXq68NYu0cT\n"
-    "O8T4qsFPAz031k/W7ZKbOEb720vyhdJxjrcIfakQHTnhvRYDNCzQSFemjDFuAV9L\n"
-    "DXiWIimV2QKBgHUvjKIG6xNTMktCATo0CfHB1nfO8apC7KEllVc6Rm29HfrY0QMd\n"
-    "19Enw9GwPF6ws8U5PcGRczTYaA1NHBmXUuTcACSiaN/6n5kOl/VL6WNPIWW8jXsn\n"
-    "orlhs8ejHKd3sY8jWfUbZdFs1BFahNBOHv3vyqfqR2spcKgsTx5wdBR1AoGAEytf\n"
-    "v3T6dKj71QyfbW3kHdcoOQXd8fqAhosad7/R4XinLY/DxscNDUM94iuCxoZO6jMx\n"
-    "W6+JGVpg7FXufo79OUZKV1cRbm32tWfU3ynxU4mxPnP2Dhsn+XQ400PABBIe9qJF\n"
-    "v1tPaErSRInT4gIrscKBvJoByRg3MnYtRfoOW1ECgYAVGNrcLRZgPuMahkntlV26\n"
-    "07gjPWEHNULkb75Oz9q+HBz//idWBRYaBrDJhgQlK6j5BZFPHjjwdKWxxo6PZ3Fz\n"
-    "+e7KLS8QS0LZAX7PCSN+hL4xw3gQ+IWSAD37B9azUrRUlJsCPtfRU4yRmywl12GU\n"
-    "TDMDED07kAvv9W5bGF6/XQ==\n"
-    "-----END PRIVATE KEY-----\n"
-)
-TEST_JWK = {
-    "kty": "RSA",
-    "kid": "test-key-1",
-    "use": "sig",
-    "alg": "RS256",
-    "n": (
-        "7J-IFD3UKifHe1hWHyah7ZxjIDYOO8fPO4Z0BFtzZTTW_CeAvJQmTIeGYJ3Pvc7g"
-        "pFhY-ez5UbzU0rggZa0Z9i0kW8Dd3PC3Hqmcjm9XbrQBZMkbil_3OnlvYNSxwTN6"
-        "_00PRWVPeVSm7im57Qkldwpj0aopp8HCjgmSMRsDw_unDeZMFt1YGIixzadOwt2P"
-        "K_PlpTRrnwYdRky3icqVHOe5NZzTVxvLqiq9rtVVZe22yVlgWhA-B2F3dW0vYLgm"
-        "j2xgmcE5W9f5xs8KZyGGm5KOe2Tey_GK7kpvqlT98y8TUd5cNWsFu_2zZjh1309W"
-        "_EtDn43rIrlNKyC69Fqxow"
-    ),
-    "e": "AQAB",
-}
-TEST_JWKS = {"keys": [TEST_JWK]}
+KEY_ID = "test-key-1"
+
+
+@pytest.fixture(scope="module")
+def signing_key() -> rsa.RSAPrivateKey:
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+
+@pytest.fixture(scope="module")
+def private_key_pem(signing_key: rsa.RSAPrivateKey) -> bytes:
+    return signing_key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption(),
+    )
+
+
+@pytest.fixture(scope="module")
+def jwks(signing_key: rsa.RSAPrivateKey) -> dict[str, Any]:
+    jwk = json.loads(
+        jwt.algorithms.RSAAlgorithm.to_jwk(signing_key.public_key())
+    )
+    jwk.update(kid=KEY_ID, use="sig", alg="RS256")
+    return {"keys": [jwk]}
 
 
 def _b64url(data: bytes) -> str:
@@ -101,20 +79,18 @@ def _claims(**overrides: Any) -> dict[str, Any]:
 
 
 def _mint_token(
-    *, algorithm: str = "RS256", key: Any = TEST_PRIVATE_KEY_PEM, **claims: Any
+    key: bytes | str | None, *, algorithm: str = "RS256", **claims: Any
 ) -> str:
     return jwt.encode(
         _claims(**claims),
         key,
         algorithm=algorithm,
-        headers={"kid": "test-key-1"},
+        headers={"kid": KEY_ID},
     )
 
 
 def _mint_token_without_alg() -> str:
-    header = _b64url(
-        json.dumps({"kid": "test-key-1", "typ": "JWT"}).encode("utf-8")
-    )
+    header = _b64url(json.dumps({"kid": KEY_ID, "typ": "JWT"}).encode("utf-8"))
     payload = _b64url(json.dumps(_claims()).encode("utf-8"))
     return f"{header}.{payload}."
 
@@ -137,12 +113,14 @@ def login() -> CognitoOIDC10Login:
 
 
 @pytest.fixture
-def stubbed_jwks(login: CognitoOIDC10Login) -> CognitoOIDC10Login:
+def stubbed_jwks(
+    login: CognitoOIDC10Login, jwks: dict[str, Any]
+) -> CognitoOIDC10Login:
     async def fake_http_get(
         url: str, *, headers: Mapping[str, str] | None = None
     ) -> Mapping[str, Any]:
         assert url == JWKS_URI
-        return TEST_JWKS
+        return jwks
 
     login._http_get = fake_http_get  # type: ignore[method-assign]
     return login
@@ -152,8 +130,9 @@ def stubbed_jwks(login: CognitoOIDC10Login) -> CognitoOIDC10Login:
 @pytest.mark.asyncio
 async def test_valid_rs256_token_decodes(
     stubbed_jwks: CognitoOIDC10Login,
+    private_key_pem: bytes,
 ) -> None:
-    token = _mint_token()
+    token = _mint_token(private_key_pem)
     claims = await stubbed_jwks._decode_id_token(
         token,
         jwks_uri=JWKS_URI,
@@ -167,7 +146,7 @@ async def test_valid_rs256_token_decodes(
 @pytest.mark.unit
 @pytest.mark.asyncio
 async def test_hs256_token_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
-    token = _mint_token(algorithm="HS256", key="shared-secret")
+    token = _mint_token(algorithm="HS256", key=token_bytes(32))
     with pytest.raises(ValueError, match="unsupported id_token"):
         await stubbed_jwks._decode_id_token(
             token,
@@ -207,10 +186,13 @@ async def test_missing_alg_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_missing_kid_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
+async def test_missing_kid_rejected(
+    stubbed_jwks: CognitoOIDC10Login,
+    private_key_pem: bytes,
+) -> None:
     token = jwt.encode(
         _claims(),
-        TEST_PRIVATE_KEY_PEM,
+        private_key_pem,
         algorithm="RS256",
         headers={"typ": "JWT"},
     )
@@ -227,8 +209,9 @@ async def test_missing_kid_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
 @pytest.mark.asyncio
 async def test_expired_token_rejected(
     stubbed_jwks: CognitoOIDC10Login,
+    private_key_pem: bytes,
 ) -> None:
-    token = _mint_token(exp=int(time.time()) - 60)
+    token = _mint_token(private_key_pem, exp=int(time.time()) - 60)
     with pytest.raises(jwt.ExpiredSignatureError):
         await stubbed_jwks._decode_id_token(
             token,
@@ -242,8 +225,9 @@ async def test_expired_token_rejected(
 @pytest.mark.asyncio
 async def test_wrong_audience_rejected(
     stubbed_jwks: CognitoOIDC10Login,
+    private_key_pem: bytes,
 ) -> None:
-    token = _mint_token(aud="other-client")
+    token = _mint_token(private_key_pem, aud="other-client")
     with pytest.raises(jwt.InvalidAudienceError):
         await stubbed_jwks._decode_id_token(
             token,
@@ -257,8 +241,9 @@ async def test_wrong_audience_rejected(
 @pytest.mark.asyncio
 async def test_wrong_issuer_rejected(
     stubbed_jwks: CognitoOIDC10Login,
+    private_key_pem: bytes,
 ) -> None:
-    token = _mint_token(iss="https://cognito.other")
+    token = _mint_token(private_key_pem, iss="https://cognito.other")
     with pytest.raises(jwt.InvalidIssuerError):
         await stubbed_jwks._decode_id_token(
             token,
