@@ -14,7 +14,7 @@ def test_load_manifest_default_include(tmp_path):
 
 def test_process_target_discovers_packages(tmp_path):
     docs_root = tmp_path
-    pkg_root = docs_root / "pkgs" / "community" / "test_pkg" / "test_pkg"
+    pkg_root = docs_root / "pkgs" / "50-community" / "test_pkg" / "test_pkg"
     pkg_root.mkdir(parents=True)
     (pkg_root / "__init__.py").write_text("")
     (pkg_root / "mod.py").write_text("class MyClass:\n    pass\n")
@@ -44,7 +44,7 @@ def test_process_target_discovers_packages(tmp_path):
 def test_process_target_skips_requested_packages(tmp_path):
     docs_root = tmp_path
     for name in ("keep_pkg", "skip_pkg"):
-        pkg_root = docs_root / "pkgs" / "community" / name / name
+        pkg_root = docs_root / "pkgs" / "50-community" / name / name
         pkg_root.mkdir(parents=True)
         (pkg_root / "__init__.py").write_text("")
         (pkg_root / "mod.py").write_text("class Thing:\n    pass\n")
@@ -76,7 +76,9 @@ def test_process_target_skips_requested_packages(tmp_path):
 
 def test_process_target_reuses_cached_classes(tmp_path, monkeypatch):
     docs_root = tmp_path
-    pkg_root = docs_root / "pkgs" / "community" / "cached_pkg" / "cached_pkg"
+    pkg_root = (
+        docs_root / "pkgs" / "50-community" / "cached_pkg" / "cached_pkg"
+    )
     pkg_root.mkdir(parents=True)
     (pkg_root / "__init__.py").write_text("")
     mod_file = pkg_root / "mod.py"

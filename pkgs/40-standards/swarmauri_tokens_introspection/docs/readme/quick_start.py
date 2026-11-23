@@ -33,7 +33,7 @@ async def main() -> None:
         cache_ttl_s=300,
     )
 
-    # Inject the mock transport; in production you would not override the client.
+    # Exercise the provider with a mocked introspection response.
     service._client = httpx.AsyncClient(transport=transport)
 
     claims = await service.verify("opaque-token")

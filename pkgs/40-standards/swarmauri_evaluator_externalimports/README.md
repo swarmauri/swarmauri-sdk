@@ -140,8 +140,8 @@ poetry add swarmauri_evaluator_externalimports
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_evaluator_externalimports/docs/readme/quick_start.py).
 
 ```python
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from swarmauri_core.programs.IProgram import IProgram
@@ -177,7 +177,7 @@ def evaluate_example() -> tuple[float, dict[str, Any]]:
     with tempfile.TemporaryDirectory() as workdir:
         project = Path(workdir)
         project.joinpath("app.py").write_text(
-            """import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n""",
+            "import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n",
             encoding="utf-8",
         )
 
@@ -212,8 +212,8 @@ The example demonstrates the documented `swarmauri_evaluator_externalimports` so
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_evaluator_externalimports/docs/readme/usage.py).
 
 ```python
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from swarmauri_core.programs.IProgram import IProgram
@@ -249,7 +249,7 @@ def evaluate_example() -> tuple[float, dict[str, Any]]:
     with tempfile.TemporaryDirectory() as workdir:
         project = Path(workdir)
         project.joinpath("app.py").write_text(
-            """import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n""",
+            "import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n",
             encoding="utf-8",
         )
 

@@ -106,7 +106,7 @@ async def main() -> None:
         proof_max_age_s=300,
     )
 
-    # Client presents the public key when the token is minted so we can bind cnf.jkt
+    # Bind cnf.jkt to the client public key at issuance.
     dpop_private_key = ec.generate_private_key(ec.SECP256R1())
     jwk_public = json.loads(
         algorithms.ECAlgorithm.to_jwk(dpop_private_key.public_key())

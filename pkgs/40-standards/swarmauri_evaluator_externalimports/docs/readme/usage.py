@@ -1,5 +1,5 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from typing import Any
 
 from swarmauri_core.programs.IProgram import IProgram
@@ -35,7 +35,7 @@ def evaluate_example() -> tuple[float, dict[str, Any]]:
     with tempfile.TemporaryDirectory() as workdir:
         project = Path(workdir)
         project.joinpath("app.py").write_text(
-            """import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n""",
+            "import os\nimport numpy\n\nprint(os.name, numpy.__version__)\n",
             encoding="utf-8",
         )
 

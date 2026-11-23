@@ -13,5 +13,5 @@ conversation.add_messages(
 
 plan = conversation.plan_compaction()
 if plan is not None:
-    # In an application, summarize plan.previous_summary and plan.older_messages.
+    # Summarize plan.previous_summary together with plan.older_messages.
     conversation.apply_compaction(plan, "The project targets Python 3.12.")

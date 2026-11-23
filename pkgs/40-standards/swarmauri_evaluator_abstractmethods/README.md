@@ -121,10 +121,69 @@ poetry add swarmauri_evaluator_abstractmethods
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_evaluator_abstractmethods/docs/readme/quick_start.py).
 
 ```python
-import importlib
+import textwrap
+from typing import Dict
 
-package = importlib.import_module("swarmauri_evaluator_abstractmethods")
-assert package.__name__ == "swarmauri_evaluator_abstractmethods"
+from swarmauri_core.programs.IProgram import DiffType, IProgram
+from swarmauri_evaluator_abstractmethods import AbstractMethodsEvaluator
+
+
+class InMemoryProgram(IProgram):
+    def __init__(self, files: Dict[str, str]):
+        self._files = files
+
+    def diff(self, other: IProgram) -> DiffType:
+        return {}
+
+    def apply_diff(self, diff: DiffType) -> IProgram:
+        return self
+
+    def validate(self) -> bool:
+        return True
+
+    def clone(self) -> IProgram:
+        return InMemoryProgram(dict(self._files))
+
+    def get_source_files(self) -> Dict[str, str]:
+        return self._files
+
+
+def main() -> None:
+    program = InMemoryProgram(
+        {
+            "shapes.py": textwrap.dedent(
+                """
+                from abc import ABC, abstractmethod
+
+                class Shape(ABC):
+                    @abstractmethod
+                    def area(self):
+                        ...
+                """
+            ).strip(),
+            "incomplete.py": textwrap.dedent(
+                """
+                from abc import ABC
+
+                class InvalidShape(ABC):
+                    def area(self):
+                        ...
+                """
+            ).strip(),
+        }
+    )
+
+    evaluator = AbstractMethodsEvaluator()
+    score, metadata = evaluator.evaluate(program)
+
+    print(f"Score: {score:.2f}")
+    for issue in metadata["issues"]:
+        if not issue["has_abstractmethod"]:
+            print(f"{issue['file']}:{issue['line']} -> {issue['message']}")
+
+
+if __name__ == "__main__":
+    main()
 ```
 <!-- readme-standards:end example.quick-start -->
 
@@ -142,10 +201,69 @@ This quick start is explicitly an import smoke check for `swarmauri_evaluator_ab
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_evaluator_abstractmethods/docs/readme/usage.py).
 
 ```python
-import importlib
+import textwrap
+from typing import Dict
 
-package = importlib.import_module("swarmauri_evaluator_abstractmethods")
-assert package.__name__ == "swarmauri_evaluator_abstractmethods"
+from swarmauri_core.programs.IProgram import DiffType, IProgram
+from swarmauri_evaluator_abstractmethods import AbstractMethodsEvaluator
+
+
+class InMemoryProgram(IProgram):
+    def __init__(self, files: Dict[str, str]):
+        self._files = files
+
+    def diff(self, other: IProgram) -> DiffType:
+        return {}
+
+    def apply_diff(self, diff: DiffType) -> IProgram:
+        return self
+
+    def validate(self) -> bool:
+        return True
+
+    def clone(self) -> IProgram:
+        return InMemoryProgram(dict(self._files))
+
+    def get_source_files(self) -> Dict[str, str]:
+        return self._files
+
+
+def main() -> None:
+    program = InMemoryProgram(
+        {
+            "shapes.py": textwrap.dedent(
+                """
+                from abc import ABC, abstractmethod
+
+                class Shape(ABC):
+                    @abstractmethod
+                    def area(self):
+                        ...
+                """
+            ).strip(),
+            "incomplete.py": textwrap.dedent(
+                """
+                from abc import ABC
+
+                class InvalidShape(ABC):
+                    def area(self):
+                        ...
+                """
+            ).strip(),
+        }
+    )
+
+    evaluator = AbstractMethodsEvaluator()
+    score, metadata = evaluator.evaluate(program)
+
+    print(f"Score: {score:.2f}")
+    for issue in metadata["issues"]:
+        if not issue["has_abstractmethod"]:
+            print(f"{issue['file']}:{issue['line']} -> {issue['message']}")
+
+
+if __name__ == "__main__":
+    main()
 ```
 <!-- readme-standards:end example.usage -->
 

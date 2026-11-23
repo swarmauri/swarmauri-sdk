@@ -109,14 +109,15 @@ Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/
 
 ```python
 import asyncio
-from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+
 from swarmauri_core.key_providers.types import (
-    KeySpec,
-    KeyClass,
-    KeyAlg,  # optional, not enforced by the provider
-    KeyUse,
     ExportPolicy,
+    KeyAlg,  # optional, not enforced by the provider
+    KeyClass,
+    KeySpec,
+    KeyUse,
 )
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
 
 
 async def main() -> None:
@@ -127,7 +128,7 @@ async def main() -> None:
         klass=KeyClass.symmetric,
         alg=KeyAlg.AES256_GCM,  # optional hint ? not strictly enforced
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,  # material may be present
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         label="session-key",
     )
     ref = await provider.create_key(spec)
@@ -182,14 +183,15 @@ Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/m
 
 ```python
 import asyncio
-from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
+
 from swarmauri_core.key_providers.types import (
-    KeySpec,
-    KeyClass,
-    KeyAlg,  # optional, not enforced by the provider
-    KeyUse,
     ExportPolicy,
+    KeyAlg,  # optional, not enforced by the provider
+    KeyClass,
+    KeySpec,
+    KeyUse,
 )
+from swarmauri_keyprovider_inmemory import InMemoryKeyProvider
 
 
 async def main() -> None:
@@ -200,7 +202,7 @@ async def main() -> None:
         klass=KeyClass.symmetric,
         alg=KeyAlg.AES256_GCM,  # optional hint ? not strictly enforced
         uses=(KeyUse.ENCRYPT, KeyUse.DECRYPT),
-        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,  # material may be present
+        export_policy=ExportPolicy.SECRET_WHEN_ALLOWED,
         label="session-key",
     )
     ref = await provider.create_key(spec)

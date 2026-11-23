@@ -4,7 +4,10 @@ from swarmauri_xmp_gif import GIFXMP
 
 handler = GIFXMP()
 gif_path = Path("example.gif")
-xmp_packet = """<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"""
+xmp_packet = (
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
+    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+)
 
 # Embed using an application extension block
 updated_bytes = handler.write_xmp(gif_path.read_bytes(), xmp_packet)

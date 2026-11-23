@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
-import re
+import runpy
 from pathlib import Path
 from typing import Any, Dict
 
@@ -15,8 +15,9 @@ import pytest
 def test_readme_quickstart_example(monkeypatch: pytest.MonkeyPatch) -> None:
     """The README quickstart should continue to represent the real API."""
 
-    readme_path = Path(__file__).resolve().parent.parent / "README.md"
-    quickstart = _load_readme_quickstart(readme_path)
+    quickstart = (
+        Path(__file__).resolve().parents[1] / "docs/readme/quick_start.py"
+    )
 
     publisher_module = importlib.import_module(
         "swarmauri_publisher_rabbitmq.RabbitMQPublisher"
@@ -70,8 +71,7 @@ def test_readme_quickstart_example(monkeypatch: pytest.MonkeyPatch) -> None:
         publisher_module.pika, "BasicProperties", DummyBasicProperties
     )
 
-    namespace: Dict[str, Any] = {"__builtins__": __builtins__}
-    exec(quickstart, namespace)
+    namespace = runpy.run_path(str(quickstart))
 
     publisher = namespace["publisher"]
     assert publisher.exchange == "demo_exchange"
@@ -98,16 +98,3 @@ def test_readme_quickstart_example(monkeypatch: pytest.MonkeyPatch) -> None:
     assert message["properties"].kwargs["delivery_mode"] == (
         publisher_module.pika.spec.PERSISTENT_DELIVERY_MODE
     )
-
-
-def _load_readme_quickstart(readme_path: Path) -> str:
-    """Extract the quickstart snippet from the README."""
-
-    text = readme_path.read_text(encoding="utf-8")
-    match = re.search(
-        r"```python\n(?P<code>.*?# README Quickstart Example.*?)\n```",
-        text,
-        re.DOTALL,
-    )
-    assert match, "Could not locate the README quickstart code block."
-    return match.group("code")

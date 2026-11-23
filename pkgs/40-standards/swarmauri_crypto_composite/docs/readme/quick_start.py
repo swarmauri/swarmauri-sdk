@@ -1,8 +1,7 @@
-"""Route crypto operations to the provider that supports the requested algorithm."""
+"""Route crypto operations to a provider that supports the algorithm."""
 
 import asyncio
 
-from swarmauri_crypto_composite import CompositeCrypto
 from swarmauri_core.crypto.ICrypto import ICrypto
 from swarmauri_core.crypto.types import (
     AEADCiphertext,
@@ -11,6 +10,7 @@ from swarmauri_core.crypto.types import (
     KeyType,
     KeyUse,
 )
+from swarmauri_crypto_composite import CompositeCrypto
 
 
 class DummyCrypto(ICrypto):

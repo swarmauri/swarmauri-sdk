@@ -107,11 +107,10 @@ poetry add swarmauri_crypto_composite
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_crypto_composite/docs/readme/quick_start.py).
 
 ```python
-"""Route crypto operations to the provider that supports the requested algorithm."""
+"""Route crypto operations to a provider that supports the algorithm."""
 
 import asyncio
 
-from swarmauri_crypto_composite import CompositeCrypto
 from swarmauri_core.crypto.ICrypto import ICrypto
 from swarmauri_core.crypto.types import (
     AEADCiphertext,
@@ -120,6 +119,7 @@ from swarmauri_core.crypto.types import (
     KeyType,
     KeyUse,
 )
+from swarmauri_crypto_composite import CompositeCrypto
 
 
 class DummyCrypto(ICrypto):
@@ -212,11 +212,10 @@ The example demonstrates the documented `swarmauri_crypto_composite` source boun
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_crypto_composite/docs/readme/usage.py).
 
 ```python
-"""Route crypto operations to the provider that supports the requested algorithm."""
+"""Route crypto operations to a provider that supports the algorithm."""
 
 import asyncio
 
-from swarmauri_crypto_composite import CompositeCrypto
 from swarmauri_core.crypto.ICrypto import ICrypto
 from swarmauri_core.crypto.types import (
     AEADCiphertext,
@@ -225,6 +224,7 @@ from swarmauri_core.crypto.types import (
     KeyType,
     KeyUse,
 )
+from swarmauri_crypto_composite import CompositeCrypto
 
 
 class DummyCrypto(ICrypto):

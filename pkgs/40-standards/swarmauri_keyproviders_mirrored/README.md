@@ -137,15 +137,15 @@ Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/
 ```python
 import asyncio
 
-from swarmauri_keyproviders_mirrored import MirroredKeyProvider
-from swarmauri_keyprovider_local import LocalKeyProvider
+from swarmauri_core.crypto.types import KeyUse
 from swarmauri_core.key_providers.types import (
-    KeySpec,
+    ExportPolicy,
     KeyAlg,
     KeyClass,
-    ExportPolicy,
+    KeySpec,
 )
-from swarmauri_core.crypto.types import KeyUse
+from swarmauri_keyprovider_local import LocalKeyProvider
+from swarmauri_keyproviders_mirrored import MirroredKeyProvider
 
 
 async def main() -> None:
@@ -173,7 +173,8 @@ async def main() -> None:
 
     assert mirrored["x"] == jwk["x"]
     print(
-        f"Failover retrieved Ed25519 key from secondary provider: {mirrored['kid']}"
+        "Failover retrieved Ed25519 key from secondary provider:",
+        mirrored["kid"],
     )
 
 
@@ -198,15 +199,15 @@ Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/m
 ```python
 import asyncio
 
-from swarmauri_keyproviders_mirrored import MirroredKeyProvider
-from swarmauri_keyprovider_local import LocalKeyProvider
+from swarmauri_core.crypto.types import KeyUse
 from swarmauri_core.key_providers.types import (
-    KeySpec,
+    ExportPolicy,
     KeyAlg,
     KeyClass,
-    ExportPolicy,
+    KeySpec,
 )
-from swarmauri_core.crypto.types import KeyUse
+from swarmauri_keyprovider_local import LocalKeyProvider
+from swarmauri_keyproviders_mirrored import MirroredKeyProvider
 
 
 async def main() -> None:
@@ -234,7 +235,8 @@ async def main() -> None:
 
     assert mirrored["x"] == jwk["x"]
     print(
-        f"Failover retrieved Ed25519 key from secondary provider: {mirrored['kid']}"
+        "Failover retrieved Ed25519 key from secondary provider:",
+        mirrored["kid"],
     )
 
 
