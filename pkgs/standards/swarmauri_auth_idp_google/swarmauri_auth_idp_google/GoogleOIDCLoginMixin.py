@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Mapping, Optional, Sequence
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import jwt
 from pydantic import ConfigDict, Field, SecretBytes, SecretStr
@@ -72,12 +73,42 @@ class GoogleOIDCLoginMixin:
             self._state_secret_value(), {"verifier": verifier, "nonce": nonce}
         )
         endpoint = metadata["authorization_endpoint"]
-        url = (
-            f"{endpoint}?response_type=code"
-            f"&client_id={self.client_id}&redirect_uri={self.redirect_uri}"
-            f"&scope={self.scope}&state={state}&nonce={nonce}"
-            f"&code_challenge={challenge}&code_challenge_method=S256"
-            f"&include_granted_scopes=true&prompt=select_account"
+        params = {
+            "response_type": "code",
+            "client_id": self.client_id,
+            "redirect_uri": self.redirect_uri,
+            "scope": self.scope,
+            "state": state,
+            "nonce": nonce,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+            "include_granted_scopes": "true",
+            "prompt": "select_account",
+        }
+        query = urlencode(params)
+        parts = urlsplit(endpoint)
+        # An endpoint that already carries one of the generated keys (a stale
+        # state or PKCE value in its query) must not emit it twice: servers
+        # that take the first value or reject duplicates break the callback
+        # exchange. Other query keys the endpoint carries are kept.
+        kept = urlencode(
+            [
+                (key, value)
+                for key, value in parse_qsl(
+                    parts.query, keep_blank_values=True
+                )
+                if key not in params
+            ]
+        )
+        merged_query = f"{kept}&{query}" if kept else query
+        url = urlunsplit(
+            (
+                parts.scheme,
+                parts.netloc,
+                parts.path,
+                merged_query,
+                parts.fragment,
+            )
         )
         return {
             "url": url,

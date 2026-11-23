@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any, Callable, Mapping
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 from pydantic import ConfigDict, Field, SecretBytes, SecretStr
 
@@ -47,12 +48,29 @@ class GoogleOAuthLoginMixin:
     async def _auth_payload(self) -> Mapping[str, str]:
         verifier, challenge = make_pkce_pair()
         state = sign_state(self._state_secret_value(), {"verifier": verifier})
-        url = (
-            f"{GOOGLE_AUTHORIZATION_ENDPOINT}?response_type=code"
-            f"&client_id={self.client_id}&redirect_uri={self.redirect_uri}"
-            f"&scope={self.scope}&state={state}"
-            f"&code_challenge={challenge}&code_challenge_method=S256"
-            f"&access_type=offline&prompt=select_account"
+        query = urlencode(
+            {
+                "response_type": "code",
+                "client_id": self.client_id,
+                "redirect_uri": self.redirect_uri,
+                "scope": self.scope,
+                "state": state,
+                "code_challenge": challenge,
+                "code_challenge_method": "S256",
+                "access_type": "offline",
+                "prompt": "select_account",
+            }
+        )
+        parts = urlsplit(GOOGLE_AUTHORIZATION_ENDPOINT)
+        merged_query = f"{parts.query}&{query}" if parts.query else query
+        url = urlunsplit(
+            (
+                parts.scheme,
+                parts.netloc,
+                parts.path,
+                merged_query,
+                parts.fragment,
+            )
         )
         return {"url": url, "state": state, "verifier": verifier}
 
