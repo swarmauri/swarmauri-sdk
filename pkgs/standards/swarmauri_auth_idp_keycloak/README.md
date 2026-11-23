@@ -125,7 +125,8 @@ login = KeycloakOAuth20Login(
     state_secret=SecretBytes(b"replace-with-random-bytes"),
 )
 
-# Optional: preload discovery metadata when running outside your Keycloak instance.
+# Optional: preload discovery metadata when running outside your Keycloak
+# instance.
 login.discovery_cache = {
     "authorization_endpoint": "https://kc.example.com/realms/myrealm/protocol/openid-connect/auth",
     "token_endpoint": "https://kc.example.com/realms/myrealm/protocol/openid-connect/token",
@@ -136,8 +137,10 @@ login.discovery_cache = {
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]`, then capture the callback `code`
+    # and `state`.
+    # Later, call `login.exchange_and_identity(code, state)` inside your
+    # callback handler.
 
 
 asyncio.run(run_flow())
@@ -170,7 +173,8 @@ login = KeycloakOAuth20Login(
     state_secret=SecretBytes(b"replace-with-random-bytes"),
 )
 
-# Optional: preload discovery metadata when running outside your Keycloak instance.
+# Optional: preload discovery metadata when running outside your Keycloak
+# instance.
 login.discovery_cache = {
     "authorization_endpoint": "https://kc.example.com/realms/myrealm/protocol/openid-connect/auth",
     "token_endpoint": "https://kc.example.com/realms/myrealm/protocol/openid-connect/token",
@@ -181,8 +185,10 @@ login.discovery_cache = {
 async def run_flow() -> None:
     auth = await login.auth_url()
     print(auth["url"])
-    # Redirect the browser to `auth["url"]`, then capture the callback `code` and `state`.
-    # Later, call `login.exchange_and_identity(code, state)` inside your callback handler.
+    # Redirect the browser to `auth["url"]`, then capture the callback `code`
+    # and `state`.
+    # Later, call `login.exchange_and_identity(code, state)` inside your
+    # callback handler.
 
 
 asyncio.run(run_flow())
