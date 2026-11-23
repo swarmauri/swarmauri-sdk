@@ -108,7 +108,9 @@ class CognitoLoginMixin:
         if not algorithm:
             raise ValueError("missing alg in id_token header")
         if algorithm not in ID_TOKEN_ALGORITHMS:
-            raise ValueError(f"unsupported id_token signing algorithm: {algorithm}")
+            raise ValueError(
+                f"unsupported id_token signing algorithm: {algorithm}"
+            )
         jwks = await self._http_get(jwks_uri)
         signer = _load_signing_key(jwks, kid)
         return jwt.decode(

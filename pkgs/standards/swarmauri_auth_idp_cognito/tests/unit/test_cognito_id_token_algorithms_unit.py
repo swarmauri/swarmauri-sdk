@@ -69,7 +69,14 @@ TEST_JWK = {
     "kid": "test-key-1",
     "use": "sig",
     "alg": "RS256",
-    "n": "7J-IFD3UKifHe1hWHyah7ZxjIDYOO8fPO4Z0BFtzZTTW_CeAvJQmTIeGYJ3Pvc7gpFhY-ez5UbzU0rggZa0Z9i0kW8Dd3PC3Hqmcjm9XbrQBZMkbil_3OnlvYNSxwTN6_00PRWVPeVSm7im57Qkldwpj0aopp8HCjgmSMRsDw_unDeZMFt1YGIixzadOwt2PK_PlpTRrnwYdRky3icqVHOe5NZzTVxvLqiq9rtVVZe22yVlgWhA-B2F3dW0vYLgmj2xgmcE5W9f5xs8KZyGGm5KOe2Tey_GK7kpvqlT98y8TUd5cNWsFu_2zZjh1309W_EtDn43rIrlNKyC69Fqxow",
+    "n": (
+        "7J-IFD3UKifHe1hWHyah7ZxjIDYOO8fPO4Z0BFtzZTTW_CeAvJQmTIeGYJ3Pvc7g"
+        "pFhY-ez5UbzU0rggZa0Z9i0kW8Dd3PC3Hqmcjm9XbrQBZMkbil_3OnlvYNSxwTN6"
+        "_00PRWVPeVSm7im57Qkldwpj0aopp8HCjgmSMRsDw_unDeZMFt1YGIixzadOwt2P"
+        "K_PlpTRrnwYdRky3icqVHOe5NZzTVxvLqiq9rtVVZe22yVlgWhA-B2F3dW0vYLgm"
+        "j2xgmcE5W9f5xs8KZyGGm5KOe2Tey_GK7kpvqlT98y8TUd5cNWsFu_2zZjh1309W"
+        "_EtDn43rIrlNKyC69Fqxow"
+    ),
     "e": "AQAB",
 }
 TEST_JWKS = {"keys": [TEST_JWK]}
@@ -105,7 +112,9 @@ def _mint_token(
 
 
 def _mint_token_without_alg() -> str:
-    header = _b64url(json.dumps({"kid": "test-key-1", "typ": "JWT"}).encode("utf-8"))
+    header = _b64url(
+        json.dumps({"kid": "test-key-1", "typ": "JWT"}).encode("utf-8")
+    )
     payload = _b64url(json.dumps(_claims()).encode("utf-8"))
     return f"{header}.{payload}."
 
@@ -216,7 +225,9 @@ async def test_missing_kid_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_expired_token_rejected(stubbed_jwks: CognitoOIDC10Login) -> None:
+async def test_expired_token_rejected(
+    stubbed_jwks: CognitoOIDC10Login,
+) -> None:
     token = _mint_token(exp=int(time.time()) - 60)
     with pytest.raises(jwt.ExpiredSignatureError):
         await stubbed_jwks._decode_id_token(
