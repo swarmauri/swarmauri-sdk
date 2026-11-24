@@ -52,7 +52,7 @@ notice_file = "NOTICE"
 
 [tool.readme_standards.distributions.pypi]
 name = "swarmauri_tts_deepinfra_qwen3_voicedesign"
-published = false
+published = true
 
 [tool.readme_standards.examples.quick_start]
 source = "docs/readme/quick_start.py"

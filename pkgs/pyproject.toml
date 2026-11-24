@@ -924,7 +924,7 @@ notice_file = "NOTICE"
 
 [tool.readme_standards.distributions.pypi]
 name = "swarmauri_monorepo"
-published = false
+published = true
 
 [tool.readme_standards.examples.quick_start]
 source = "docs/readme/quick_start.sh"

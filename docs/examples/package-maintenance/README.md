@@ -5,7 +5,7 @@
 <p align="center"><strong>swarmauri-demo-package-maintenance</strong></p>
 <p align="center">A runnable Swarmauri demo for streaming Docker checks and resuming approvals.</p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri-demo-package-maintenance/"><img alt="pypi: swarmauri-demo-package-maintenance unpublished" src="https://img.shields.io/static/v1?label=pypi&amp;message=swarmauri-demo-package-maintenance%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri-demo-package-maintenance/"><img alt="pypi: swarmauri-demo-package-maintenance" src="https://img.shields.io/pypi/v/swarmauri-demo-package-maintenance?labelColor=1E293B&amp;color=1D4ED8"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/pyproject.toml"><img alt="Source version: 0.1.1" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.1.1&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/pyproject.toml"><img alt="Python: &gt;=3.12,&lt;3.13" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.12%2C%3C3.13&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/pyproject.toml"><img alt="Layer: workspace" src="https://img.shields.io/static/v1?label=Layer&amp;message=workspace&amp;labelColor=1E293B&amp;color=6D28D9"></a>
@@ -14,7 +14,7 @@
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;labelColor=1E293B&amp;color=86198F"></a>
 </p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri-demo-package-maintenance/"><img alt="pypi downloads: swarmauri-demo-package-maintenance: unpublished" src="https://img.shields.io/static/v1?label=pypi%20downloads&amp;message=swarmauri-demo-package-maintenance%3A%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri-demo-package-maintenance/"><img alt="Monthly PyPI downloads: swarmauri-demo-package-maintenance" src="https://img.shields.io/pypi/dm/swarmauri-demo-package-maintenance?labelColor=1E293B&amp;color=0E7490"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/docs/examples/package-maintenance/README.md"><img alt="README hits: swarmauri-demo-package-maintenance" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/docs/examples/package-maintenance/README.md.svg?label=README%20hits&amp;labelColor=1E293B&amp;color=0E7490"></a>
 </p>
 <p align="center">
@@ -75,30 +75,24 @@ Python `>=3.12,<3.13` is required. The [manifest](https://github.com/swarmauri/s
 #### uv
 
 <!-- readme-standards:begin installation.uv -->
-`swarmauri-demo-package-maintenance` is not declared published. From the source checkout:
-
 ```bash
-uv pip install .
+uv add swarmauri-demo-package-maintenance
 ```
 <!-- readme-standards:end installation.uv -->
 
 #### pip
 
 <!-- readme-standards:begin installation.pip -->
-`swarmauri-demo-package-maintenance` is not declared published. From the source checkout:
-
 ```bash
-python -m pip install .
+python -m pip install swarmauri-demo-package-maintenance
 ```
 <!-- readme-standards:end installation.pip -->
 
 #### Poetry
 
 <!-- readme-standards:begin installation.poetry -->
-`swarmauri-demo-package-maintenance` is not declared published. From a separate Poetry project, replace the path with your checkout:
-
 ```bash
-poetry add /path/to/swarmauri-demo-package-maintenance
+poetry add swarmauri-demo-package-maintenance
 ```
 <!-- readme-standards:end installation.poetry -->
 

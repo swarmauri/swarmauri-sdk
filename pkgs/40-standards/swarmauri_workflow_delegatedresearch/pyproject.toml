@@ -48,7 +48,7 @@ notice_file = "NOTICE"
 
 [tool.readme_standards.distributions.pypi]
 name = "swarmauri_workflow_delegatedresearch"
-published = false
+published = true
 
 [tool.readme_standards.examples.quick_start]
 source = "docs/readme/quick_start.py"

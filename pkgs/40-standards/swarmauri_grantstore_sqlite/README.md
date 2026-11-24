@@ -5,7 +5,7 @@
 <p align="center"><strong>swarmauri_grantstore_sqlite</strong></p>
 <p align="center">Persist revocable authority grants in SQLite.</p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri_grantstore_sqlite/"><img alt="pypi: swarmauri_grantstore_sqlite unpublished" src="https://img.shields.io/static/v1?label=pypi&amp;message=swarmauri_grantstore_sqlite%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri_grantstore_sqlite/"><img alt="pypi: swarmauri_grantstore_sqlite" src="https://img.shields.io/pypi/v/swarmauri_grantstore_sqlite?labelColor=1E293B&amp;color=1D4ED8"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_grantstore_sqlite/pyproject.toml"><img alt="Source version: 0.1.1" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.1.1&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_grantstore_sqlite/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_grantstore_sqlite/pyproject.toml"><img alt="Layer: standards" src="https://img.shields.io/static/v1?label=Layer&amp;message=standards&amp;labelColor=1E293B&amp;color=6D28D9"></a>
@@ -14,7 +14,7 @@
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_grantstore_sqlite/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;labelColor=1E293B&amp;color=86198F"></a>
 </p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri_grantstore_sqlite/"><img alt="pypi downloads: swarmauri_grantstore_sqlite: unpublished" src="https://img.shields.io/static/v1?label=pypi%20downloads&amp;message=swarmauri_grantstore_sqlite%3A%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri_grantstore_sqlite/"><img alt="Monthly PyPI downloads: swarmauri_grantstore_sqlite" src="https://img.shields.io/pypi/dm/swarmauri_grantstore_sqlite?labelColor=1E293B&amp;color=0E7490"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_grantstore_sqlite/README.md"><img alt="README hits: swarmauri_grantstore_sqlite" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/pkgs/40-standards/swarmauri_grantstore_sqlite/README.md.svg?label=README%20hits&amp;labelColor=1E293B&amp;color=0E7490"></a>
 </p>
 <p align="center">
@@ -80,30 +80,24 @@ pip install ./pkgs/40-standards/swarmauri_grantstore_sqlite
 #### uv
 
 <!-- readme-standards:begin installation.uv -->
-`swarmauri_grantstore_sqlite` is not declared published. From the source checkout:
-
 ```bash
-uv pip install .
+uv add swarmauri_grantstore_sqlite
 ```
 <!-- readme-standards:end installation.uv -->
 
 #### pip
 
 <!-- readme-standards:begin installation.pip -->
-`swarmauri_grantstore_sqlite` is not declared published. From the source checkout:
-
 ```bash
-python -m pip install .
+python -m pip install swarmauri_grantstore_sqlite
 ```
 <!-- readme-standards:end installation.pip -->
 
 #### Poetry
 
 <!-- readme-standards:begin installation.poetry -->
-`swarmauri_grantstore_sqlite` is not declared published. From a separate Poetry project, replace the path with your checkout:
-
 ```bash
-poetry add /path/to/swarmauri_grantstore_sqlite
+poetry add swarmauri_grantstore_sqlite
 ```
 <!-- readme-standards:end installation.poetry -->
 

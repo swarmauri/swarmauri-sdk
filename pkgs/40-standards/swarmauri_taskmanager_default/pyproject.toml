@@ -47,7 +47,7 @@ notice_file = "NOTICE"
 
 [tool.readme_standards.distributions.pypi]
 name = "swarmauri_taskmanager_default"
-published = false
+published = true
 
 [tool.readme_standards.examples.quick_start]
 source = "docs/readme/quick_start.py"

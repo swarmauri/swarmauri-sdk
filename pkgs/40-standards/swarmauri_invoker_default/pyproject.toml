@@ -49,7 +49,7 @@ notice_file = "NOTICE"
 
 [tool.readme_standards.distributions.pypi]
 name = "swarmauri_invoker_default"
-published = false
+published = true
 
 [tool.readme_standards.examples.quick_start]
 source = "docs/readme/quick_start.py"

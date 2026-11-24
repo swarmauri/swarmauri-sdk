@@ -5,7 +5,7 @@
 <p align="center"><strong>swarmauri_tts_elevenlabs_dialogue</strong></p>
 <p align="center">Alpha Swarmauri Elevenlabs Dialogue text-to-speech provider with file synthesis, async execution, streaming and bounded batches; live API verification pending.</p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/"><img alt="pypi: swarmauri_tts_elevenlabs_dialogue unpublished" src="https://img.shields.io/static/v1?label=pypi&amp;message=swarmauri_tts_elevenlabs_dialogue%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/"><img alt="pypi: swarmauri_tts_elevenlabs_dialogue" src="https://img.shields.io/pypi/v/swarmauri_tts_elevenlabs_dialogue?labelColor=1E293B&amp;color=1D4ED8"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/pyproject.toml"><img alt="Source version: 0.1.0a1" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.1.0a1&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/pyproject.toml"><img alt="Layer: standards" src="https://img.shields.io/static/v1?label=Layer&amp;message=standards&amp;labelColor=1E293B&amp;color=6D28D9"></a>
@@ -14,7 +14,7 @@
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/NOTICE"><img alt="Notice: attribution" src="https://img.shields.io/static/v1?label=Notice&amp;message=attribution&amp;labelColor=1E293B&amp;color=86198F"></a>
 </p>
 <p align="center">
-<a href="https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/"><img alt="pypi downloads: swarmauri_tts_elevenlabs_dialogue: unpublished" src="https://img.shields.io/static/v1?label=pypi%20downloads&amp;message=swarmauri_tts_elevenlabs_dialogue%3A%20unpublished&amp;labelColor=1E293B&amp;color=92400E"></a>
+<a href="https://pypi.org/project/swarmauri_tts_elevenlabs_dialogue/"><img alt="Monthly PyPI downloads: swarmauri_tts_elevenlabs_dialogue" src="https://img.shields.io/pypi/dm/swarmauri_tts_elevenlabs_dialogue?labelColor=1E293B&amp;color=0E7490"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/README.md"><img alt="README hits: swarmauri_tts_elevenlabs_dialogue" src="https://hits.sh/github.com/swarmauri/swarmauri-sdk/pkgs/40-standards/swarmauri_tts_elevenlabs_dialogue/README.md.svg?label=README%20hits&amp;labelColor=1E293B&amp;color=0E7490"></a>
 </p>
 <p align="center">
@@ -83,30 +83,24 @@ This source candidate needs swarmauri_base>=0.11.0.dev12 published first.
 #### uv
 
 <!-- readme-standards:begin installation.uv -->
-`swarmauri_tts_elevenlabs_dialogue` is not declared published. From the source checkout:
-
 ```bash
-uv pip install .
+uv add swarmauri_tts_elevenlabs_dialogue
 ```
 <!-- readme-standards:end installation.uv -->
 
 #### pip
 
 <!-- readme-standards:begin installation.pip -->
-`swarmauri_tts_elevenlabs_dialogue` is not declared published. From the source checkout:
-
 ```bash
-python -m pip install .
+python -m pip install swarmauri_tts_elevenlabs_dialogue
 ```
 <!-- readme-standards:end installation.pip -->
 
 #### Poetry
 
 <!-- readme-standards:begin installation.poetry -->
-`swarmauri_tts_elevenlabs_dialogue` is not declared published. From a separate Poetry project, replace the path with your checkout:
-
 ```bash
-poetry add /path/to/swarmauri_tts_elevenlabs_dialogue
+poetry add swarmauri_tts_elevenlabs_dialogue
 ```
 <!-- readme-standards:end installation.poetry -->
 
