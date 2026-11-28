@@ -106,7 +106,6 @@ poetry add swarmauri_vectorstore_git
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_vectorstore_git/docs/readme/quick_start.py).
 
 ```python
-from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_git import GitVectorStore
 
 store = GitVectorStore(
@@ -138,7 +137,6 @@ The example demonstrates the documented `swarmauri_vectorstore_git` source bound
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_vectorstore_git/docs/readme/usage.py).
 
 ```python
-from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_git import GitVectorStore
 
 store = GitVectorStore(

@@ -123,8 +123,6 @@ poetry add swarmauri
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/docs/readme/quick_start.py).
 
 ```python
-import swarmauri
-
 from swarmauri.interface_registry import InterfaceRegistry
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 
@@ -150,8 +148,6 @@ The example demonstrates the documented `swarmauri` source boundary or workflow.
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/docs/readme/usage.py).
 
 ```python
-import swarmauri
-
 from swarmauri.interface_registry import InterfaceRegistry
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 

@@ -1,4 +1,3 @@
-from swarmauri_standard.documents.Document import Document
 from swarmauri_vectorstore_git import GitVectorStore
 
 store = GitVectorStore(

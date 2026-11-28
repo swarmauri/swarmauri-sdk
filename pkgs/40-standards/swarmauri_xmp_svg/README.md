@@ -112,8 +112,7 @@ from swarmauri_xmp_svg import SVGXMP
 handler = SVGXMP()
 svg_path = Path("example.svg")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Insert metadata into the SVG root element
@@ -150,8 +149,7 @@ from swarmauri_xmp_svg import SVGXMP
 handler = SVGXMP()
 svg_path = Path("example.svg")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Insert metadata into the SVG root element

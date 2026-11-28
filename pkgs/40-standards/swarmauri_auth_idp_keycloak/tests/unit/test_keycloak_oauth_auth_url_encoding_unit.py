@@ -35,7 +35,9 @@ EXPECTED_PARAMS = {
     "code_challenge_method",
 }
 
-AUTH_ENDPOINT = "https://kc.example/realms/myrealm/protocol/openid-connect/auth"
+AUTH_ENDPOINT = (
+    "https://kc.example/realms/myrealm/protocol/openid-connect/auth"
+)
 
 
 def _login(cls, endpoint):

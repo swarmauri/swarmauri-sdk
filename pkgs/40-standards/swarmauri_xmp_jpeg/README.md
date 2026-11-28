@@ -112,8 +112,7 @@ from swarmauri_xmp_jpeg import JPEGXMP
 handler = JPEGXMP()
 photo_path = Path("example.jpg")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Insert the packet right after the SOI marker
@@ -150,8 +149,7 @@ from swarmauri_xmp_jpeg import JPEGXMP
 handler = JPEGXMP()
 photo_path = Path("example.jpg")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Insert the packet right after the SOI marker

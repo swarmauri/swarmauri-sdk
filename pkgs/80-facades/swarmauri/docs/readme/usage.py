@@ -1,5 +1,3 @@
-import swarmauri
-
 from swarmauri.interface_registry import InterfaceRegistry
 from swarmauri.plugin_citizenship_registry import PluginCitizenshipRegistry
 

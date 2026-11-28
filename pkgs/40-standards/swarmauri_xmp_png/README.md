@@ -114,8 +114,7 @@ from swarmauri_xmp_png import PNGXMP
 handler = PNGXMP()
 image_path = Path("example.png")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Embed an XMP packet
@@ -152,8 +151,7 @@ from swarmauri_xmp_png import PNGXMP
 handler = PNGXMP()
 image_path = Path("example.png")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Embed an XMP packet

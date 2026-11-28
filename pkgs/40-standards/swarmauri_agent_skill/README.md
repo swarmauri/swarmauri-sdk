@@ -109,8 +109,6 @@ poetry add swarmauri_agent_skill
 Source: [docs/readme/quick_start.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_skill/docs/readme/quick_start.py).
 
 ```python
-from swarmauri_agent_skill import SkillAgent
-
 # SkillAgent wraps an existing AgentBase implementation.
 ```
 <!-- readme-standards:end example.quick-start -->
@@ -129,8 +127,6 @@ The example demonstrates the documented `swarmauri_agent_skill` source boundary 
 Source: [docs/readme/usage.py](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_agent_skill/docs/readme/usage.py).
 
 ```python
-from swarmauri_agent_skill import SkillAgent
-
 # SkillAgent wraps an existing AgentBase implementation.
 ```
 <!-- readme-standards:end example.usage -->

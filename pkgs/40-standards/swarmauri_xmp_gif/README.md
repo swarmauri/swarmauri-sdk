@@ -112,8 +112,7 @@ from swarmauri_xmp_gif import GIFXMP
 handler = GIFXMP()
 gif_path = Path("example.gif")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Embed using an application extension block
@@ -150,8 +149,7 @@ from swarmauri_xmp_gif import GIFXMP
 handler = GIFXMP()
 gif_path = Path("example.gif")
 xmp_packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Embed using an application extension block

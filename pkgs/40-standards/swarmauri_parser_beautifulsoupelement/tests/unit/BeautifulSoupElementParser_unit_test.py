@@ -90,6 +90,4 @@ def test_parse_metadata():
     assert [doc.metadata["index"] for doc in documents] == [
         0,
         1,
-    ], (
-        "Expected zero-based match indices in document order."
-    )
+    ], "Expected zero-based match indices in document order."

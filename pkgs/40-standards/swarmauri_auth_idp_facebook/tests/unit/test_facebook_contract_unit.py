@@ -523,9 +523,7 @@ async def test_oidc10_login_exchange_uses_userinfo_when_claims_incomplete(
         c for c in fake.calls if c[0] == "GET" and c[1] == userinfo_url
     ]
     assert len(userinfo_calls) == 1
-    assert (
-        userinfo_calls[0][2]["Authorization"] == "Bearer user-token"
-    )
+    assert userinfo_calls[0][2]["Authorization"] == "Bearer user-token"
 
 
 @pytest.mark.unit

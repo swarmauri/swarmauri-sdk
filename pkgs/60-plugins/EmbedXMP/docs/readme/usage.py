@@ -1,12 +1,11 @@
 from pathlib import Path
 
-from EmbedXMP import EmbedXMP, embed, embed_file, read, read_file_xmp
+from EmbedXMP import EmbedXMP, embed_file
 
 manager = EmbedXMP()
 image = Path("example.png")
 packet = (
-    "<x:xmpmeta xmlns:x='adobe:ns:meta/'>"
-    "<rdf:RDF>...</rdf:RDF></x:xmpmeta>"
+    "<x:xmpmeta xmlns:x='adobe:ns:meta/'><rdf:RDF>...</rdf:RDF></x:xmpmeta>"
 )
 
 # Embed into the file in place.
