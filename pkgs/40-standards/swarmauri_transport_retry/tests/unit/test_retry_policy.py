@@ -1,4 +1,7 @@
 from importlib.metadata import entry_points, version
+from pathlib import Path
+
+import toml
 
 from swarmauri_transport_retry import ExponentialBackoffRetryPolicy
 
@@ -28,7 +31,11 @@ def test_policy_validates_configuration():
 
 
 def test_package_metadata_and_entry_point():
-    assert version("swarmauri_transport_retry") == "0.1.0.dev2"
+    project_file = Path(__file__).resolve().parents[2] / "pyproject.toml"
+    assert (
+        version("swarmauri_transport_retry")
+        == toml.load(project_file)["project"]["version"]
+    )
     assert "RetryingHttpClient" in {
         entry.name for entry in entry_points(group="swarmauri.transports")
     }
