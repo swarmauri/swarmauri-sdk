@@ -388,7 +388,16 @@ jobs:
           echo "Building workspace member: $MEMBER"
           PACKAGE_NAME="${{ matrix.package_name }}"
           echo "Package name: $PACKAGE_NAME"
-          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout
+          build_options=()
+          if [[ "$PACKAGE_NAME" == "swarmauri_crypto_rust" ]]; then
+            # Maturin's PEP 517 backend defaults to a native Linux wheel.
+            build_options+=(--config-setting 'build-args=--compatibility pypi')
+          fi
+          uv build --directory "$MEMBER" --package "$PACKAGE_NAME" -o distout "${build_options[@]}"
+          if [[ "$PACKAGE_NAME" == "swarmauri_crypto_rust" ]] && ! compgen -G "$MEMBER/distout/swarmauri_crypto_rust-*-manylinux*.whl" >/dev/null; then
+            echo '::error::Maturin did not produce a PyPI-compatible manylinux wheel'
+            exit 1
+          fi
           mkdir -p "$MEMBER/distout/publish"
           cp "$MEMBER"/distout/*.whl "$MEMBER"/distout/*.tar.gz "$MEMBER/distout/publish/"
 
