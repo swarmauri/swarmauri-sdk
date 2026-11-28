@@ -1,7 +1,7 @@
 [project]
 name = "swarmauri_tts_playht"
 version = "0.11.1"
-description = "Deprecated Play.ht compatibility package; migrate to swarmauri_standard OpenaiTTS."
+description = "Deprecated Play.ht compatibility package; migrate to swarmauri_tts_openai.OpenaiTTS."
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/swarmauri/swarmauri-sdk"

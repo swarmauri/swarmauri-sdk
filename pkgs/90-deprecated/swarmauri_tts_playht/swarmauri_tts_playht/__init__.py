@@ -14,7 +14,7 @@ except PackageNotFoundError:
 # FutureWarning is visible to applications with Python default filters.
 warnings.warn(
     "swarmauri_tts_playht is deprecated: Play.ht is discontinued. "
-    "Use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS or another TTS provider.",
+    "Use swarmauri_tts_openai.OpenaiTTS or another TTS provider.",
     FutureWarning,
     stacklevel=2,
 )

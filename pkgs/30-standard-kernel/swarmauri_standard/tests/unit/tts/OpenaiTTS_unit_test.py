@@ -1,27 +1,18 @@
-"""Keep the legacy standard import usable without contacting OpenAI."""
+"""Check that OpenAI speech provider imports stay outside the standard kernel."""
 
-import importlib
+import importlib.util
 
 import pytest
-from swarmauri_tts_openai import OpenaiTTS as CanonicalTTS
 
 pytestmark = pytest.mark.unit
 
 
-def test_legacy_standard_import_warns_and_preserves_class():
-    with pytest.warns(FutureWarning, match="swarmauri_tts_openai"):
-        module = importlib.import_module("swarmauri_standard.tts.OpenaiTTS")
-        importlib.reload(module)
-    assert module.OpenaiTTS is CanonicalTTS
-    provider = module.OpenaiTTS(api_key="offline-key")
-    assert provider.type == "OpenaiTTS"
-    assert provider.resource == "TTS"
-    assert provider.name == "tts-1"
-
-
-def test_old_standard_serialized_type_is_preserved():
-    provider = CanonicalTTS(api_key="offline-key")
-    restored = CanonicalTTS.model_validate_json(provider.model_dump_json())
-    assert restored.id == provider.id
-    assert restored.type == "OpenaiTTS"
-    assert restored.resource == "TTS"
+@pytest.mark.parametrize(
+    "module",
+    [
+        "swarmauri_standard.tts.OpenaiTTS",
+        "swarmauri_standard.llms.OpenAIAudioTTS",
+    ],
+)
+def test_removed_openai_speech_modules(module):
+    assert importlib.util.find_spec(module) is None

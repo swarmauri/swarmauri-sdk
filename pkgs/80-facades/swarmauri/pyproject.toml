@@ -245,6 +245,7 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
+    "swarmauri_llm_openai",
     'swarmauri_tts_deepinfra_kokoro; python_version < "3.13"',
     'swarmauri_tts_deepinfra_qwen3; python_version < "3.13"',
     'swarmauri_tts_deepinfra_qwen3_voicedesign; python_version < "3.13"',

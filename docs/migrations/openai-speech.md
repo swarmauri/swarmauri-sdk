@@ -8,7 +8,9 @@ current contract before shutdown; this is not a long-term replacement choice.
 
 swarmauri_tts_openai remains an alpha compatibility adapter. It emits a
 FutureWarning when preparing a speech request. Defaults, allowed legacy models,
-MP3 behavior and deprecated import aliases are preserved. It does not silently
+MP3 behavior and the deprecated community LLM alias are preserved. Install
+`swarmauri_tts_openai` and use `from swarmauri_tts_openai import OpenaiTTS`
+to replace either standard-kernel speech import. The adapter does not silently
 switch models or API families and does not promote live verification status.
 
 OpenAI recommends gpt-realtime-2.1-mini through the Realtime API. That model is

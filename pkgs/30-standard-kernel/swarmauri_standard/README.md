@@ -217,7 +217,7 @@ This package declares no command-line, GUI, or plugin entry points in its manife
 
 ### Injected Dependencies
 
-The direct installation dependencies of `swarmauri_standard` are `toml`, `pydantic`, `h11`, `httpx`, `numpy`, `pandas`, `joblib`, `pillow`, `aiofiles`, `rich`, `typing-extensions`, `swarmauri-core`, `swarmauri-base`, `swarmauri-tts-openai`. These declarations do not imply automatic provider selection. Pass collaborators through the explicit constructors or call signatures in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/30-standard-kernel/swarmauri_standard/swarmauri_standard/llms/HyperbolicAudioTTS.py).
+The direct installation dependencies of `swarmauri_standard` are `toml`, `pydantic`, `h11`, `httpx`, `numpy`, `pandas`, `joblib`, `pillow`, `aiofiles`, `rich`, `typing-extensions`, `swarmauri-core`, `swarmauri-base`. These declarations do not imply automatic provider selection. Pass collaborators through the explicit constructors or call signatures in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/30-standard-kernel/swarmauri_standard/swarmauri_standard/llms/HyperbolicAudioTTS.py).
 
 ### Protocol Consumers
 
@@ -378,8 +378,7 @@ The runner dispatches tools and the adapter preserves the provider transcript.
 
 **Standalone alpha TTS providers**
 
-OpenAI speech now lives in `swarmauri_tts_openai`; the bundled `OpenaiTTS` and
-legacy `OpenAIAudioTTS` imports emit deprecation warnings and delegate to it.
+Install `swarmauri_tts_openai` directly and import `OpenaiTTS` from that package.
 DeepInfra and Together have separate `swarmauri_tts_deepinfra` and
 `swarmauri_tts_together` alpha packages. Live provider verification is pending;
 see [verification tracking](../../../docs/verification/tts-providers.md).
@@ -387,8 +386,7 @@ see [verification tracking](../../../docs/verification/tts-providers.md).
 **TTS lifecycle and canonical imports**
 
 New speech integrations use the standalone alpha provider packages, with
-verification issues in docs/verification/tts-providers.md. The bundled
-OpenaiTTS and LLM-named OpenAIAudioTTS remain warning compatibility imports.
+verification issues in docs/verification/tts-providers.md.
 OpenAI's underlying Speech models shut down on 2027-01-06; Realtime requires
 a different adapter. Play.ht and Hyperbolic's old audio endpoint are retired:
 their legacy types remain importable and fail locally before network access.

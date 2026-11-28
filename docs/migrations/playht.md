@@ -69,8 +69,8 @@ tts = OpenaiTTS(
 path = tts.predict("Welcome to Swarmauri.", "welcome.mp3")
 ```
 
-The bundled standard import and legacy OpenAIAudioTTS imports still warn and
-forward to this implementation; new code should import the standalone class.
+Import `OpenaiTTS` from `swarmauri_tts_openai`. The deprecated
+`swarmauri_llm_openai.OpenAIAudioTTS` import still forwards to it.
 Play.ht and Hyperbolic keys, user IDs and voice IDs cannot be reused. Voice
 cloning/listing/deletion require a separately provisioned provider workflow.
 

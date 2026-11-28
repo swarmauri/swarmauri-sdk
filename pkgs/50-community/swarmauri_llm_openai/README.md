@@ -33,7 +33,7 @@
 
 ### Summary
 
-`swarmauri_llm_openai` provides provider-specific Swarmauri imports for OpenAI chat, reasoning, tool-calling, audio transcription, and text-to-speech workflows. The package exposes `OpenAIModel`, `OpenAIReasonModel`, `OpenAIToolModel`, `OpenAIAudio`, and `OpenAIAudioTTS` as direct provider-package imports while preserving the shared runtime implementations in `swarmauri_standard`.
+`swarmauri_llm_openai` provides provider-specific Swarmauri imports for OpenAI chat, reasoning, tool-calling, audio transcription, and text-to-speech workflows. The package exposes `OpenAIModel`, `OpenAIReasonModel`, `OpenAIToolModel`, `OpenAIAudio`, and `OpenAIAudioTTS` as direct provider-package imports. Its deprecated `OpenAIAudioTTS` wrapper delegates to `swarmauri_tts_openai`.
 
 The repo currently tracks OpenAI chat model families including `gpt-5.x`, `gpt-4.1`, `gpt-4o`, `gpt-4-turbo`, `gpt-oss`, reasoning families including `o1`, `o3`, and `o4-mini`, audio transcription models including `whisper-1` and `gpt-4o-*transcribe`, and text-to-speech models including `tts-1`, `tts-1-hd`, and `gpt-4o-mini-tts`.
 
@@ -303,7 +303,7 @@ Inspect [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/
 
 ### Injected Dependencies
 
-The direct installation dependencies of `swarmauri_llm_openai` are `swarmauri-core`, `swarmauri-base`, `swarmauri-standard`. These declarations do not imply automatic provider selection. Pass collaborators through the explicit constructors or call signatures in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_llm_openai/swarmauri_llm_openai/OpenAIAudioTTS.py).
+The direct installation dependencies of `swarmauri_llm_openai` are `swarmauri-core`, `swarmauri-base`, `swarmauri-standard`, `swarmauri-tts-openai`. These declarations do not imply automatic provider selection. Pass collaborators through the explicit constructors or call signatures in [package source](https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_llm_openai/swarmauri_llm_openai/OpenAIAudioTTS.py).
 
 ### Protocol Consumers
 
