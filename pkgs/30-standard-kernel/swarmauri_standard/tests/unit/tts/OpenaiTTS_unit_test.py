@@ -1,4 +1,4 @@
-"""Check that OpenAI speech provider imports stay outside the standard kernel."""
+"""Check that the standard kernel omits the OpenAI speech imports."""
 
 import importlib.util
 
