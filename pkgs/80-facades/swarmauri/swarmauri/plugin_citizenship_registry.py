@@ -492,6 +492,7 @@ class PluginCitizenshipRegistry:
             "swarmauri_tts_gemini_dialogue.GeminiDialogueTTS"
         ),
         "swarmauri.tts.GeminiTTS": "swarmauri_tts_gemini.GeminiTTS",
+        # OpenAI speech is provided by the standalone first-class plugin.
         "swarmauri.tts.OpenaiTTS": "swarmauri_tts_openai.OpenaiTTS",
         "swarmauri.tts.DeepInfraTTS": "swarmauri_tts_deepinfra.DeepInfraTTS",
         "swarmauri.tts.TogetherTTS": "swarmauri_tts_together.TogetherTTS",

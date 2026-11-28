@@ -407,7 +407,8 @@ ElevenLabs, Deepgram, Gemini, Amazon Polly and Azure Speech TTS packages, plus n
 voice-design, ElevenLabs dialogue and Gemini dialogue packages.
 Install with `uv add --prerelease allow "swarmauri[tts]"` or
 `pip install --pre "swarmauri[tts]"` after the candidate releases are published.
-Use `from swarmauri.tts.OpenaiTTS import OpenaiTTS`, or the corresponding
+Install `swarmauri_tts_openai` for OpenAI speech, then use
+`from swarmauri.tts.OpenaiTTS import OpenaiTTS`. Use the corresponding
 `DeepInfraTTS`, `TogetherTTS`, `CartesiaTTS`, `ElevenLabsTTS`, `DeepgramTTS`
 `GeminiTTS`, `PollyTTS`, `AzureTTS`, `DeepInfraKokoroTTS`,
 `DeepInfraQwen3TTS`, `DeepInfraQwen3VoiceDesignTTS`, `ElevenLabsDialogueTTS`

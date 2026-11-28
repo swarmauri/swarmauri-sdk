@@ -12,9 +12,7 @@ pytestmark = pytest.mark.unit
 
 def test_legacy_llm_import_warns_and_preserves_shape():
     with pytest.warns(FutureWarning, match="swarmauri_tts_openai"):
-        module = importlib.import_module(
-            "swarmauri_standard.llms.OpenAIAudioTTS"
-        )
+        module = importlib.import_module("swarmauri_llm_openai.OpenAIAudioTTS")
         importlib.reload(module)
     model = module.OpenAIAudioTTS(api_key="offline-key")
     assert isinstance(model, LLMBase)
@@ -28,15 +26,8 @@ def test_legacy_llm_import_warns_and_preserves_shape():
     )
 
 
-def test_community_module_preserves_legacy_class():
-    with pytest.warns(FutureWarning, match="swarmauri_tts_openai"):
-        module = importlib.import_module("swarmauri_llm_openai.OpenAIAudioTTS")
-        importlib.reload(module)
-    assert module.OpenAIAudioTTS.__name__ == "OpenAIAudioTTS"
-
-
 def test_legacy_llm_predict_uses_canonical_transport(monkeypatch, tmp_path):
-    from swarmauri_standard.llms.OpenAIAudioTTS import OpenAIAudioTTS
+    from swarmauri_llm_openai.OpenAIAudioTTS import OpenAIAudioTTS
 
     requests = []
     real_client = httpx.Client

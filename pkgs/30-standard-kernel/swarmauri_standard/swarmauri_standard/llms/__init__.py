@@ -32,7 +32,6 @@
 #     ("swarmauri_standard.llms.MistralModel", "MistralModel"),
 #     ("swarmauri_standard.llms.MistralToolModel", "MistralToolModel"),
 #     ("swarmauri_standard.llms.OpenAIAudio", "OpenAIAudio"),
-#     ("swarmauri_standard.llms.OpenAIAudioTTS", "OpenAIAudioTTS"),
 #     ("swarmauri_standard.llms.OpenAIImgGenModel", "OpenAIImgGenModel"),
 #     ("swarmauri_standard.llms.OpenAIModel", "OpenAIModel"),
 #     ("swarmauri_standard.llms.OpenAIToolModel", "OpenAIToolModel"),
@@ -77,7 +76,6 @@
 #     from swarmauri_standard.llms.MistralModel import MistralModel
 #     from swarmauri_standard.llms.MistralToolModel import MistralToolModel
 #     from swarmauri_standard.llms.OpenAIAudio import OpenAIAudio
-#     from swarmauri_standard.llms.OpenAIAudioTTS import OpenAIAudioTTS
 #     from swarmauri_standard.llms.OpenAIImgGenModel import OpenAIImgGenModel
 #     from swarmauri_standard.llms.OpenAIModel import OpenAIModel
 #     from swarmauri_standard.llms.OpenAIToolModel import OpenAIToolModel

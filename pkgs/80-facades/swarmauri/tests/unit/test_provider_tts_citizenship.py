@@ -71,3 +71,10 @@ def test_standalone_facade_imports(name, vendor):
     facade = importlib.import_module(f"swarmauri.tts.{name}")
     canonical = importlib.import_module(f"swarmauri_tts_{vendor}")
     assert getattr(facade, name) is getattr(canonical, name)
+
+
+def test_facade_legacy_openai_llm_route_uses_community_provider():
+    from swarmauri.llms.OpenAIAudioTTS import OpenAIAudioTTS
+    from swarmauri_llm_openai import OpenAIAudioTTS as CommunityOpenAIAudioTTS
+
+    assert OpenAIAudioTTS is CommunityOpenAIAudioTTS

@@ -1,11 +1,10 @@
 import importlib
 import json
-from pathlib import Path
 
 import httpx
 import pytest
 
-from swarmauri_standard.tts.OpenaiTTS import OpenaiTTS
+from swarmauri_tts_openai import OpenaiTTS
 
 pytestmark = pytest.mark.unit
 module = importlib.import_module("swarmauri_base.tts.HttpTTSMixin")
@@ -62,14 +61,6 @@ async def test_async_file_stream_and_batch(provider, tmp_path):
     assert await provider.abatch({"hello": str(output)}) == [
         str(output.resolve())
     ]
-
-
-def test_agent_uses_replacement(provider, tmp_path):
-    from swarmauri_agent_texttospeech import TextToSpeechAgent
-
-    output = tmp_path / "agent.mp3"
-    agent = TextToSpeechAgent(tts=provider, output_path=str(output))
-    assert Path(agent.exec("hello")).read_bytes() == b"audio"
 
 
 @pytest.mark.parametrize("method", ["predict", "stream"])

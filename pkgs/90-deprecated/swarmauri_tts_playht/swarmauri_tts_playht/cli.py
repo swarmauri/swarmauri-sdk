@@ -137,7 +137,7 @@ def generate_audio(
         raise ValueError(
             (
                 "Play.ht has discontinued its TTS service. This provider is "
-                "deprecated; use swarmauri_standard.tts.OpenaiTTS.OpenaiTTS "
+                "deprecated; use swarmauri_tts_openai.OpenaiTTS "
                 "with OPENAI_API_KEY, a supported OpenAI model, and an OpenAI "
                 "voice. Play.ht credentials and voice IDs cannot be reused."
             )
