@@ -6,7 +6,7 @@
 <p align="center">SCEP-oriented Swarmauri certificate service for PKCS#10 CSR creation, challenge-password enrollment requests, response capture, and X.509 parsing.</p>
 <p align="center">
 <a href="https://pypi.org/project/swarmauri_certservice_scep/"><img alt="pypi: swarmauri_certservice_scep" src="https://img.shields.io/pypi/v/swarmauri_certservice_scep?labelColor=1E293B&amp;color=1D4ED8"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_certservice_scep/pyproject.toml"><img alt="Source version: 0.11.0.dev3" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0.dev3&amp;labelColor=1E293B&amp;color=4338CA"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_certservice_scep/pyproject.toml"><img alt="Source version: 0.11.0" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_certservice_scep/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_certservice_scep/pyproject.toml"><img alt="Layer: community" src="https://img.shields.io/static/v1?label=Layer&amp;message=community&amp;labelColor=1E293B&amp;color=6D28D9"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/50-community/swarmauri_certservice_scep/README.md#lifecycle-and-migration"><img alt="Lifecycle: active" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=active&amp;labelColor=1E293B&amp;color=166534"></a>
@@ -410,7 +410,7 @@ Changes to `swarmauri_certservice_scep` follow the maintainer review process of 
 
 ### Lifecycle and Migration
 
-The `swarmauri_certservice_scep` source version is `0.11.0.dev3`. This change standardizes documentation and adds a development-only gate; it does not publish a new runtime version or declare a previously unpublished package released. Preserve explicit deprecation and replacement instructions where present.
+The `swarmauri_certservice_scep` source version is `0.11.0`.
 
 ---
 

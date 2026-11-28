@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_webdav"
-version = "0.11.0.dev2"
+version = "0.11.0"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "WebDAV client storage adapter for SwarmauriSDK"
 readme = "README.md"
@@ -21,9 +21,9 @@ classifiers = [
 ]
 dependencies = [
     "httpx>=0.27.0,<1",
-    "swarmauri_core<0.12,>=0.11.0.dev8",
-    "swarmauri_base<0.12,>=0.11.0.dev13",
-    "swarmauri_standard<0.12,>=0.11.0.dev13",
+    "swarmauri_core<0.12,>=0.11.0",
+    "swarmauri_base<0.12,>=0.11.0",
+    "swarmauri_standard<0.12,>=0.11.0",
 ]
 keywords = [
     "swarmauri",

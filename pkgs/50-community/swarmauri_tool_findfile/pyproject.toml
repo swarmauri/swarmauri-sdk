@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_findfile"
-version = "0.1.0.dev1"
+version = "0.1.0"
 description = "Swarmauri tool for finding files under a directory by shell-style wildcard name matching, case-insensitively, with optional recursion."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

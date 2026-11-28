@@ -443,6 +443,7 @@ jobs:
           import json
           import os
           import pathlib
+          import re
           import time
           import tomllib
           import urllib.error
@@ -454,29 +455,36 @@ jobs:
               version = tomllib.load(fh)["project"]["version"]
           dist_dir = pathlib.Path("pkgs") / member / "distout" / "publish"
           expected = {path.name for path in dist_dir.iterdir() if path.is_file()}
-          url = f"https://pypi.org/pypi/{package_name}/{version}/json"
+          project = re.sub(r"[-_.]+", "-", package_name).lower()
+          url = f"https://pypi.org/pypi/{project}/{version}/json"
+          max_attempts = 36
 
-          for attempt in range(1, 13):
+          for attempt in range(1, max_attempts + 1):
               try:
-                  with urllib.request.urlopen(url) as response:
+                  request = urllib.request.Request(
+                      f"{url}?verify={time.time_ns()}",
+                      headers={"Cache-Control": "no-cache"},
+                  )
+                  with urllib.request.urlopen(request, timeout=15) as response:
                       payload = json.load(response)
                   actual = {entry["filename"] for entry in payload["urls"]}
                   missing = expected - actual
                   if not missing:
                       print(f"Verified {package_name}=={version}: {sorted(actual)}")
                       break
-                  print(f"Attempt {attempt}/12: missing artifacts: {sorted(missing)}")
+                  print(f"Attempt {attempt}/{max_attempts}: missing artifacts: {sorted(missing)}")
               except urllib.error.HTTPError as exc:
                   if exc.code != 404:
                       raise
-                  print(f"Attempt {attempt}/12: release is not visible yet.")
-              if attempt == 12:
+                  print(f"Attempt {attempt}/{max_attempts}: release is not visible yet.")
+              if attempt == max_attempts:
                   raise RuntimeError(f"PyPI verification failed for {package_name}=={version}")
               time.sleep(5)
           PY
 
       - name: Verify published compatibility releases on Python 3.10 through 3.14
         env:
+          MEMBER: ${{ matrix.member }}
           PACKAGE_NAME: ${{ matrix.package_name }}
         run: |
           python - <<'PY'
@@ -484,12 +492,19 @@ jobs:
           import json
           import os
           from pathlib import Path
+          import tomllib
           import subprocess
           import time
 
           manifest = Path("docs/releases/python-310-314-remaining-2026-11-19.json")
           name = os.environ["PACKAGE_NAME"]
-          if not manifest.exists() or name not in {p["name"] for p in json.loads(manifest.read_text())["scope"]}:
+          project = Path("pkgs") / os.environ["MEMBER"] / "pyproject.toml"
+          with project.open("rb") as package_file:
+              version = tomllib.load(package_file)["project"]["version"]
+          if not manifest.exists() or not any(
+              p["name"] == name and p["version"] == version
+              for p in json.loads(manifest.read_text())["scope"]
+          ):
               print(f"{name} is outside the remaining-package compatibility release.")
               raise SystemExit(0)
           def verify(version):

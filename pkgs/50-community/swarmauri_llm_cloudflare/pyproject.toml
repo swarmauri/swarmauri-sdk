@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_llm_cloudflare"
-version = "0.11.0.dev3"
+version = "0.11.0"
 description = "Swarmauri chat and tool-calling adapters for Cloudflare Workers AI."
 license = "Apache-2.0"
 readme = "README.md"
@@ -16,11 +16,11 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "swarmauri_base<0.12,>=0.11.0.dev13",
-  "swarmauri_core<0.12,>=0.11.0.dev8",
-  "swarmauri_standard<0.12,>=0.11.0.dev13",
-  "swarmauri_transport_httpx>=0.1.0.dev6",
-  "swarmauri_transport_retry>=0.1.0.dev2",
+  "swarmauri_base<0.12,>=0.11.0",
+  "swarmauri_core<0.12,>=0.11.0",
+  "swarmauri_standard<0.12,>=0.11.0",
+  "swarmauri_transport_httpx>=0.1.0",
+  "swarmauri_transport_retry>=0.1.0",
 ]
 license-files = ["LICENSE", "NOTICE"]
 

@@ -1,12 +1,12 @@
 [project]
 name = "swarmauri_provider_openrouter"
-version = "0.1.0.dev2"
+version = "0.1.0"
 description = "OpenRouter provider configuration, routing, catalogs, errors, and tool schemas for Swarmauri."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
-dependencies = ["swarmauri_core<0.12,>=0.11.0.dev8", "swarmauri_base<0.12,>=0.11.0.dev13"]
+dependencies = ["swarmauri_core<0.12,>=0.11.0", "swarmauri_base<0.12,>=0.11.0"]
 classifiers = [
     "Development Status :: 1 - Planning",
     "Programming Language :: Python :: 3.10",

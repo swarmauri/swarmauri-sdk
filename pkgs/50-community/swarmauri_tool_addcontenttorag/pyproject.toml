@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_addcontenttorag"
-version = "0.1.0.dev1"
+version = "0.1.0"
 description = "Swarmauri tool for adding text content, with optional metadata tags, to a RAG knowledge base."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

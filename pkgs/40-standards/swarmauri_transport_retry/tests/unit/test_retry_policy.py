@@ -1,6 +1,9 @@
-from importlib.metadata import entry_points, version
+from importlib.metadata import distribution
 
-from swarmauri_transport_retry import ExponentialBackoffRetryPolicy
+from swarmauri_transport_retry import (
+    ExponentialBackoffRetryPolicy,
+    RetryingHttpClient,
+)
 
 
 class Response:
@@ -28,7 +31,9 @@ def test_policy_validates_configuration():
 
 
 def test_package_metadata_and_entry_point():
-    assert version("swarmauri_transport_retry") == "0.1.0.dev2"
-    assert "RetryingHttpClient" in {
-        entry.name for entry in entry_points(group="swarmauri.transports")
+    transport_entries = {
+        entry.name: entry
+        for entry in distribution("swarmauri_transport_retry").entry_points
+        if entry.group == "swarmauri.transports"
     }
+    assert transport_entries["RetryingHttpClient"].load() is RetryingHttpClient

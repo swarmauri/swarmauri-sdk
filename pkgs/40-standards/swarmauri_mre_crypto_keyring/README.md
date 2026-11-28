@@ -6,7 +6,7 @@
 <p align="center">Keyring-backed multi-recipient encryption provider for Swarmauri</p>
 <p align="center">
 <a href="https://pypi.org/project/swarmauri_mre_crypto_keyring/"><img alt="pypi: swarmauri_mre_crypto_keyring" src="https://img.shields.io/pypi/v/swarmauri_mre_crypto_keyring?labelColor=1E293B&amp;color=1D4ED8"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_mre_crypto_keyring/pyproject.toml"><img alt="Source version: 0.11.0.dev2" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0.dev2&amp;labelColor=1E293B&amp;color=4338CA"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_mre_crypto_keyring/pyproject.toml"><img alt="Source version: 0.11.0" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_mre_crypto_keyring/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_mre_crypto_keyring/pyproject.toml"><img alt="Layer: standards" src="https://img.shields.io/static/v1?label=Layer&amp;message=standards&amp;labelColor=1E293B&amp;color=6D28D9"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/40-standards/swarmauri_mre_crypto_keyring/README.md#lifecycle-and-migration"><img alt="Lifecycle: active" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=active&amp;labelColor=1E293B&amp;color=166534"></a>
@@ -367,7 +367,7 @@ Changes to `swarmauri_mre_crypto_keyring` follow the maintainer review process o
 
 ### Lifecycle and Migration
 
-The `swarmauri_mre_crypto_keyring` source version is `0.11.0.dev2`. This change standardizes documentation and adds a development-only gate; it does not publish a new runtime version or declare a previously unpublished package released. Preserve explicit deprecation and replacement instructions where present.
+The `swarmauri_mre_crypto_keyring` source version is `0.11.0`.
 
 ---
 

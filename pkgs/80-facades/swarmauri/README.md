@@ -6,7 +6,7 @@
 <p align="center">Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components.</p>
 <p align="center">
 <a href="https://pypi.org/project/swarmauri/"><img alt="pypi: swarmauri" src="https://img.shields.io/pypi/v/swarmauri?labelColor=1E293B&amp;color=1D4ED8"></a>
-<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/pyproject.toml"><img alt="Source version: 0.11.0.dev12" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0.dev12&amp;labelColor=1E293B&amp;color=4338CA"></a>
+<a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/pyproject.toml"><img alt="Source version: 0.11.0" src="https://img.shields.io/static/v1?label=Source%20version&amp;message=0.11.0&amp;labelColor=1E293B&amp;color=4338CA"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/pyproject.toml"><img alt="Python: &gt;=3.10,&lt;3.15" src="https://img.shields.io/static/v1?label=Python&amp;message=%3E%3D3.10%2C%3C3.15&amp;labelColor=1E293B&amp;color=0F766E"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/pyproject.toml"><img alt="Layer: swarmauri" src="https://img.shields.io/static/v1?label=Layer&amp;message=swarmauri&amp;labelColor=1E293B&amp;color=6D28D9"></a>
 <a href="https://github.com/swarmauri/swarmauri-sdk/blob/master/pkgs/80-facades/swarmauri/README.md#lifecycle-and-migration"><img alt="Lifecycle: active" src="https://img.shields.io/static/v1?label=Lifecycle&amp;message=active&amp;labelColor=1E293B&amp;color=166534"></a>
@@ -431,7 +431,7 @@ Changes to `swarmauri` follow the maintainer review process of [swarmauri/swarma
 
 ### Lifecycle and Migration
 
-The `swarmauri` source version is `0.11.0.dev12`. This change standardizes documentation and adds a development-only gate; it does not publish a new runtime version or declare a previously unpublished package released. Preserve explicit deprecation and replacement instructions where present.
+The `swarmauri` source version is `0.11.0`.
 
 ---
 

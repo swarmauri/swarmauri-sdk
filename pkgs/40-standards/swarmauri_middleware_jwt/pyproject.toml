@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_middleware_jwt"
-version = "0.11.0.dev2"
+version = "0.11.0"
 description = "ASGI Bearer JWT authentication middleware for Swarmauri applications."
 license = "Apache-2.0"
 readme = "README.md"

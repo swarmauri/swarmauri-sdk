@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_s3fs"
-version = "0.11.0.dev4"
+version = "0.11.0"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "s3fs-backed S3 storage adapter for SwarmauriSDK"
 readme = "README.md"
@@ -21,9 +21,9 @@ classifiers = [
 ]
 dependencies = [
     "s3fs",
-    "swarmauri_core<0.12,>=0.11.0.dev8",
-    "swarmauri_base<0.12,>=0.11.0.dev13",
-    "swarmauri_standard<0.12,>=0.11.0.dev13",
+    "swarmauri_core<0.12,>=0.11.0",
+    "swarmauri_base<0.12,>=0.11.0",
+    "swarmauri_standard<0.12,>=0.11.0",
 ]
 keywords = [
     "swarmauri",

@@ -98,7 +98,6 @@ ecosystem = "pypi"
 layer = "20-bases"
 order = 0
 order_reason = "foundation layers are atomic by policy"
-dependencies = ["swarmauri-typing"]
 [packages.metadata.swarmauri]
 family = "bases"
 role = "base-implementation"
