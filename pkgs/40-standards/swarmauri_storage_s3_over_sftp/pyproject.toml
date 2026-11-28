@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_storage_s3_over_sftp"
-version = "0.11.0.dev6"
+version = "0.11.0"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 description = "S3-style Swarmauri storage adapter backed by SFTP"
 readme = "README.md"
@@ -22,9 +22,9 @@ classifiers = [
 dependencies = [
     "paramiko>=3.4,<4.0",
     "pycparser<3",
-    "swarmauri_core<0.12,>=0.11.0.dev8",
-    "swarmauri_base<0.12,>=0.11.0.dev13",
-    "swarmauri_standard<0.12,>=0.11.0.dev13",
+    "swarmauri_core<0.12,>=0.11.0",
+    "swarmauri_base<0.12,>=0.11.0",
+    "swarmauri_standard<0.12,>=0.11.0",
 ]
 keywords = [
     "swarmauri",

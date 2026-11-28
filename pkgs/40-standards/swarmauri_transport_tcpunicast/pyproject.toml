@@ -1,14 +1,14 @@
 [project]
 name = "swarmauri_transport_tcpunicast"
-version = "0.11.0.dev6"
+version = "0.11.0"
 description = "Basic TCP unicast transport for Swarmauri prototyping."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
 dependencies = [
-    "swarmauri-base>=0.11.0.dev5",
-    "swarmauri-core>=0.11.0.dev5",
+    "swarmauri-base>=0.11.0",
+    "swarmauri-core>=0.11.0",
 ]
 keywords = [
     "swarmauri",

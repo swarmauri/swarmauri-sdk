@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri"
-version = "0.11.0.dev12"
+version = "0.11.0"
 description = "Swarmauri namespace microkernel for registry-backed imports, plugin discovery, and composable intelligence infrastructure components."
 keywords = [
     "swarmauri",
@@ -48,9 +48,9 @@ dependencies = [
     "httpx>=0.27,<0.29",
     "pydantic>=2.9.2",
     "typing_extensions",
-    "swarmauri_core>=0.11.0.dev8,<0.12",
-    "swarmauri_base>=0.11.0.dev13,<0.12",
-    "swarmauri_standard>=0.11.0.dev13,<0.12",
+    "swarmauri_core>=0.11.0,<0.12",
+    "swarmauri_base>=0.11.0,<0.12",
+    "swarmauri_standard>=0.11.0,<0.12",
 ]
 license-files = ["LICENSE", "NOTICE"]
 
@@ -113,7 +113,7 @@ llms = [
     "swarmauri_llm_llamacpp",
     "swarmauri_llm_mistral",
     "swarmauri_llm_nvidia_nim",
-    "swarmauri_llm_openai",
+    "swarmauri_llm_openai>=0.11.0,<0.12",
     "swarmauri_llm_perplexity",
     "swarmauri_llm_whisper",
     "swarmauri_llm_xai",

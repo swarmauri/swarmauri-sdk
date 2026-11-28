@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_createfile"
-version = "0.1.0.dev1"
+version = "0.1.0"
 description = "Swarmauri tool for creating a new UTF-8 text file at a path, with optional initial content and a refusal to overwrite."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

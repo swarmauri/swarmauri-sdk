@@ -1,12 +1,12 @@
 [project]
 name = "swarmauri_live_model_gemini"
-version = "0.1.0.dev4"
+version = "0.1.0"
 description = "Gemini Live bidirectional multimodal model adapter for Swarmauri."
 readme = "README.md"
 requires-python = ">=3.10,<3.15"
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 license = "Apache-2.0"
-dependencies = ["swarmauri_core<0.12,>=0.11.0.dev8", "swarmauri_base<0.12,>=0.11.0.dev13", "swarmauri_provider_gemini>=0.1.0.dev4", "swarmauri_transport_websocket>=0.1.0.dev5"]
+dependencies = ["swarmauri_core<0.12,>=0.11.0", "swarmauri_base<0.12,>=0.11.0", "swarmauri_provider_gemini>=0.1.0", "swarmauri_transport_websocket>=0.1.0"]
 classifiers = [
     "Development Status :: 1 - Planning",
     "Programming Language :: Python :: 3.10",

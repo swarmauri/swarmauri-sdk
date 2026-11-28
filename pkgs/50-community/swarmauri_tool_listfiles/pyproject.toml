@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_listfiles"
-version = "0.1.0.dev1"
+version = "0.1.0"
 description = "Swarmauri tool for listing the files and directories directly inside a folder, with optional absolute paths."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]

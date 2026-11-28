@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_queryknowledgebase"
-version = "0.11.0.dev4"
+version = "0.11.0"
 description = "A Swarmauri tool for ranked knowledge-base retrieval with metadata filtering."
 license = "Apache-2.0"
 readme = "README.md"
@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["swarmauri_base<0.12,>=0.11.0.dev13", "swarmauri_standard<0.12,>=0.11.0.dev13"]
+dependencies = ["swarmauri_base<0.12,>=0.11.0", "swarmauri_standard<0.12,>=0.11.0"]
 license-files = ["LICENSE", "NOTICE"]
 
 [tool.uv.sources]

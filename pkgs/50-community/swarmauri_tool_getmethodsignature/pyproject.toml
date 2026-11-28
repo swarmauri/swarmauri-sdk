@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_tool_getmethodsignature"
-version = "0.11.0.dev3"
+version = "0.11.0"
 description = "A tool that retrieves method signatures from Python source code."
 license = "Apache-2.0"
 readme = "README.md"
@@ -26,9 +26,9 @@ classifiers = [
 ]
 authors = [{ name = "Jacob Stewart", email = "jacob@swarmauri.com" }]
 dependencies = [
-    "swarmauri_core>=0.11.0.dev5",
-    "swarmauri_base>=0.11.0.dev5",
-    "swarmauri_standard>=0.11.0.dev6",
+    "swarmauri_core>=0.11.0",
+    "swarmauri_base>=0.11.0",
+    "swarmauri_standard>=0.11.0",
 ]
 keywords = [
     "swarmauri",

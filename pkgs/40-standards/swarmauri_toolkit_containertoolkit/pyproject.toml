@@ -1,6 +1,6 @@
 [project]
 name = "swarmauri_toolkit_containertoolkit"
-version = "0.11.0.dev4"
+version = "0.11.0"
 description = "Toolkit bundling container management tools."
 license = "Apache-2.0"
 readme = "README.md"
@@ -25,12 +25,12 @@ dependencies = [
     "swarmauri_tool_readprocessoutput>=0.1.0,<0.2",
     "swarmauri_tool_writestdin>=0.1.0,<0.2",
     "swarmauri_tool_cancelprocess>=0.1.0,<0.2",
-    "swarmauri_core>=0.11.0.dev6,<0.12",
-    "swarmauri_base>=0.11.0.dev6,<0.12",
-    "swarmauri_standard>=0.11.0.dev8,<0.12",
-    "swarmauri_tool_containernewsession>=0.11.0.dev4,<0.12",
-    "swarmauri_tool_containerfeedchars>=0.11.0.dev4,<0.12",
-    "swarmauri_tool_containermakepr>=0.11.0.dev4,<0.12",
+    "swarmauri_core>=0.11.0,<0.12",
+    "swarmauri_base>=0.11.0,<0.12",
+    "swarmauri_standard>=0.11.0,<0.12",
+    "swarmauri_tool_containernewsession>=0.11.0,<0.12",
+    "swarmauri_tool_containerfeedchars>=0.11.0,<0.12",
+    "swarmauri_tool_containermakepr>=0.11.0,<0.12",
 ]
 keywords = [
     'swarmauri',
